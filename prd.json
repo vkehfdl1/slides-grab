@@ -112,7 +112,7 @@
         "REQ-042 \uacb0\uacfc\ub97c `style-config.md`\ub85c \ucd9c\ub825\ud55c\ub2e4 (\uceec\ub7ec \ud314\ub808\ud2b8, \ud3f0\ud2b8 \uc2dc\uc2a4\ud15c, \ub808\uc774\uc544\uc6c3 \ud328\ud134, \uc2ac\ub77c\uc774\ub4dc \ud0c0\uc785, \uc804\uccb4 \ud1a4 \ud3ec\ud568)"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "html2pptx": "node .claude/skills/pptx-skill/scripts/html2pptx.js",
-    "build-viewer": "node scripts/build-viewer.js"
+    "build-viewer": "node scripts/build-viewer.js",
+    "extract-style": "node scripts/extract-style.js"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.48",
