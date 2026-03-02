@@ -449,8 +449,9 @@
     .composer-actions {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 8px;
+      justify-content: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     .hint {
@@ -462,7 +463,10 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
+      flex: 1 1 auto;
       min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
     }
 
     .model-label {
@@ -473,7 +477,9 @@
     }
 
     .model-select {
-      min-width: 196px;
+      flex: 1 1 180px;
+      min-width: 120px;
+      width: auto;
       height: 30px;
       border-radius: 6px;
       border: 1px solid #3f3f46;
@@ -493,6 +499,7 @@
       background: #2563eb;
       color: #fff;
       min-width: 108px;
+      flex: 0 0 auto;
     }
 
     .btn-send:hover { background: #3b82f6; }
