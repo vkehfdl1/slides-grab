@@ -153,20 +153,20 @@
     }
 
     .slide-toolbox {
-      width: min(100%, 996px);
+      width: min(100%, 1180px);
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 10px;
-      flex-wrap: wrap;
-      padding: 10px 12px;
+      padding: 14px 16px 12px;
       border: 1px solid #293444;
-      border-radius: 12px;
-      background: rgba(15, 21, 29, 0.92);
+      border-radius: 20px;
+      background: rgba(15, 21, 29, 0.94);
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
       position: relative;
       z-index: 20;
       align-self: center;
       flex: 0 0 auto;
+      overflow: visible;
     }
 
     .slide-stage {
@@ -188,17 +188,83 @@
       gap: 6px;
     }
 
+    .tool-separator {
+      width: 1px;
+      height: 34px;
+      flex: 0 0 auto;
+      background: linear-gradient(180deg, rgba(58, 72, 90, 0.1) 0%, rgba(58, 72, 90, 0.8) 48%, rgba(58, 72, 90, 0.1) 100%);
+    }
+
+    .toolbar-section {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toolbar-section[hidden] {
+      display: none !important;
+    }
+
+    .tool-strip {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      min-height: 46px;
+    }
+
+    .bbox-toolbar,
+    .select-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .bbox-toolbar {
+      justify-content: flex-start;
+    }
+
+    .bbox-toolbar[hidden],
+    .select-toolbar[hidden] {
+      display: none !important;
+    }
+
+    .select-toolbar {
+      justify-content: flex-start;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .toolbar-divider {
+      width: 1px;
+      height: 34px;
+      flex: 0 0 auto;
+      background: linear-gradient(180deg, rgba(58, 72, 90, 0.1) 0%, rgba(58, 72, 90, 0.8) 48%, rgba(58, 72, 90, 0.1) 100%);
+    }
+
     .tool-mode-btn {
       border: 1px solid #2c3847;
       background: #18212c;
       color: #d6e1ec;
-      border-radius: 8px;
-      height: 32px;
-      padding: 0 10px;
+      border-radius: 12px;
+      height: 46px;
+      padding: 0 16px;
       font-size: 12px;
       font-family: var(--mono);
+      font-weight: 700;
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
     }
 
     .tool-mode-btn:hover {
@@ -209,6 +275,66 @@
       border-color: #3963a4;
       background: #1d3355;
       color: #e8f0fb;
+    }
+
+    .tool-icon-btn {
+      border: 1px solid #2c3847;
+      background: #141c26;
+      color: #d9e5f3;
+      border-radius: 12px;
+      min-width: 46px;
+      height: 46px;
+      padding: 0 12px;
+      font-size: 14px;
+      font-family: var(--mono);
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, opacity 0.15s;
+      flex: 0 0 auto;
+    }
+
+    .tool-icon-btn:hover {
+      background: #1b2430;
+    }
+
+    .tool-icon-btn.active {
+      border-color: #3b82f6;
+      background: #18365d;
+      color: #eff6ff;
+    }
+
+    .tool-icon-btn:disabled {
+      opacity: 0.42;
+      cursor: default;
+      color: #8392a5;
+      background: #121922;
+    }
+
+    .tool-icon-btn:disabled:hover {
+      background: #121922;
+    }
+
+    .tool-icon-btn.tight {
+      min-width: 42px;
+      width: 42px;
+      padding: 0;
+    }
+
+    .tool-icon {
+      width: 16px;
+      height: 16px;
+      display: block;
+      stroke: currentColor;
+      stroke-width: 1.8;
+      fill: none;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex: 0 0 auto;
+    }
+
+    .tool-mode-btn .tool-icon {
+      width: 15px;
+      height: 15px;
     }
 
     .selected-object-chip {
@@ -719,8 +845,14 @@
       color: var(--text-2);
       font-size: 11px;
       font-weight: 700;
-      margin-left: auto;
       font-family: var(--mono);
+      flex: 0 0 auto;
+      min-width: 128px;
+    }
+
+    .prompt-shell {
+      flex: 1;
+      min-width: 220px;
     }
 
     .context-chips {
@@ -784,19 +916,17 @@
     }
 
     .prompt-input {
-      width: 100%;
-      min-height: 84px;
-      max-height: 200px;
-      resize: vertical;
-      border-radius: 8px;
+      flex: 1;
+      min-width: 220px;
+      height: 46px;
+      border-radius: 12px;
       border: 1px solid #2e3948;
       background: #0f141a;
       color: #e6edf3;
       font-size: 13px;
       font-family: var(--sans);
-      line-height: 1.45;
-      padding: 10px;
-      padding-bottom: 50px;
+      line-height: 1;
+      padding: 0 14px;
       outline: none;
     }
 
@@ -814,25 +944,11 @@
       font-family: var(--mono);
     }
 
-    .prompt-shell {
-      position: relative;
-      width: 100%;
-    }
-
-    .prompt-toolbar {
-      position: absolute;
-      right: 10px;
-      bottom: 10px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
     .model-select {
       min-width: 176px;
       width: 176px;
-      height: 32px;
-      border-radius: 8px;
+      height: 46px;
+      border-radius: 12px;
       border: 1px solid #2f3b4a;
       background: #111722;
       color: #e6edf3;
@@ -849,12 +965,12 @@
     .btn-send {
       background: linear-gradient(180deg, #2754a7 0%, #1d3f84 100%);
       color: #dce7f6;
-      min-width: 32px;
-      width: 32px;
-      height: 32px;
+      min-width: 46px;
+      width: 46px;
+      height: 46px;
       padding: 0;
       border: 1px solid #304f85;
-      border-radius: 9px;
+      border-radius: 12px;
     }
 
     .btn-send:hover { background: linear-gradient(180deg, #2d63c8 0%, #224a99 100%); }
@@ -865,6 +981,106 @@
       display: block;
       fill: currentColor;
       transform: translateX(0.5px);
+    }
+
+    .tool-popovers {
+      position: absolute;
+      inset: calc(100% + 10px) 0 auto 0;
+      z-index: 30;
+      pointer-events: none;
+      min-height: 0;
+    }
+
+    .editor-popover {
+      position: absolute;
+      top: 0;
+      width: 248px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid #2f3b4a;
+      background: rgba(15, 21, 29, 0.98);
+      box-shadow: 0 18px 34px rgba(0, 0, 0, 0.34);
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .editor-popover[hidden] {
+      display: none !important;
+    }
+
+    .popover-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .popover-label {
+      color: #dbe6f3;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .popover-input,
+    .popover-number,
+    .popover-color {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid #2f3b4a;
+      background: #111722;
+      color: #e6edf3;
+      font-size: 13px;
+      font-family: var(--sans);
+      outline: none;
+    }
+
+    .popover-input,
+    .popover-number {
+      height: 42px;
+      padding: 0 12px;
+    }
+
+    .popover-color {
+      height: 44px;
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    .popover-input:focus,
+    .popover-number:focus {
+      border-color: #4f6d8f;
+    }
+
+    .popover-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .popover-apply-btn {
+      border: 1px solid #3b82f6;
+      background: #18365d;
+      color: #eff6ff;
+      border-radius: 10px;
+      height: 34px;
+      padding: 0 12px;
+      font-size: 12px;
+      font-family: var(--mono);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .hint {
+      min-height: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     .runs-section {
@@ -1011,30 +1227,17 @@
     }
 
     @media (max-width: 1380px) {
-      .sidebar {
-        width: 390px;
-        min-width: 300px;
-      }
       .slide-toolbox {
-        justify-content: flex-start;
-      }
-      .selected-object-chip {
-        max-width: 100%;
-      }
-      .tool-row {
-        flex-wrap: wrap;
-      }
-      .prompt-toolbar {
-        position: static;
-        margin-top: 8px;
+        width: calc(100% - 8px);
+        padding: 12px;
+        gap: 10px;
       }
       .model-select {
         min-width: 138px;
         width: 138px;
       }
       .prompt-input {
-        min-height: 78px;
-        padding-bottom: 10px;
+        min-width: 160px;
       }
     }
   </style>
@@ -1055,40 +1258,102 @@
     <div class="main-content">
       <div class="slide-panel" id="slide-panel">
         <div class="slide-toolbox" id="slide-toolbox">
-          <div class="tool-mode-group">
-            <button type="button" class="tool-mode-btn active" id="tool-mode-draw" aria-pressed="true">Draw Boxes</button>
-            <button type="button" class="tool-mode-btn" id="tool-mode-select" aria-pressed="false">Select Object</button>
-          </div>
-          <div class="selected-object-chip empty" id="selected-object-chip">No object selected</div>
-          <div class="direct-edit-controls" id="direct-edit-controls" hidden>
-            <label class="direct-edit-group" for="object-text-input">
-              <span class="direct-edit-label">Text</span>
-              <input id="object-text-input" class="direct-input direct-text-input" type="text" placeholder="Selected text">
-            </label>
-            <label class="direct-edit-group" for="object-text-color">
-              <span class="direct-edit-label">Text</span>
-              <input id="object-text-color" class="direct-color" type="color" value="#111111" title="Text color">
-            </label>
-            <label class="direct-edit-group" for="object-bg-color">
-              <span class="direct-edit-label">Bg</span>
-              <input id="object-bg-color" class="direct-color" type="color" value="#ffffff" title="Background color">
-            </label>
-            <label class="direct-edit-group" for="object-font-size">
-              <span class="direct-edit-label">Size</span>
-              <input id="object-font-size" class="direct-number" type="number" min="8" max="180" step="1" value="24">
-            </label>
-            <div class="direct-toggle-group">
-              <button type="button" class="tool-mode-btn style-toggle" id="toggle-bold" title="Bold">B</button>
-              <button type="button" class="tool-mode-btn style-toggle" id="toggle-italic" title="Italic">I</button>
-              <button type="button" class="tool-mode-btn style-toggle" id="toggle-underline" title="Underline">U</button>
-              <button type="button" class="tool-mode-btn style-toggle" id="toggle-strike" title="Strikethrough">S</button>
+          <div class="tool-strip" id="tool-strip">
+            <div class="tool-mode-group">
+              <button type="button" class="tool-mode-btn active" id="tool-mode-draw" aria-pressed="true" title="BBox mode">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 5h14v14H5zM9 5v14M15 5v14M5 9h14M5 15h14"/>
+                </svg>
+                <span>BBox</span>
+              </button>
+              <button type="button" class="tool-mode-btn" id="tool-mode-select" aria-pressed="false" title="Select object mode">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m6 4 11 8-5 1.2L14.6 20l-2.5 1-2.6-6.8L6 15z"/>
+                </svg>
+                <span>Select</span>
+              </button>
             </div>
-            <div class="direct-align-group">
-              <button type="button" class="tool-mode-btn align-btn" id="align-left" title="Align left">L</button>
-              <button type="button" class="tool-mode-btn align-btn" id="align-center" title="Align center">C</button>
-              <button type="button" class="tool-mode-btn align-btn" id="align-right" title="Align right">R</button>
+            <div class="toolbar-divider" aria-hidden="true"></div>
+            <div class="bbox-toolbar" id="bbox-toolbar">
+              <span class="bbox-count" id="bbox-count">0 pending · 0 review</span>
+              <div class="prompt-shell">
+                <input id="prompt-input" class="prompt-input" type="text" placeholder="Describe the edit for the selected red bbox">
+              </div>
+              <select id="model-select" class="model-select">
+                <option value="gpt-5.3-codex">gpt-5.3-codex</option>
+                <option value="gpt-5.3-codex-spark">gpt-5.3-codex-spark</option>
+              </select>
+              <button class="btn btn-send" id="btn-send" title="Run Codex" aria-label="Run Codex">
+                <svg class="btn-send-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M3.4 11.2 19.6 4.4c.8-.3 1.7.5 1.4 1.4l-6.8 16.2c-.3.8-1.4.9-1.9.1L9.2 16l-6.1-3.1c-.8-.5-.7-1.6.3-1.7Zm5.1 3.6 3.2 1.6 4.9-11.7-11.7 4.9 3.6 1.8 6.2-3.7c.4-.2.8.1.6.6l-6.8 6.5Z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="select-toolbar" id="select-toolbar" hidden>
+              <button type="button" class="tool-icon-btn" id="select-action-text" title="Edit text">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 6h14M12 6v12M8 18h8"/>
+                </svg>
+              </button>
+              <button type="button" class="tool-icon-btn" id="select-action-text-color" title="Text color">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="m9 15 3-9 3 9M10.5 11h3"/>
+                  <path d="M6 19h12"/>
+                </svg>
+              </button>
+              <button type="button" class="tool-icon-btn" id="select-action-bg-color" title="Background color">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M5 7h14v10H5z"/>
+                  <path d="M7 17h10"/>
+                </svg>
+              </button>
+              <button type="button" class="tool-icon-btn" id="select-action-size" title="Font size">
+                <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M7 18 12 6l5 12M9.5 12h5"/>
+                </svg>
+              </button>
+              <div class="toolbar-divider" aria-hidden="true"></div>
+              <button type="button" class="tool-icon-btn style-toggle" id="toggle-bold" title="Bold">B</button>
+              <button type="button" class="tool-icon-btn style-toggle" id="toggle-italic" title="Italic">I</button>
+              <button type="button" class="tool-icon-btn style-toggle" id="toggle-underline" title="Underline">U</button>
+              <button type="button" class="tool-icon-btn style-toggle" id="toggle-strike" title="Strikethrough">S</button>
+              <div class="toolbar-divider" aria-hidden="true"></div>
+              <button type="button" class="tool-icon-btn align-btn" id="align-left" title="Align left">L</button>
+              <button type="button" class="tool-icon-btn align-btn" id="align-center" title="Align center">C</button>
+              <button type="button" class="tool-icon-btn align-btn" id="align-right" title="Align right">R</button>
             </div>
           </div>
+          <div class="tool-popover-layer" id="tool-popover-layer">
+            <section class="toolbar-popover" id="editor-popover-text" hidden>
+              <label class="popover-field" for="popover-text-input">
+                <span class="popover-label">Text</span>
+                <input id="popover-text-input" class="popover-input" type="text" placeholder="Edit selected text">
+              </label>
+              <button type="button" class="popover-apply-btn" id="popover-apply-text">Apply</button>
+            </section>
+            <section class="toolbar-popover" id="editor-popover-size" hidden>
+              <label class="popover-field" for="popover-size-input">
+                <span class="popover-label">Size</span>
+                <input id="popover-size-input" class="popover-input popover-number" type="number" min="8" max="180" step="1" value="24">
+              </label>
+              <button type="button" class="popover-apply-btn" id="popover-apply-size">Apply</button>
+            </section>
+            <section class="toolbar-popover" id="editor-popover-text-color" hidden>
+              <label class="popover-field" for="popover-text-color-input">
+                <span class="popover-label">Text color</span>
+                <input id="popover-text-color-input" class="popover-color" type="color" value="#111111">
+              </label>
+              <button type="button" class="popover-apply-btn" id="popover-apply-text-color">Apply</button>
+            </section>
+            <section class="toolbar-popover" id="editor-popover-bg-color" hidden>
+              <label class="popover-field" for="popover-bg-color-input">
+                <span class="popover-label">Background</span>
+                <input id="popover-bg-color-input" class="popover-color" type="color" value="#ffffff">
+              </label>
+              <button type="button" class="popover-apply-btn" id="popover-apply-bg-color">Apply</button>
+            </section>
+          </div>
+          <div class="hint" id="editor-hint">Drag on the slide to add red pending bboxes. Press Enter to run.</div>
         </div>
         <div class="slide-stage" id="slide-stage">
           <div class="slide-wrapper" id="slide-wrapper">
@@ -1105,48 +1370,6 @@
           </div>
         </div>
       </div>
-
-      <aside class="sidebar">
-        <section class="chat-section">
-          <div class="chat-header">
-            <div class="header-tabs">
-              <span class="header-tab active">CHAT</span>
-            </div>
-            <button class="btn-toggle-logs" id="btn-toggle-logs" title="Toggle execution records">LOGS</button>
-          </div>
-          <div class="session-strip">
-            <span class="session-file-chip" id="session-file-chip">--</span>
-          </div>
-          <div class="chat-messages" id="chat-messages"></div>
-
-          <div class="composer">
-            <div class="tool-row">
-              <div class="context-chips" id="context-chip-list"></div>
-              <span class="bbox-count" id="bbox-count">0 pending · 0 review</span>
-            </div>
-            <div class="hint" id="editor-hint">Drag on the slide to add red pending bboxes. Cmd/Ctrl+Enter to run.</div>
-            <div class="prompt-shell">
-              <textarea id="prompt-input" class="prompt-input" placeholder="Describe the edit for this slide..."></textarea>
-              <div class="prompt-toolbar">
-                <select id="model-select" class="model-select">
-                  <option value="gpt-5.3-codex">gpt-5.3-codex</option>
-                  <option value="gpt-5.3-codex-spark">gpt-5.3-codex-spark</option>
-                </select>
-                <button class="btn btn-send" id="btn-send" title="Run Codex" aria-label="Run Codex">
-                  <svg class="btn-send-icon" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M3.4 11.2 19.6 4.4c.8-.3 1.7.5 1.4 1.4l-6.8 16.2c-.3.8-1.4.9-1.9.1L9.2 16l-6.1-3.1c-.8-.5-.7-1.6.3-1.7Zm5.1 3.6 3.2 1.6 4.9-11.7-11.7 4.9 3.6 1.8 6.2-3.7c.4-.2.8.1.6.6l-6.8 6.5Z"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="runs-section collapsed" id="runs-section">
-          <div class="section-label">Execution Records</div>
-          <div class="runs-list" id="runs-list"></div>
-        </section>
-      </aside>
     </div>
 
     <div class="status-bar">
@@ -1166,20 +1389,20 @@
     let currentIndex = 0;
     let drawStart = null;
     let drawing = false;
-    let logsVisible = false;
-
     const slideStates = new Map();
     const activeRunBySlide = new Map();
     const pendingRequestBySlide = new Set();
 
     const runsById = new Map();
-    const runLogsById = new Map();
-    let expandedRunId = null;
 
     const SLIDE_W = 960;
     const SLIDE_H = 540;
     const TOOL_MODE_DRAW = 'draw';
     const TOOL_MODE_SELECT = 'select';
+    const POPOVER_TEXT = 'text';
+    const POPOVER_TEXT_COLOR = 'text-color';
+    const POPOVER_BG_COLOR = 'bg-color';
+    const POPOVER_SIZE = 'size';
     const DEFAULT_MODELS = ['gpt-5.3-codex', 'gpt-5.3-codex-spark'];
     const DIRECT_TEXT_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li']);
     const NON_SELECTABLE_TAGS = new Set(['html', 'head', 'body', 'script', 'style', 'link', 'meta', 'noscript']);
@@ -1187,8 +1410,8 @@
     let defaultModel = DEFAULT_MODELS[0];
     let selectedModel = defaultModel;
     let toolMode = TOOL_MODE_DRAW;
+    let openPopover = '';
     let hoveredObjectXPath = '';
-    let syncingDirectControls = false;
 
     const directSaveStateBySlide = new Map();
     const localFileUpdateBySlide = new Map();
@@ -1215,12 +1438,12 @@
     const drawBox = $('#draw-box');
     const toolModeDrawBtn = $('#tool-mode-draw');
     const toolModeSelectBtn = $('#tool-mode-select');
-    const selectedObjectChip = $('#selected-object-chip');
-    const directEditControls = $('#direct-edit-controls');
-    const objectTextInput = $('#object-text-input');
-    const objectTextColor = $('#object-text-color');
-    const objectBgColor = $('#object-bg-color');
-    const objectFontSize = $('#object-font-size');
+    const bboxToolbar = $('#bbox-toolbar');
+    const selectToolbar = $('#select-toolbar');
+    const selectActionText = $('#select-action-text');
+    const selectActionTextColor = $('#select-action-text-color');
+    const selectActionBgColor = $('#select-action-bg-color');
+    const selectActionSize = $('#select-action-size');
     const toggleBold = $('#toggle-bold');
     const toggleItalic = $('#toggle-italic');
     const toggleUnderline = $('#toggle-underline');
@@ -1228,6 +1451,19 @@
     const alignLeft = $('#align-left');
     const alignCenter = $('#align-center');
     const alignRight = $('#align-right');
+    const toolPopoverLayer = $('#tool-popover-layer');
+    const popoverText = $('#editor-popover-text');
+    const popoverTextInput = $('#popover-text-input');
+    const popoverApplyText = $('#popover-apply-text');
+    const popoverTextColor = $('#editor-popover-text-color');
+    const popoverTextColorInput = $('#popover-text-color-input');
+    const popoverApplyTextColor = $('#popover-apply-text-color');
+    const popoverBgColor = $('#editor-popover-bg-color');
+    const popoverBgColorInput = $('#popover-bg-color-input');
+    const popoverApplyBgColor = $('#popover-apply-bg-color');
+    const popoverSize = $('#editor-popover-size');
+    const popoverSizeInput = $('#popover-size-input');
+    const popoverApplySize = $('#popover-apply-size');
 
     const chatMessagesEl = $('#chat-messages');
     const sessionFileChip = $('#session-file-chip');
@@ -1237,11 +1473,7 @@
     const btnClearBboxes = $('#btn-clear-bboxes');
     const bboxCountEl = $('#bbox-count');
     const btnSend = $('#btn-send');
-    const btnToggleLogs = $('#btn-toggle-logs');
     const editorHint = $('#editor-hint');
-
-    const runsSection = $('#runs-section');
-    const runsListEl = $('#runs-list');
 
     const statusDot = $('#status-dot');
     const statusConn = $('#status-connection');
@@ -1437,6 +1669,7 @@
     }
 
     function renderChatMessages() {
+      if (!chatMessagesEl) return;
       const slide = currentSlideFile();
       if (!slide) {
         chatMessagesEl.innerHTML = '';
@@ -1465,81 +1698,7 @@
       chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
     }
 
-    function setLogsVisible(visible) {
-      logsVisible = Boolean(visible);
-      runsSection.classList.toggle('collapsed', !logsVisible);
-      btnToggleLogs.classList.toggle('active', logsVisible);
-      btnToggleLogs.textContent = logsVisible ? 'LOGS ON' : 'LOGS';
-    }
-
-    async function toggleRunLog(runId) {
-      if (expandedRunId === runId) {
-        expandedRunId = null;
-        renderRunsList();
-        return;
-      }
-
-      expandedRunId = runId;
-
-      if (!runLogsById.has(runId)) {
-        try {
-          const res = await fetch(`/api/runs/${encodeURIComponent(runId)}/log`);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const text = await res.text();
-          runLogsById.set(runId, text || '(empty log)');
-        } catch (error) {
-          runLogsById.set(runId, `Failed to load log: ${error.message}`);
-        }
-      }
-
-      renderRunsList();
-    }
-
-    function renderRunsList() {
-      const runs = Array.from(runsById.values())
-        .sort((a, b) => String(b.startedAt).localeCompare(String(a.startedAt)))
-        .slice(0, 60);
-
-      if (runs.length === 0) {
-        runsListEl.innerHTML = '<div class="run-meta">No runs yet.</div>';
-        return;
-      }
-
-      runsListEl.innerHTML = runs
-        .map((run) => {
-          const statusClass = run.status || 'idle';
-          const isExpanded = expandedRunId === run.runId;
-          const logText = isExpanded
-            ? escapeHtml(runLogsById.get(run.runId) || run.logPreview || '(no log)')
-            : '';
-
-          return [
-            `<div class="run-item">`,
-            `<div class="run-item-head">`,
-            `<span class="run-dot ${statusClass}"></span>`,
-            `<span class="run-slide">${escapeHtml(run.slide)}</span>`,
-            `</div>`,
-            `<div class="run-meta">${escapeHtml(run.status || 'idle')} | ${formatTime(run.startedAt)}</div>`,
-            `<div class="run-meta">model: ${escapeHtml(run.model || '-')}</div>`,
-            `<div class="run-meta">${escapeHtml(run.message || '')}</div>`,
-            `<div class="run-actions">`,
-            `<span class="run-meta">runId: ${escapeHtml(run.runId)}</span>`,
-            `<button class="btn btn-log" data-run-log-btn="${escapeHtml(run.runId)}">${isExpanded ? 'Hide Log' : 'View Log'}</button>`,
-            `</div>`,
-            isExpanded ? `<div class="run-log">${logText}</div>` : '',
-            `</div>`,
-          ].join('');
-        })
-        .join('');
-    }
-
-    runsListEl.addEventListener('click', async (event) => {
-      const button = event.target.closest('[data-run-log-btn]');
-      if (!button) return;
-      const runId = button.getAttribute('data-run-log-btn');
-      if (!runId) return;
-      await toggleRunLog(runId);
-    });
+    function renderRunsList() {}
 
     // -------------------------------------------------------------------------
     // Slide & bbox rendering
@@ -1591,14 +1750,15 @@
     }
 
     function renderContextChips() {
+      if (!contextChipList) return;
       const slide = currentSlideFile();
       if (!slide) {
         contextChipList.innerHTML = '';
-        sessionFileChip.textContent = '--';
+        if (sessionFileChip) sessionFileChip.textContent = '--';
         return;
       }
 
-      sessionFileChip.textContent = slide;
+      if (sessionFileChip) sessionFileChip.textContent = slide;
 
       const state = getSlideState(slide);
       if (!Array.isArray(state.boxes) || state.boxes.length === 0) {
@@ -1757,22 +1917,24 @@
       renderBboxes();
     });
 
-    contextChipList.addEventListener('click', (event) => {
-      const chip = event.target.closest('[data-chip-box-id]');
-      if (!chip) return;
+    if (contextChipList) {
+      contextChipList.addEventListener('click', (event) => {
+        const chip = event.target.closest('[data-chip-box-id]');
+        if (!chip) return;
 
-      const slide = currentSlideFile();
-      if (!slide) return;
+        const slide = currentSlideFile();
+        if (!slide) return;
 
-      const boxId = chip.getAttribute('data-chip-box-id');
-      const state = getSlideState(slide);
-      const boxExists = state.boxes.some((box) => box.id === boxId);
-      if (!boxExists) return;
+        const boxId = chip.getAttribute('data-chip-box-id');
+        const state = getSlideState(slide);
+        const boxExists = state.boxes.some((box) => box.id === boxId);
+        if (!boxExists) return;
 
-      state.selectedBoxId = boxId;
-      renderBboxes();
-      setStatus(`Selected ${slide} region.`);
-    });
+        state.selectedBoxId = boxId;
+        renderBboxes();
+        setStatus(`Selected ${slide} region.`);
+      });
+    }
 
     // -------------------------------------------------------------------------
     // XPath extraction
@@ -1936,13 +2098,6 @@
       node.style.height = `${rect.height}px`;
     }
 
-    function getSelectedObjectSummary(el) {
-      if (!isElementNode(el)) return 'No object selected';
-      const tag = el.tagName.toLowerCase();
-      const text = (el.textContent || '').replace(/\s+/g, ' ').trim();
-      return `${tag} · ${text || '(no text)'}`.slice(0, 72);
-    }
-
     function readSelectedObjectStyleState(el) {
       const frameWindow = slideIframe.contentWindow;
       const styles = frameWindow?.getComputedStyle ? frameWindow.getComputedStyle(el) : null;
@@ -1962,61 +2117,175 @@
     }
 
     function setToggleActive(button, active) {
+      if (!button) return;
       button.classList.toggle('active', Boolean(active));
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     }
 
-    function updateSelectedObjectChip(text, empty = false) {
-      selectedObjectChip.textContent = text;
-      selectedObjectChip.classList.toggle('empty', empty);
+    function setControlEnabled(button, enabled) {
+      if (!button) return;
+      button.disabled = !enabled;
+      button.setAttribute('aria-disabled', enabled ? 'false' : 'true');
     }
 
-    function updateObjectEditorControls({ preserveTextInput = false } = {}) {
-      const wasHidden = directEditControls.hidden;
-      const selected = toolMode === TOOL_MODE_SELECT ? getSelectedObjectElement() : null;
-      directEditControls.hidden = !selected;
+    function getSelectedObjectCapabilities(el) {
+      const textEditable = isTextEditableElement(el);
+      return {
+        textEditable,
+        textColorEditable: textEditable,
+        backgroundEditable: isElementNode(el),
+        sizeEditable: textEditable,
+        emphasisEditable: textEditable,
+        alignEditable: textEditable,
+      };
+    }
 
-      if (!selected) {
-        updateSelectedObjectChip('No object selected', true);
-        objectTextInput.value = '';
-        objectTextInput.disabled = true;
-        objectFontSize.value = '24';
-        objectTextColor.value = '#111111';
-        objectBgColor.value = '#ffffff';
-        setToggleActive(toggleBold, false);
-        setToggleActive(toggleItalic, false);
-        setToggleActive(toggleUnderline, false);
-        setToggleActive(toggleStrike, false);
-        setToggleActive(alignLeft, false);
-        setToggleActive(alignCenter, false);
-        setToggleActive(alignRight, false);
+    function getPopoverElement(popoverId) {
+      if (popoverId === POPOVER_TEXT) return popoverText;
+      if (popoverId === POPOVER_TEXT_COLOR) return popoverTextColor;
+      if (popoverId === POPOVER_BG_COLOR) return popoverBgColor;
+      if (popoverId === POPOVER_SIZE) return popoverSize;
+      return null;
+    }
+
+    function getPopoverTrigger(popoverId) {
+      if (popoverId === POPOVER_TEXT) return selectActionText;
+      if (popoverId === POPOVER_TEXT_COLOR) return selectActionTextColor;
+      if (popoverId === POPOVER_BG_COLOR) return selectActionBgColor;
+      if (popoverId === POPOVER_SIZE) return selectActionSize;
+      return null;
+    }
+
+    function syncPopoverInputs(snapshot) {
+      popoverTextInput.value = snapshot?.textValue || '';
+      popoverTextColorInput.value = snapshot?.textColor || '#111111';
+      popoverBgColorInput.value = snapshot?.backgroundColor || '#ffffff';
+      popoverSizeInput.value = String(snapshot?.fontSize || 24);
+    }
+
+    function hidePopover() {
+      openPopover = '';
+      [popoverText, popoverTextColor, popoverBgColor, popoverSize].forEach((popover) => {
+        if (!popover) return;
+        popover.hidden = true;
+      });
+      setToggleActive(selectActionText, false);
+      setToggleActive(selectActionTextColor, false);
+      setToggleActive(selectActionBgColor, false);
+      setToggleActive(selectActionSize, false);
+    }
+
+    function positionPopover(popover, trigger) {
+      if (!popover || !trigger || !toolPopoverLayer) return;
+      const layerRect = toolPopoverLayer.getBoundingClientRect();
+      const triggerRect = trigger.getBoundingClientRect();
+      popover.hidden = false;
+      popover.style.visibility = 'hidden';
+      popover.style.left = '0px';
+      popover.style.top = '0px';
+
+      const popRect = popover.getBoundingClientRect();
+      const maxLeft = Math.max(12, layerRect.width - popRect.width - 12);
+      const left = clamp(
+        Math.round(triggerRect.left - layerRect.left + (triggerRect.width - popRect.width) / 2),
+        12,
+        maxLeft,
+      );
+      const top = Math.max(8, Math.round(triggerRect.bottom - layerRect.top + 10));
+
+      popover.style.left = `${left}px`;
+      popover.style.top = `${top}px`;
+      popover.style.visibility = '';
+    }
+
+    function togglePopover(popoverId) {
+      const selected = toolMode === TOOL_MODE_SELECT ? getSelectedObjectElement() : null;
+      const capabilities = getSelectedObjectCapabilities(selected);
+      const enabled = (
+        (popoverId === POPOVER_TEXT && capabilities.textEditable)
+        || (popoverId === POPOVER_TEXT_COLOR && capabilities.textColorEditable)
+        || (popoverId === POPOVER_BG_COLOR && capabilities.backgroundEditable)
+        || (popoverId === POPOVER_SIZE && capabilities.sizeEditable)
+      );
+
+      if (!enabled) return;
+      if (openPopover === popoverId) {
+        hidePopover();
         return;
       }
 
-      const snapshot = readSelectedObjectStyleState(selected);
-      syncingDirectControls = true;
-      try {
-        updateSelectedObjectChip(getSelectedObjectSummary(selected), false);
-        objectTextInput.disabled = !snapshot.textEditable;
-        if (!preserveTextInput || document.activeElement !== objectTextInput) {
-          objectTextInput.value = snapshot.textEditable ? snapshot.textValue : '';
-        }
-        objectTextColor.value = snapshot.textColor;
-        objectBgColor.value = snapshot.backgroundColor;
-        objectFontSize.value = String(snapshot.fontSize);
-        setToggleActive(toggleBold, snapshot.bold);
-        setToggleActive(toggleItalic, snapshot.italic);
-        setToggleActive(toggleUnderline, snapshot.underline);
-        setToggleActive(toggleStrike, snapshot.strike);
-        setToggleActive(alignLeft, snapshot.textAlign === 'left' || snapshot.textAlign === 'start');
-        setToggleActive(alignCenter, snapshot.textAlign === 'center');
-        setToggleActive(alignRight, snapshot.textAlign === 'right' || snapshot.textAlign === 'end');
-      } finally {
-        syncingDirectControls = false;
+      const snapshot = selected ? readSelectedObjectStyleState(selected) : null;
+      syncPopoverInputs(snapshot);
+      hidePopover();
+      openPopover = popoverId;
+
+      const popover = getPopoverElement(popoverId);
+      const trigger = getPopoverTrigger(popoverId);
+      if (!popover || !trigger) return;
+
+      positionPopover(popover, trigger);
+      setToggleActive(trigger, true);
+      if (popoverId === POPOVER_TEXT) {
+        popoverTextInput.focus();
+        popoverTextInput.select();
+      } else if (popoverId === POPOVER_TEXT_COLOR) {
+        popoverTextColorInput.focus();
+      } else if (popoverId === POPOVER_BG_COLOR) {
+        popoverBgColorInput.focus();
+      } else if (popoverId === POPOVER_SIZE) {
+        popoverSizeInput.focus();
+        popoverSizeInput.select();
+      }
+    }
+
+    function updateObjectEditorControls() {
+      const selected = toolMode === TOOL_MODE_SELECT ? getSelectedObjectElement() : null;
+      const snapshot = selected ? readSelectedObjectStyleState(selected) : null;
+      const capabilities = getSelectedObjectCapabilities(selected);
+
+      if (bboxToolbar) {
+        bboxToolbar.hidden = toolMode !== TOOL_MODE_DRAW;
+      }
+      if (selectToolbar) {
+        selectToolbar.hidden = toolMode !== TOOL_MODE_SELECT;
       }
 
-      if (wasHidden !== directEditControls.hidden) {
-        scaleSlide();
+      setControlEnabled(selectActionText, capabilities.textEditable);
+      setControlEnabled(selectActionTextColor, capabilities.textColorEditable);
+      setControlEnabled(selectActionBgColor, capabilities.backgroundEditable);
+      setControlEnabled(selectActionSize, capabilities.sizeEditable);
+      setControlEnabled(toggleBold, capabilities.emphasisEditable);
+      setControlEnabled(toggleItalic, capabilities.emphasisEditable);
+      setControlEnabled(toggleUnderline, capabilities.emphasisEditable);
+      setControlEnabled(toggleStrike, capabilities.emphasisEditable);
+      setControlEnabled(alignLeft, capabilities.alignEditable);
+      setControlEnabled(alignCenter, capabilities.alignEditable);
+      setControlEnabled(alignRight, capabilities.alignEditable);
+
+      setToggleActive(toggleBold, capabilities.emphasisEditable && snapshot?.bold);
+      setToggleActive(toggleItalic, capabilities.emphasisEditable && snapshot?.italic);
+      setToggleActive(toggleUnderline, capabilities.emphasisEditable && snapshot?.underline);
+      setToggleActive(toggleStrike, capabilities.emphasisEditable && snapshot?.strike);
+      setToggleActive(alignLeft, capabilities.alignEditable && (snapshot?.textAlign === 'left' || snapshot?.textAlign === 'start'));
+      setToggleActive(alignCenter, capabilities.alignEditable && snapshot?.textAlign === 'center');
+      setToggleActive(alignRight, capabilities.alignEditable && (snapshot?.textAlign === 'right' || snapshot?.textAlign === 'end'));
+
+      if (!selected) {
+        syncPopoverInputs(null);
+        hidePopover();
+        return;
+      }
+
+      syncPopoverInputs(snapshot);
+      if (openPopover) {
+        const popover = getPopoverElement(openPopover);
+        const trigger = getPopoverTrigger(openPopover);
+        if (popover && trigger && !trigger.disabled) {
+          positionPopover(popover, trigger);
+          setToggleActive(trigger, true);
+        } else {
+          hidePopover();
+        }
       }
     }
 
@@ -2041,8 +2310,9 @@
       toolModeDrawBtn.setAttribute('aria-pressed', isDraw ? 'true' : 'false');
       toolModeSelectBtn.setAttribute('aria-pressed', !isDraw ? 'true' : 'false');
       editorHint.textContent = isDraw
-        ? 'Drag on the slide to add red pending bboxes. Cmd/Ctrl+Enter to run.'
-        : 'Click a slide object to edit its text and styles immediately.';
+        ? 'Drag on the slide to add red pending bboxes. Press Enter or Cmd/Ctrl+Enter to run.'
+        : 'Click a slide object, then use the icon toolbar to edit text and style.';
+      hidePopover();
       renderBboxes();
       renderObjectSelection();
       updateObjectEditorControls();
@@ -2056,6 +2326,9 @@
       drawBox.style.display = 'none';
       if (toolMode !== TOOL_MODE_SELECT) {
         hoveredObjectXPath = '';
+      }
+      if (toolMode !== TOOL_MODE_SELECT) {
+        hidePopover();
       }
       updateToolModeUI();
       setStatus(toolMode === TOOL_MODE_SELECT ? 'Select mode enabled.' : 'BBox draw mode enabled.');
@@ -2363,7 +2636,7 @@
       currentIndex = index;
       const slide = currentSlideFile();
       slideIframe.src = `/slides/${slide}`;
-      sessionFileChip.textContent = slide;
+      if (sessionFileChip) sessionFileChip.textContent = slide;
       slideCounter.textContent = `${currentIndex + 1} / ${slides.length}`;
       btnPrev.disabled = currentIndex === 0;
       btnNext.disabled = currentIndex === slides.length - 1;
@@ -2412,7 +2685,6 @@
           runsById.clear();
           for (const run of payload.runs || []) {
             upsertRun(run);
-            if (run.logPreview) runLogsById.set(run.runId, run.logPreview);
           }
 
           activeRunBySlide.clear();
@@ -2456,19 +2728,10 @@
         try {
           const payload = JSON.parse(event.data);
           if (!payload.runId) return;
-
-          const existing = runLogsById.get(payload.runId) || '';
-          const merged = (existing + (payload.chunk || '')).slice(-300000);
-          runLogsById.set(payload.runId, merged);
-
           const run = runsById.get(payload.runId);
           if (run) {
-            run.logPreview = merged.slice(-2000);
+            run.logPreview = (String(run.logPreview || '') + String(payload.chunk || '')).slice(-2000);
             runsById.set(payload.runId, run);
-          }
-
-          if (expandedRunId === payload.runId) {
-            renderRunsList();
           }
         } catch (error) {
           console.error('applyLog parse error:', error);
@@ -2536,7 +2799,6 @@
         runsById.clear();
         for (const run of payload.runs || []) {
           upsertRun(run);
-          if (run.logPreview) runLogsById.set(run.runId, run.logPreview);
         }
 
         activeRunBySlide.clear();
@@ -2579,17 +2841,12 @@
       }
 
       const xpath = getXPath(target);
-      const tag = target.tagName.toLowerCase();
-      setSelectedObjectXPath(xpath, `Selected ${tag} on ${currentSlideFile()}.`);
+      setSelectedObjectXPath(xpath, `Object selected on ${currentSlideFile()}.`);
     });
     window.addEventListener('mousemove', moveDrawing);
     window.addEventListener('mouseup', endDrawing);
 
     btnSend.addEventListener('click', applyChanges);
-
-    btnToggleLogs.addEventListener('click', () => {
-      setLogsVisible(!logsVisible);
-    });
 
     modelSelect.addEventListener('change', () => {
       const nextModel = normalizeModelName(modelSelect.value);
@@ -2619,33 +2876,53 @@
       updateSendState();
     });
 
-    objectTextInput.addEventListener('input', () => {
-      if (syncingDirectControls || objectTextInput.disabled) return;
-      mutateSelectedObject((el) => {
-        el.textContent = objectTextInput.value;
-      }, 'Object text updated and saved.', { delay: 180, preserveTextInput: true });
+    selectActionText.addEventListener('click', () => {
+      togglePopover(POPOVER_TEXT);
     });
 
-    objectFontSize.addEventListener('input', () => {
-      if (syncingDirectControls) return;
-      const size = clamp(Number.parseInt(objectFontSize.value || '24', 10) || 24, 8, 180);
+    selectActionTextColor.addEventListener('click', () => {
+      togglePopover(POPOVER_TEXT_COLOR);
+    });
+
+    selectActionBgColor.addEventListener('click', () => {
+      togglePopover(POPOVER_BG_COLOR);
+    });
+
+    selectActionSize.addEventListener('click', () => {
+      togglePopover(POPOVER_SIZE);
+    });
+
+    popoverApplyText.addEventListener('click', () => {
+      if (selectActionText.disabled) return;
+      mutateSelectedObject((el) => {
+        el.textContent = popoverTextInput.value;
+      }, 'Object text updated and saved.', { delay: 120 });
+      hidePopover();
+    });
+
+    popoverApplySize.addEventListener('click', () => {
+      if (selectActionSize.disabled) return;
+      const size = clamp(Number.parseInt(popoverSizeInput.value || '24', 10) || 24, 8, 180);
       mutateSelectedObject((el) => {
         el.style.fontSize = `${size}px`;
       }, 'Object font size updated and saved.');
+      hidePopover();
     });
 
-    objectTextColor.addEventListener('input', () => {
-      if (syncingDirectControls) return;
+    popoverApplyTextColor.addEventListener('click', () => {
+      if (selectActionTextColor.disabled) return;
       mutateSelectedObject((el) => {
-        el.style.color = objectTextColor.value;
+        el.style.color = popoverTextColorInput.value;
       }, 'Object text color updated and saved.');
+      hidePopover();
     });
 
-    objectBgColor.addEventListener('input', () => {
-      if (syncingDirectControls) return;
+    popoverApplyBgColor.addEventListener('click', () => {
+      if (selectActionBgColor.disabled) return;
       mutateSelectedObject((el) => {
-        el.style.backgroundColor = objectBgColor.value;
+        el.style.backgroundColor = popoverBgColorInput.value;
       }, 'Object background color updated and saved.');
+      hidePopover();
     });
 
     toggleBold.addEventListener('click', () => {
@@ -2695,19 +2972,23 @@
     });
 
     document.addEventListener('keydown', (event) => {
-      const inTextarea = document.activeElement === promptInput;
+      const inPromptField = document.activeElement === promptInput;
 
-      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      if (
+        ((event.ctrlKey || event.metaKey) && event.key === 'Enter')
+        || (inPromptField && event.key === 'Enter')
+      ) {
         event.preventDefault();
         applyChanges();
         return;
       }
 
       if (event.key === 'Escape') {
+        hidePopover();
         return;
       }
 
-      if (inTextarea) return;
+      if (inPromptField) return;
 
       if (event.key === 'ArrowLeft') {
         event.preventDefault();
@@ -2734,12 +3015,18 @@
       updateSendState();
     });
 
+    document.addEventListener('mousedown', (event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest('#slide-toolbox') || target.closest('#tool-popover-layer')) return;
+      hidePopover();
+    });
+
     // -------------------------------------------------------------------------
     // Init
     // -------------------------------------------------------------------------
     async function init() {
       setStatus('Loading slide list...');
-      setLogsVisible(false);
 
       try {
         const res = await fetch('/api/slides');

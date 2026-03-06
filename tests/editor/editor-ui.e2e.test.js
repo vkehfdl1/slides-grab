@@ -59,7 +59,7 @@ async function waitForServerReady(port, child, outputRef) {
   throw new Error(`server did not become ready\n${outputRef.value}`);
 }
 
-test('supports multi-bbox selection and delete in chat composer flow', async () => {
+test('supports multi-bbox selection and delete in the redesigned bbox toolbar flow', { concurrency: false }, async () => {
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-e2e-'));
   await writeSlides(workspace);
 
@@ -92,7 +92,9 @@ test('supports multi-bbox selection and delete in chat composer flow', async () 
 
     await page.waitForSelector('#draw-layer');
     await page.waitForTimeout(800);
-    assert.equal(await page.locator('#runs-section.collapsed').count(), 1, 'runs should be hidden by default');
+    assert.equal(await page.locator('.sidebar').count(), 0, 'sidebar should be removed in redesigned editor');
+    const promptTag = await page.$eval('#prompt-input', (el) => el.tagName);
+    assert.equal(promptTag, 'INPUT', 'bbox prompt should be a single-line input in the top toolbar');
 
     const drawLayer = await page.locator('#draw-layer').boundingBox();
     assert.ok(drawLayer, 'draw layer not found');
@@ -188,7 +190,7 @@ test('supports multi-bbox selection and delete in chat composer flow', async () 
   }
 });
 
-test('keeps chat and model state per slide session', async () => {
+test('keeps bbox prompt draft and model state per slide session', { concurrency: false }, async () => {
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-session-e2e-'));
   await writeSlides(workspace);
 
@@ -222,37 +224,9 @@ test('keeps chat and model state per slide session', async () => {
     await page.waitForSelector('#draw-layer');
     await page.waitForTimeout(800);
 
-    const drawLayer = await page.locator('#draw-layer').boundingBox();
-    assert.ok(drawLayer, 'draw layer not found');
-
-    let runNum = 0;
-    await page.route('**/api/apply', async (route) => {
-      runNum += 1;
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          success: true,
-          runId: `run-session-${runNum}`,
-          code: 0,
-          message: `ok-${runNum}`,
-        }),
-      });
-    });
-
     // slide-01
     await page.selectOption('#model-select', 'gpt-5.3-codex-spark');
-    await page.mouse.move(drawLayer.x + drawLayer.width * 0.08, drawLayer.y + drawLayer.height * 0.08);
-    await page.mouse.down();
-    await page.mouse.move(drawLayer.x + drawLayer.width * 0.40, drawLayer.y + drawLayer.height * 0.24, { steps: 6 });
-    await page.mouse.up();
     await page.fill('#prompt-input', 'slide-01 prompt');
-    await page.click('#btn-send');
-
-    await page.waitForFunction(() => {
-      const node = document.querySelector('#chat-messages');
-      return node && /slide-01 prompt/.test(node.textContent || '');
-    });
 
     // slide-02
     await page.click('#btn-next');
@@ -261,18 +235,7 @@ test('keeps chat and model state per slide session', async () => {
       return counter && /2\s*\/\s*2/.test(counter.textContent || '');
     });
     await page.selectOption('#model-select', 'gpt-5.3-codex');
-    await page.mouse.move(drawLayer.x + drawLayer.width * 0.14, drawLayer.y + drawLayer.height * 0.34);
-    await page.mouse.down();
-    await page.mouse.move(drawLayer.x + drawLayer.width * 0.52, drawLayer.y + drawLayer.height * 0.58, { steps: 6 });
-    await page.mouse.up();
     await page.fill('#prompt-input', 'slide-02 prompt');
-    await page.click('#btn-send');
-
-    await page.waitForFunction(() => {
-      const node = document.querySelector('#chat-messages');
-      const text = node?.textContent || '';
-      return /slide-02 prompt/.test(text) && !/slide-01 prompt/.test(text);
-    });
 
     // back to slide-01
     await page.click('#btn-prev');
@@ -283,12 +246,18 @@ test('keeps chat and model state per slide session', async () => {
 
     const restoredModel = await page.$eval('#model-select', (el) => el.value);
     assert.equal(restoredModel, 'gpt-5.3-codex-spark');
+    const restoredPrompt = await page.$eval('#prompt-input', (el) => el.value);
+    assert.equal(restoredPrompt, 'slide-01 prompt');
 
+    await page.click('#btn-next');
     await page.waitForFunction(() => {
-      const node = document.querySelector('#chat-messages');
-      const text = node?.textContent || '';
-      return /slide-01 prompt/.test(text) && !/slide-02 prompt/.test(text);
+      const counter = document.querySelector('#slide-counter');
+      return counter && /2\s*\/\s*2/.test(counter.textContent || '');
     });
+    const slide2Model = await page.$eval('#model-select', (el) => el.value);
+    const slide2Prompt = await page.$eval('#prompt-input', (el) => el.value);
+    assert.equal(slide2Model, 'gpt-5.3-codex');
+    assert.equal(slide2Prompt, 'slide-02 prompt');
   } finally {
     if (browser) {
       await browser.close().catch(() => {});
@@ -299,7 +268,7 @@ test('keeps chat and model state per slide session', async () => {
   }
 });
 
-test('supports direct object selection, inline styling, and switching back to bbox mode', async () => {
+test('supports direct object selection through popovers and switching back to bbox mode', { concurrency: false }, async () => {
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-direct-edit-e2e-'));
   await writeSlides(workspace);
 
@@ -335,6 +304,12 @@ test('supports direct object selection, inline styling, and switching back to bb
     await page.waitForTimeout(800);
 
     await page.click('#tool-mode-select');
+    await page.waitForFunction(() => {
+      const textBtn = document.querySelector('#select-action-text');
+      const sizeBtn = document.querySelector('#select-action-size');
+      return textBtn && sizeBtn && textBtn.hasAttribute('disabled') && sizeBtn.hasAttribute('disabled');
+    });
+    assert.equal(await page.locator('#selected-object-chip').count(), 0, 'selected object chip should be removed');
 
     const drawLayer = await page.locator('#draw-layer').boundingBox();
     assert.ok(drawLayer, 'draw layer not found');
@@ -345,22 +320,43 @@ test('supports direct object selection, inline styling, and switching back to bb
     );
 
     await page.waitForFunction(() => {
-      const chip = document.querySelector('#selected-object-chip');
-      return chip && /h1/i.test(chip.textContent || '');
+      const textBtn = document.querySelector('#select-action-text');
+      const colorBtn = document.querySelector('#select-action-text-color');
+      const sizeBtn = document.querySelector('#select-action-size');
+      return textBtn && colorBtn && sizeBtn
+        && !textBtn.hasAttribute('disabled')
+        && !colorBtn.hasAttribute('disabled')
+        && !sizeBtn.hasAttribute('disabled');
     });
 
-    await page.fill('#object-text-input', 'Quarterly Update');
-    await page.fill('#object-font-size', '64');
-    await page.$eval('#object-text-color', (el) => {
+    await page.click('#select-action-text');
+    await page.waitForSelector('#editor-popover-text:not([hidden])');
+    await page.fill('#popover-text-input', 'Quarterly Update');
+    await page.click('#popover-apply-text');
+
+    await page.click('#select-action-size');
+    await page.waitForSelector('#editor-popover-size:not([hidden])');
+    await page.fill('#popover-size-input', '64');
+    await page.click('#popover-apply-size');
+
+    await page.click('#select-action-text-color');
+    await page.waitForSelector('#editor-popover-text-color:not([hidden])');
+    await page.$eval('#popover-text-color-input', (el) => {
       el.value = '#112233';
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     });
-    await page.$eval('#object-bg-color', (el) => {
+    await page.click('#popover-apply-text-color');
+
+    await page.click('#select-action-bg-color');
+    await page.waitForSelector('#editor-popover-bg-color:not([hidden])');
+    await page.$eval('#popover-bg-color-input', (el) => {
       el.value = '#fee2e2';
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     });
+    await page.click('#popover-apply-bg-color');
+
     await page.click('#toggle-bold');
     await page.click('#toggle-bold');
     await page.click('#toggle-strike');
@@ -423,7 +419,7 @@ test('supports direct object selection, inline styling, and switching back to bb
   }
 });
 
-test('keeps the toolbox above the slide in a 16:9 viewport', async () => {
+test('keeps the toolbox above the slide in a 16:9 viewport', { concurrency: false }, async () => {
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-toolbox-layout-e2e-'));
   await writeSlides(workspace);
 
@@ -458,6 +454,7 @@ test('keeps the toolbox above the slide in a 16:9 viewport', async () => {
     await page.waitForSelector('#slide-wrapper');
     await page.waitForTimeout(500);
 
+    assert.equal(await page.locator('.sidebar').count(), 0, 'sidebar should be removed');
     const toolboxBox = await page.locator('#slide-toolbox').boundingBox();
     const wrapperBox = await page.locator('#slide-wrapper').boundingBox();
     assert.ok(toolboxBox, 'toolbox not found');
@@ -467,7 +464,8 @@ test('keeps the toolbox above the slide in a 16:9 viewport', async () => {
     await page.click('#tool-mode-select');
     await page.waitForFunction(() => {
       const button = document.querySelector('#tool-mode-select');
-      return button && button.classList.contains('active');
+      const toolbar = document.querySelector('#select-toolbar');
+      return button && toolbar && button.classList.contains('active') && !toolbar.hasAttribute('hidden');
     });
   } finally {
     if (browser) {
