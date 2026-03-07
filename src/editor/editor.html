@@ -497,19 +497,19 @@
     .object-outline {
       position: absolute;
       display: none;
-      border-radius: 4px;
+      border-radius: 6px;
       pointer-events: none;
     }
 
     .object-outline.hover {
-      border: 2px dashed rgba(96, 165, 250, 0.95);
-      background: rgba(96, 165, 250, 0.08);
+      border: 1.5px dashed rgba(96, 165, 250, 0.72);
+      background: rgba(96, 165, 250, 0.06);
     }
 
     .object-outline.selected {
-      border: 2px solid #60a5fa;
-      background: rgba(59, 130, 246, 0.14);
-      box-shadow: 0 0 0 2px rgba(191, 219, 254, 0.22);
+      border: 1.5px solid rgba(96, 165, 250, 0.92);
+      background: rgba(96, 165, 250, 0.08);
+      box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.14);
     }
 
     .draw-layer {
@@ -534,11 +534,11 @@
 
     .bbox-item {
       position: absolute;
-      border: 2px solid #ef4444;
-      background: rgba(239, 68, 68, 0.14);
+      border: 1.5px solid rgba(239, 68, 68, 0.78);
+      background: rgba(239, 68, 68, 0.08);
       pointer-events: auto;
       cursor: pointer;
-      transition: border-color 0.12s ease;
+      transition: border-color 0.12s ease, box-shadow 0.12s ease;
     }
 
     .bbox-item.pending:hover {
@@ -546,8 +546,8 @@
     }
 
     .bbox-item.review {
-      border-color: #22c55e;
-      background: rgba(34, 197, 94, 0.14);
+      border-color: rgba(34, 197, 94, 0.82);
+      background: rgba(34, 197, 94, 0.1);
     }
 
     .bbox-item.review:hover {
@@ -555,27 +555,27 @@
     }
 
     .bbox-item.selected {
-      box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.22);
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
     }
 
     .bbox-index {
       position: absolute;
-      top: -14px;
-      left: -2px;
-      min-width: 18px;
-      height: 16px;
-      padding: 0 4px;
-      border-radius: 3px;
-      background: #b91c1c;
+      top: -12px;
+      left: 0;
+      min-width: 20px;
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: rgba(127, 29, 29, 0.96);
       color: #fff;
-      font-size: 11px;
-      line-height: 16px;
+      font-size: 10px;
+      line-height: 18px;
       text-align: center;
-      font-weight: 700;
+      font-weight: 600;
     }
 
     .bbox-item.review .bbox-index {
-      background: #166534;
+      background: rgba(21, 101, 52, 0.96);
     }
 
     .bbox-actions {
@@ -592,14 +592,14 @@
     }
 
     .bbox-action-btn {
-      border-radius: 6px;
+      border-radius: 999px;
       border: 1px solid transparent;
-      height: 24px;
+      height: 22px;
       padding: 0 8px;
       color: #fff;
-      font-size: 11px;
-      line-height: 22px;
-      font-weight: 700;
+      font-size: 10px;
+      line-height: 20px;
+      font-weight: 600;
       cursor: pointer;
       white-space: nowrap;
     }
@@ -1262,11 +1262,10 @@
 
     /* ── Editor sidebar ── */
     .editor-sidebar {
-      width: 280px;
-      min-width: 280px;
-      border-left: 1px solid var(--border);
-      background: var(--bg-1);
-      box-shadow: var(--shadow-card);
+      width: 336px;
+      min-width: 336px;
+      border-left: 1px solid #171a20;
+      background: #0a0c0f;
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -1274,21 +1273,25 @@
 
     .sidebar-mode-tabs {
       display: flex;
-      gap: 2px;
-      padding: 10px 10px 0;
+      gap: 4px;
+      margin: 12px 14px 0;
+      padding: 4px;
+      border: 1px solid #1b1f27;
+      border-radius: 14px;
+      background: #0d0f13;
       flex: 0 0 auto;
     }
 
     .sidebar-mode-tab {
       flex: 1;
-      height: 38px;
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text-1);
-      border-radius: var(--radius);
+      height: 34px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: #8c93a0;
+      border-radius: 10px;
       font-size: 12px;
-      font-family: var(--mono);
-      font-weight: 700;
+      font-family: var(--sans);
+      font-weight: 600;
       cursor: pointer;
       transition: all var(--transition);
       display: inline-flex;
@@ -1302,25 +1305,25 @@
       height: 14px;
     }
 
-    .sidebar-mode-tab:hover { background: var(--border); }
+    .sidebar-mode-tab:hover { background: #141821; color: var(--text-0); }
 
     .sidebar-mode-tab.active {
-      border-color: var(--accent);
-      background: hsl(217 91% 60% / 0.12);
-      color: var(--text-0);
+      border-color: rgba(96, 165, 250, 0.28);
+      background: rgba(59, 130, 246, 0.12);
+      color: #f5f7fb;
     }
 
     .sidebar-body {
       flex: 1;
       overflow-y: auto;
-      padding: 12px 10px;
+      padding: 16px 14px;
       min-height: 0;
     }
 
     .sidebar-panel {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 18px;
     }
 
     .sidebar-panel[hidden] {
@@ -1330,31 +1333,30 @@
     .sidebar-section {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 8px;
     }
 
     .sidebar-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-2);
-      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      color: #8c93a0;
+      font-family: var(--sans);
     }
 
     .sidebar-divider {
       height: 1px;
-      background: var(--border-soft);
-      margin: 4px 0;
+      background: #16191f;
+      margin: 2px 0;
     }
 
     .sidebar-textarea {
       width: 100%;
-      min-height: 68px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-      color: var(--text-0);
+      min-height: 72px;
+      border-radius: 12px;
+      border: 1px solid #1c2027;
+      background: #111318;
+      color: #f5f7fb;
       font-size: 13px;
       font-family: var(--sans);
       padding: 10px 12px;
@@ -1369,15 +1371,17 @@
     .editor-sidebar .model-select {
       width: 100%;
       min-width: 0;
-      height: 38px;
-      border-radius: var(--radius);
+      height: 40px;
+      border-radius: 12px;
     }
 
     .sidebar-btn {
       width: 100%;
       height: 40px;
-      border: none;
-      border-radius: var(--radius);
+      border: 1px solid #1f2530;
+      border-radius: 12px;
+      background: #111318;
+      color: #f5f7fb;
       font-size: 13px;
       font-family: var(--sans);
       font-weight: 600;
@@ -1389,16 +1393,17 @@
       gap: 8px;
     }
 
+    .sidebar-btn:hover:not(:disabled) { background: #171b22; border-color: #282e38; }
     .sidebar-btn:disabled { opacity: 0.35; cursor: default; }
 
     .sidebar-btn-primary {
-      background: var(--accent);
-      color: #fff;
-      border: 1px solid var(--accent);
+      background: #111318;
+      color: #f5f7fb;
+      border: 1px solid #1f2530;
     }
 
     .sidebar-btn-primary:hover:not(:disabled) {
-      background: var(--accent-2);
+      background: #171b22;
     }
 
     .sidebar-btn-primary .btn-send-icon {
@@ -1410,19 +1415,19 @@
     .sidebar-input {
       flex: 1;
       min-width: 0;
-      height: 34px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--panel-2);
-      color: var(--text-0);
+      height: 36px;
+      border-radius: 12px;
+      border: 1px solid #1c2027;
+      background: #111318;
+      color: #f5f7fb;
       font-size: 12px;
       font-family: var(--sans);
-      padding: 0 10px;
+      padding: 0 11px;
       outline: none;
     }
     textarea.sidebar-input {
       height: auto;
-      padding: 8px 10px;
+      padding: 9px 11px;
       resize: vertical;
       line-height: 1.5;
     }
@@ -1437,33 +1442,33 @@
     }
 
     .sidebar-unit {
-      color: var(--text-2);
-      font-size: 11px;
-      font-family: var(--mono);
+      color: #8c93a0;
+      font-size: 12px;
+      font-family: var(--sans);
     }
 
     .sidebar-field-row {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 8px;
     }
 
     .sidebar-btn-sm {
-      height: 34px;
+      height: 36px;
       padding: 0 12px;
-      border-radius: var(--radius);
-      border: 1px solid var(--accent);
-      background: hsl(217 91% 60% / 0.12);
-      color: var(--text-0);
+      border-radius: 12px;
+      border: 1px solid #1f2530;
+      background: #111318;
+      color: #f5f7fb;
       font-size: 11px;
-      font-family: var(--mono);
-      font-weight: 700;
+      font-family: var(--sans);
+      font-weight: 600;
       cursor: pointer;
       flex: 0 0 auto;
       transition: all var(--transition);
     }
 
-    .sidebar-btn-sm:hover:not(:disabled) { background: hsl(217 91% 60% / 0.2); }
+    .sidebar-btn-sm:hover:not(:disabled) { background: #171b22; border-color: #282e38; }
     .sidebar-btn-sm:disabled { opacity: 0.35; cursor: default; }
 
     .sidebar-color-row {
@@ -1480,17 +1485,17 @@
     }
 
     .sidebar-color-label {
-      font-size: 10px;
-      color: var(--text-2);
-      font-family: var(--mono);
+      font-size: 11px;
+      color: #8c93a0;
+      font-family: var(--sans);
     }
 
     .sidebar-color {
       width: 100%;
-      height: 36px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--panel);
+      height: 38px;
+      border-radius: 12px;
+      border: 1px solid #1c2027;
+      background: #111318;
       cursor: pointer;
       padding: 3px;
     }
@@ -1504,54 +1509,56 @@
     }
 
     .editor-sidebar .tool-icon-btn {
-      min-width: 38px;
-      height: 38px;
-      border-radius: var(--radius);
+      min-width: 36px;
+      height: 36px;
+      border-radius: 10px;
       padding: 0 8px;
+      border-color: #1f2530;
+      background: #111318;
     }
 
     .editor-sidebar .tool-icon-btn.tight {
-      min-width: 38px;
-      width: 38px;
+      min-width: 36px;
+      width: 36px;
       padding: 0;
     }
 
     .sidebar-object-card {
       display: flex;
       align-items: center;
-      padding: 8px 10px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      background: var(--panel);
-      color: var(--text-1);
-      font-size: 11px;
-      font-family: var(--mono);
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #1c2027;
+      background: #111318;
+      color: #d9dee7;
+      font-size: 12px;
+      font-family: var(--sans);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     .sidebar-object-card .mini-tag {
-      color: #60a5fa;
-      font-weight: 700;
-      margin-right: 3px;
+      color: #8ab4ff;
+      font-weight: 600;
+      margin-right: 4px;
     }
 
     .select-empty-hint {
-      color: var(--text-2);
+      color: #7f8794;
       font-size: 12px;
-      font-family: var(--mono);
-      padding: 8px 0;
+      font-family: var(--sans);
+      padding: 6px 0;
     }
 
     .sidebar-hint {
       flex: 0 0 auto;
-      padding: 8px 12px;
-      border-top: 1px solid var(--border-soft);
-      color: var(--text-2);
-      font-size: 11px;
-      font-family: var(--mono);
-      min-height: 32px;
+      padding: 10px 14px;
+      border-top: 1px solid #16191f;
+      color: #6f7784;
+      font-size: 12px;
+      font-family: var(--sans);
+      min-height: 36px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -1640,7 +1647,7 @@
                 <option value="gpt-5.3-codex-spark">gpt-5.3-codex-spark</option>
               </select>
             </div>
-            <button class="sidebar-btn sidebar-btn-primary" id="btn-send" title="Run Codex">
+            <button class="sidebar-btn" id="btn-send" title="Run Codex">
               <svg class="btn-send-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 11.2 19.6 4.4c.8-.3 1.7.5 1.4 1.4l-6.8 16.2c-.3.8-1.4.9-1.9.1L9.2 16l-6.1-3.1c-.8-.5-.7-1.6.3-1.7Zm5.1 3.6 3.2 1.6 4.9-11.7-11.7 4.9 3.6 1.8 6.2-3.7c.4-.2.8.1.6.6l-6.8 6.5Z"/></svg>
               Run Codex
             </button>

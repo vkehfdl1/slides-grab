@@ -95,6 +95,8 @@ test('supports multi-bbox selection and delete in the persistent inspector bbox 
     assert.equal(await page.locator('#editor-sidebar').count(), 1, 'persistent editor sidebar should be present');
     assert.equal(await page.locator('#editor-sidebar').isVisible(), true, 'persistent editor sidebar should be visible');
     assert.equal(await page.locator('#bbox-toolbar').isVisible(), true, 'bbox toolbar should be visible in draw mode');
+    const sendUsesNeutralStyle = await page.$eval('#btn-send', (el) => !el.classList.contains('sidebar-btn-primary'));
+    assert.equal(sendUsesNeutralStyle, true, 'send button should no longer use accent-primary styling');
     const promptTag = await page.$eval('#prompt-input', (el) => el.tagName);
     assert.equal(promptTag, 'TEXTAREA', 'bbox prompt should stay a textarea in the persistent inspector');
     const bodyFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
@@ -496,6 +498,7 @@ test('keeps the persistent inspector beside the slide in a 16:9 viewport', { con
     assert.ok(stageShellBox, 'stage shell not found');
     assert.ok(sidebarBox, 'editor sidebar not found');
     assert.ok(wrapperBox, 'slide wrapper not found');
+    assert.ok(sidebarBox.width >= 300 && sidebarBox.width <= 380, `unexpected sidebar width: ${sidebarBox.width}`);
     assert.ok(stageShellBox.width > wrapperBox.width, 'stage shell should frame the slide');
     assert.ok(sidebarBox.x >= wrapperBox.x + (wrapperBox.width * 0.9), 'sidebar should stay to the right of the slide frame');
     assert.ok(navHeight <= 48, `nav should stay compact, got ${navHeight}`);
