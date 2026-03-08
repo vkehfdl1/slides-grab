@@ -1,0 +1,43 @@
+# slides-grab — Claude Code Setup
+
+Follow every step below. Run each command and verify before moving on.
+
+## 1. Install the package
+
+```bash
+npm install slides-grab && npx playwright install chromium
+```
+
+## 2. Verify
+
+```bash
+npx slides-grab --help
+```
+
+You should see the CLI help output with commands: edit, build-viewer, validate, convert, pdf, etc.
+
+## 3. How to use
+
+This project uses a 3-stage skill workflow under `.claude/skills/`:
+
+| Stage | Skill | What it does |
+|-------|-------|-------------|
+| 1. Plan | `.claude/skills/plan-skill/SKILL.md` | Create slide-outline.md, get user approval |
+| 2. Design | `.claude/skills/design-skill/SKILL.md` | Generate slide HTML files |
+| 3. Export | `.claude/skills/pptx-skill/SKILL.md` | Convert to PPTX/PDF |
+
+Or use the integrated skill `.claude/skills/presentation-skill/SKILL.md` to go through all stages end-to-end.
+
+### Key CLI commands
+
+```bash
+slides-grab edit --slides-dir <path>         # Visual editor
+slides-grab build-viewer --slides-dir <path> # Build viewer.html
+slides-grab validate --slides-dir <path>     # Validate slides
+slides-grab convert --slides-dir <path>      # Export PPTX
+slides-grab pdf --slides-dir <path>          # Export PDF
+```
+
+Use `decks/<deck-name>/` as the slides workspace. Default is `slides/`.
+
+Setup complete. Ready to create presentations.
