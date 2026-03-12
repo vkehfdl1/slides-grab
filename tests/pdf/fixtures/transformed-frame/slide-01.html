@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #FFFFFF;
+    }
+
+    body {
+      position: relative;
+      font-family: Helvetica, Arial, sans-serif;
+    }
+
+    h1, p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div
+    id="frame"
+    style="position: absolute; left: 0; top: 0; width: 960px; height: 540px; overflow: hidden; transform: translateX(80px); transform-origin: top left; background: #F8F5EC;"
+  >
+    <div style="position: absolute; left: 0; top: 0; width: 72px; height: 72px; background: #E65000;"></div>
+    <div style="position: absolute; right: 0; bottom: 0; width: 120px; height: 120px; background: #0047FF;"></div>
+    <div style="position: absolute; inset: 0; padding: 40px; box-sizing: border-box;">
+      <h1 style="font-size: 44px;">Transform Preservation</h1>
+      <p style="margin-top: 24px; font-size: 26px;">Root transforms should survive export normalization.</p>
+    </div>
+  </div>
+
+  <div
+    style="position: absolute; left: 1180px; top: 0; width: 180px; height: 540px; background: #00C853;"
+  ></div>
+</body>
+</html>

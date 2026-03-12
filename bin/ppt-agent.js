@@ -108,10 +108,14 @@ program
   .description('Convert slide HTML files to PDF')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
   .option('--output <path>', 'Output PDF file')
+  .option('--mode <mode>', 'PDF export mode: capture for visual fidelity, print for searchable text', 'capture')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];
     if (options.output) {
       args.push('--output', String(options.output));
+    }
+    if (options.mode) {
+      args.push('--mode', String(options.mode));
     }
     await runCommand('scripts/html2pdf.js', args);
   });

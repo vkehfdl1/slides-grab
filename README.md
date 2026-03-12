@@ -62,13 +62,16 @@ There are many AI tools that generate slide HTML. Almost none let you **visually
 
 All commands support `--slides-dir <path>` (default: `slides`).
 
+On a fresh clone, only `--help`, `list-templates`, and `list-themes` work without a deck. `edit`, `build-viewer`, `validate`, `convert`, and `pdf` require an existing slides workspace containing `slide-*.html`.
+
 ```bash
 slides-grab edit              # Launch visual slide editor
 slides-grab build-viewer      # Build single-file viewer.html
 slides-grab validate          # Validate slide HTML (Playwright-based)
 slides-grab convert           # Export to PPTX
 slides-grab figma             # Export a Figma Slides importable PPTX
-slides-grab pdf               # Export to PDF
+slides-grab pdf               # Export PDF in capture mode (default)
+slides-grab pdf --mode print  # Export searchable/selectable text PDF
 slides-grab list-templates    # Show available slide templates
 slides-grab list-themes       # Show available color themes
 ```
@@ -84,12 +87,17 @@ Slides should store local image files in `<slides-dir>/assets/` and reference th
 
 Run `slides-grab validate --slides-dir <path>` before export to catch missing local assets and discouraged path forms.
 
+`slides-grab pdf` now defaults to `--mode capture`, which rasterizes each rendered slide into the PDF for better visual fidelity. Use `--mode print` when searchable/selectable browser text matters more than pixel-perfect parity.
+
 ### Multi-Deck Workflow
+
+Prerequisite: create or generate a deck in `decks/my-deck/` first.
 
 ```bash
 slides-grab edit       --slides-dir decks/my-deck
 slides-grab validate   --slides-dir decks/my-deck
 slides-grab pdf        --slides-dir decks/my-deck --output decks/my-deck.pdf
+slides-grab pdf        --slides-dir decks/my-deck --mode print --output decks/my-deck-searchable.pdf
 slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
 slides-grab figma      --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 ```
