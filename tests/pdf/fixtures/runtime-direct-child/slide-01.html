@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #FFFFFF;
+    }
+
+    body {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="frame" width="960" height="540" style="display: block;"></canvas>
+  <div style="position: absolute; left: 1080px; top: 0; width: 220px; height: 540px; background: #0047FF;"></div>
+  <script>
+    const frame = document.getElementById('frame');
+    const context = frame.getContext('2d');
+
+    context.fillStyle = '#F8F5EC';
+    context.fillRect(0, 0, frame.width, frame.height);
+
+    context.fillStyle = '#E65000';
+    context.fillRect(0, 0, 96, 96);
+
+    context.fillStyle = '#0047FF';
+    context.fillRect(frame.width - 96, 0, 96, 96);
+
+    context.fillStyle = '#121212';
+    context.font = '48px Arial';
+    context.fillText('Runtime Canvas Regression', 48, 160);
+
+    window.__slidesGrabReady = new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+  </script>
+</body>
+</html>
