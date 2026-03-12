@@ -42,9 +42,12 @@ slides-grab edit --slides-dir decks/my-deck
 slides-grab build-viewer --slides-dir decks/my-deck
 slides-grab validate --slides-dir decks/my-deck
 slides-grab pdf --slides-dir decks/my-deck --output decks/my-deck.pdf
+slides-grab pdf --slides-dir decks/my-deck --mode print --output decks/my-deck-searchable.pdf
 slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
 slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 ```
+
+`slides-grab pdf` defaults to `--mode capture` for browser-faithful rendering. Switch to `--mode print` when you need searchable/selectable text in the exported PDF.
 
 ## 4) Recommended Codex Kickoff Prompt
 
