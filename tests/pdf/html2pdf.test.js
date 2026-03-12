@@ -97,7 +97,10 @@ test('renderSlideToPdf uses inner wrapper dimensions when body has no slide size
   const fixturesDir = path.resolve('tests/pdf/fixtures');
 
   try {
-    const pdfBytes = await renderSlideToPdf(page, 'slide-missing-body-dimensions.html', fixturesDir);
+    const result = await renderSlideToPdf(page, 'slide-missing-body-dimensions.html', fixturesDir, {
+      mode: 'print',
+    });
+    const pdfBytes = result.pdfBytes;
     const pdfDoc = await PDFDocument.load(pdfBytes);
     const [pdfPage] = pdfDoc.getPages();
     const { width, height } = pdfPage.getSize();
