@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    html, body {
+      margin: 0;
+      width: 720pt;
+      height: 405pt;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    body {
+      position: relative;
+      font-family: Pretendard, sans-serif;
+    }
+
+    .frame {
+      position: absolute;
+      inset: 24pt;
+      display: flex;
+      align-items: center;
+      gap: 24pt;
+    }
+
+    img {
+      width: 220pt;
+      height: 140pt;
+      object-fit: cover;
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <img id="hero" src="./assets/example.svg" alt="Example asset">
+    <div>
+      <h1>Local asset contract</h1>
+      <p>Viewer, editor, and export should all resolve this the same way.</p>
+    </div>
+  </div>
+</body>
+</html>

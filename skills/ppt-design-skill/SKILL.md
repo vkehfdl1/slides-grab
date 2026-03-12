@@ -31,6 +31,10 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 ## Rules
 - Keep slide size 720pt x 405pt.
 - Keep semantic text tags (`p`, `h1-h6`, `ul`, `ol`, `li`).
+- Put local images under `<slides-dir>/assets/` and reference them as `./assets/<file>`.
+- Allow `data:` URLs when the slide must be fully self-contained.
+- Treat remote `https://` images as best-effort only, and never use absolute filesystem paths.
+- Prefer `<img>` for slide imagery and `data-image-placeholder` when no final asset exists.
 - Do not start conversion before approval.
 
 ## Reference

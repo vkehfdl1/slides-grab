@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 
-import { readdir } from 'node:fs/promises';
+import { access, readdir } from 'node:fs/promises';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
+
+import {
+  buildImageContractReport,
+  classifyImageSource,
+  extractCssUrls,
+  resolveSlideSourcePath,
+} from '../src/image-contract.js';
 
 const FRAME_PT = { width: 720, height: 405 };
 const PT_TO_PX = 96 / 72;
@@ -75,7 +82,7 @@ function readOptionValue(args, index, optionName) {
   return next;
 }
 
-function parseCliArgs(args) {
+export function parseCliArgs(args) {
   const options = {
     slidesDir: DEFAULT_SLIDES_DIR,
     help: false,
@@ -111,7 +118,7 @@ function parseCliArgs(args) {
   return options;
 }
 
-async function findSlideFiles(slidesDir) {
+export async function findSlideFiles(slidesDir) {
   const entries = await readdir(slidesDir, { withFileTypes: true });
   return entries
     .filter((entry) => entry.isFile() && SLIDE_FILE_PATTERN.test(entry.name))
@@ -119,7 +126,148 @@ async function findSlideFiles(slidesDir) {
     .sort(sortSlideFiles);
 }
 
-async function inspectSlide(page, fileName, slidesDir) {
+function buildElementPath(element) {
+  return typeof element === 'string' && element ? element : 'unknown';
+}
+
+function buildImageIssue(severity, code, message, payload = {}) {
+  return {
+    severity,
+    code,
+    message,
+    ...payload,
+  };
+}
+
+async function fileExists(filePath) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function inspectImageContract(slidesDir, fileName, inspection) {
+  const critical = [];
+  const warning = [];
+  const slidePath = join(slidesDir, fileName);
+
+  for (const image of inspection.images) {
+    const source = image.src;
+    const classification = classifyImageSource(source);
+    const issues = buildImageContractReport({
+      slideFile: fileName,
+      sources: [{
+        element: buildElementPath(image.element),
+        source,
+      }],
+    });
+
+    for (const issue of issues) {
+      const target = issue.severity === 'critical' ? critical : warning;
+      target.push(issue);
+    }
+
+    if (
+      classification.kind === 'empty'
+      || classification.kind === 'data-url'
+      || classification.kind === 'remote-url'
+      || classification.kind === 'remote-url-insecure'
+      || classification.kind === 'absolute-filesystem-path'
+      || classification.kind === 'root-relative-path'
+      || classification.kind === 'other-scheme'
+    ) {
+      continue;
+    }
+
+    const assetPath = resolveSlideSourcePath(slidePath, source);
+    if (!(await fileExists(assetPath))) {
+      critical.push(buildImageIssue(
+        'critical',
+        'missing-local-asset',
+        'Local image asset is missing.',
+        {
+          slide: fileName,
+          element: buildElementPath(image.element),
+          source,
+          assetPath,
+        },
+      ));
+    }
+  }
+
+  for (const background of inspection.backgrounds) {
+    if (background.urls.length === 0) continue;
+
+    if (background.element !== 'body') {
+      critical.push(buildImageIssue(
+        'critical',
+        'unsupported-background-image',
+        'Non-body background-image usage is not supported for slide content. Use <img src="./assets/<file>"> instead.',
+        {
+          slide: fileName,
+          element: buildElementPath(background.element),
+          backgroundImage: background.backgroundImage,
+          sources: background.urls,
+        },
+      ));
+    }
+
+    const issues = buildImageContractReport({
+      slideFile: fileName,
+      sources: background.urls.map((source) => ({
+        element: buildElementPath(background.element),
+        source,
+      })),
+    });
+
+    for (const issue of issues) {
+      const code = issue.code === 'remote-image-url'
+        ? 'remote-background-image-url'
+        : issue.code === 'remote-image-url-insecure'
+          ? 'remote-background-image-url-insecure'
+          : issue.code;
+      const nextIssue = { ...issue, code };
+      const target = issue.severity === 'critical' ? critical : warning;
+      target.push(nextIssue);
+    }
+
+    for (const source of background.urls) {
+      const classification = classifyImageSource(source);
+      if (
+        classification.kind === 'empty'
+        || classification.kind === 'data-url'
+        || classification.kind === 'remote-url'
+        || classification.kind === 'remote-url-insecure'
+        || classification.kind === 'absolute-filesystem-path'
+        || classification.kind === 'root-relative-path'
+        || classification.kind === 'other-scheme'
+      ) {
+        continue;
+      }
+
+      const assetPath = resolveSlideSourcePath(slidePath, source);
+      if (!(await fileExists(assetPath))) {
+        critical.push(buildImageIssue(
+          'critical',
+          'missing-local-background-asset',
+          'Background image references a missing local asset.',
+          {
+            slide: fileName,
+            element: buildElementPath(background.element),
+            source,
+            assetPath,
+          },
+        ));
+      }
+    }
+  }
+
+  return { critical, warning };
+}
+
+export async function inspectSlide(page, fileName, slidesDir) {
   const slidePath = join(slidesDir, fileName);
   const slideUrl = pathToFileURL(slidePath).href;
 
@@ -300,9 +448,27 @@ async function inspectSlide(page, fileName, slidesDir) {
         }
       }
 
+      const images = Array.from(document.querySelectorAll('img')).map((element) => ({
+        element: elementPath(element),
+        src: (element.getAttribute('src') || '').trim(),
+        alt: (element.getAttribute('alt') || '').trim(),
+      }));
+
+      const backgrounds = [document.body, ...Array.from(document.body.querySelectorAll('*'))]
+        .map((element) => {
+          const backgroundImage = window.getComputedStyle(element).backgroundImage;
+          return {
+            element: element === document.body ? 'body' : elementPath(element),
+            backgroundImage,
+          };
+        })
+        .filter((entry) => entry.backgroundImage && entry.backgroundImage !== 'none' && entry.backgroundImage.includes('url('));
+
       return {
         critical,
-        warning
+        warning,
+        images,
+        backgrounds,
       };
     },
     {
@@ -311,6 +477,17 @@ async function inspectSlide(page, fileName, slidesDir) {
       tolerancePx: TOLERANCE_PX
     }
   );
+
+  const imageContractIssues = await inspectImageContract(slidesDir, fileName, {
+    images: inspection.images,
+    backgrounds: inspection.backgrounds.map((background) => ({
+      ...background,
+      urls: extractCssUrls(background.backgroundImage),
+    })),
+  });
+
+  inspection.critical.push(...imageContractIssues.critical);
+  inspection.warning.push(...imageContractIssues.warning);
 
   const summary = {
     criticalCount: inspection.critical.length,
@@ -326,14 +503,7 @@ async function inspectSlide(page, fileName, slidesDir) {
   };
 }
 
-async function main() {
-  const options = parseCliArgs(process.argv.slice(2));
-  if (options.help) {
-    printUsage();
-    return;
-  }
-
-  const slidesDir = resolve(process.cwd(), options.slidesDir);
+export async function validateSlides(slidesDir) {
   const slideFiles = await findSlideFiles(slidesDir);
   if (slideFiles.length === 0) {
     throw new Error(`No slide-*.html files found in: ${slidesDir}`);
@@ -372,7 +542,7 @@ async function main() {
     await browser.close();
   }
 
-  const result = {
+  return {
     generatedAt: new Date().toISOString(),
     frame: {
       widthPt: FRAME_PT.width,
@@ -383,7 +553,42 @@ async function main() {
     slides,
     summary: summarizeSlides(slides)
   };
+}
 
+export function formatValidationFailureForExport(result, exportLabel = 'Export') {
+  const findings = [];
+
+  for (const slide of result.slides) {
+    if (slide.status !== 'fail') continue;
+    for (const issue of slide.critical) {
+      const source = typeof issue.source === 'string' ? ` (${issue.source})` : '';
+      findings.push(`- ${slide.slide}: ${issue.code}${source}`);
+      if (findings.length >= 8) break;
+    }
+    if (findings.length >= 8) break;
+  }
+
+  const suffix = findings.length > 0 ? `\n${findings.join('\n')}` : '';
+  return `${exportLabel} blocked by slide validation. Run \`slides-grab validate --slides-dir <path>\` for full diagnostics.${suffix}`;
+}
+
+export async function ensureSlidesPassValidation(slidesDir, { exportLabel = 'Export' } = {}) {
+  const result = await validateSlides(slidesDir);
+  if (result.summary.failedSlides > 0) {
+    throw new Error(formatValidationFailureForExport(result, exportLabel));
+  }
+  return result;
+}
+
+export async function main(args = process.argv.slice(2)) {
+  const options = parseCliArgs(args);
+  if (options.help) {
+    printUsage();
+    return;
+  }
+
+  const slidesDir = resolve(process.cwd(), options.slidesDir);
+  const result = await validateSlides(slidesDir);
   process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
 
   if (result.summary.failedSlides > 0) {
@@ -391,26 +596,30 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  const failure = {
-    generatedAt: new Date().toISOString(),
-    frame: {
-      widthPt: FRAME_PT.width,
-      heightPt: FRAME_PT.height,
-      widthPx: FRAME_PX.width,
-      heightPx: FRAME_PX.height
-    },
-    slides: [],
-    summary: {
-      totalSlides: 0,
-      passedSlides: 0,
-      failedSlides: 0,
-      criticalIssues: 1,
-      warnings: 0
-    },
-    error: error instanceof Error ? error.message : String(error)
-  };
+const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-  process.stdout.write(`${JSON.stringify(failure, null, 2)}\n`);
-  process.exit(1);
-});
+if (isMain) {
+  main().catch((error) => {
+    const failure = {
+      generatedAt: new Date().toISOString(),
+      frame: {
+        widthPt: FRAME_PT.width,
+        heightPt: FRAME_PT.height,
+        widthPx: FRAME_PX.width,
+        heightPx: FRAME_PX.height
+      },
+      slides: [],
+      summary: {
+        totalSlides: 0,
+        passedSlides: 0,
+        failedSlides: 0,
+        criticalIssues: 1,
+        warnings: 0
+      },
+      error: error instanceof Error ? error.message : String(error)
+    };
+
+    process.stdout.write(`${JSON.stringify(failure, null, 2)}\n`);
+    process.exit(1);
+  });
+}

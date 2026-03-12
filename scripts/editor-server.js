@@ -18,6 +18,7 @@ import {
   scaleSelectionToScreenshot,
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
+import { buildSlideRuntimeHtml } from '../src/image-contract.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -431,6 +432,7 @@ async function startServer(opts) {
   const app = express();
   app.use(express.json({ limit: '5mb' }));
   app.use('/js', express.static(join(PACKAGE_ROOT, 'src', 'editor', 'js')));
+  app.use('/slides/assets', express.static(join(slidesDirectory, 'assets')));
 
   const editorHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'editor.html');
 
@@ -461,7 +463,11 @@ async function startServer(opts) {
     const filePath = join(slidesDirectory, file);
     try {
       const html = await readFile(filePath, 'utf-8');
-      res.type('html').send(html);
+      const runtimeHtml = buildSlideRuntimeHtml(html, {
+        baseHref: '/slides/',
+        slideFile: file,
+      });
+      res.type('html').send(runtimeHtml);
     } catch {
       res.status(404).send(`Slide not found: ${file}`);
     }

@@ -72,6 +72,17 @@ slides-grab list-templates    # Show available slide templates
 slides-grab list-themes       # Show available color themes
 ```
 
+## Image Contract
+
+Slides should store local image files in `<slides-dir>/assets/` and reference them as `./assets/<file>` from each `slide-XX.html`.
+
+- Preferred: `<img src="./assets/example.png" alt="...">`
+- Allowed: `data:` URLs for fully self-contained slides
+- Allowed with warnings: remote `https://` images
+- Unsupported: absolute filesystem paths such as `/Users/...` or `C:\\...`
+
+Run `slides-grab validate --slides-dir <path>` before export to catch missing local assets and discouraged path forms.
+
 ### Multi-Deck Workflow
 
 ```bash
@@ -117,4 +128,3 @@ docs/             Installation & usage guides
 ## Acknowledgment
 
 This project is built based on the [ppt_team_agent](https://github.com/uxjoseph/ppt_team_agent) by Builder Josh. Huge thanks to him!
-
