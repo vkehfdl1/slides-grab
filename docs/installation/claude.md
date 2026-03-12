@@ -49,6 +49,8 @@ slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 
 `slides-grab pdf` defaults to `--mode capture` for visual fidelity. Use `--mode print` when searchable/selectable text is more important than pixel-perfect browser parity.
 
+If export surfaces browser warnings, page errors, or failed requests, the CLI prints them as slide-specific diagnostics on stderr so you can see which `slide-*.html` needs attention.
+
 ## 4) Recommended Claude Kickoff Prompt
 
 Copy-paste into Claude:

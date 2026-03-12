@@ -45,4 +45,6 @@ Use `decks/<deck-name>/` as the slides workspace. Default is `slides/`.
 
 `--mode capture` is the default for browser-faithful output. `--mode print` keeps searchable/selectable PDF text.
 
+If PDF export logs diagnostics on stderr, inspect the named slide file first. The exporter now reports browser warnings/errors and failed requests per slide.
+
 Setup complete. Ready to create presentations.

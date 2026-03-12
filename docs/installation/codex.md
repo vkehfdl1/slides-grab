@@ -51,6 +51,8 @@ slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 
 `slides-grab pdf` defaults to `--mode capture` for browser-faithful rendering. Switch to `--mode print` when you need searchable/selectable text in the exported PDF.
 
+If export hits browser warnings, page errors, or failed requests, the CLI reports them as slide-specific diagnostics on stderr so you can fix the exact `slide-*.html` involved.
+
 ## 4) Recommended Codex Kickoff Prompt
 
 Copy-paste into Codex:

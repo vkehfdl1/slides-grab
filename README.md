@@ -78,6 +78,8 @@ slides-grab list-themes       # Show available color themes
 
 `slides-grab pdf` now defaults to `--mode capture`, which rasterizes each rendered slide into the PDF for better visual fidelity. Use `--mode print` when searchable/selectable browser text matters more than pixel-perfect parity.
 
+When export hits browser-side problems, `slides-grab pdf` prints slide-specific diagnostics to stderr, including console warnings/errors, page errors, and failed asset requests. That makes it easier to trace broken fonts, images, or scripts back to the exact `slide-*.html` file.
+
 ### Multi-Deck Workflow
 
 Prerequisite: create or generate a deck in `decks/my-deck/` first.
