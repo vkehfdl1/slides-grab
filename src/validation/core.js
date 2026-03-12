@@ -274,6 +274,13 @@ export async function inspectSlide(page, fileName, slidesDir) {
         }
         return matches;
       };
+      const resolveUrls = (urls) => urls.map((url) => {
+        try {
+          return new URL(url, document.baseURI).href;
+        } catch {
+          return url;
+        }
+      });
 
       const normalizeRect = (rect) => {
         const left = rect.left ?? rect.x ?? 0;
@@ -341,23 +348,22 @@ export async function inspectSlide(page, fileName, slidesDir) {
         return rect.width > 0 && rect.height > 0;
       };
 
-      const collectDeclaredBackgroundValues = (element) => {
-        const values = [];
-        const pushValue = (value) => {
+      const collectDeclaredBackgroundEntries = (element) => {
+        const entries = [];
+        const pushEntry = (value) => {
           if (
             typeof value !== 'string'
             || value === ''
             || value === 'none'
             || !value.includes('url(')
-            || values.includes(value)
           ) {
             return;
           }
-          values.push(value);
+          entries.push({
+            value,
+            urls: extractUrls(value),
+          });
         };
-
-        pushValue(element.style?.getPropertyValue('background-image'));
-        pushValue(element.style?.getPropertyValue('background'));
 
         const visitRules = (rules) => {
           for (const rule of Array.from(rules || [])) {
@@ -370,8 +376,8 @@ export async function inspectSlide(page, fileName, slidesDir) {
               }
 
               if (!matches) continue;
-              pushValue(rule.style?.getPropertyValue('background-image'));
-              pushValue(rule.style?.getPropertyValue('background'));
+              pushEntry(rule.style?.getPropertyValue('background-image'));
+              pushEntry(rule.style?.getPropertyValue('background'));
               continue;
             }
 
@@ -393,7 +399,45 @@ export async function inspectSlide(page, fileName, slidesDir) {
           }
         }
 
-        return values;
+        pushEntry(element.style?.getPropertyValue('background-image'));
+        pushEntry(element.style?.getPropertyValue('background'));
+
+        return entries;
+      };
+
+      const collectEffectiveBackground = (element) => {
+        const computedBackgroundImage = window.getComputedStyle(element).backgroundImage;
+        const computedUrls = extractUrls(computedBackgroundImage);
+        if (computedUrls.length === 0) {
+          return {
+            backgroundImage: computedBackgroundImage,
+            urls: [],
+          };
+        }
+
+        const computedResolvedUrls = resolveUrls(computedUrls);
+        const declaredEntries = collectDeclaredBackgroundEntries(element);
+
+        for (let index = declaredEntries.length - 1; index >= 0; index -= 1) {
+          const entry = declaredEntries[index];
+          if (entry.urls.length !== computedResolvedUrls.length) continue;
+
+          const resolvedEntryUrls = resolveUrls(entry.urls);
+          const matchesComputed = resolvedEntryUrls.every(
+            (url, urlIndex) => url === computedResolvedUrls[urlIndex],
+          );
+          if (!matchesComputed) continue;
+
+          return {
+            backgroundImage: entry.value,
+            urls: entry.urls,
+          };
+        }
+
+        return {
+          backgroundImage: computedBackgroundImage,
+          urls: computedUrls,
+        };
       };
 
       const bodyRect = document.body.getBoundingClientRect();
@@ -500,16 +544,12 @@ export async function inspectSlide(page, fileName, slidesDir) {
 
       const backgrounds = [document.body, ...Array.from(document.body.querySelectorAll('*'))]
         .map((element) => {
-          const computedBackgroundImage = window.getComputedStyle(element).backgroundImage;
-          const declaredBackgroundValues = collectDeclaredBackgroundValues(element);
-          const declaredBackgroundImage = declaredBackgroundValues.find((value) => extractUrls(value).length > 0) || '';
-          const declaredUrls = declaredBackgroundValues.flatMap(extractUrls);
-          const urls = declaredUrls.length > 0 ? declaredUrls : extractUrls(computedBackgroundImage);
+          const effectiveBackground = collectEffectiveBackground(element);
 
           return {
             element: element === document.body ? 'body' : elementPath(element),
-            backgroundImage: declaredBackgroundImage || computedBackgroundImage,
-            urls,
+            backgroundImage: effectiveBackground.backgroundImage,
+            urls: effectiveBackground.urls,
           };
         })
         .filter((entry) => entry.urls.length > 0);

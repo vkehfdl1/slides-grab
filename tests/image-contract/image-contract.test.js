@@ -16,6 +16,8 @@ import {
   buildSlideRuntimeHtml,
   classifyImageSource,
   extractCssUrls,
+  resolveSlideSourcePath,
+  stripUrlQueryAndFragment,
 } from '../../src/image-contract.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -98,10 +100,19 @@ test('image contract helpers classify supported and discouraged sources', () => 
     './assets/a.png',
     'https://example.com/b.png',
   ]);
+  assert.equal(stripUrlQueryAndFragment('./assets/example.svg?v=1#hero'), './assets/example.svg');
   assert.deepEqual(classifyImageSource('./assets/example.svg'), { kind: 'local-asset-path' });
   assert.deepEqual(classifyImageSource('../shared/logo.png'), { kind: 'noncanonical-relative-path' });
   assert.deepEqual(classifyImageSource('/Users/demo/Desktop/photo.png'), { kind: 'absolute-filesystem-path' });
   assert.deepEqual(classifyImageSource('/assets/example.svg'), { kind: 'root-relative-path' });
+});
+
+test('resolveSlideSourcePath ignores query strings and fragments for local assets', () => {
+  const slidePath = path.join('/tmp', 'deck', 'slide-01.html');
+  assert.equal(
+    resolveSlideSourcePath(slidePath, './assets/example.svg?v=1#hero'),
+    path.join('/tmp', 'deck', 'assets', 'example.svg'),
+  );
 });
 
 test('buildSlideRuntimeHtml injects base href and runtime diagnostics', () => {
@@ -149,6 +160,24 @@ test('validate passes for body background-image with canonical ./assets URL', as
   const report = JSON.parse(result.stdout);
   assert.equal(report.summary.failedSlides, 0);
   assert.equal(report.slides[0].summary.criticalCount, 0);
+});
+
+test('validate ignores overridden body background-image declarations', async () => {
+  const result = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('body-background-overridden')]);
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.summary.failedSlides, 0);
+  assert.equal(report.slides[0].critical.some((issue) => issue.code === 'missing-local-background-asset'), false);
+});
+
+test('validate passes for cache-busted local asset URLs', async () => {
+  const result = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('local-asset-with-cache-busting')]);
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.summary.failedSlides, 0);
+  assert.equal(report.slides[0].critical.some((issue) => issue.code === 'missing-local-asset'), false);
 });
 test('validate reports missing local assets and discouraged path forms', async () => {
   const missing = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('missing-local-asset')]);

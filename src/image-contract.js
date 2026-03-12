@@ -6,6 +6,19 @@ const CSS_URL_RE = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 
 export const LOCAL_ASSET_PREFIX = './assets/';
 
+export function stripUrlQueryAndFragment(value) {
+  const input = typeof value === 'string' ? value.trim() : '';
+  if (!input) return '';
+
+  const queryIndex = input.indexOf('?');
+  const fragmentIndex = input.indexOf('#');
+  const cutIndex = [queryIndex, fragmentIndex]
+    .filter((index) => index >= 0)
+    .reduce((min, index) => Math.min(min, index), input.length);
+
+  return input.slice(0, cutIndex);
+}
+
 export function looksLikeAbsoluteFilesystemPath(value) {
   return ABSOLUTE_FILESYSTEM_PATH_RE.test((value || '').trim());
 }
@@ -38,7 +51,7 @@ export function classifyImageSource(source) {
 }
 
 export function resolveSlideSourcePath(slidePath, source) {
-  return resolve(dirname(slidePath), source);
+  return resolve(dirname(slidePath), stripUrlQueryAndFragment(source));
 }
 
 function injectIntoHead(html, snippet) {
@@ -218,5 +231,8 @@ export function buildSlideRuntimeHtml(html, { baseHref, slideFile }) {
 }
 
 export function resolveLocalAssetPath(slidePath, source) {
-  return join(dirname(slidePath), source.replace(/^\.\//, ''));
+  return join(
+    dirname(slidePath),
+    stripUrlQueryAndFragment(source).replace(/^\.\//, ''),
+  );
 }
