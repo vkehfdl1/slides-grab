@@ -40,9 +40,12 @@ slides-grab edit --slides-dir decks/my-deck
 slides-grab build-viewer --slides-dir decks/my-deck
 slides-grab validate --slides-dir decks/my-deck
 slides-grab pdf --slides-dir decks/my-deck --output decks/my-deck.pdf
+slides-grab pdf --slides-dir decks/my-deck --mode print --output decks/my-deck-searchable.pdf
 slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
 slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 ```
+
+`slides-grab pdf` defaults to `--mode capture` for visual fidelity. Use `--mode print` when searchable/selectable text is more important than pixel-perfect browser parity.
 
 ## 4) Recommended Claude Kickoff Prompt
 
