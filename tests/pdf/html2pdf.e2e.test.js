@@ -81,9 +81,11 @@ function extractPdfText(pdfPath) {
 
 function rasterizePdfPage(pdfPath, outputPrefix, page = 1) {
   return new Promise((resolve, reject) => {
-    const child = spawn('pdftoppm', ['-png', '-f', String(page), '-singlefile', pdfPath, outputPrefix], {
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    const child = spawn(
+      'pdftoppm',
+      ['-png', '-f', String(page), '-l', String(page), '-singlefile', pdfPath, outputPrefix],
+      { stdio: ['ignore', 'pipe', 'pipe'] },
+    );
 
     let stderr = '';
     child.stderr.on('data', (chunk) => {
