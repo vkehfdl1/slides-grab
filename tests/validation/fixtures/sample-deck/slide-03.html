@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Clipped Text Fixture</title>
+    <style>
+      body {
+        margin: 0;
+        width: 960px;
+        height: 540px;
+        position: relative;
+        overflow: hidden;
+        font-family: sans-serif;
+        background: #ffffff;
+      }
+
+      .wrapper {
+        position: absolute;
+        top: 80px;
+        left: 80px;
+        width: 320px;
+      }
+
+      p {
+        margin: 0;
+        height: 22px;
+        overflow: hidden;
+        font-size: 20px;
+        line-height: 24px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <p>This sentence is intentionally too long to fit inside one clipped line of text.</p>
+    </div>
+  </body>
+</html>

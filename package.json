@@ -36,7 +36,7 @@
     "validate": "node scripts/validate-slides.js",
     "convert": "node convert.cjs",
     "codex:install-skills": "node scripts/install-codex-skills.js --force",
-    "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js",
+    "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/validation/validate-slides.test.js",
     "test:e2e": "node --test tests/editor/editor-ui.e2e.test.js tests/editor/editor-concurrency.e2e.test.js"
   },
   "dependencies": {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Overlap Fixture</title>
+    <style>
+      body {
+        margin: 0;
+        width: 960px;
+        height: 540px;
+        position: relative;
+        overflow: hidden;
+        font-family: sans-serif;
+        background: #ffffff;
+      }
+
+      .panel {
+        position: absolute;
+        width: 220px;
+        height: 140px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+
+      .panel-a {
+        top: 120px;
+        left: 120px;
+        background: #c8e6c9;
+      }
+
+      .panel-b {
+        top: 180px;
+        left: 220px;
+        background: #bbdefb;
+      }
+
+      p {
+        margin: 0;
+        font-size: 18px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel panel-a">
+      <p>Panel A</p>
+    </div>
+    <div class="panel panel-b">
+      <p>Panel B</p>
+    </div>
+  </body>
+</html>
