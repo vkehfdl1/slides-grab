@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    html, body {
+      margin: 0;
+      width: 720pt;
+      height: 405pt;
+      overflow: hidden;
+    }
+
+    .bg {
+      width: 240pt;
+      height: 160pt;
+      background-image: url("images/hero.png");
+      background-size: cover;
+    }
+  </style>
+</head>
+<body>
+  <img src="/Users/demo/Desktop/photo.png" alt="Absolute path" style="width:220pt;height:140pt;">
+  <img src="../shared/logo.png" alt="Noncanonical path" style="width:180pt;height:72pt;">
+  <img src="https://example.com/hero.png" alt="Remote path" style="width:180pt;height:72pt;">
+  <div class="bg"></div>
+</body>
+</html>

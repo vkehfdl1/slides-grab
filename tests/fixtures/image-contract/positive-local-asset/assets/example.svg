@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280">
+  <rect width="440" height="280" fill="#1f6feb"/>
+  <rect x="24" y="24" width="392" height="232" rx="18" fill="#ffffff" fill-opacity="0.18"/>
+  <circle cx="112" cy="140" r="46" fill="#ffb703"/>
+  <path d="M188 196 L248 94 L308 196 Z" fill="#ffffff"/>
+  <text x="220" y="246" font-family="Arial, sans-serif" font-size="28" text-anchor="middle" fill="#ffffff">slides-grab</text>
+</svg>

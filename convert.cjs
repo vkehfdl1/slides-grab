@@ -144,6 +144,8 @@ async function main() {
   pres.layout = 'LAYOUT_WIDE'; // 16:9
 
   const slidesDir = path.resolve(process.cwd(), options.slidesDir);
+  const { ensureSlidesPassValidation } = await import('./scripts/validate-slides.js');
+  await ensureSlidesPassValidation(slidesDir, { exportLabel: 'PPTX export' });
   const files = fs.readdirSync(slidesDir)
     .filter(f => f.endsWith('.html'))
     .sort();

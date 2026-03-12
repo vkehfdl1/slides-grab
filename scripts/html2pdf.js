@@ -6,6 +6,8 @@ import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { PDFDocument } from 'pdf-lib';
 
+import { ensureSlidesPassValidation } from './validate-slides.js';
+
 const DEFAULT_OUTPUT = 'slides.pdf';
 const DEFAULT_SLIDES_DIR = 'slides';
 const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;
@@ -232,6 +234,7 @@ async function main() {
   }
 
   const slidesDir = resolve(process.cwd(), options.slidesDir);
+  await ensureSlidesPassValidation(slidesDir, { exportLabel: 'PDF export' });
   const slideFiles = await findSlideFiles(slidesDir);
   if (slideFiles.length === 0) {
     throw new Error(`No slide-*.html files found in: ${slidesDir}`);
