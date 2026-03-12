@@ -30,6 +30,23 @@
   "bin": {
     "slides-grab": "./bin/ppt-agent.js"
   },
+  "files": [
+    "bin/",
+    "convert.cjs",
+    "scripts/build-viewer.js",
+    "scripts/editor-server.js",
+    "scripts/figma-export.js",
+    "scripts/html2pdf.js",
+    "scripts/html2pptx.js",
+    "scripts/install-codex-skills.js",
+    "scripts/validate-slides.js",
+    "skills/",
+    "src/",
+    "templates/",
+    "themes/",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
     "html2pptx": "node scripts/html2pptx.js",
     "build-viewer": "node scripts/build-viewer.js",

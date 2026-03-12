@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import test from 'node:test';
@@ -163,6 +163,51 @@ test('npm pack includes packaged html2pptx runtime instead of relying on .claude
   assert.ok(filePaths.includes('src/html2pptx.cjs'));
   assert.ok(filePaths.includes('scripts/html2pptx.js'));
   assert.ok(!filePaths.some((filePath) => filePath.startsWith('.claude/')));
+});
+
+test('packed npm install can execute slides-grab figma without missing runtime modules', () => {
+  const packRoot = mkdtempSync(join(tmpdir(), 'slides-grab-pack-root-'));
+  const installRoot = mkdtempSync(join(tmpdir(), 'slides-grab-pack-install-'));
+
+  try {
+    const output = execFileSync('npm', ['pack', '--json'], {
+      cwd: process.cwd(),
+      encoding: 'utf-8',
+    });
+    const [packInfo] = JSON.parse(output);
+    const tarballName = packInfo.filename;
+    const tarballPath = join(process.cwd(), tarballName);
+    const storedTarballPath = join(packRoot, tarballName);
+
+    mkdirSync(packRoot, { recursive: true });
+    mkdirSync(installRoot, { recursive: true });
+    writeFileSync(
+      join(installRoot, 'package.json'),
+      JSON.stringify({ name: 'slides-grab-pack-smoke', private: true }, null, 2),
+      'utf-8',
+    );
+
+    renameSync(tarballPath, storedTarballPath);
+
+    execFileSync('npm', ['install', '--no-package-lock', storedTarballPath], {
+      cwd: installRoot,
+      encoding: 'utf-8',
+    });
+
+    const cliPath = join(installRoot, 'node_modules', '.bin', 'slides-grab');
+    const helpOutput = execFileSync(cliPath, ['figma', '--help'], {
+      cwd: installRoot,
+      encoding: 'utf-8',
+    });
+
+    assert.match(helpOutput, /slides-grab figma/);
+    assert.match(helpOutput, /Manual import:/);
+    assert.doesNotMatch(helpOutput, /Cannot find module/);
+  } finally {
+    rmSync(packRoot, { recursive: true, force: true });
+    rmSync(installRoot, { recursive: true, force: true });
+    rmSync(join(process.cwd(), 'slides-grab-1.0.0.tgz'), { force: true });
+  }
 });
 
 function extractZipEntry(zipBuffer, entryName) {
