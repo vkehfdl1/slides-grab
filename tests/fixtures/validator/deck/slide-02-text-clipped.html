@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Text Clipped Fixture</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 960px;
+        height: 540px;
+      }
+
+      body {
+        position: relative;
+        overflow: hidden;
+        background: #f5fbff;
+        font-family: sans-serif;
+      }
+
+      div.card {
+        position: absolute;
+        left: 80px;
+        top: 80px;
+        width: 360px;
+        height: 120px;
+        padding: 20px;
+        background: #dbeafe;
+      }
+
+      p.copy {
+        margin: 0;
+        height: 72px;
+        overflow: hidden;
+        font-size: 24px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <p class="copy">
+        This paragraph is intentionally taller than its box so the validator detects clipping after layout.
+      </p>
+    </div>
+  </body>
+</html>

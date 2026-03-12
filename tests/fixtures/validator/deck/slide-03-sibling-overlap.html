@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Sibling Overlap Fixture</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 960px;
+        height: 540px;
+      }
+
+      body {
+        position: relative;
+        overflow: hidden;
+        background: #fff9f0;
+        font-family: sans-serif;
+      }
+
+      div.box {
+        position: absolute;
+        width: 220px;
+        height: 140px;
+      }
+
+      div.box-a {
+        left: 160px;
+        top: 140px;
+        background: #00798c;
+      }
+
+      div.box-b {
+        left: 300px;
+        top: 200px;
+        background: #edae49;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box box-a"></div>
+    <div class="box box-b"></div>
+  </body>
+</html>
