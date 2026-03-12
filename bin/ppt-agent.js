@@ -103,6 +103,19 @@ program
   });
 
 program
+  .command('figma')
+  .description('Export a Figma Slides importable PPTX')
+  .option('--slides-dir <path>', 'Slide directory', 'slides')
+  .option('--output <path>', 'Output PPTX file')
+  .action(async (options = {}) => {
+    const args = ['--slides-dir', options.slidesDir];
+    if (options.output) {
+      args.push('--output', String(options.output));
+    }
+    await runCommand('scripts/figma-export.js', args);
+  });
+
+program
   .command('edit')
   .description('Start interactive slide editor with Codex image-based edit flow')
   .option('--port <number>', 'Server port')

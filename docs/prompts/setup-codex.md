@@ -23,7 +23,7 @@ Then restart Codex so the skills are loaded.
 npm exec -- slides-grab --help
 ```
 
-You should see the CLI help output with commands: edit, build-viewer, validate, convert, pdf, etc.
+You should see the CLI help output with commands: edit, build-viewer, validate, convert, figma, pdf, etc.
 
 ## 4. How to use
 
@@ -44,6 +44,7 @@ slides-grab edit --slides-dir <path>         # Visual editor
 slides-grab build-viewer --slides-dir <path> # Build viewer.html
 slides-grab validate --slides-dir <path>     # Validate slides
 slides-grab convert --slides-dir <path>      # Export PPTX
+slides-grab figma --slides-dir <path>        # Export Figma-importable PPTX
 slides-grab pdf --slides-dir <path>          # Export PDF
 ```
 

@@ -43,6 +43,7 @@ slides-grab build-viewer --slides-dir decks/my-deck
 slides-grab validate --slides-dir decks/my-deck
 slides-grab pdf --slides-dir decks/my-deck --output decks/my-deck.pdf
 slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
+slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 ```
 
 ## 4) Recommended Codex Kickoff Prompt

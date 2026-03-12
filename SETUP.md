@@ -40,6 +40,12 @@ winget install -e --id OpenJS.NodeJS.LTS --accept-package-agreements --accept-so
 npm exec -- slides-grab --help
 ```
 
+Optional Figma export smoke test:
+
+```bash
+npm exec -- slides-grab figma --slides-dir slides --output slides-figma.pptx
+```
+
 ## 4) For Codex Users
 
 Install Codex skills after cloning:

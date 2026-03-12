@@ -67,6 +67,7 @@ slides-grab edit              # Launch visual slide editor
 slides-grab build-viewer      # Build single-file viewer.html
 slides-grab validate          # Validate slide HTML (Playwright-based)
 slides-grab convert           # Export to PPTX
+slides-grab figma             # Export a Figma Slides importable PPTX
 slides-grab pdf               # Export to PDF
 slides-grab list-templates    # Show available slide templates
 slides-grab list-themes       # Show available color themes
@@ -79,7 +80,16 @@ slides-grab edit       --slides-dir decks/my-deck
 slides-grab validate   --slides-dir decks/my-deck
 slides-grab pdf        --slides-dir decks/my-deck --output decks/my-deck.pdf
 slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
+slides-grab figma      --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 ```
+
+### Figma Workflow
+
+```bash
+slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
+```
+
+This command reuses the HTML to PPTX pipeline and emits a `.pptx` deck intended for manual import into Figma Slides via `Import`. It does not upload to Figma directly.
 
 ## Installation Guides
 
@@ -117,4 +127,3 @@ docs/             Installation & usage guides
 ## Acknowledgment
 
 This project is built based on the [ppt_team_agent](https://github.com/uxjoseph/ppt_team_agent) by Builder Josh. Huge thanks to him!
-
