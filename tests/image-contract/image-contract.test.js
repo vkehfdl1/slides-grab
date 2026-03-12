@@ -78,6 +78,7 @@ test('image contract helpers classify supported and discouraged sources', () => 
   assert.deepEqual(classifyImageSource('./assets/example.svg'), { kind: 'local-asset-path' });
   assert.deepEqual(classifyImageSource('../shared/logo.png'), { kind: 'noncanonical-relative-path' });
   assert.deepEqual(classifyImageSource('/Users/demo/Desktop/photo.png'), { kind: 'absolute-filesystem-path' });
+  assert.deepEqual(classifyImageSource('/assets/example.svg'), { kind: 'root-relative-path' });
 });
 
 test('buildSlideRuntimeHtml injects base href and runtime diagnostics', () => {
@@ -128,6 +129,7 @@ test('validate reports missing local assets and discouraged path forms', async (
   assert.equal(unsupported.code, 1);
   const unsupportedReport = JSON.parse(unsupported.stdout);
   assert.equal(unsupportedReport.slides[0].critical.some((issue) => issue.code === 'absolute-filesystem-image-path'), true);
+  assert.equal(unsupportedReport.slides[0].critical.some((issue) => issue.code === 'root-relative-image-path'), true);
   assert.equal(unsupportedReport.slides[0].warning.some((issue) => issue.code === 'noncanonical-relative-image-path'), true);
   assert.equal(unsupportedReport.slides[0].warning.some((issue) => issue.code === 'remote-image-url'), true);
   assert.equal(unsupportedReport.slides[0].critical.some((issue) => issue.code === 'unsupported-background-image'), true);
@@ -150,6 +152,10 @@ test('html2pdf exports the canonical ./assets fixture and blocks invalid decks i
     assert.equal(blocked.code, 1);
     assert.match(blocked.stderr, /PDF export blocked by slide validation/i);
     assert.match(blocked.stderr, /missing-local-asset/);
+
+    const blockedRootRelative = await runNodeScript('scripts/html2pdf.js', ['--slides-dir', fixturePath('unsupported-paths'), '--output', outputPath]);
+    assert.equal(blockedRootRelative.code, 1);
+    assert.match(blockedRootRelative.stderr, /root-relative-image-path/);
   } finally {
     await rm(workspace, { recursive: true, force: true }).catch(() => {});
   }

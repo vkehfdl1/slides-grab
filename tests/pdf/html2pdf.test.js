@@ -4,12 +4,14 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { PDFDocument } from 'pdf-lib';
+import { chromium } from 'playwright';
 
 import {
   buildPdfOptions,
   findSlideFiles,
   mergePdfBuffers,
   parseCliArgs,
+  renderSlideToPdf,
   sortSlideFiles,
 } from '../../scripts/html2pdf.js';
 
@@ -81,4 +83,22 @@ test('mergePdfBuffers combines all slide pdf pages into one document', async () 
   const mergedDoc = await PDFDocument.load(mergedBytes);
 
   assert.equal(mergedDoc.getPageCount(), 2);
+});
+
+test('renderSlideToPdf uses inner wrapper dimensions when body has no slide size', async () => {
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage();
+  const fixturesDir = path.resolve('tests/pdf/fixtures');
+
+  try {
+    const pdfBytes = await renderSlideToPdf(page, 'slide-missing-body-dimensions.html', fixturesDir);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const [pdfPage] = pdfDoc.getPages();
+    const { width, height } = pdfPage.getSize();
+
+    assert.equal(Math.round(width), 720);
+    assert.equal(Math.round(height), 405);
+  } finally {
+    await browser.close();
+  }
 });

@@ -149,6 +149,13 @@ popoverBgColorInput.addEventListener('input', () => {
   }, 'Background color updated.', { delay: 300 });
 });
 
+function hasEditableFocus() {
+  const activeElement = document.activeElement;
+  if (!(activeElement instanceof HTMLElement)) return false;
+  if (activeElement.matches('input, textarea, select')) return true;
+  return activeElement.isContentEditable;
+}
+
 // Style toggles
 toggleBold.addEventListener('click', () => {
   mutateSelectedObject((el) => {
@@ -199,9 +206,9 @@ alignRight.addEventListener('click', () => {
 
 // Global keyboard
 document.addEventListener('keydown', (event) => {
-  const inPromptField = document.activeElement === promptInput;
+  const inEditableField = hasEditableFocus();
 
-  if (state.toolMode === TOOL_MODE_SELECT && (event.ctrlKey || event.metaKey) && !inPromptField) {
+  if (state.toolMode === TOOL_MODE_SELECT && (event.ctrlKey || event.metaKey) && !inEditableField) {
     const key = event.key.toLowerCase();
     if (key === 'b') { event.preventDefault(); if (!toggleBold.disabled) toggleBold.click(); return; }
     if (key === 'i') { event.preventDefault(); if (!toggleItalic.disabled) toggleItalic.click(); return; }
@@ -219,7 +226,7 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
-  if (inPromptField) return;
+  if (inEditableField) return;
 
   if (event.key === 'ArrowLeft') {
     event.preventDefault();

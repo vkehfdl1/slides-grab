@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Missing Body Dimensions</title>
+    <style>
+      html {
+        background: #f3f4f6;
+      }
+
+      body {
+        background: #f3f4f6;
+        font-family: Arial, sans-serif;
+      }
+
+      .slide-frame {
+        position: relative;
+        width: 960px;
+        height: 540px;
+        overflow: hidden;
+        background: #ffffff;
+      }
+
+      h1 {
+        margin: 0;
+        padding: 40px;
+        font-size: 48px;
+        color: #0f172a;
+      }
+
+      .bleed {
+        position: absolute;
+        top: 120px;
+        left: 900px;
+        width: 180px;
+        height: 180px;
+        background: #ef4444;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="slide-frame">
+      <h1>Inner wrapper defines the slide boundary</h1>
+      <div class="bleed" aria-hidden="true"></div>
+    </div>
+  </body>
+</html>

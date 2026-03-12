@@ -454,6 +454,105 @@ test('supports direct object selection through the persistent inspector and swit
   }
 });
 
+test('suppresses slide arrow navigation while focus is inside editor form controls', { concurrency: false }, async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-keyboard-nav-e2e-'));
+  await writeSlides(workspace);
+
+  const port = 3655;
+  const serverOutput = { value: '' };
+  const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
+  const server = spawn(process.execPath, [serverScriptPath, '--port', String(port)], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      PPT_AGENT_PACKAGE_ROOT: REPO_ROOT,
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  server.stdout.on('data', (chunk) => {
+    serverOutput.value += chunk.toString();
+  });
+  server.stderr.on('data', (chunk) => {
+    serverOutput.value += chunk.toString();
+  });
+
+  let browser;
+  try {
+    await waitForServerReady(port, server, serverOutput);
+
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+    await page.goto(`http://localhost:${port}/`, { waitUntil: 'domcontentloaded' });
+
+    await page.waitForSelector('#draw-layer');
+    await page.waitForSelector('#slide-counter');
+    await page.waitForTimeout(800);
+
+    await page.focus('#model-select');
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(150);
+    await page.waitForFunction(() => {
+      const counter = document.querySelector('#slide-counter');
+      return counter && /1\s*\/\s*2/.test(counter.textContent || '');
+    });
+
+    await page.click('#tool-mode-select');
+
+    const drawLayer = await page.locator('#draw-layer').boundingBox();
+    assert.ok(drawLayer, 'draw layer not found');
+    await page.mouse.click(
+      drawLayer.x + drawLayer.width * 0.22,
+      drawLayer.y + drawLayer.height * 0.18,
+    );
+
+    await page.waitForFunction(() => {
+      const textInput = document.querySelector('#popover-text-input');
+      const sizeInput = document.querySelector('#popover-size-input');
+      return textInput && sizeInput && !textInput.disabled && !sizeInput.disabled;
+    });
+
+    await page.focus('#popover-text-input');
+    await page.keyboard.press('ArrowRight');
+    await page.waitForTimeout(150);
+    await page.waitForFunction(() => {
+      const counter = document.querySelector('#slide-counter');
+      return counter && /1\s*\/\s*2/.test(counter.textContent || '');
+    });
+
+    await page.focus('#popover-size-input');
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForTimeout(150);
+    await page.waitForFunction(() => {
+      const counter = document.querySelector('#slide-counter');
+      return counter && /1\s*\/\s*2/.test(counter.textContent || '');
+    });
+
+    await page.mouse.click(
+      drawLayer.x + drawLayer.width * 0.75,
+      drawLayer.y + drawLayer.height * 0.75,
+    );
+    await page.keyboard.press('ArrowRight');
+    await page.waitForFunction(() => {
+      const counter = document.querySelector('#slide-counter');
+      return counter && /2\s*\/\s*2/.test(counter.textContent || '');
+    });
+
+    await page.keyboard.press('ArrowLeft');
+    await page.waitForFunction(() => {
+      const counter = document.querySelector('#slide-counter');
+      return counter && /1\s*\/\s*2/.test(counter.textContent || '');
+    });
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+    server.kill('SIGTERM');
+    await sleep(400);
+    await rm(workspace, { recursive: true, force: true }).catch(() => {});
+  }
+});
+
 test('keeps the persistent inspector beside the slide in a 16:9 viewport', { concurrency: false }, async () => {
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-toolbox-layout-e2e-'));
   await writeSlides(workspace);

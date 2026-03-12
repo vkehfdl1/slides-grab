@@ -99,9 +99,9 @@ export function buildImageContractReport({ slideFile, sources = [] }) {
 
     if (classification.kind === 'root-relative-path') {
       issues.push({
-        severity: 'warning',
+        severity: 'critical',
         code: 'root-relative-image-path',
-        message: 'Root-relative image paths are discouraged. Use ./assets/<file> instead.',
+        message: 'Root-relative image paths are unsupported. Use ./assets/<file> instead.',
         slide: slideFile,
         ...entry,
       });
