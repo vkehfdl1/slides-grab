@@ -7,7 +7,6 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { PDFDocument } from 'pdf-lib';
 import sharp from 'sharp';
-import sharp from 'sharp';
 import { chromium } from 'playwright';
 
 import { renderSlideToPdf } from '../../scripts/html2pdf.js';
