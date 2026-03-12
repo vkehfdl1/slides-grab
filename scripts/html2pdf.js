@@ -355,7 +355,7 @@ export async function normalizeBodyToSlideFrame(page, slideFrame) {
 export async function isolateSlideFrame(page, slideFrame) {
   return page.evaluate(({ x, y, width, height, source, candidateIndex }) => {
     const body = document.body;
-    if (body.querySelector(':scope > [data-slides-grab-print-frame="true"]')) {
+    if (body.dataset.slidesGrabFrameIsolated === 'true') {
       return { x: 0, y: 0, width, height, source: 'body', candidateIndex: null };
     }
 
@@ -364,30 +364,67 @@ export async function isolateSlideFrame(page, slideFrame) {
       return { x, y, width, height, source, candidateIndex: candidateIndex ?? null };
     }
 
-    const clipFrame = document.createElement('div');
-    clipFrame.setAttribute('data-slides-grab-print-frame', 'true');
-    clipFrame.style.position = 'relative';
-    clipFrame.style.width = `${width}px`;
-    clipFrame.style.height = `${height}px`;
-    clipFrame.style.margin = '0';
-    clipFrame.style.padding = '0';
-    clipFrame.style.overflow = 'hidden';
-    clipFrame.style.boxSizing = 'border-box';
+    function offsetElement(element) {
+      const computedStyle = window.getComputedStyle(element);
+      const originalPosition = element.dataset.slidesGrabOriginalPosition ?? computedStyle.position;
+      const originalLeft = element.dataset.slidesGrabOriginalLeft ?? computedStyle.left;
+      const originalTop = element.dataset.slidesGrabOriginalTop ?? computedStyle.top;
 
-    const translatedContent = document.createElement('div');
-    translatedContent.setAttribute('data-slides-grab-print-content', 'true');
-    translatedContent.style.position = 'absolute';
-    translatedContent.style.left = `${-x}px`;
-    translatedContent.style.top = `${-y}px`;
-    translatedContent.style.width = `${Math.max(width + x, body.scrollWidth, document.documentElement.scrollWidth)}px`;
-    translatedContent.style.height = `${Math.max(height + y, body.scrollHeight, document.documentElement.scrollHeight)}px`;
+      if (!element.dataset.slidesGrabOriginalPosition) {
+        element.dataset.slidesGrabOriginalPosition = originalPosition;
+        element.dataset.slidesGrabOriginalLeft = originalLeft;
+        element.dataset.slidesGrabOriginalTop = originalTop;
+      }
 
-    const childNodes = Array.from(body.childNodes);
-    body.replaceChildren(clipFrame);
-    clipFrame.append(translatedContent);
-    for (const node of childNodes) {
-      translatedContent.append(node);
+      if (originalPosition === 'static') {
+        element.style.position = 'relative';
+      }
+
+      element.style.left = originalLeft === 'auto' ? `${-x}px` : `calc(${originalLeft} - ${x}px)`;
+      element.style.top = originalTop === 'auto' ? `${-y}px` : `calc(${originalTop} - ${y}px)`;
     }
+
+    if (source === 'body-child' && Number.isInteger(candidateIndex)) {
+      const bodyChildren = Array.from(body.children);
+      const selectedElement = bodyChildren[candidateIndex];
+
+      if (selectedElement) {
+        if (window.getComputedStyle(body).position === 'static') {
+          body.style.position = 'relative';
+        }
+
+        offsetElement(selectedElement);
+
+        const overlay = document.createElement('div');
+        overlay.setAttribute('data-slides-grab-isolation-overlay', 'true');
+        overlay.style.position = 'absolute';
+        overlay.style.left = '0';
+        overlay.style.top = '0';
+        overlay.style.width = `${width}px`;
+        overlay.style.height = `${height}px`;
+        overlay.style.margin = '0';
+        overlay.style.padding = '0';
+        overlay.style.overflow = 'hidden';
+        overlay.style.boxSizing = 'border-box';
+
+        body.append(overlay);
+        for (const [index, element] of bodyChildren.entries()) {
+          if (index === candidateIndex) {
+            continue;
+          }
+          offsetElement(element);
+          overlay.append(element);
+        }
+
+        body.dataset.slidesGrabFrameIsolated = 'true';
+        return { x: 0, y: 0, width, height, source: 'body', candidateIndex: null };
+      }
+    }
+
+    for (const element of body.children) {
+      offsetElement(element);
+    }
+    body.dataset.slidesGrabFrameIsolated = 'true';
 
     return { x: 0, y: 0, width, height, source: 'body', candidateIndex: null };
   }, slideFrame);

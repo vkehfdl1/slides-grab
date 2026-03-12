@@ -14,6 +14,7 @@ import { renderSlideToPdf } from '../../scripts/html2pdf.js';
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OFFSET_FRAME_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'offset-frame');
 const RUNTIME_DIRECT_CHILD_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'runtime-direct-child');
+const RUNTIME_DIRECT_CHILD_FRAME_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'runtime-direct-child-frame');
 const SAME_FRAME_SIBLINGS_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'same-frame-siblings');
 const TRANSFORMED_FRAME_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'transformed-frame');
 
@@ -192,6 +193,12 @@ async function copyOffsetFrameFixture(workspace) {
 async function copyRuntimeDirectChildFixture(workspace) {
   const slidesDir = join(workspace, 'slides');
   await cp(RUNTIME_DIRECT_CHILD_FIXTURE_DIR, slidesDir, { recursive: true });
+  return slidesDir;
+}
+
+async function copyRuntimeDirectChildFrameFixture(workspace) {
+  const slidesDir = join(workspace, 'slides');
+  await cp(RUNTIME_DIRECT_CHILD_FRAME_FIXTURE_DIR, slidesDir, { recursive: true });
   return slidesDir;
 }
 
@@ -395,6 +402,65 @@ test('print mode preserves JS-painted direct-child canvas frames', { concurrency
     await copyRuntimeDirectChildFixture(workspace);
     const outputPath = join(workspace, 'runtime-direct-child.pdf');
     const rasterPrefix = join(workspace, 'runtime-direct-child-page-1');
+
+    const result = await runPdfExport(['--slides-dir', 'slides', '--mode', 'print', '--output', outputPath], workspace);
+    assert.match(result.stdout, /Generated PDF \(print mode\)/);
+
+    const bytes = await readFile(outputPath);
+    const pdf = await PDFDocument.load(bytes);
+    assert.equal(pdf.getPageCount(), 1);
+    assert.deepEqual(getPageSize(pdf.getPages()[0]), { width: 720, height: 405 });
+
+    const pngPath = await rasterizePdfPage(outputPath, rasterPrefix, 1);
+    const leftSample = await readRelativePixel(pngPath, 0.035, 0.06);
+    const rightSample = await readRelativePixel(pngPath, 0.965, 0.06);
+
+    assertPixelApproximately(leftSample.pixel, [230, 80, 0], 12);
+    assertPixelApproximately(rightSample.pixel, [0, 71, 255], 12);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('capture mode preserves runtime-painted direct-child frame roots during isolation', { concurrency: false, timeout: 120000 }, async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-runtime-frame-capture-'));
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({
+    viewport: { width: 960, height: 540 },
+  });
+
+  try {
+    const slidesDir = await copyRuntimeDirectChildFrameFixture(workspace);
+    const result = await renderSlideToPdf(page, 'slide-01.html', slidesDir, { mode: 'capture' });
+
+    const leftPixel = await sharp(result.pngBytes)
+      .extract({ left: 32, top: 32, width: 1, height: 1 })
+      .raw()
+      .toBuffer();
+    const rightPixel = await sharp(result.pngBytes)
+      .extract({ left: result.width - 32, top: 32, width: 1, height: 1 })
+      .raw()
+      .toBuffer();
+
+    assertPixelApproximately(Array.from(leftPixel), [230, 80, 0]);
+    assertPixelApproximately(Array.from(rightPixel), [0, 71, 255]);
+  } finally {
+    await browser.close();
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('print mode preserves runtime-painted direct-child frame roots during isolation', { concurrency: false, timeout: 120000 }, async (t) => {
+  if (!canRasterizePdfPages()) {
+    t.skip('pdftoppm is required for rendered-image verification');
+  }
+
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-runtime-frame-print-'));
+
+  try {
+    await copyRuntimeDirectChildFrameFixture(workspace);
+    const outputPath = join(workspace, 'runtime-direct-child-frame.pdf');
+    const rasterPrefix = join(workspace, 'runtime-direct-child-frame-page-1');
 
     const result = await runPdfExport(['--slides-dir', 'slides', '--mode', 'print', '--output', outputPath], workspace);
     assert.match(result.stdout, /Generated PDF \(print mode\)/);
