@@ -117,10 +117,6 @@ function normalizeDimension(value, fallback) {
   return Math.max(1, Math.round(value));
 }
 
-function isMeaningfulDimension(value) {
-  return Number.isFinite(value) && value > 0;
-}
-
 export function buildPdfOptions(widthPx, heightPx) {
   return {
     width: `${normalizeDimension(widthPx, FALLBACK_SLIDE_SIZE.width)}px`,
@@ -132,63 +128,47 @@ export function buildPdfOptions(widthPx, heightPx) {
   };
 }
 
-async function getSlideSize(page) {
-  const size = await page.evaluate(() => {
-    const body = document.body;
-    const rect = body.getBoundingClientRect();
-    const style = window.getComputedStyle(body);
-
-    return {
-      width: Number.parseFloat(style.width) || rect.width || 0,
-      height: Number.parseFloat(style.height) || rect.height || 0,
-    };
-  });
-
-  return {
-    width: normalizeDimension(size.width, FALLBACK_SLIDE_SIZE.width),
-    height: normalizeDimension(size.height, FALLBACK_SLIDE_SIZE.height),
-  };
-}
-
 export async function normalizePageForPdf(page) {
   const size = await page.evaluate((fallbackSize) => {
     const body = document.body;
     const html = document.documentElement;
-    const bodyStyle = window.getComputedStyle(body);
     const htmlStyle = window.getComputedStyle(html);
-    const bodyRect = body.getBoundingClientRect();
     const viewportWidth = window.innerWidth || html.clientWidth || 0;
     const viewportHeight = window.innerHeight || html.clientHeight || 0;
 
     const parsePx = (value) => Number.parseFloat(value) || 0;
-    const bodyWidth = parsePx(bodyStyle.width) || bodyRect.width || 0;
-    const bodyHeight = parsePx(bodyStyle.height) || bodyRect.height || 0;
+    const readBox = (element) => {
+      const rect = element.getBoundingClientRect();
+      const style = window.getComputedStyle(element);
+      return {
+        width: parsePx(style.width) || rect.width || 0,
+        height: parsePx(style.height) || rect.height || 0,
+      };
+    };
+    const isCloseTo = (value, other) => Math.abs(value - other) <= 2;
+    const bodySize = readBox(body);
 
     const elementChildren = Array.from(body.children).filter((node) => node instanceof HTMLElement);
-    const wrapperCandidate = elementChildren.length === 1 ? elementChildren[0] : null;
-    const wrapperRect = wrapperCandidate?.getBoundingClientRect();
-    const wrapperWidth = wrapperRect?.width || 0;
-    const wrapperHeight = wrapperRect?.height || 0;
-    const wrapperAspectRatio = wrapperWidth > 0 && wrapperHeight > 0 ? wrapperWidth / wrapperHeight : 0;
-    const bodyLooksLikeViewport =
-      Math.abs(bodyWidth - viewportWidth) <= 2 || Math.abs(bodyHeight - viewportHeight) <= 2;
-    const bodyExceedsWrapper =
-      bodyWidth - wrapperWidth > 2 || bodyHeight - wrapperHeight > 2;
-    const wrapperLooksLikeSlide =
-      Math.abs(wrapperAspectRatio - 16 / 9) <= 0.05 &&
-      wrapperWidth > 0 &&
-      wrapperHeight > 0 &&
-      wrapperWidth <= bodyWidth &&
-      wrapperHeight <= bodyHeight;
-
-    const useWrapperFrame = wrapperLooksLikeSlide && (bodyLooksLikeViewport || bodyExceedsWrapper);
+    const childFrames = elementChildren
+      .map((element) => ({ element, ...readBox(element) }))
+      .filter((frame) => frame.width > 0 && frame.height > 0)
+      .sort((left, right) => right.width * right.height - left.width * left.height);
+    const [largestChildFrame] = childFrames;
+    const bodyUsesViewportFrame =
+      isCloseTo(bodySize.width, viewportWidth) || isCloseTo(bodySize.height, viewportHeight);
+    const childDefinesSlideFrame =
+      largestChildFrame &&
+      (bodyUsesViewportFrame ||
+        largestChildFrame.width < bodySize.width - 2 ||
+        largestChildFrame.height < bodySize.height - 2);
+    const frame = childDefinesSlideFrame ? largestChildFrame : bodySize;
     const normalizedWidth = Math.max(
       1,
-      Math.round((useWrapperFrame ? wrapperWidth : bodyWidth) || fallbackSize.width),
+      Math.round(frame.width || fallbackSize.width),
     );
     const normalizedHeight = Math.max(
       1,
-      Math.round((useWrapperFrame ? wrapperHeight : bodyHeight) || fallbackSize.height),
+      Math.round(frame.height || fallbackSize.height),
     );
 
     html.style.margin = '0';
@@ -225,12 +205,7 @@ export async function renderSlideToPdf(page, slideFile, slidesDir) {
     }
   });
 
-  const normalizedSize = await normalizePageForPdf(page);
-  const size = await getSlideSize(page);
-  if (!isMeaningfulDimension(size.width) || !isMeaningfulDimension(size.height)) {
-    size.width = normalizedSize.width;
-    size.height = normalizedSize.height;
-  }
+  const size = await normalizePageForPdf(page);
   return page.pdf(buildPdfOptions(size.width, size.height));
 }
 
