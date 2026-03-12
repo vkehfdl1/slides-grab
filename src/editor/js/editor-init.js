@@ -3,7 +3,7 @@
 import { state, TOOL_MODE_DRAW, TOOL_MODE_SELECT } from './editor-state.js';
 import {
   btnPrev, btnNext, slideIframe, drawLayer, promptInput, modelSelect,
-  btnSend, btnClearBboxes, slideCounter,
+  btnSend, btnClearBboxes, slideCounter, btnSvgExport,
   toggleBold, toggleItalic, toggleUnderline, toggleStrike,
   alignLeft, alignCenter, alignRight,
   popoverTextInput, popoverApplyText, popoverTextColorInput, popoverBgColorInput,
@@ -29,6 +29,8 @@ import {
 import { updateSendState, applyChanges } from './editor-send.js';
 import { goToSlide } from './editor-navigation.js';
 import { connectSSE, loadRunsInitial } from './editor-sse.js';
+import { openExportModal } from './editor-svg-export.js';
+import './editor-figma-export.js';
 
 // Late-binding: connect bbox changes to updateSendState
 onBboxChange(updateSendState);
@@ -43,6 +45,9 @@ btnNext.addEventListener('click', () => { void goToSlide(state.currentIndex + 1)
 // Tool modes
 toolModeDrawBtn.addEventListener('click', () => setToolMode(TOOL_MODE_DRAW));
 toolModeSelectBtn.addEventListener('click', () => setToolMode(TOOL_MODE_SELECT));
+
+// SVG Export
+btnSvgExport.addEventListener('click', openExportModal);
 
 // Clear bboxes
 btnClearBboxes.addEventListener('click', clearBboxesForCurrentSlide);

@@ -6,6 +6,8 @@ import { basename, dirname, join, resolve, relative, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
+import archiver from 'archiver';
+import { WebSocketServer } from 'ws';
 
 import {
   SLIDE_SIZE,
@@ -18,6 +20,18 @@ import {
   scaleSelectionToScreenshot,
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
+
+import {
+  getDomToSvgBundle,
+  getOpentypeBundle,
+  renderSlideToSvg,
+  renderSlideToSvgForeignObject,
+  renderSlideToPng,
+  convertTextToOutlines,
+  scaleSvg,
+  resizeSvg,
+  getOutputFileName,
+} from './html2svg.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -113,6 +127,7 @@ function parseArgs(argv) {
 }
 
 const sseClients = new Set();
+const figmaClients = new Set();
 
 function broadcastSSE(event, data) {
   const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
@@ -237,7 +252,7 @@ function spawnCodexEdit({ prompt, imagePath, model, cwd, onLog }) {
   const args = buildCodexExecArgs({ prompt, imagePath, model });
 
   return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn(codexBin, args, { cwd, stdio: 'pipe' });
+    const child = spawn(codexBin, args, { cwd, stdio: 'pipe', shell: process.platform === 'win32' });
 
     let stdout = '';
     let stderr = '';
@@ -268,7 +283,21 @@ function spawnCodexEdit({ prompt, imagePath, model, cwd, onLog }) {
 
 function spawnClaudeEdit({ prompt, imagePath, model, cwd, onLog }) {
   const claudeBin = process.env.PPT_AGENT_CLAUDE_BIN || 'claude';
-  const args = buildClaudeExecArgs({ prompt, imagePath, model });
+
+  // Build args WITHOUT the prompt — we'll pipe it via stdin instead,
+  // because Windows cmd.exe truncates long multi-line arguments.
+  const args = [
+    '-p',
+    '--dangerously-skip-permissions',
+    '--model', model.trim(),
+    '--max-turns', '30',
+    '--verbose',
+  ];
+
+  let fullPrompt = prompt;
+  if (typeof imagePath === 'string' && imagePath.trim() !== '') {
+    fullPrompt = `First, read the annotated screenshot at "${imagePath.trim()}" to see the visual context of the bbox regions highlighted on the slide.\n\n${prompt}`;
+  }
 
   // Remove CLAUDECODE env var to avoid "nested session" detection error
   const env = { ...process.env };
@@ -277,9 +306,14 @@ function spawnClaudeEdit({ prompt, imagePath, model, cwd, onLog }) {
   return new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(claudeBin, args, {
       cwd,
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
       env,
+      shell: process.platform === 'win32',
     });
+
+    // Send prompt via stdin and close it
+    child.stdin.write(fullPrompt);
+    child.stdin.end();
 
     let stdout = '';
     let stderr = '';
@@ -724,6 +758,316 @@ async function startServer(opts) {
     }
   });
 
+  // ── SVG / PNG Export ────────────────────────────────────────────────
+  let activeSvgExport = false;
+  const svgExportFiles = new Map(); // exportId -> Map<filename, Buffer|string>
+  const svgExportZips = new Map();  // exportId -> Buffer (in-memory ZIP)
+
+  app.post('/api/svg-export', async (req, res) => {
+    const { scope, slide, format = 'svg', scale = 1, width = 1280, height = 720, outline = false } = req.body ?? {};
+
+    if (!['svg', 'png'].includes(format)) {
+      return res.status(400).json({ error: 'format must be svg or png' });
+    }
+    if (!['current', 'all'].includes(scope)) {
+      return res.status(400).json({ error: 'scope must be current or all' });
+    }
+    const numScale = Number(scale) || 1;
+    const numW = Math.max(320, Math.min(7680, Math.round(Number(width) || 1280)));
+    const numH = Math.max(180, Math.min(4320, Math.round(Number(height) || 720)));
+    const useOutline = Boolean(outline) && format === 'svg';
+
+    if (scope === 'current') {
+      const slideFile = typeof slide === 'string' ? slide.trim() : '';
+      if (!slideFile || !SLIDE_FILE_PATTERN.test(slideFile)) {
+        return res.status(400).json({ error: 'Missing or invalid slide.' });
+      }
+
+      try {
+        const result = await withScreenshotPage(async (page) => {
+          await page.setViewportSize({ width: numW, height: numH });
+          const baseUrl = `http://localhost:${opts.port}/slides`;
+
+          if (format === 'svg') {
+            const bundlePath = getDomToSvgBundle();
+            let rawSvg = await renderSlideToSvg(page, slideFile, slidesDirectory, bundlePath, { baseUrl });
+            if (useOutline) {
+              await page.addScriptTag({ path: getOpentypeBundle() });
+              rawSvg = await convertTextToOutlines(page, rawSvg);
+            }
+            return scaleSvg(resizeSvg(rawSvg, numW, numH), numScale);
+          }
+          return renderSlideToPng(page, slideFile, slidesDirectory, { baseUrl });
+        });
+
+        const outName = getOutputFileName(slideFile, format);
+        const contentType = format === 'svg' ? 'image/svg+xml' : 'image/png';
+        res.setHeader('Content-Type', contentType);
+        res.setHeader('Content-Disposition', `attachment; filename="${outName}"`);
+        return res.send(result);
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
+    // scope === 'all'
+    if (activeSvgExport) {
+      return res.status(409).json({ error: 'An export is already in progress.' });
+    }
+
+    let slideFiles;
+    try {
+      slideFiles = await listSlideFiles(slidesDirectory);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (slideFiles.length === 0) {
+      return res.status(400).json({ error: 'No slide files found.' });
+    }
+
+    const exportId = `export-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    activeSvgExport = true;
+    svgExportFiles.set(exportId, new Map());
+
+    res.json({ exportId, total: slideFiles.length });
+
+    // Process in background
+    (async () => {
+      try {
+        let bundlePath;
+        let opentypeBundlePath;
+        if (format === 'svg') {
+          bundlePath = getDomToSvgBundle();
+          if (useOutline) opentypeBundlePath = getOpentypeBundle();
+        }
+
+        const baseUrl = `http://localhost:${opts.port}/slides`;
+        const fileMap = svgExportFiles.get(exportId);
+
+        for (let i = 0; i < slideFiles.length; i++) {
+          const sf = slideFiles[i];
+          const outName = getOutputFileName(sf, format);
+
+          const result = await withScreenshotPage(async (page) => {
+            await page.setViewportSize({ width: numW, height: numH });
+            if (format === 'svg') {
+              let rawSvg = await renderSlideToSvg(page, sf, slidesDirectory, bundlePath, { baseUrl });
+              if (useOutline) {
+                await page.addScriptTag({ path: opentypeBundlePath });
+                rawSvg = await convertTextToOutlines(page, rawSvg);
+              }
+              return scaleSvg(resizeSvg(rawSvg, numW, numH), numScale);
+            }
+            return renderSlideToPng(page, sf, slidesDirectory, { baseUrl });
+          });
+
+          fileMap.set(outName, result);
+
+          broadcastSSE('svgExportProgress', {
+            exportId,
+            current: i + 1,
+            total: slideFiles.length,
+            file: outName,
+          });
+        }
+
+        // Build ZIP in memory from all exported files
+        const files = Array.from(fileMap.keys());
+        console.log(`[svg-export] Creating ZIP for ${files.length} files...`);
+        const archive = archiver('zip', { zlib: { level: 6 } });
+        const chunks = [];
+        archive.on('data', (chunk) => chunks.push(chunk));
+        const zipDone = new Promise((resolveZip, rejectZip) => {
+          archive.on('end', () => resolveZip(Buffer.concat(chunks)));
+          archive.on('error', (err) => {
+            console.error('[svg-export] archiver error:', err);
+            rejectZip(err);
+          });
+        });
+
+        for (const [name, data] of fileMap) {
+          archive.append(Buffer.isBuffer(data) ? data : Buffer.from(data, 'utf-8'), { name });
+        }
+        archive.finalize();
+        const zipBuffer = await zipDone;
+        svgExportZips.set(exportId, zipBuffer);
+        console.log(`[svg-export] ZIP created: ${zipBuffer.length} bytes, exportId=${exportId}`);
+
+        const zipUrl = `/api/svg-export/${exportId}/download.zip`;
+        broadcastSSE('svgExportFinished', {
+          exportId,
+          success: true,
+          files,
+          zipUrl,
+          message: `Exported ${files.length} ${format.toUpperCase()} files.`,
+        });
+        console.log(`[svg-export] Sent svgExportFinished with zipUrl=${zipUrl}`);
+      } catch (err) {
+        console.error(`[svg-export] Export failed:`, err);
+        broadcastSSE('svgExportFinished', {
+          exportId,
+          success: false,
+          files: [],
+          message: err.message,
+        });
+      } finally {
+        activeSvgExport = false;
+        // Clean up after 5 minutes
+        setTimeout(() => {
+          svgExportZips.delete(exportId);
+          svgExportFiles.delete(exportId);
+        }, 5 * 60 * 1000);
+      }
+    })();
+  });
+
+  // ZIP download endpoint
+  app.get('/api/svg-export/:exportId/download.zip', (req, res) => {
+    console.log(`[svg-export] ZIP download request: exportId=${req.params.exportId}`);
+    const zipBuffer = svgExportZips.get(req.params.exportId);
+    if (!zipBuffer) {
+      console.log(`[svg-export] ZIP not found for exportId=${req.params.exportId}, available: [${Array.from(svgExportZips.keys()).join(', ')}]`);
+      return res.status(404).json({ error: 'Export not found or expired.' });
+    }
+    console.log(`[svg-export] Sending ZIP: ${zipBuffer.length} bytes`);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', 'attachment; filename="slides-export.zip"');
+    res.send(zipBuffer);
+  });
+
+  // Individual file download (kept for backward compat)
+  app.get('/api/svg-export/:exportId/:file', (req, res) => {
+    const fileMap = svgExportFiles.get(req.params.exportId);
+    if (!fileMap) {
+      return res.status(404).json({ error: 'Export not found or expired.' });
+    }
+
+    const fileName = req.params.file;
+    const data = fileMap.get(fileName);
+    if (!data) {
+      return res.status(404).json({ error: `File not found: ${fileName}` });
+    }
+
+    const isSvg = fileName.endsWith('.svg');
+    res.setHeader('Content-Type', isSvg ? 'image/svg+xml' : 'image/png');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.send(data);
+  });
+
+  // ── Figma Export via WebSocket ──────────────────────────────────────
+  let activeFigmaExport = false;
+
+  app.post('/api/figma-export', async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const { scope, slide, scale = 1, width = 1920, height = 1080 } = req.body ?? {};
+
+    if (!['current', 'all'].includes(scope)) {
+      return res.status(400).json({ error: 'scope must be current or all' });
+    }
+
+    if (figmaClients.size === 0) {
+      return res.status(400).json({ error: 'No Figma plugin connected.' });
+    }
+
+    if (activeFigmaExport) {
+      return res.status(409).json({ error: 'A Figma export is already in progress.' });
+    }
+
+    const numScale = Number(scale) || 1;
+    const numW = Math.max(320, Math.min(7680, Math.round(Number(width) || 1920)));
+    const numH = Math.max(180, Math.min(4320, Math.round(Number(height) || 1080)));
+
+    let slideFiles;
+    if (scope === 'current') {
+      const slideFile = typeof slide === 'string' ? slide.trim() : '';
+      if (!slideFile || !SLIDE_FILE_PATTERN.test(slideFile)) {
+        return res.status(400).json({ error: 'Missing or invalid slide.' });
+      }
+      slideFiles = [slideFile];
+    } else {
+      try {
+        slideFiles = await listSlideFiles(slidesDirectory);
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+      if (slideFiles.length === 0) {
+        return res.status(400).json({ error: 'No slide files found.' });
+      }
+    }
+
+    activeFigmaExport = true;
+    res.json({ ok: true, total: slideFiles.length });
+
+    // Process in background
+    (async () => {
+      try {
+        const bundlePath = getDomToSvgBundle();
+        const opentypeBundlePath = getOpentypeBundle();
+        const baseUrl = `http://localhost:${opts.port}/slides`;
+
+        for (let i = 0; i < slideFiles.length; i++) {
+          const sf = slideFiles[i];
+
+          const svg = await withScreenshotPage(async (page) => {
+            await page.setViewportSize({ width: numW, height: numH });
+            let rawSvg = await renderSlideToSvg(page, sf, slidesDirectory, bundlePath, { baseUrl });
+            await page.addScriptTag({ path: opentypeBundlePath });
+            rawSvg = await convertTextToOutlines(page, rawSvg);
+            return scaleSvg(resizeSvg(rawSvg, numW, numH), numScale);
+          });
+
+          const msg = JSON.stringify({
+            type: 'slide',
+            name: sf.replace(/\.html$/i, ''),
+            svg,
+            current: i + 1,
+            total: slideFiles.length,
+          });
+
+          for (const ws of figmaClients) {
+            try { ws.send(msg); } catch { /* client gone */ }
+          }
+
+          broadcastSSE('figmaExportProgress', {
+            current: i + 1,
+            total: slideFiles.length,
+            file: sf,
+          });
+        }
+
+        const doneMsg = JSON.stringify({ type: 'done', total: slideFiles.length });
+        for (const ws of figmaClients) {
+          try { ws.send(doneMsg); } catch { /* client gone */ }
+        }
+
+        broadcastSSE('figmaExportFinished', {
+          success: true,
+          total: slideFiles.length,
+          message: `Sent ${slideFiles.length} slides to Figma.`,
+        });
+      } catch (err) {
+        console.error('[figma-export] Export failed:', err);
+        broadcastSSE('figmaExportFinished', {
+          success: false,
+          total: 0,
+          message: err.message,
+        });
+      } finally {
+        activeFigmaExport = false;
+      }
+    })();
+  });
+
+  // CORS preflight for Figma export
+  app.options('/api/figma-export', (_req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.sendStatus(204);
+  });
+
   let debounceTimer = null;
   const watcher = fsWatch(slidesDirectory, { persistent: false }, (_eventType, filename) => {
     if (!filename || !SLIDE_FILE_PATTERN.test(filename)) return;
@@ -739,7 +1083,38 @@ async function startServer(opts) {
     process.stdout.write(`  Local:       http://localhost:${opts.port}\n`);
     process.stdout.write(`  Models:      ${ALL_MODELS.join(', ')}\n`);
     process.stdout.write(`  Slides:      ${slidesDirectory}\n`);
+    process.stdout.write(`  Figma WS:    ws://localhost:${opts.port}/figma-ws\n`);
     process.stdout.write('  ─────────────────────────────────────\n\n');
+  });
+
+  // WebSocket server for Figma plugin
+  const wss = new WebSocketServer({ noServer: true });
+
+  server.on('upgrade', (request, socket, head) => {
+    const url = new URL(request.url, `http://localhost:${opts.port}`);
+    if (url.pathname === '/figma-ws') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    } else {
+      socket.destroy();
+    }
+  });
+
+  wss.on('connection', (ws) => {
+    figmaClients.add(ws);
+    console.log(`[figma-ws] Figma plugin connected (total: ${figmaClients.size})`);
+    broadcastSSE('figmaConnected', { clients: figmaClients.size });
+
+    ws.on('close', () => {
+      figmaClients.delete(ws);
+      console.log(`[figma-ws] Figma plugin disconnected (total: ${figmaClients.size})`);
+      broadcastSSE('figmaDisconnected', { clients: figmaClients.size });
+    });
+
+    ws.on('error', () => {
+      figmaClients.delete(ws);
+    });
   });
 
   async function shutdown() {
@@ -749,6 +1124,11 @@ async function startServer(opts) {
       client.end();
     }
     sseClients.clear();
+    for (const ws of figmaClients) {
+      ws.close();
+    }
+    figmaClients.clear();
+    wss.close();
     server.close();
     await closeBrowser();
     process.exit(0);

@@ -6,6 +6,11 @@ import { currentSlideFile, setStatus } from './editor-utils.js';
 import { addChatMessage, renderRunsList } from './editor-chat.js';
 import { renderBboxes } from './editor-bbox.js';
 import { updateSendState } from './editor-send.js';
+import { onSvgExportProgress, onSvgExportFinished } from './editor-svg-export.js';
+import {
+  onFigmaConnected, onFigmaDisconnected,
+  onFigmaExportProgress, onFigmaExportFinished,
+} from './editor-figma-export.js';
 
 function upsertRun(run) {
   if (!run?.runId) return;
@@ -127,6 +132,54 @@ export function connectSSE() {
       }
     } catch (error) {
       console.error('fileChanged parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('svgExportProgress', (event) => {
+    try {
+      onSvgExportProgress(JSON.parse(event.data));
+    } catch (error) {
+      console.error('svgExportProgress parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('svgExportFinished', (event) => {
+    try {
+      onSvgExportFinished(JSON.parse(event.data));
+    } catch (error) {
+      console.error('svgExportFinished parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('figmaConnected', (event) => {
+    try {
+      onFigmaConnected(JSON.parse(event.data));
+    } catch (error) {
+      console.error('figmaConnected parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('figmaDisconnected', (event) => {
+    try {
+      onFigmaDisconnected(JSON.parse(event.data));
+    } catch (error) {
+      console.error('figmaDisconnected parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('figmaExportProgress', (event) => {
+    try {
+      onFigmaExportProgress(JSON.parse(event.data));
+    } catch (error) {
+      console.error('figmaExportProgress parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('figmaExportFinished', (event) => {
+    try {
+      onFigmaExportFinished(JSON.parse(event.data));
+    } catch (error) {
+      console.error('figmaExportFinished parse error:', error);
     }
   });
 

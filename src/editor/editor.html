@@ -1572,6 +1572,340 @@
         min-width: 160px;
       }
     }
+
+    /* ── SVG Export Modal ────────────────────────── */
+    .svg-export-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+    }
+    .svg-export-overlay[hidden] { display: none; }
+
+    .svg-export-modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      min-width: 360px;
+      max-width: 440px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .svg-export-modal h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-0);
+      margin: 0;
+    }
+
+    .svg-export-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .svg-export-field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-1);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .svg-export-field select,
+    .svg-export-field input[type="number"] {
+      height: 32px;
+      background: var(--bg-1);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .svg-export-field select:focus,
+    .svg-export-field input:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .svg-export-size-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .svg-export-size-row input {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .svg-export-size-row .sep {
+      color: var(--text-2);
+      font-size: 13px;
+    }
+
+    .svg-export-radio-group {
+      display: flex;
+      gap: 16px;
+    }
+
+    .svg-export-radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-0);
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 400;
+      cursor: pointer;
+    }
+
+    .svg-export-radio-group input[type="radio"] {
+      accent-color: var(--accent);
+    }
+
+    .svg-export-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .svg-export-actions button {
+      height: 34px;
+      padding: 0 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all var(--transition);
+    }
+
+    .svg-export-btn-cancel {
+      background: var(--bg-1);
+      color: var(--text-1);
+    }
+    .svg-export-btn-cancel:hover {
+      background: var(--panel-2);
+      color: var(--text-0);
+    }
+
+    .svg-export-btn-start {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .svg-export-btn-start:hover {
+      background: var(--accent-2);
+    }
+    .svg-export-btn-start:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    .svg-export-progress {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .svg-export-progress.active { display: flex; }
+
+    .svg-export-progress-bar {
+      height: 6px;
+      background: var(--bg-1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .svg-export-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 200ms ease-out;
+    }
+
+    .svg-export-progress-text {
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    .nav-bar-btn {
+      height: 28px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      letter-spacing: 0.5px;
+      transition: all var(--transition);
+    }
+    .nav-bar-btn:hover { background: var(--accent-2); }
+
+    .nav-bar-btn.figma-btn {
+      background: #1e1e1e;
+      border: 1px solid #333;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 10px;
+      position: relative;
+    }
+    .nav-bar-btn.figma-btn:hover { background: #2a2a2a; border-color: #555; }
+    .nav-bar-btn.figma-btn:disabled { opacity: 0.35; cursor: default; }
+    .nav-bar-btn.figma-btn:disabled:hover { background: #1e1e1e; border-color: #333; }
+
+    .figma-conn-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ef4444;
+      flex-shrink: 0;
+    }
+    .figma-conn-dot.connected { background: #22c55e; }
+
+    .figma-toast {
+      position: fixed;
+      top: 54px;
+      right: 16px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 16px;
+      font-size: 13px;
+      color: var(--text-0);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      z-index: 9999;
+      display: none;
+      max-width: 320px;
+    }
+    .figma-toast.visible { display: block; }
+    .figma-toast.success { border-color: var(--success); }
+    .figma-toast.error { border-color: var(--danger); }
+
+    .figma-confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+    }
+    .figma-confirm-overlay[hidden] { display: none; }
+
+    .figma-confirm-modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      min-width: 340px;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .figma-confirm-modal h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-0);
+      margin: 0;
+    }
+
+    .figma-confirm-modal p {
+      font-size: 13px;
+      color: var(--text-1);
+      line-height: 1.5;
+      margin: 0;
+    }
+
+    .figma-confirm-modal .figma-progress {
+      display: none;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .figma-confirm-modal .figma-progress.active { display: flex; }
+
+    .figma-progress-bar {
+      height: 6px;
+      background: var(--bg-1);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .figma-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .figma-progress-text {
+      font-size: 11px;
+      color: var(--text-2);
+    }
+
+    .figma-confirm-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .figma-confirm-actions button {
+      height: 32px;
+      border-radius: var(--radius-sm);
+      padding: 0 16px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: all var(--transition);
+    }
+
+    .figma-btn-cancel {
+      background: var(--bg-1);
+      color: var(--text-1);
+    }
+    .figma-btn-cancel:hover { background: var(--panel); color: var(--text-0); }
+
+    .figma-btn-current {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .figma-btn-current:hover { background: var(--accent-2); }
+    .figma-btn-current:disabled { opacity: 0.4; cursor: default; }
+
+    .figma-btn-all {
+      background: #7c3aed;
+      color: #fff;
+      border-color: #7c3aed;
+    }
+    .figma-btn-all:hover { background: #8b5cf6; }
+    .figma-btn-all:disabled { opacity: 0.4; cursor: default; }
   </style>
 </head>
 <body>
@@ -1583,6 +1917,11 @@
         <button id="btn-next" title="Next slide (Right arrow)">Next &#9654;</button>
       </div>
       <div class="nav-spacer"></div>
+      <button class="nav-bar-btn" id="btn-svg-export" title="SVG/PNG Export">SVG</button>
+      <button class="nav-bar-btn figma-btn" id="btn-figma-export" title="Send to Figma (plugin not connected)" disabled>
+        <span class="figma-conn-dot" id="figma-conn-dot"></span>
+        Figma
+      </button>
       <span class="slide-status-chip idle" id="slide-status-chip">idle</span>
       <span class="brand">ppt-agent</span>
     </div>
@@ -1726,7 +2065,86 @@
       </span>
       <span class="status-message" id="status-message"></span>
     </div>
+
+    <div class="svg-export-overlay" id="svg-export-modal" hidden>
+      <div class="svg-export-modal">
+        <h3>SVG / PNG Export</h3>
+
+        <div class="svg-export-field">
+          <label>Range</label>
+          <div class="svg-export-radio-group">
+            <label><input type="radio" name="svg-export-scope" value="current"> Current slide</label>
+            <label><input type="radio" name="svg-export-scope" value="all" checked> All slides</label>
+          </div>
+        </div>
+
+        <div class="svg-export-field">
+          <label>Viewport</label>
+          <select id="svg-export-preset">
+            <option value="1280x720">HD (1280 x 720)</option>
+            <option value="1920x1080" selected>FHD (1920 x 1080)</option>
+            <option value="2560x1440">QHD (2560 x 1440)</option>
+            <option value="3840x2160">4K (3840 x 2160)</option>
+            <option value="custom">Custom</option>
+          </select>
+        </div>
+
+        <div class="svg-export-field" id="svg-export-custom-size" hidden>
+          <label>Custom size</label>
+          <div class="svg-export-size-row">
+            <input type="number" id="svg-export-width" min="320" max="7680" value="1920" placeholder="W">
+            <span class="sep">x</span>
+            <input type="number" id="svg-export-height" min="180" max="4320" value="1080" placeholder="H">
+          </div>
+        </div>
+
+        <div class="svg-export-field">
+          <label>Scale</label>
+          <input type="number" id="svg-export-scale" min="0.5" max="8" step="0.5" value="1">
+        </div>
+
+        <div class="svg-export-field">
+          <label>Format</label>
+          <select id="svg-export-format">
+            <option value="svg">SVG</option>
+            <option value="svg-outline" selected>SVG (Outline — for Figma)</option>
+            <option value="png">PNG</option>
+          </select>
+        </div>
+
+        <div class="svg-export-progress" id="svg-export-progress">
+          <div class="svg-export-progress-bar">
+            <div class="svg-export-progress-fill" id="svg-export-progress-fill"></div>
+          </div>
+          <span class="svg-export-progress-text" id="svg-export-progress-text"></span>
+        </div>
+
+        <div class="svg-export-actions">
+          <button class="svg-export-btn-cancel" id="svg-export-cancel" type="button">Close</button>
+          <button class="svg-export-btn-start" id="svg-export-start" type="button">Export</button>
+        </div>
+      </div>
+    </div>
   </div>
+
+  <div class="figma-confirm-overlay" id="figma-confirm-modal" hidden>
+    <div class="figma-confirm-modal">
+      <h3>Send to Figma</h3>
+      <p id="figma-confirm-desc">Send slides to the connected Figma Slides plugin.</p>
+      <div class="figma-progress" id="figma-progress">
+        <div class="figma-progress-bar">
+          <div class="figma-progress-fill" id="figma-progress-fill"></div>
+        </div>
+        <span class="figma-progress-text" id="figma-progress-text"></span>
+      </div>
+      <div class="figma-confirm-actions" id="figma-confirm-actions">
+        <button class="figma-btn-cancel" id="figma-cancel" type="button">Cancel</button>
+        <button class="figma-btn-current" id="figma-send-current" type="button">Current Slide</button>
+        <button class="figma-btn-all" id="figma-send-all" type="button">All Slides</button>
+      </div>
+    </div>
+  </div>
+  <div class="figma-toast" id="figma-toast"></div>
 
   <script type="module" src="/js/editor-init.js"></script>
 </body>
