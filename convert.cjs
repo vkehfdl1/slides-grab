@@ -5,9 +5,6 @@ const fs = require('fs');
 const sharp = require('sharp');
 
 // Inline a simplified version that uses Playwright Chromium (not Chrome)
-const PT_PER_PX = 0.75;
-const PX_PER_IN = 96;
-const EMU_PER_IN = 914400;
 const DEFAULT_SLIDES_DIR = 'slides';
 const DEFAULT_OUTPUT = 'output.pptx';
 
@@ -109,9 +106,9 @@ async function convertSlide(htmlFile, pres, browser) {
   const screenshot = await page.screenshot({ type: 'png' });
   await page.close();
 
-  // Resize to exact slide dimensions (13.33" x 7.5" at 150 DPI)
-  const targetWidth = Math.round(13.33 * 150);
-  const targetHeight = Math.round(7.5 * 150);
+  // Match the defined PowerPoint layout so 720pt x 405pt decks stay at the repo standard size.
+  const targetWidth = Math.round((pres.presLayout.width / 914400) * 150);
+  const targetHeight = Math.round((pres.presLayout.height / 914400) * 150);
 
   const resized = await sharp(screenshot)
     .resize(targetWidth, targetHeight, { fit: 'fill' })
@@ -140,8 +137,9 @@ async function main() {
     return;
   }
 
+  const { configureStandardPresentation, ensureOutputDirectory } = await import('./src/figma.js');
   const pres = new PptxGenJS();
-  pres.layout = 'LAYOUT_WIDE'; // 16:9
+  configureStandardPresentation(pres);
 
   const slidesDir = path.resolve(process.cwd(), options.slidesDir);
   const files = fs.readdirSync(slidesDir)
@@ -169,6 +167,7 @@ async function main() {
   await browser.close();
 
   const outputFile = path.resolve(process.cwd(), options.output);
+  await ensureOutputDirectory(outputFile);
   await pres.writeFile({ fileName: outputFile });
   console.log(`\nSaved: ${outputFile}`);
 

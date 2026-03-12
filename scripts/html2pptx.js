@@ -6,7 +6,12 @@ import { resolve } from 'node:path';
 
 import PptxGenJS from 'pptxgenjs';
 
-import { ensureOutputDirectory, SLIDE_FILE_PATTERN, sortFigmaSlideFiles } from '../src/figma.js';
+import {
+  configureStandardPresentation,
+  ensureOutputDirectory,
+  SLIDE_FILE_PATTERN,
+  sortFigmaSlideFiles,
+} from '../src/figma.js';
 
 const require = createRequire(import.meta.url);
 const html2pptx = require('../src/html2pptx.cjs');
@@ -116,7 +121,7 @@ async function main() {
   const files = getHtmlSlides(slidesDir);
 
   const pres = new PptxGenJS();
-  pres.layout = 'LAYOUT_WIDE';
+  configureStandardPresentation(pres);
 
   for (const file of files) {
     await html2pptx(resolve(slidesDir, file), pres);

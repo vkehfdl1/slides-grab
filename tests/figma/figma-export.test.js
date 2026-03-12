@@ -11,11 +11,13 @@ import PptxGenJS from 'pptxgenjs';
 import {
   buildDefaultFigmaOutput,
   configureFigmaExportPresentation,
+  configureStandardPresentation,
   ensureOutputDirectory,
   FIGMA_EXPORT_LAYOUT_NAME,
   getFigmaImportCaveats,
   getFigmaManualImportInstructions,
   normalizeFigmaOutput,
+  REPO_STANDARD_LAYOUT_NAME,
   SLIDE_HEIGHT_INCHES,
   SLIDE_WIDTH_INCHES,
   sortFigmaSlideFiles,
@@ -89,6 +91,15 @@ test('configureFigmaExportPresentation applies the repo-standard slide size', ()
   assert.equal(pres.presLayout.height / 914400, SLIDE_HEIGHT_INCHES);
 });
 
+test('configureStandardPresentation applies the repo-standard slide size', () => {
+  const pres = new PptxGenJS();
+  configureStandardPresentation(pres);
+
+  assert.equal(pres.layout, REPO_STANDARD_LAYOUT_NAME);
+  assert.equal(pres.presLayout.width / 914400, SLIDE_WIDTH_INCHES);
+  assert.equal(pres.presLayout.height / 914400, SLIDE_HEIGHT_INCHES);
+});
+
 test('figma exporter generates a pptx with the repo-standard presentation size', () => {
   const outputDir = mkdtempSync(join(tmpdir(), 'slides-grab-figma-export-'));
   const slidesDir = join(outputDir, 'slides');
@@ -96,7 +107,7 @@ test('figma exporter generates a pptx with the repo-standard presentation size',
 
   try {
     mkdirSync(slidesDir, { recursive: true });
-    writeFileSync(join(outputDir, 'slides', 'slide-01.html'), createTestSlideHtml(), 'utf-8');
+    writeFileSync(join(slidesDir, 'slide-01.html'), createTestSlideHtml(), 'utf-8');
 
     execFileSync(
       process.execPath,

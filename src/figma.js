@@ -3,7 +3,8 @@ import { basename, dirname, extname, join, resolve } from 'node:path';
 
 export const DEFAULT_FIGMA_SUFFIX = '-figma.pptx';
 export const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;
-export const FIGMA_EXPORT_LAYOUT_NAME = 'SLIDES_GRAB_STANDARD';
+export const REPO_STANDARD_LAYOUT_NAME = 'SLIDES_GRAB_STANDARD';
+export const FIGMA_EXPORT_LAYOUT_NAME = REPO_STANDARD_LAYOUT_NAME;
 export const SLIDE_WIDTH_INCHES = 10;
 export const SLIDE_HEIGHT_INCHES = 5.625;
 
@@ -36,14 +37,18 @@ export function getFigmaManualImportInstructions() {
   return 'Figma Slides -> Import -> select the generated .pptx file.';
 }
 
-export function configureFigmaExportPresentation(pres) {
+export function configureStandardPresentation(pres) {
   pres.defineLayout({
-    name: FIGMA_EXPORT_LAYOUT_NAME,
+    name: REPO_STANDARD_LAYOUT_NAME,
     width: SLIDE_WIDTH_INCHES,
     height: SLIDE_HEIGHT_INCHES,
   });
-  pres.layout = FIGMA_EXPORT_LAYOUT_NAME;
+  pres.layout = REPO_STANDARD_LAYOUT_NAME;
   return pres;
+}
+
+export function configureFigmaExportPresentation(pres) {
+  return configureStandardPresentation(pres);
 }
 
 export async function ensureOutputDirectory(outputFile) {

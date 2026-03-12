@@ -10,6 +10,7 @@ import {
   configureFigmaExportPresentation,
   ensureOutputDirectory,
   getFigmaImportCaveats,
+  getFigmaManualImportInstructions,
   normalizeFigmaOutput,
   SLIDE_FILE_PATTERN,
   sortFigmaSlideFiles,
@@ -138,7 +139,7 @@ async function main() {
   for (const caveat of getFigmaImportCaveats()) {
     console.log(`- ${caveat}`);
   }
-  console.log('\nManual import: Figma Slides -> Import -> select the generated .pptx file.');
+  console.log(`\nManual import: ${getFigmaManualImportInstructions()}`);
 }
 
 main().catch((error) => {
