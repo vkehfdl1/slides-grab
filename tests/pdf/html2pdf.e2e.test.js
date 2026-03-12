@@ -14,6 +14,8 @@ import { renderSlideToPdf } from '../../scripts/html2pdf.js';
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const OFFSET_FRAME_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'offset-frame');
 const RUNTIME_DIRECT_CHILD_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'runtime-direct-child');
+const SAME_FRAME_SIBLINGS_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'same-frame-siblings');
+const TRANSFORMED_FRAME_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'transformed-frame');
 
 function runPdfExport(args, cwd) {
   return new Promise((resolve, reject) => {
@@ -193,6 +195,18 @@ async function copyRuntimeDirectChildFixture(workspace) {
   return slidesDir;
 }
 
+async function copySameFrameSiblingsFixture(workspace) {
+  const slidesDir = join(workspace, 'slides');
+  await cp(SAME_FRAME_SIBLINGS_FIXTURE_DIR, slidesDir, { recursive: true });
+  return slidesDir;
+}
+
+async function copyTransformedFrameFixture(workspace) {
+  const slidesDir = join(workspace, 'slides');
+  await cp(TRANSFORMED_FRAME_FIXTURE_DIR, slidesDir, { recursive: true });
+  return slidesDir;
+}
+
 function getPageSize(page) {
   const { width, height } = page.getSize();
   return {
@@ -303,7 +317,7 @@ test('offset-frame fixture keeps capture crops aligned to the detected frame ori
       .toBuffer();
 
     assert.deepEqual(Array.from(cornerPixel), [255, 0, 0]);
-    assert.deepEqual(Array.from(edgePixel), [248, 245, 236]);
+    assert.deepEqual(Array.from(edgePixel), [0, 71, 255]);
   } finally {
     await browser.close();
     await rm(workspace, { recursive: true, force: true });
@@ -336,7 +350,7 @@ test('offset-frame fixture keeps print exports cropped to the detected frame ori
     const rasterPrefix = join(workspace, 'offset-frame-page-1');
     const pngPath = await rasterizePdfPage(outputPath, rasterPrefix, 1);
     const edgeSample = await readRelativePixel(pngPath, 0.993, 0.5);
-    assert.deepEqual(edgeSample.pixel.slice(0, 3), [248, 245, 236]);
+    assert.deepEqual(edgeSample.pixel.slice(0, 3), [0, 71, 255]);
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
@@ -396,6 +410,101 @@ test('print mode preserves JS-painted direct-child canvas frames', { concurrency
 
     assertPixelApproximately(leftSample.pixel, [230, 80, 0], 12);
     assertPixelApproximately(rightSample.pixel, [0, 71, 255], 12);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('capture mode keeps same-frame top-level siblings inside the selected slide frame', { concurrency: false, timeout: 120000 }, async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-sibling-capture-'));
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({
+    viewport: { width: 960, height: 540 },
+  });
+
+  try {
+    const slidesDir = await copySameFrameSiblingsFixture(workspace);
+    const result = await renderSlideToPdf(page, 'slide-01.html', slidesDir, { mode: 'capture' });
+
+    const overlayPixel = await sharp(result.pngBytes)
+      .extract({ left: 820, top: 90, width: 1, height: 1 })
+      .raw()
+      .toBuffer();
+
+    assertPixelApproximately(Array.from(overlayPixel), [0, 71, 255], 12);
+  } finally {
+    await browser.close();
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('print mode keeps same-frame top-level siblings inside the selected slide frame', { concurrency: false, timeout: 120000 }, async (t) => {
+  if (!canExtractPdfText() || !canRasterizePdfPages()) {
+    t.skip('pdftotext and pdftoppm are required for sibling verification');
+  }
+
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-sibling-print-'));
+
+  try {
+    await copySameFrameSiblingsFixture(workspace);
+    const outputPath = join(workspace, 'same-frame-siblings.pdf');
+    const rasterPrefix = join(workspace, 'same-frame-siblings-page-1');
+
+    const result = await runPdfExport(['--slides-dir', 'slides', '--mode', 'print', '--output', outputPath], workspace);
+    assert.match(result.stdout, /Generated PDF \(print mode\)/);
+
+    const extractedText = await extractPdfText(outputPath);
+    assert.match(extractedText, /Overlay Text/);
+
+    const pngPath = await rasterizePdfPage(outputPath, rasterPrefix, 1);
+    const overlaySample = await readRelativePixel(pngPath, 0.855, 0.17);
+    assertPixelApproximately(overlaySample.pixel, [0, 71, 255], 12);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('capture mode preserves transformed slide roots during normalization', { concurrency: false, timeout: 120000 }, async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-transform-capture-'));
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({
+    viewport: { width: 960, height: 540 },
+  });
+
+  try {
+    const slidesDir = await copyTransformedFrameFixture(workspace);
+    const result = await renderSlideToPdf(page, 'slide-01.html', slidesDir, { mode: 'capture' });
+
+    const cornerPixel = await sharp(result.pngBytes)
+      .extract({ left: 16, top: 16, width: 1, height: 1 })
+      .raw()
+      .toBuffer();
+
+    assertPixelApproximately(Array.from(cornerPixel), [230, 80, 0], 12);
+  } finally {
+    await browser.close();
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('print mode preserves transformed slide roots during normalization', { concurrency: false, timeout: 120000 }, async (t) => {
+  if (!canRasterizePdfPages()) {
+    t.skip('pdftoppm is required for transform verification');
+  }
+
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-transform-print-'));
+
+  try {
+    await copyTransformedFrameFixture(workspace);
+    const outputPath = join(workspace, 'transformed-frame.pdf');
+    const rasterPrefix = join(workspace, 'transformed-frame-page-1');
+
+    const result = await runPdfExport(['--slides-dir', 'slides', '--mode', 'print', '--output', outputPath], workspace);
+    assert.match(result.stdout, /Generated PDF \(print mode\)/);
+
+    const pngPath = await rasterizePdfPage(outputPath, rasterPrefix, 1);
+    const cornerSample = await readRelativePixel(pngPath, 0.02, 0.03);
+    assertPixelApproximately(cornerSample.pixel, [230, 80, 0], 12);
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }

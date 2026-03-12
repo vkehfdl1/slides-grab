@@ -341,11 +341,6 @@ export async function normalizeBodyToSlideFrame(page, slideFrame) {
     body.style.minWidth = `${width}px`;
     body.style.minHeight = `${height}px`;
     body.style.overflow = 'hidden';
-    body.style.position = 'relative';
-    body.style.left = '0';
-    body.style.top = '0';
-    body.style.transform = 'none';
-    body.style.transformOrigin = '';
 
     documentElement.style.margin = '0';
     documentElement.style.padding = '0';
@@ -364,23 +359,8 @@ export async function isolateSlideFrame(page, slideFrame) {
       return { x: 0, y: 0, width, height, source: 'body', candidateIndex: null };
     }
 
-    if (source === 'body-child' && Number.isInteger(candidateIndex)) {
-      const selectedFrame = body.children[candidateIndex];
-      if (selectedFrame instanceof HTMLElement) {
-        selectedFrame.setAttribute('data-slides-grab-print-frame', 'true');
-        selectedFrame.style.position = 'relative';
-        selectedFrame.style.left = '0';
-        selectedFrame.style.top = '0';
-        selectedFrame.style.margin = '0';
-        selectedFrame.style.transform = 'none';
-        selectedFrame.style.transformOrigin = 'top left';
-
-        body.replaceChildren(selectedFrame);
-        return { x: 0, y: 0, width, height, source: 'body', candidateIndex: null };
-      }
-    }
-
-    if (x === 0 && y === 0) {
+    const shouldWrapBodyChildren = source === 'body-child' || x !== 0 || y !== 0;
+    if (!shouldWrapBodyChildren) {
       return { x, y, width, height, source, candidateIndex: candidateIndex ?? null };
     }
 
