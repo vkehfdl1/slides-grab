@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 13px;
+      color: #333;
+      padding: 16px;
+      background: #fff;
+    }
+    h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: #1e1e1e;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+    .field input {
+      width: 100%;
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      background: #fafafa;
+    }
+    .field input:focus {
+      border-color: #0d99ff;
+      outline: none;
+      background: #fff;
+    }
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      padding: 10px 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ccc;
+      flex-shrink: 0;
+    }
+    .status-dot.connected { background: #22c55e; }
+    .status-dot.error { background: #ef4444; }
+    .status-text {
+      font-size: 12px;
+      color: #666;
+    }
+    .btn {
+      height: 36px;
+      padding: 0 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 150ms ease;
+      width: 100%;
+    }
+    .btn-connect {
+      background: #0d99ff;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .btn-connect:hover { background: #0b85e0; }
+    .btn-connect:disabled { opacity: 0.5; cursor: default; }
+    .btn-disconnect {
+      background: #f0f0f0;
+      color: #666;
+    }
+    .btn-disconnect:hover { background: #e0e0e0; }
+    .progress {
+      display: none;
+      margin-top: 16px;
+      padding: 12px;
+      background: #f5f5f5;
+      border-radius: 8px;
+    }
+    .progress.active { display: block; }
+    .progress-bar {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #0d99ff;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+    .progress-text {
+      font-size: 11px;
+      color: #888;
+    }
+    .log {
+      margin-top: 12px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 11px;
+      color: #888;
+      line-height: 1.6;
+      border-top: 1px solid #eee;
+      padding-top: 8px;
+    }
+    .log-entry { padding: 2px 0; }
+    .log-entry.error { color: #ef4444; }
+    .log-entry.success { color: #22c55e; }
+  </style>
+</head>
+<body>
+  <h2>Slides to Figma</h2>
+
+  <div class="field">
+    <label>Server URL</label>
+    <input type="text" id="server-url" placeholder="localhost:3456" />
+  </div>
+
+  <div class="status-row">
+    <span class="status-dot" id="status-dot"></span>
+    <span class="status-text" id="status-text">Disconnected</span>
+  </div>
+
+  <button class="btn btn-connect" id="btn-connect">Connect</button>
+  <button class="btn btn-disconnect" id="btn-disconnect" style="display:none">Disconnect</button>
+
+  <div class="progress" id="progress">
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <span class="progress-text" id="progress-text"></span>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <script>/* __INLINE_SCRIPT__ */</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "slides-to-figma",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "node build.mjs",
+    "watch": "node build.mjs --watch"
+  },
+  "devDependencies": {
+    "@figma/plugin-typings": "^1.100.0",
+    "esbuild": "^0.27.3",
+    "typescript": "^5.7.0"
+  }
+}

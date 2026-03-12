@@ -1,0 +1,15 @@
+{
+  "name": "Slides to Figma",
+  "id": "slides-to-figma-plugin",
+  "api": "1.0.0",
+  "main": "dist/code.js",
+  "ui": "dist/ui.html",
+  "editorType": ["slides"],
+  "networkAccess": {
+    "allowedDomains": [
+      "http://localhost:3456",
+      "ws://localhost:3456"
+    ],
+    "reasoning": "Connect to slides-grab editor server via WebSocket to receive slide SVG data"
+  }
+}
