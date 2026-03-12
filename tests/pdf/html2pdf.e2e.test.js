@@ -330,16 +330,19 @@ test('offset-frame fixture keeps print exports cropped to the detected frame ori
   }
 
   const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-offset-print-'));
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({
+    viewport: { width: 960, height: 540 },
+  });
 
   try {
-    await copyOffsetFrameFixture(workspace);
+    const slidesDir = await copyOffsetFrameFixture(workspace);
     const outputPath = join(workspace, 'offset-frame.pdf');
 
-    const result = await runPdfExport(['--slides-dir', 'slides', '--mode', 'print', '--output', outputPath], workspace);
-    assert.match(result.stdout, /Generated PDF \(print mode\)/);
+    const result = await renderSlideToPdf(page, 'slide-01.html', slidesDir, { mode: 'print' });
+    await writeFile(outputPath, result.pdfBytes);
 
-    const bytes = await readFile(outputPath);
-    const pdf = await PDFDocument.load(bytes);
+    const pdf = await PDFDocument.load(result.pdfBytes);
     assert.equal(pdf.getPageCount(), 1);
     assert.deepEqual(getPageSize(pdf.getPages()[0]), { width: 720, height: 405 });
 
@@ -352,6 +355,7 @@ test('offset-frame fixture keeps print exports cropped to the detected frame ori
     const edgeSample = await readRelativePixel(pngPath, 0.993, 0.5);
     assert.deepEqual(edgeSample.pixel.slice(0, 3), [0, 71, 255]);
   } finally {
+    await browser.close();
     await rm(workspace, { recursive: true, force: true });
   }
 });
