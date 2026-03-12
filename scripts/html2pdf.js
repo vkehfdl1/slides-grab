@@ -316,6 +316,8 @@ export async function detectSlideFrame(page) {
       },
       candidates: directChildren,
     };
+  });
+
   const frame = chooseSlideFrame(metrics);
   return {
     x: normalizeDimension(frame.x, 0),

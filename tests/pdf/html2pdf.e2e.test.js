@@ -1,13 +1,19 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { cp, mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { PDFDocument } from 'pdf-lib';
+import sharp from 'sharp';
+import sharp from 'sharp';
+import { chromium } from 'playwright';
+
+import { renderSlideToPdf } from '../../scripts/html2pdf.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const OFFSET_FRAME_FIXTURE_DIR = join(REPO_ROOT, 'tests', 'pdf', 'fixtures', 'offset-frame');
 
 function runPdfExport(args, cwd) {
   return new Promise((resolve, reject) => {
@@ -44,6 +50,11 @@ function canExtractPdfText() {
   return probe.status === 0 || probe.stderr.includes('pdftotext');
 }
 
+function canRasterizePdfPages() {
+  const probe = spawnSync('pdftoppm', ['-v'], { encoding: 'utf8' });
+  return probe.status === 0 || probe.stderr.includes('pdftoppm');
+}
+
 function extractPdfText(pdfPath) {
   return new Promise((resolve, reject) => {
     const child = spawn('pdftotext', [pdfPath, '-'], {
@@ -67,6 +78,52 @@ function extractPdfText(pdfPath) {
       reject(new Error(`pdftotext failed (${code})\n${stderr}`));
     });
   });
+}
+
+function rasterizePdfPage(pdfPath, outputPrefix, page = 1) {
+  return new Promise((resolve, reject) => {
+    const child = spawn('pdftoppm', ['-png', '-f', String(page), '-singlefile', pdfPath, outputPrefix], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stderr = '';
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on('error', reject);
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(`${outputPrefix}.png`);
+        return;
+      }
+      reject(new Error(`pdftoppm failed (${code})\n${stderr}`));
+    });
+  });
+}
+
+async function readPixel(pngPath, x, y) {
+  const image = sharp(pngPath);
+  const metadata = await image.metadata();
+  const width = metadata.width ?? 0;
+  const height = metadata.height ?? 0;
+  const channels = metadata.channels ?? 0;
+  const { data } = await image.raw().toBuffer({ resolveWithObject: true });
+  const index = (y * width + x) * channels;
+  return {
+    width,
+    height,
+    pixel: Array.from(data.slice(index, index + channels)),
+  };
+}
+
+async function readRelativePixel(pngPath, relativeX, relativeY) {
+  const image = sharp(pngPath);
+  const metadata = await image.metadata();
+  const width = metadata.width ?? 0;
+  const height = metadata.height ?? 0;
+  const x = Math.min(width - 1, Math.max(0, Math.floor(width * relativeX)));
+  const y = Math.min(height - 1, Math.max(0, Math.floor(height * relativeY)));
+  return readPixel(pngPath, x, y);
 }
 
 async function writeFixtureDeck(workspace) {
@@ -108,6 +165,12 @@ async function writeFixtureDeck(workspace) {
   await writeFile(join(slidesDir, 'slide-01.html'), normalSlide, 'utf8');
   await writeFile(join(slidesDir, 'slide-02.html'), bleedRegressionSlide, 'utf8');
 
+  return slidesDir;
+}
+
+async function copyOffsetFrameFixture(workspace) {
+  const slidesDir = join(workspace, 'slides');
+  await cp(OFFSET_FRAME_FIXTURE_DIR, slidesDir, { recursive: true });
   return slidesDir;
 }
 
@@ -174,6 +237,77 @@ test('print mode keeps searchable browser text flow and normalizes the bleed reg
     const extractedText = await extractPdfText(outputPath);
     assert.match(extractedText, /Searchable Text Slide/);
     assert.match(extractedText, /Bleed Regression/);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('print mode clips off-canvas bleed fixtures instead of leaving a right gutter', { concurrency: false, timeout: 120000 }, async (t) => {
+  if (!canRasterizePdfPages()) {
+    t.skip('pdftoppm is required for rendered-image verification');
+  }
+
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-raster-'));
+
+  try {
+    await writeFixtureDeck(workspace);
+    const outputPath = join(workspace, 'print-raster.pdf');
+    const rasterPrefix = join(workspace, 'print-raster-page-2');
+
+    await runPdfExport(['--slides-dir', 'slides', '--mode', 'print', '--output', outputPath], workspace);
+    const pngPath = await rasterizePdfPage(outputPath, rasterPrefix, 2);
+
+    const edgeSample = await readRelativePixel(pngPath, 0.993, 0.5);
+    assert.deepEqual(edgeSample.pixel.slice(0, 3), [248, 245, 236]);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('offset-frame fixture keeps capture crops aligned to the detected frame origin', { concurrency: false, timeout: 120000 }, async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-offset-capture-'));
+  const browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({
+    viewport: { width: 960, height: 540 },
+  });
+
+  try {
+    const slidesDir = await copyOffsetFrameFixture(workspace);
+    const result = await renderSlideToPdf(page, 'slide-01.html', slidesDir, { mode: 'capture' });
+    const pixel = await sharp(result.pngBytes)
+      .extract({ left: 0, top: 0, width: 1, height: 1 })
+      .raw()
+      .toBuffer();
+
+    assert.deepEqual(Array.from(pixel), [255, 0, 0]);
+  } finally {
+    await browser.close();
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('offset-frame fixture keeps print exports cropped to the detected frame origin', { concurrency: false, timeout: 120000 }, async (t) => {
+  if (!canExtractPdfText()) {
+    t.skip('pdftotext is required for searchable-text verification');
+  }
+
+  const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-offset-print-'));
+
+  try {
+    await copyOffsetFrameFixture(workspace);
+    const outputPath = join(workspace, 'offset-frame.pdf');
+
+    const result = await runPdfExport(['--slides-dir', 'slides', '--mode', 'print', '--output', outputPath], workspace);
+    assert.match(result.stdout, /Generated PDF \(print mode\)/);
+
+    const bytes = await readFile(outputPath);
+    const pdf = await PDFDocument.load(bytes);
+    assert.equal(pdf.getPageCount(), 1);
+    assert.deepEqual(getPageSize(pdf.getPages()[0]), { width: 720, height: 405 });
+
+    const extractedText = await extractPdfText(outputPath);
+    assert.match(extractedText, /Offset Frame Regression/);
+    assert.match(extractedText, /EDGE/);
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
