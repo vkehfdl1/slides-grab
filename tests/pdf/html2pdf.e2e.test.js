@@ -275,12 +275,17 @@ test('offset-frame fixture keeps capture crops aligned to the detected frame ori
   try {
     const slidesDir = await copyOffsetFrameFixture(workspace);
     const result = await renderSlideToPdf(page, 'slide-01.html', slidesDir, { mode: 'capture' });
-    const pixel = await sharp(result.pngBytes)
+    const cornerPixel = await sharp(result.pngBytes)
       .extract({ left: 0, top: 0, width: 1, height: 1 })
       .raw()
       .toBuffer();
+    const edgePixel = await sharp(result.pngBytes)
+      .extract({ left: result.width - 1, top: Math.floor(result.height / 2), width: 1, height: 1 })
+      .raw()
+      .toBuffer();
 
-    assert.deepEqual(Array.from(pixel), [255, 0, 0]);
+    assert.deepEqual(Array.from(cornerPixel), [255, 0, 0]);
+    assert.deepEqual(Array.from(edgePixel), [248, 245, 236]);
   } finally {
     await browser.close();
     await rm(workspace, { recursive: true, force: true });
@@ -288,8 +293,8 @@ test('offset-frame fixture keeps capture crops aligned to the detected frame ori
 });
 
 test('offset-frame fixture keeps print exports cropped to the detected frame origin', { concurrency: false, timeout: 120000 }, async (t) => {
-  if (!canExtractPdfText()) {
-    t.skip('pdftotext is required for searchable-text verification');
+  if (!canExtractPdfText() || !canRasterizePdfPages()) {
+    t.skip('pdftotext and pdftoppm are required for searchable-text and raster verification');
   }
 
   const workspace = await mkdtemp(join(os.tmpdir(), 'html2pdf-e2e-offset-print-'));
@@ -309,6 +314,11 @@ test('offset-frame fixture keeps print exports cropped to the detected frame ori
     const extractedText = await extractPdfText(outputPath);
     assert.match(extractedText, /Offset Frame Regression/);
     assert.match(extractedText, /EDGE/);
+
+    const rasterPrefix = join(workspace, 'offset-frame-page-1');
+    const pngPath = await rasterizePdfPage(outputPath, rasterPrefix, 1);
+    const edgeSample = await readRelativePixel(pngPath, 0.993, 0.5);
+    assert.deepEqual(edgeSample.pixel.slice(0, 3), [248, 245, 236]);
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
