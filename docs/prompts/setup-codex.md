@@ -23,7 +23,7 @@ Then restart Codex so the skills are loaded.
 npm exec -- slides-grab --help
 ```
 
-You should see the CLI help output with commands: edit, build-viewer, validate, convert, figma, pdf, etc.
+You should see the CLI help output with commands: edit, build-viewer, validate, convert, figma, pdf, etc. Actual export commands require a deck directory containing `slide-*.html`.
 
 ## 4. How to use
 

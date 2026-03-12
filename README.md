@@ -62,6 +62,8 @@ There are many AI tools that generate slide HTML. Almost none let you **visually
 
 All commands support `--slides-dir <path>` (default: `slides`).
 
+On a fresh clone, only `--help`, `list-templates`, and `list-themes` work without a deck. `edit`, `build-viewer`, `validate`, `convert`, and `pdf` require an existing slides workspace containing `slide-*.html`.
+
 ```bash
 slides-grab edit              # Launch visual slide editor
 slides-grab build-viewer      # Build single-file viewer.html
@@ -77,6 +79,8 @@ slides-grab list-themes       # Show available color themes
 `slides-grab pdf` now defaults to `--mode capture`, which rasterizes each rendered slide into the PDF for better visual fidelity. Use `--mode print` when searchable/selectable browser text matters more than pixel-perfect parity.
 
 ### Multi-Deck Workflow
+
+Prerequisite: create or generate a deck in `decks/my-deck/` first.
 
 ```bash
 slides-grab edit       --slides-dir decks/my-deck

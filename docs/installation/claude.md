@@ -35,6 +35,8 @@ Or use the integrated skill: `.claude/skills/presentation-skill/SKILL.md`
 
 Use one workspace folder per deck:
 
+Prerequisite: create or generate `decks/my-deck/` with `slide-*.html` first. These commands do not work against an empty clone.
+
 ```bash
 slides-grab edit --slides-dir decks/my-deck
 slides-grab build-viewer --slides-dir decks/my-deck

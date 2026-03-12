@@ -37,6 +37,8 @@ Or use the integrated skill: `skills/ppt-presentation-skill/SKILL.md`
 
 Run one deck per workspace folder:
 
+Prerequisite: create or generate `decks/my-deck/` with `slide-*.html` first. These commands do not work against an empty clone.
+
 ```bash
 slides-grab edit --slides-dir decks/my-deck
 slides-grab build-viewer --slides-dir decks/my-deck

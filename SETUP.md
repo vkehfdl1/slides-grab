@@ -46,6 +46,8 @@ Optional Figma export smoke test:
 npm exec -- slides-grab figma --slides-dir slides --output slides-figma.pptx
 ```
 
+Fresh-clone setup verification ends here. Real slide-processing commands such as `slides-grab edit`, `slides-grab convert`, and `slides-grab pdf` need an existing deck directory with `slide-*.html` files. Use `decks/<deck-name>/` or `slides/` only after you have created a deck there.
+
 ## 4) For Codex Users
 
 Install Codex skills after cloning:
