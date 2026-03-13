@@ -437,6 +437,225 @@ export async function convertTextToOutlines(page, svgString) {
   }, svgString);
 }
 
+/**
+ * Sanitize SVG text elements for Figma compatibility.
+ * dom-to-svg produces verbose <text> elements with attributes that Figma
+ * cannot parse, causing all text to be imported as "VECTOR" (paths).
+ *
+ * This function:
+ *  - Recalculates y-coordinates from text-after-edge to alphabetic baseline
+ *  - Removes dominant-baseline attribute
+ *  - Strips non-essential attributes (color, font-size-adjust, unicode-bidi, …)
+ *  - Removes textLength / lengthAdjust from <tspan>
+ *  - Flattens single-<tspan> text elements to direct text content
+ *  - Simplifies font-family to the primary font name
+ *  - Strips "px" suffix from font-size (SVG unitless = px)
+ *
+ * @param {import('playwright').Page} page – Playwright page (fonts must be loaded)
+ * @param {string} svgString – raw SVG produced by dom-to-svg
+ * @returns {Promise<string>} cleaned SVG string
+ */
+export async function sanitizeSvgForFigma(page, svgString) {
+  return page.evaluate((svg) => {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svg, 'image/svg+xml');
+
+    /* ── font-metrics helper (canvas) ────────────────────────────── */
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const metricsCache = new Map();
+
+    function getMetrics(fontFamily, fontWeight, fontSize) {
+      const key = `${fontFamily}|${fontWeight}|${fontSize}`;
+      if (metricsCache.has(key)) return metricsCache.get(key);
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      const m = ctx.measureText('Hg|ÁŚgy');
+      const result = {
+        ascent: m.fontBoundingBoxAscent ?? (fontSize * 0.8),
+        descent: m.fontBoundingBoxDescent ?? (fontSize * 0.2),
+      };
+      metricsCache.set(key, result);
+      return result;
+    }
+
+    /**
+     * Measure natural text width using canvas, including letter-spacing.
+     * Returns the width the SVG renderer would produce without textLength.
+     */
+    function measureTextWidth(text, fontFamily, fontWeight, fontSize, letterSpacing) {
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.letterSpacing = (letterSpacing && letterSpacing !== 'normal')
+        ? `${letterSpacing}px` : '0px';
+      return ctx.measureText(text).width;
+    }
+
+    /* ── allow-lists ─────────────────────────────────────────────── */
+    const TEXT_KEEP = new Set([
+      'x', 'y', 'font-family', 'font-size', 'font-weight',
+      'fill', 'opacity', 'letter-spacing', 'text-anchor',
+      'transform', 'id', 'class', 'font-style',
+      'textLength',
+    ]);
+
+    const TSPAN_KEEP = new Set([
+      'x', 'y', 'dx', 'dy', 'fill', 'font-size', 'font-weight',
+      'font-family', 'letter-spacing', 'opacity', 'font-style',
+      'textLength',
+    ]);
+
+    /* ── process each <text> ─────────────────────────────────────── */
+    for (const textEl of [...doc.querySelectorAll('text')]) {
+      if (!textEl.textContent?.trim()) { textEl.remove(); continue; }
+
+      const baseline = textEl.getAttribute('dominant-baseline') || 'auto';
+      const fontFamily = textEl.getAttribute('font-family') || 'sans-serif';
+      const fontSize = parseFloat(textEl.getAttribute('font-size')) || 16;
+      const fontWeight = textEl.getAttribute('font-weight') || '400';
+
+      /* baseline → alphabetic y adjustment */
+      const metrics = getMetrics(fontFamily, fontWeight, fontSize);
+      let yAdjust = 0;
+      if (baseline === 'text-after-edge') {
+        // text-after-edge y = bottom of em box → baseline = y − descent
+        yAdjust = -metrics.descent;
+      } else if (baseline === 'central') {
+        // central y = center of em box → baseline = y + (ascent − descent)/2
+        yAdjust = (metrics.ascent - metrics.descent) / 2;
+      }
+
+      /* ── tspan processing ──────────────────────────────────────── */
+      const tspans = [...textEl.querySelectorAll('tspan')];
+
+      for (const tspan of tspans) {
+        if (yAdjust !== 0) {
+          const y = parseFloat(tspan.getAttribute('y'));
+          if (!isNaN(y)) tspan.setAttribute('y', (y + yAdjust).toFixed(2));
+        }
+
+        /* Keep textLength for cross-renderer width consistency,
+         * but remove lengthAdjust (default "spacing" is less aggressive
+         * than "spacingAndGlyphs" and more likely to be handled as text). */
+        tspan.removeAttribute('lengthAdjust');
+
+        for (const attr of [...tspan.attributes]) {
+          if (!TSPAN_KEEP.has(attr.name) && !attr.name.startsWith('xml:')) {
+            tspan.removeAttribute(attr.name);
+          }
+        }
+      }
+
+      /* ── flatten single-tspan ──────────────────────────────────── */
+      if (tspans.length === 1) {
+        const tspan = tspans[0];
+        const tx = tspan.getAttribute('x');
+        const ty = tspan.getAttribute('y');
+        if (tx) textEl.setAttribute('x', tx);
+        if (ty) textEl.setAttribute('y', ty);
+
+        for (const name of TSPAN_KEEP) {
+          if (name !== 'x' && name !== 'y' && tspan.hasAttribute(name)
+              && !textEl.hasAttribute(name)) {
+            textEl.setAttribute(name, tspan.getAttribute(name));
+          }
+        }
+        textEl.textContent = tspan.textContent;
+      }
+
+      /* ── clean <text> attributes ───────────────────────────────── */
+      textEl.removeAttribute('dominant-baseline');
+
+      for (const attr of [...textEl.attributes]) {
+        if (!TEXT_KEEP.has(attr.name)) {
+          textEl.removeAttribute(attr.name);
+        }
+      }
+
+      /* simplify font-family to primary name */
+      const ff = textEl.getAttribute('font-family');
+      if (ff) {
+        textEl.setAttribute('font-family',
+          ff.split(',')[0].trim().replace(/['"]/g, ''));
+      }
+
+      /* strip "px" from font-size (SVG unitless ≡ px) */
+      const fs = textEl.getAttribute('font-size');
+      if (fs?.endsWith('px')) {
+        textEl.setAttribute('font-size', parseFloat(fs).toString());
+      }
+    }
+
+    /* ══════════════════════════════════════════════════════════════
+     * Structural cleanup — remove masks, clips, metadata, and
+     * flatten unnecessary <g> nesting so Figma can parse text.
+     * ══════════════════════════════════════════════════════════════ */
+
+    /* ── remove <mask>/<clipPath> definitions & references ──────── */
+    for (const el of [...doc.querySelectorAll('mask, clipPath')]) {
+      el.remove();
+    }
+    for (const el of [...doc.querySelectorAll('[mask], [clip-path]')]) {
+      el.removeAttribute('mask');
+      el.removeAttribute('clip-path');
+    }
+
+    /* ── strip data-*, aria-*, role from <g> and <svg> ──────────── */
+    for (const el of [...doc.querySelectorAll('g, svg')]) {
+      for (const attr of [...el.attributes]) {
+        if (attr.name.startsWith('data-') || attr.name.startsWith('aria-')
+            || attr.name === 'role') {
+          el.removeAttribute(attr.name);
+        }
+      }
+    }
+
+    /* ── remove empty <g> elements (stacking-layer placeholders) ── */
+    let swept;
+    do {
+      swept = false;
+      for (const g of [...doc.querySelectorAll('g')]) {
+        if (g.children.length === 0 && !g.textContent?.trim()) {
+          g.remove();
+          swept = true;
+        }
+      }
+    } while (swept);
+
+    /* ── collapse single-child <g> wrappers (reduce nesting) ───── */
+    do {
+      swept = false;
+      for (const g of [...doc.querySelectorAll('g')]) {
+        // Skip if <g> has meaningful attributes (id, class, transform, fill, …)
+        const dominated = g.children.length === 1 && !g.textContent?.trim()
+          || (g.children.length >= 1
+              && [...g.childNodes].every(n =>
+                n.nodeType === 1 || (n.nodeType === 3 && !n.textContent.trim())));
+
+        const hasMeaningful = [...g.attributes].some(a =>
+          a.name === 'transform' || a.name === 'fill' || a.name === 'opacity'
+          || a.name === 'filter' || a.name === 'style');
+
+        if (!hasMeaningful && g.children.length === 1
+            && g.children[0].tagName === 'g' && !g.children[0].hasAttribute('transform')) {
+          // Unwrap: move inner <g>'s children to outer <g>
+          const inner = g.children[0];
+          while (inner.firstChild) {
+            g.insertBefore(inner.firstChild, inner);
+          }
+          inner.remove();
+          swept = true;
+        }
+      }
+    } while (swept);
+
+    /* ── remove empty <style/> tag ─────────────────────────────── */
+    for (const style of [...doc.querySelectorAll('style')]) {
+      if (!style.textContent?.trim()) style.remove();
+    }
+
+    return new XMLSerializer().serializeToString(doc);
+  }, svgString);
+}
+
 function normalizeDimension(value, fallback) {
   if (!Number.isFinite(value) || value <= 0) {
     return fallback;
@@ -648,13 +867,16 @@ export async function renderSlideToSvg(page, slideFile, slidesDir, bundlePath, o
     return new XMLSerializer().serializeToString(svgDoc);
   });
 
-  // Strip textLength/lengthAdjust from <tspan> elements.
-  // dom-to-svg adds these to force exact text widths, but they interact
-  // badly with letter-spacing: the SVG renderer applies letter-spacing AND
-  // forces glyphs into textLength, causing horizontal squishing.
-  svgString = svgString
-    .replace(/(<tspan\b[^>]*?)\s+textLength="[^"]*"/g, '$1')
-    .replace(/(<tspan\b[^>]*?)\s+lengthAdjust="[^"]*"/g, '$1');
+  // Sanitize text elements for Figma compatibility (also strips
+  // textLength/lengthAdjust which cause letter-spacing squishing).
+  try {
+    svgString = await sanitizeSvgForFigma(page, svgString);
+  } catch {
+    // Fallback: at minimum strip textLength/lengthAdjust
+    svgString = svgString
+      .replace(/(<tspan\b[^>]*?)\s+textLength="[^"]*"/g, '$1')
+      .replace(/(<tspan\b[^>]*?)\s+lengthAdjust="[^"]*"/g, '$1');
+  }
 
   return svgString;
 }

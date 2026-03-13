@@ -1160,7 +1160,6 @@ async function startServer(opts) {
     (async () => {
       try {
         const bundlePath = getDomToSvgBundle();
-        const opentypeBundlePath = getOpentypeBundle();
         const baseUrl = `http://localhost:${opts.port}/slides`;
 
         for (let i = 0; i < slideFiles.length; i++) {
@@ -1168,9 +1167,7 @@ async function startServer(opts) {
 
           const svg = await withScreenshotPage(async (page) => {
             await page.setViewportSize({ width: numW, height: numH });
-            let rawSvg = await renderSlideToSvg(page, sf, slidesDirectory, bundlePath, { baseUrl });
-            await page.addScriptTag({ path: opentypeBundlePath });
-            rawSvg = await convertTextToOutlines(page, rawSvg);
+            const rawSvg = await renderSlideToSvg(page, sf, slidesDirectory, bundlePath, { baseUrl });
             return scaleSvg(resizeSvg(rawSvg, numW, numH), numScale);
           });
 
