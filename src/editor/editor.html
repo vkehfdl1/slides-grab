@@ -1917,6 +1917,7 @@
         <button id="btn-next" title="Next slide (Right arrow)">Next &#9654;</button>
       </div>
       <div class="nav-spacer"></div>
+      <button class="nav-bar-btn" id="btn-pdf-export" title="PDF Export">PDF</button>
       <button class="nav-bar-btn" id="btn-svg-export" title="SVG/PNG Export">SVG</button>
       <button class="nav-bar-btn figma-btn" id="btn-figma-export" title="Send to Figma (plugin not connected)" disabled>
         <span class="figma-conn-dot" id="figma-conn-dot"></span>
@@ -2123,6 +2124,32 @@
           <button class="svg-export-btn-cancel" id="svg-export-cancel" type="button">Close</button>
           <button class="svg-export-btn-start" id="svg-export-start" type="button">Export</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="svg-export-overlay" id="pdf-export-modal" hidden>
+    <div class="svg-export-modal">
+      <h3>PDF Export</h3>
+
+      <div class="svg-export-field">
+        <label>Range</label>
+        <div class="svg-export-radio-group">
+          <label><input type="radio" name="pdf-export-scope" value="current"> Current slide</label>
+          <label><input type="radio" name="pdf-export-scope" value="all" checked> All slides</label>
+        </div>
+      </div>
+
+      <div class="svg-export-progress" id="pdf-export-progress">
+        <div class="svg-export-progress-bar">
+          <div class="svg-export-progress-fill" id="pdf-export-progress-fill"></div>
+        </div>
+        <span class="svg-export-progress-text" id="pdf-export-progress-text"></span>
+      </div>
+
+      <div class="svg-export-actions">
+        <button class="svg-export-btn-cancel" id="pdf-export-cancel" type="button">Close</button>
+        <button class="svg-export-btn-start" id="pdf-export-start" type="button">Export</button>
       </div>
     </div>
   </div>

@@ -81,6 +81,18 @@ slides-grab pdf        --slides-dir decks/my-deck --output decks/my-deck.pdf
 slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
 ```
 
+### npm Scripts (Shortcuts)
+
+If you cloned the repo, you can use shorter `npm run` aliases:
+
+```bash
+npm run edit   -- --slides-dir decks/my-deck          # Launch editor
+npm run split  -- --input my.html --slides-dir decks/my-deck  # Split HTML into slides
+npm run pdf    -- --slides-dir decks/my-deck --output out.pdf  # Export PDF
+npm run svg    -- --slides-dir decks/my-deck           # Export SVG
+npm run pptx   -- --slides-dir decks/my-deck --output out.pptx # Export PPTX
+```
+
 ## Installation Guides
 
 - [Claude Code setup](docs/prompts/setup-claude.md)

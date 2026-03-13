@@ -7,6 +7,7 @@ import { addChatMessage, renderRunsList } from './editor-chat.js';
 import { renderBboxes } from './editor-bbox.js';
 import { updateSendState } from './editor-send.js';
 import { onSvgExportProgress, onSvgExportFinished } from './editor-svg-export.js';
+import { onPdfExportProgress, onPdfExportFinished } from './editor-pdf-export.js';
 import {
   onFigmaConnected, onFigmaDisconnected,
   onFigmaExportProgress, onFigmaExportFinished,
@@ -148,6 +149,22 @@ export function connectSSE() {
       onSvgExportFinished(JSON.parse(event.data));
     } catch (error) {
       console.error('svgExportFinished parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('pdfExportProgress', (event) => {
+    try {
+      onPdfExportProgress(JSON.parse(event.data));
+    } catch (error) {
+      console.error('pdfExportProgress parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('pdfExportFinished', (event) => {
+    try {
+      onPdfExportFinished(JSON.parse(event.data));
+    } catch (error) {
+      console.error('pdfExportFinished parse error:', error);
     }
   });
 

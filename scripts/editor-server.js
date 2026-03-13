@@ -21,6 +21,9 @@ import {
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
 
+import { mergePdfBuffers } from './html2pdf.js';
+import { PDFDocument } from 'pdf-lib';
+
 import {
   getDomToSvgBundle,
   getOpentypeBundle,
@@ -953,6 +956,159 @@ async function startServer(opts) {
     res.setHeader('Content-Type', isSvg ? 'image/svg+xml' : 'image/png');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.send(data);
+  });
+
+  // ── PDF Export ─────────────────────────────────────────────────────
+  let activePdfExport = false;
+  const pdfExportFiles = new Map(); // exportId -> Buffer
+
+  // Screenshot-based PDF rendering (pixel-perfect, avoids print-media layout issues)
+  const PDF_SCALE = 2; // 2x DPI for crisp output
+
+  async function renderSlideToPdfBuffer(browser, slideFile) {
+    // Create a dedicated high-DPI context for PDF capture
+    const context = await browser.newContext({
+      viewport: { width: 1280, height: 720 },
+      deviceScaleFactor: PDF_SCALE,
+    });
+    const page = await context.newPage();
+
+    try {
+      const slideUrl = `http://localhost:${opts.port}/slides/${encodeURIComponent(slideFile)}`;
+      await page.goto(slideUrl, { waitUntil: 'load' });
+      await page.evaluate(async () => {
+        if (document.fonts?.ready) await document.fonts.ready;
+      });
+
+      // Read the actual body size to clip the screenshot precisely
+      const bodySize = await page.evaluate(() => {
+        const body = document.body;
+        const style = window.getComputedStyle(body);
+        return {
+          width: Math.round(parseFloat(style.width) || body.getBoundingClientRect().width || 1280),
+          height: Math.round(parseFloat(style.height) || body.getBoundingClientRect().height || 720),
+        };
+      });
+
+      // Resize viewport to exactly match body
+      await page.setViewportSize({ width: bodySize.width, height: bodySize.height });
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+
+      // Screenshot at 2x produces (bodySize * 2) pixel image — crisp in PDF
+      const pngBuffer = await page.screenshot({ type: 'png', fullPage: false });
+
+      const pdfDoc = await PDFDocument.create();
+      const pngImage = await pdfDoc.embedPng(pngBuffer);
+      const pdfPage = pdfDoc.addPage([bodySize.width, bodySize.height]);
+      pdfPage.drawImage(pngImage, { x: 0, y: 0, width: bodySize.width, height: bodySize.height });
+      return pdfDoc.save();
+    } finally {
+      await context.close().catch(() => {});
+    }
+  }
+
+  app.post('/api/pdf-export', async (req, res) => {
+    const { scope, slide } = req.body ?? {};
+
+    if (!['current', 'all'].includes(scope)) {
+      return res.status(400).json({ error: 'scope must be current or all' });
+    }
+
+    if (scope === 'current') {
+      const slideFile = typeof slide === 'string' ? slide.trim() : '';
+      if (!slideFile || !SLIDE_FILE_PATTERN.test(slideFile)) {
+        return res.status(400).json({ error: 'Missing or invalid slide.' });
+      }
+
+      try {
+        const { browser } = await getScreenshotBrowser();
+        const pdfBuffer = await renderSlideToPdfBuffer(browser, slideFile);
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename="${slideFile.replace(/\.html$/i, '.pdf')}"`);
+        return res.send(Buffer.from(pdfBuffer));
+      } catch (err) {
+        return res.status(500).json({ error: err.message });
+      }
+    }
+
+    // scope === 'all'
+    if (activePdfExport) {
+      return res.status(409).json({ error: 'A PDF export is already in progress.' });
+    }
+
+    let slideFiles;
+    try {
+      slideFiles = await listSlideFiles(slidesDirectory);
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    if (slideFiles.length === 0) {
+      return res.status(400).json({ error: 'No slide files found.' });
+    }
+
+    const exportId = `pdf-${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+    activePdfExport = true;
+
+    res.json({ exportId, total: slideFiles.length });
+
+    // Process in background
+    (async () => {
+      try {
+        const pdfBuffers = [];
+
+        for (let i = 0; i < slideFiles.length; i++) {
+          const sf = slideFiles[i];
+
+          const { browser: pdfBrowser } = await getScreenshotBrowser();
+          const pdfBuf = await renderSlideToPdfBuffer(pdfBrowser, sf);
+
+          pdfBuffers.push(pdfBuf);
+
+          broadcastSSE('pdfExportProgress', {
+            exportId,
+            current: i + 1,
+            total: slideFiles.length,
+            file: sf,
+          });
+        }
+
+        const mergedPdf = await mergePdfBuffers(pdfBuffers);
+        pdfExportFiles.set(exportId, Buffer.from(mergedPdf));
+
+        const downloadUrl = `/api/pdf-export/${exportId}/download.pdf`;
+        broadcastSSE('pdfExportFinished', {
+          exportId,
+          success: true,
+          downloadUrl,
+          message: `Exported ${slideFiles.length} slides to PDF.`,
+        });
+      } catch (err) {
+        console.error('[pdf-export] Export failed:', err);
+        broadcastSSE('pdfExportFinished', {
+          exportId,
+          success: false,
+          message: err.message,
+        });
+      } finally {
+        activePdfExport = false;
+        // Clean up after 5 minutes
+        setTimeout(() => {
+          pdfExportFiles.delete(exportId);
+        }, 5 * 60 * 1000);
+      }
+    })();
+  });
+
+  app.get('/api/pdf-export/:exportId/download.pdf', (req, res) => {
+    const pdfBuffer = pdfExportFiles.get(req.params.exportId);
+    if (!pdfBuffer) {
+      return res.status(404).json({ error: 'PDF not found or expired.' });
+    }
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename="slides.pdf"');
+    res.send(pdfBuffer);
   });
 
   // ── Figma Export via WebSocket ──────────────────────────────────────

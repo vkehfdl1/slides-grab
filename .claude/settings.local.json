@@ -105,7 +105,12 @@
       "Bash(cd \"D:\\\\_bootstrap\\\\slides-grab/plugins/slides-to-figma\" && npm run build 2>&1)",
       "Bash(cd \"D:\\\\_bootstrap\\\\slides-grab\" && timeout 5 node scripts/editor-server.js --slides-dir decks/test 2>&1 || true)",
       "Bash(cd \"D:/_bootstrap/slides-grab\" && gh auth status 2>&1)",
-      "Bash(cd \"D:/_bootstrap/slides-grab\" && gh repo fork --remote=true --remote-name=origin 2>&1)"
+      "Bash(cd \"D:/_bootstrap/slides-grab\" && gh repo fork --remote=true --remote-name=origin 2>&1)",
+      "Bash(grep -r \"emoji\\\\|Emoji\\\\|color emoji\" \"D:\\\\_bootstrap\\\\slides-grab\" --include=\"*.md\" --include=\"*.js\" 2>/dev/null | grep -v node_modules | head -30)",
+      "Bash(find \"D:\\\\_bootstrap\\\\slides-grab\" -type f -name \"*.md\" | grep -v node_modules | xargs grep -l \"emoji\\\\|symbol\\\\|icon\" 2>/dev/null)",
+      "WebFetch(domain:composio.dev)",
+      "WebFetch(domain:www.datacamp.com)",
+      "WebFetch(domain:www.builder.io)"
     ]
   }
 }

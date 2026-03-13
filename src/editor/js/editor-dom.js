@@ -54,6 +54,7 @@ export const statusDot = $('#status-dot');
 export const statusConn = $('#status-connection');
 export const statusMsg = $('#status-message');
 
+export const btnPdfExport = $('#btn-pdf-export');
 export const btnSvgExport = $('#btn-svg-export');
 
 export const btnFigmaExport = $('#btn-figma-export');

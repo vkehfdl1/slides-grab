@@ -3,7 +3,7 @@
 import { state, TOOL_MODE_DRAW, TOOL_MODE_SELECT } from './editor-state.js';
 import {
   btnPrev, btnNext, slideIframe, drawLayer, promptInput, modelSelect,
-  btnSend, btnClearBboxes, slideCounter, btnSvgExport,
+  btnSend, btnClearBboxes, slideCounter, btnPdfExport, btnSvgExport,
   toggleBold, toggleItalic, toggleUnderline, toggleStrike,
   alignLeft, alignCenter, alignRight,
   popoverTextInput, popoverApplyText, popoverTextColorInput, popoverBgColorInput,
@@ -30,6 +30,7 @@ import { updateSendState, applyChanges } from './editor-send.js';
 import { goToSlide } from './editor-navigation.js';
 import { connectSSE, loadRunsInitial } from './editor-sse.js';
 import { openExportModal } from './editor-svg-export.js';
+import { openPdfExportModal } from './editor-pdf-export.js';
 import './editor-figma-export.js';
 
 // Late-binding: connect bbox changes to updateSendState
@@ -45,6 +46,9 @@ btnNext.addEventListener('click', () => { void goToSlide(state.currentIndex + 1)
 // Tool modes
 toolModeDrawBtn.addEventListener('click', () => setToolMode(TOOL_MODE_DRAW));
 toolModeSelectBtn.addEventListener('click', () => setToolMode(TOOL_MODE_SELECT));
+
+// PDF Export
+btnPdfExport.addEventListener('click', openPdfExportModal);
 
 // SVG Export
 btnSvgExport.addEventListener('click', openExportModal);
