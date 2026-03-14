@@ -10,6 +10,9 @@ slides-grab is an agent-first PPT framework. AI agents write HTML slides directl
 
 | Path | Purpose |
 |------|---------|
+| `.gemini/skills/plan-skill/SKILL.md` | Gemini planning skill |
+| `.gemini/skills/design-skill/SKILL.md` | Gemini design skill |
+| `.gemini/skills/pptx-skill/SKILL.md` | Gemini conversion skill |
 | `.claude/skills/plan-skill/SKILL.md` | Planning skill (outline generation supervisor) |
 | `.claude/skills/design-skill/SKILL.md` | Design skill (HTML slide generation rules, ~963 lines) |
 | `.claude/skills/pptx-skill/SKILL.md` | Conversion skill (HTML→PPTX) |
@@ -45,9 +48,9 @@ slides-grab is an agent-first PPT framework. AI agents write HTML slides directl
 
 | Skill | Role | Stage |
 |-------|------|-------|
-| `plan-skill` | Supervisor: delegates to agents, manages user feedback loop | Stage 1 |
-| `design-skill` | Defines HTML generation rules, templates, palettes | Stage 2 |
-| `pptx-skill` | HTML→PPTX conversion pipeline | Stage 3 |
+| `plan-skill` | Gemini/Claude Stage 1 planning supervisor | Stage 1 |
+| `design-skill` | Gemini/Claude Stage 2 design system | Stage 2 |
+| `pptx-skill` | Gemini/Claude Stage 3 conversion | Stage 3 |
 | `ppt-plan-skill` | Codex Stage 1 outline planning | Stage 1 |
 | `ppt-design-skill` | Codex Stage 2 slide design/review | Stage 2 |
 | `ppt-pptx-skill` | Codex Stage 3 conversion | Stage 3 |

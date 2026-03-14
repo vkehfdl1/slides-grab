@@ -28,6 +28,12 @@ The editor is pure javascript file. You can easily add up new features like addi
 
 Paste one of these into your coding agent:
 
+**Gemini CLI:**
+
+```
+Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/prompts/setup-gemini.md and follow every step.
+```
+
 **Claude Code:**
 
 ```
@@ -114,8 +120,10 @@ This command reuses the HTML to PPTX pipeline and emits a `.pptx` deck intended 
 
 - [Claude Code setup](docs/prompts/setup-claude.md)
 - [Codex setup](docs/prompts/setup-codex.md)
+-  [Gemini CLI setup](docs/prompts/setup-gemini.md)
 - [Claude detailed guide](docs/installation/claude.md)
 - [Codex detailed guide](docs/installation/codex.md)
+- [Gemini detailed guide](docs/installation/gemini.md)
 
 ## npm Package
 
@@ -133,6 +141,7 @@ src/editor/       Visual editor (HTML + JS client modules)
 scripts/          Build, validate, convert, editor server
 templates/        Slide HTML templates (cover, content, chart, ...)
 themes/           Color themes (modern-dark, executive, sage, ...)
+.gemini/skills/   Gemini CLI skill definitions
 .claude/skills/   Claude Code skill definitions
 skills/           Codex skill definitions
 docs/             Installation & usage guides
