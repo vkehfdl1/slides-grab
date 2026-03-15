@@ -36,8 +36,10 @@ Delivers minimal, refined design with professional typography and precise layout
 
 ### Slide Size (16:9 default)
 ```html
-<body style="width: 720pt; height: 405pt;">
+<body style="width: 720pt; height: 405pt; overflow: hidden;">
 ```
+
+**CRITICAL**: The `<body>` tag MUST include explicit `width`, `height`, and `overflow: hidden` as inline styles. Without `overflow: hidden`, the PDF renderer may capture content beyond the slide boundary, causing adjacent slides to bleed into the exported page. Do NOT rely solely on an inner wrapper div for size constraints.
 
 ### Supported Aspect Ratios
 | Ratio | Size | Use Case |
@@ -448,26 +450,38 @@ Rules:
 - Use HEX values with `#` prefix for `stroke`/`fill` colors.
 - Place text outside SVG using `<p>`, `<h1>`-`<h6>` tags.
 
-### 4. Image Usage Rules (Local Path / URL / Placeholder)
+### 4. Image Usage Rules (Local Asset / Data URL / Remote URL / Placeholder)
 
-#### Local Path Image
+#### Canonical Local Asset Image
 ```html
-<img src="/Users/yourname/projects/assets/team-photo.png" alt="Team photo" style="width: 220pt; height: 140pt; object-fit: cover;">
+<img src="./assets/team-photo.png" alt="Team photo" style="width: 220pt; height: 140pt; object-fit: cover;">
 ```
 
-#### URL Image
+#### Self-Contained Fallback (`data:` URL)
+```html
+<img src="data:image/svg+xml;base64,..." alt="Illustration" style="width: 220pt; height: 140pt; object-fit: cover;">
+```
+
+#### Remote URL (Best-Effort Only)
 ```html
 <img src="https://images.example.com/hero.png" alt="Hero image" style="width: 220pt; height: 140pt; object-fit: cover;">
 ```
 
 #### Placeholder (Image Stand-In)
 ```html
-<div data-image-placeholder style="width: 220pt; height: 140pt; border: 1px dashed #c7c7c7; background: #f3f4f6;"></div>
+<div data-image-placeholder style="width: 220pt; height: 140pt; border: 1px dashed #c7c7c7; background: #f3f4f6; display: flex; align-items: center; justify-content: center;">
+  <p style="font-size: 10pt; color: #6b7280; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;">Image Placeholder</p>
+</div>
 ```
 
 Rules:
+- Use `./assets/<file>` as the default image contract for slide HTML.
+- Keep slide assets in `<slides-dir>/assets/`.
 - Always include `alt` on `img` tags.
-- Prefer local paths; URL images risk network failures.
+- `data:` URLs are supported when a slide must stay self-contained.
+- Remote `https://` images are allowed but non-deterministic and should be treated as fallback only.
+- Do not use absolute filesystem paths in slide HTML.
+- Do not use non-body `background-image` for content imagery; use `<img>` instead.
 - Use `data-image-placeholder` to reserve space when no image is available yet.
 - Use high-resolution originals and fit with `object-fit`.
 

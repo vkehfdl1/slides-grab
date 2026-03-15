@@ -1,9 +1,15 @@
 #!/usr/bin/env node
 
-import { readdir } from 'node:fs/promises';
+import { access, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
+
+import {
+  extractCssUrls,
+  LOCAL_ASSET_PREFIX,
+  looksLikeAbsoluteFilesystemPath,
+} from '../src/image-contract.js';
 
 const FRAME_PT = { width: 720, height: 405 };
 const PT_TO_PX = 96 / 72;
@@ -75,7 +81,7 @@ function readOptionValue(args, index, optionName) {
   return next;
 }
 
-function parseCliArgs(args) {
+export function parseCliArgs(args) {
   const options = {
     slidesDir: DEFAULT_SLIDES_DIR,
     help: false,
@@ -111,12 +117,159 @@ function parseCliArgs(args) {
   return options;
 }
 
-async function findSlideFiles(slidesDir) {
+export async function findSlideFiles(slidesDir) {
   const entries = await readdir(slidesDir, { withFileTypes: true });
   return entries
     .filter((entry) => entry.isFile() && SLIDE_FILE_PATTERN.test(entry.name))
     .map((entry) => entry.name)
     .sort(sortSlideFiles);
+}
+
+function buildElementPath(element) {
+  return typeof element === 'string' && element ? element : 'unknown';
+}
+
+function buildImageIssue(severity, code, message, payload = {}) {
+  return {
+    severity,
+    code,
+    message,
+    ...payload,
+  };
+}
+
+async function fileExists(filePath) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function classifyImageSource(source) {
+  const value = typeof source === 'string' ? source.trim() : '';
+  if (!value) return { kind: 'empty' };
+  if (value.startsWith('data:')) return { kind: 'data-url' };
+  if (value.startsWith('https://')) return { kind: 'remote-url' };
+  if (value.startsWith('http://')) return { kind: 'remote-url-insecure' };
+  if (looksLikeAbsoluteFilesystemPath(value)) return { kind: 'absolute-filesystem-path' };
+  if (value.startsWith(LOCAL_ASSET_PREFIX)) return { kind: 'local-asset-path' };
+  return { kind: 'other' };
+}
+
+async function inspectImageContract(slidesDir, fileName, inspection) {
+  const critical = [];
+  const warning = [];
+
+  for (const image of inspection.images) {
+    const source = image.src;
+    const classification = classifyImageSource(source);
+
+    if (classification.kind === 'data-url' || classification.kind === 'empty') {
+      continue;
+    }
+
+    if (classification.kind === 'local-asset-path') {
+      const assetPath = join(slidesDir, source.replace(/^\.\//, ''));
+      if (!(await fileExists(assetPath))) {
+        critical.push(buildImageIssue(
+          'critical',
+          'missing-local-asset',
+          'Local asset under ./assets/ is missing.',
+          {
+            element: buildElementPath(image.element),
+            source,
+            assetPath,
+          },
+        ));
+      }
+      continue;
+    }
+
+    if (classification.kind === 'remote-url' || classification.kind === 'remote-url-insecure') {
+      warning.push(buildImageIssue(
+        'warning',
+        'remote-image-url',
+        'Remote image URL is best-effort only and may break deterministic exports.',
+        {
+          element: buildElementPath(image.element),
+          source,
+        },
+      ));
+      continue;
+    }
+
+    if (classification.kind === 'absolute-filesystem-path') {
+      critical.push(buildImageIssue(
+        'critical',
+        'absolute-filesystem-image-path',
+        'Absolute filesystem image paths are not portable. Use ./assets/<file> instead.',
+        {
+          element: buildElementPath(image.element),
+          source,
+        },
+      ));
+      continue;
+    }
+  }
+
+  for (const background of inspection.backgrounds) {
+    if (background.element === 'body') continue;
+    if (background.urls.length === 0) continue;
+
+    critical.push(buildImageIssue(
+      'critical',
+      'unsupported-background-image',
+      'Non-body background-image usage is not supported for slide content. Use <img src="./assets/<file>"> instead.',
+      {
+        element: buildElementPath(background.element),
+        backgroundImage: background.backgroundImage,
+        sources: background.urls,
+      },
+    ));
+
+    for (const source of background.urls) {
+      const classification = classifyImageSource(source);
+      if (classification.kind === 'remote-url' || classification.kind === 'remote-url-insecure') {
+        warning.push(buildImageIssue(
+          'warning',
+          'remote-background-image-url',
+          'Remote background images are best-effort only and should not be used for canonical slide imagery.',
+          {
+            element: buildElementPath(background.element),
+            source,
+          },
+        ));
+      } else if (classification.kind === 'absolute-filesystem-path') {
+        critical.push(buildImageIssue(
+          'critical',
+          'absolute-filesystem-background-image-path',
+          'Absolute filesystem background-image paths are not portable.',
+          {
+            element: buildElementPath(background.element),
+            source,
+          },
+        ));
+      } else if (classification.kind === 'local-asset-path') {
+        const assetPath = join(slidesDir, source.replace(/^\.\//, ''));
+        if (!(await fileExists(assetPath))) {
+          critical.push(buildImageIssue(
+            'critical',
+            'missing-local-background-asset',
+            'Background image references a missing local asset.',
+            {
+              element: buildElementPath(background.element),
+              source,
+              assetPath,
+            },
+          ));
+        }
+      }
+    }
+  }
+
+  return { critical, warning };
 }
 
 async function inspectSlide(page, fileName, slidesDir) {
@@ -300,9 +453,28 @@ async function inspectSlide(page, fileName, slidesDir) {
         }
       }
 
+      const images = Array.from(document.querySelectorAll('img')).map((element) => ({
+        element: elementPath(element),
+        src: (element.getAttribute('src') || '').trim(),
+        alt: (element.getAttribute('alt') || '').trim(),
+      }));
+
+      const backgrounds = [document.body, ...Array.from(document.body.querySelectorAll('*'))]
+        .map((element) => {
+          const backgroundImage = window.getComputedStyle(element).backgroundImage;
+          return {
+            element: element === document.body ? 'body' : elementPath(element),
+            backgroundImage,
+            urls: backgroundImage && backgroundImage !== 'none' ? Array.from(backgroundImage.matchAll(/url\(\s*(['"]?)(.*?)\1\s*\)/gi)).map((match) => (match[2] || '').trim()).filter(Boolean) : [],
+          };
+        })
+        .filter((entry) => entry.urls.length > 0);
+
       return {
         critical,
-        warning
+        warning,
+        images,
+        backgrounds
       };
     },
     {
@@ -311,6 +483,17 @@ async function inspectSlide(page, fileName, slidesDir) {
       tolerancePx: TOLERANCE_PX
     }
   );
+
+  const imageContractIssues = await inspectImageContract(slidesDir, fileName, {
+    images: inspection.images,
+    backgrounds: inspection.backgrounds.map((background) => ({
+      ...background,
+      urls: extractCssUrls(background.backgroundImage),
+    })),
+  });
+
+  inspection.critical.push(...imageContractIssues.critical);
+  inspection.warning.push(...imageContractIssues.warning);
 
   const summary = {
     criticalCount: inspection.critical.length,

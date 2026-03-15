@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    html, body {
+      margin: 0;
+      width: 720pt;
+      height: 405pt;
+      font-family: sans-serif;
+      background: #ffffff;
+    }
+    .layout {
+      padding: 28pt;
+      display: grid;
+      grid-template-columns: 220pt 1fr;
+      gap: 20pt;
+    }
+    .bad-background {
+      width: 100%;
+      height: 150pt;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='240'%3E%3Crect width='400' height='240' fill='%23fecaca'/%3E%3C/svg%3E");
+      background-size: cover;
+      border-radius: 14pt;
+    }
+    h1 {
+      margin: 0 0 12pt 0;
+      font-size: 22pt;
+    }
+    p {
+      margin: 0 0 14pt 0;
+      font-size: 12pt;
+      line-height: 1.5;
+    }
+    img {
+      display: block;
+      width: 100%;
+      height: 120pt;
+      object-fit: cover;
+      background: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <div>
+      <div class="bad-background"></div>
+    </div>
+    <div>
+      <h1>Unsupported Image Paths</h1>
+      <p>This fixture mixes an absolute filesystem path, a remote URL, and a non-body background-image.</p>
+      <img src="/Users/example/Pictures/hero.png" alt="Absolute path image">
+      <img src="https://example.invalid/remote-image.png" alt="Remote path image">
+    </div>
+  </div>
+</body>
+</html>

@@ -146,6 +146,24 @@ async function getSlideSize(page) {
   };
 }
 
+async function ensureBodyConstraints(page) {
+  await page.evaluate(() => {
+    const body = document.body;
+    const style = window.getComputedStyle(body);
+    const width = Number.parseFloat(style.width);
+    const height = Number.parseFloat(style.height);
+
+    if (Number.isFinite(width) && width > 0) {
+      body.style.width = style.width;
+    }
+    if (Number.isFinite(height) && height > 0) {
+      body.style.height = style.height;
+    }
+    body.style.overflow = 'hidden';
+    body.style.margin = '0';
+  });
+}
+
 async function renderSlideToPdf(page, slideFile, slidesDir) {
   const slidePath = join(slidesDir, slideFile);
   const slideUrl = pathToFileURL(slidePath).href;
@@ -156,6 +174,8 @@ async function renderSlideToPdf(page, slideFile, slidesDir) {
       await document.fonts.ready;
     }
   });
+
+  await ensureBodyConstraints(page);
 
   const size = await getSlideSize(page);
   return page.pdf(buildPdfOptions(size.width, size.height));

@@ -10,6 +10,9 @@
 
 import { readFileSync, writeFileSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
+import { pathToFileURL } from 'url';
+
+import { buildSlideRuntimeHtml } from '../src/image-contract.js';
 
 const DEFAULT_SLIDES_DIR = 'slides';
 
@@ -34,7 +37,7 @@ function readOptionValue(args, index, optionName) {
   return next;
 }
 
-function parseCliArgs(args) {
+export function parseCliArgs(args) {
   const options = {
     slidesDir: DEFAULT_SLIDES_DIR,
     help: false,
@@ -70,62 +73,28 @@ function parseCliArgs(args) {
   return options;
 }
 
-let cliOptions;
-try {
-  cliOptions = parseCliArgs(process.argv.slice(2));
-} catch (error) {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-  process.exit(1);
-}
-if (cliOptions.help) {
-  printUsage();
-  process.exit(0);
-}
-
-const SLIDES_DIR = resolve(process.cwd(), cliOptions.slidesDir);
-const OUTPUT = join(SLIDES_DIR, 'viewer.html');
-
-// 슬라이드 파일 목록 (숫자순 정렬)
-let slideFiles = [];
-try {
-  slideFiles = readdirSync(SLIDES_DIR)
-    .filter(f => /^slide-\d+\.html$/.test(f))
-    .sort((a, b) => {
-      const numA = parseInt(a.match(/\d+/)[0], 10);
-      const numB = parseInt(b.match(/\d+/)[0], 10);
-      return numA - numB;
-    });
-} catch (error) {
-  const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`Failed to read slide directory: ${SLIDES_DIR}\n${message}\n`);
-  process.exit(1);
-}
-
-if (slideFiles.length === 0) {
-  console.error(`No slide-*.html files found in: ${SLIDES_DIR}`);
-  process.exit(1);
-}
-
-console.log(`Found ${slideFiles.length} slides`);
-
 /**
  * Escape HTML for safe embedding inside srcdoc="..." attribute.
  * Must escape &, ", < so the srcdoc attribute value is valid.
  */
-function escapeForSrcdoc(html) {
+export function escapeForSrcdoc(html) {
   return html
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;');
 }
 
-// 슬라이드 HTML 읽기
-const slides = slideFiles.map((file) => {
-  const html = readFileSync(join(SLIDES_DIR, file), 'utf-8');
-  return { file, html };
-});
+export function findSlideFiles(slidesDir) {
+  return readdirSync(slidesDir)
+    .filter((file) => /^slide-\d+\.html$/.test(file))
+    .sort((a, b) => {
+      const numA = Number.parseInt(a.match(/\d+/)[0], 10);
+      const numB = Number.parseInt(b.match(/\d+/)[0], 10);
+      return numA - numB;
+    });
+}
 
-// 뷰어 HTML 생성
-const viewerHtml = `<!DOCTYPE html>
+export function buildViewerHtml(slides) {
+  return `<!DOCTYPE html>
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -321,6 +290,57 @@ ${slides.map((s, i) => `        <iframe class="slide-frame${i === 0 ? ' active' 
   </script>
 </body>
 </html>`;
+}
 
-writeFileSync(OUTPUT, viewerHtml, 'utf-8');
-console.log(`Built viewer: ${OUTPUT}`);
+export function buildViewerSlides(slidesDir, slideFiles) {
+  return slideFiles.map((file) => {
+    const html = readFileSync(join(slidesDir, file), 'utf-8');
+    return {
+      file,
+      html: buildSlideRuntimeHtml(html, { baseHref: './', slideFile: file }),
+    };
+  });
+}
+
+export function buildViewer(slidesDir) {
+  const slideFiles = findSlideFiles(slidesDir);
+  if (slideFiles.length === 0) {
+    throw new Error(`No slide-*.html files found in: ${slidesDir}`);
+  }
+
+  const outputPath = join(slidesDir, 'viewer.html');
+  const slides = buildViewerSlides(slidesDir, slideFiles);
+  const viewerHtml = buildViewerHtml(slides);
+  writeFileSync(outputPath, viewerHtml, 'utf-8');
+  return { outputPath, slideCount: slideFiles.length };
+}
+
+function main() {
+  let cliOptions;
+  try {
+    cliOptions = parseCliArgs(process.argv.slice(2));
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exit(1);
+  }
+
+  if (cliOptions.help) {
+    printUsage();
+    process.exit(0);
+  }
+
+  const slidesDir = resolve(process.cwd(), cliOptions.slidesDir);
+  try {
+    const result = buildViewer(slidesDir);
+    console.log(`Found ${result.slideCount} slides`);
+    console.log(`Built viewer: ${result.outputPath}`);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`${message}\n`);
+    process.exit(1);
+  }
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
