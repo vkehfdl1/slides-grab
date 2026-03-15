@@ -65,7 +65,7 @@ All commands support `--slides-dir <path>` (default: `slides`).
 ```bash
 slides-grab edit              # Launch visual slide editor
 slides-grab build-viewer      # Build single-file viewer.html
-slides-grab validate          # Validate slide HTML (Playwright-based)
+slides-grab lint              # Lint slide HTML (Playwright-based)
 slides-grab convert           # Export to PPTX
 slides-grab pdf               # Export to PDF
 slides-grab list-templates    # Show available slide templates
@@ -76,7 +76,7 @@ slides-grab list-themes       # Show available color themes
 
 ```bash
 slides-grab edit       --slides-dir decks/my-deck
-slides-grab validate   --slides-dir decks/my-deck
+slides-grab lint       --slides-dir decks/my-deck
 slides-grab pdf        --slides-dir decks/my-deck --output decks/my-deck.pdf
 slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
 ```
@@ -101,7 +101,7 @@ npm install slides-grab
 ```
 bin/              CLI entry point
 src/editor/       Visual editor (HTML + JS client modules)
-scripts/          Build, validate, convert, editor server
+scripts/          Build, lint, convert, editor server
 templates/        Slide HTML templates (cover, content, chart, ...)
 themes/           Color themes (modern-dark, executive, sage, ...)
 .claude/skills/   Claude Code skill definitions
@@ -117,4 +117,3 @@ docs/             Installation & usage guides
 ## Acknowledgment
 
 This project is built based on the [ppt_team_agent](https://github.com/uxjoseph/ppt_team_agent) by Builder Josh. Huge thanks to him!
-

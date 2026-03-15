@@ -36,6 +36,7 @@ If prerequisites are not met, guide the user to review slides in `<slides-dir>/v
 
 1. **Prepare HTML slides**
    - Verify HTML files exist in selected `--slides-dir` (default: `slides/`)
+   - Run `slides-grab lint --slides-dir <path>` and resolve reported issues before conversion
    - Validate each file is 720pt x 405pt (16:9) specification
 
 2. **Run html2pptx.js**

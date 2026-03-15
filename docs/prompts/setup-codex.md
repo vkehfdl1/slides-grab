@@ -23,7 +23,7 @@ Then restart Codex so the skills are loaded.
 npm exec -- slides-grab --help
 ```
 
-You should see the CLI help output with commands: edit, build-viewer, validate, convert, pdf, etc.
+You should see the CLI help output with commands: edit, build-viewer, lint, convert, pdf, etc.
 
 ## 4. How to use
 
@@ -42,7 +42,7 @@ Or use the integrated skill `skills/ppt-presentation-skill/SKILL.md` to go throu
 ```bash
 slides-grab edit --slides-dir <path>         # Visual editor
 slides-grab build-viewer --slides-dir <path> # Build viewer.html
-slides-grab validate --slides-dir <path>     # Validate slides
+slides-grab lint --slides-dir <path>         # Lint slides
 slides-grab convert --slides-dir <path>      # Export PPTX
 slides-grab pdf --slides-dir <path>          # Export PDF
 ```

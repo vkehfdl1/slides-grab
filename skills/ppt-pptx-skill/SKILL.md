@@ -21,16 +21,18 @@ Convert reviewed slide HTML into PPTX (and optional PDF) reliably.
 
 ## Workflow
 1. Confirm user approval for conversion.
-2. Run conversion command:
+2. Run `slides-grab lint --slides-dir <path>` and resolve reported issues before conversion.
+3. Run conversion command:
    - `node .claude/skills/pptx-skill/scripts/html2pptx.js`
    - or `slides-grab convert --slides-dir <path>`
-3. If requested, run PDF conversion:
+4. If requested, run PDF conversion:
    - `slides-grab pdf --slides-dir <path>`
-4. Report success/failure with actionable errors.
+5. Report success/failure with actionable errors.
 
 ## Rules
 - Do not modify slide content during conversion stage unless explicitly requested.
 - If conversion fails, diagnose and fix root causes in source HTML/CSS.
+- Treat `slides-grab lint` as the required pre-conversion slide check.
 
 ## Reference
 For detailed conversion behavior and tools, use:

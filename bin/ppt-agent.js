@@ -68,8 +68,17 @@ program
   });
 
 program
+  .command('lint')
+  .description('Run slide lint checks on HTML files (Playwright-based)')
+  .option('--slides-dir <path>', 'Slide directory', 'slides')
+  .action(async (options = {}) => {
+    const args = ['--slides-dir', options.slidesDir];
+    await runCommand('scripts/validate-slides.js', args);
+  });
+
+program
   .command('validate')
-  .description('Run structured validation on slide HTML files (Playwright-based)')
+  .description('Backward-compatible alias for `slides-grab lint`')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];

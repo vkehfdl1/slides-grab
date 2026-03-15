@@ -545,19 +545,25 @@ This skill is **Stage 2**. It works from the `slide-outline.md` approved by the 
    ```bash
    node scripts/build-viewer.js --slides-dir <path>
    ```
-3. **Guide user to review**: Tell the user to check slides in the browser:
+3. **Lint slides**: After slide generation or edits, always run:
+   ```bash
+   slides-grab lint --slides-dir <path>
+   ```
+4. **Guide user to review**: Tell the user to check slides in the browser:
    ```
    open <slides-dir>/viewer.html
    ```
-4. **Revision loop**: When the user requests changes to specific slides:
+5. **Revision loop**: When the user requests changes to specific slides:
    - Edit only the relevant HTML file
    - Re-run `node scripts/build-viewer.js --slides-dir <path>` to rebuild the viewer
+   - Re-run `slides-grab lint --slides-dir <path>` and fix reported issues
    - Guide user to review again
-5. **Completion**: Repeat the revision loop until the user signals approval for PPTX conversion
+6. **Completion**: Repeat the revision loop until the user signals approval for PPTX conversion
 
 ### Absolute Rules
 - **Never start PPTX conversion without approval** — PPTX conversion is the responsibility of `pptx-skill` and requires explicit user approval.
 - **Never forget to build the viewer** — Run `node scripts/build-viewer.js --slides-dir <path>` every time slides are generated or modified.
+- **Always validate with the CLI lint entrypoint** — Run `slides-grab lint --slides-dir <path>` every time slides are generated or modified. Do not substitute direct script paths in the normal agent workflow.
 
 ---
 
@@ -565,6 +571,6 @@ This skill is **Stage 2**. It works from the `slide-outline.md` approved by the 
 
 1. **CSS gradients**: Not supported in PowerPoint conversion — replace with background images
 2. **Webfonts**: Always include the Pretendard CDN link
-3. **Image paths**: Use absolute paths or URLs
+3. **Image paths**: Use `./assets/<file>` by default; use `data:` only for self-contained slides; treat remote URLs as best-effort fallback
 4. **Colors**: Always include `#` prefix in CSS
 5. **Text rules**: Never place text directly in div/span

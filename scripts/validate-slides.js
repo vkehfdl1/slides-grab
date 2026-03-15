@@ -63,7 +63,8 @@ function summarizeSlides(slides) {
 function printUsage() {
   process.stdout.write(
     [
-      'Usage: node scripts/validate-slides.js [options]',
+      'Usage: slides-grab lint [options]',
+      '   or: node scripts/validate-slides.js [options]',
       '',
       'Options:',
       `  --slides-dir <path>  Slide directory (default: ${DEFAULT_SLIDES_DIR})`,

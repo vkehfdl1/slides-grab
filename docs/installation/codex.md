@@ -40,7 +40,7 @@ Run one deck per workspace folder:
 ```bash
 slides-grab edit --slides-dir decks/my-deck
 slides-grab build-viewer --slides-dir decks/my-deck
-slides-grab validate --slides-dir decks/my-deck
+slides-grab lint --slides-dir decks/my-deck
 slides-grab pdf --slides-dir decks/my-deck --output decks/my-deck.pdf
 slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
 ```
@@ -50,5 +50,5 @@ slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
 Copy-paste into Codex:
 
 ```text
-Read docs/installation/codex.md first and follow it exactly. Use Codex skills (ppt-plan-skill, ppt-design-skill, ppt-pptx-skill), keep each deck in decks/<deck-name>, and run validate before convert/pdf.
+Read docs/installation/codex.md first and follow it exactly. Use Codex skills (ppt-plan-skill, ppt-design-skill, ppt-pptx-skill), keep each deck in decks/<deck-name>, and run slides-grab lint before convert/pdf.
 ```

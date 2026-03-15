@@ -38,7 +38,7 @@ Use one workspace folder per deck:
 ```bash
 slides-grab edit --slides-dir decks/my-deck
 slides-grab build-viewer --slides-dir decks/my-deck
-slides-grab validate --slides-dir decks/my-deck
+slides-grab lint --slides-dir decks/my-deck
 slides-grab pdf --slides-dir decks/my-deck --output decks/my-deck.pdf
 slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
 ```
@@ -48,5 +48,5 @@ slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
 Copy-paste into Claude:
 
 ```text
-Read docs/installation/claude.md first and follow it exactly. Use the 3-stage Claude skills workflow (.claude/skills/plan-skill, design-skill, pptx-skill). Use decks/<deck-name> as the slides workspace and run validate before conversion.
+Read docs/installation/claude.md first and follow it exactly. Use the 3-stage Claude skills workflow (.claude/skills/plan-skill, design-skill, pptx-skill). Use decks/<deck-name> as the slides workspace and run slides-grab lint before conversion.
 ```

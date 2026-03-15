@@ -25,12 +25,14 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 1. Read approved `slide-outline.md`.
 2. Generate slide HTML files with 2-digit numbering in selected `--slides-dir`.
 3. Run `node scripts/build-viewer.js --slides-dir <path>` after generation or edits.
-4. Iterate on user feedback by editing only requested slide files.
-5. Keep revising until user approves conversion stage.
+4. Run `slides-grab lint --slides-dir <path>` after generation or edits. Use this CLI entrypoint for validation, not direct script paths.
+5. Iterate on user feedback by editing only requested slide files.
+6. Keep revising until user approves conversion stage.
 
 ## Rules
 - Keep slide size 720pt x 405pt.
 - Keep semantic text tags (`p`, `h1-h6`, `ul`, `ol`, `li`).
+- Use `slides-grab lint` as the canonical validation command after each edit loop.
 - Do not start conversion before approval.
 
 ## Reference
