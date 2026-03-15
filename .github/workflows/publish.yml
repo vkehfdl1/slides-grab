@@ -17,6 +17,17 @@ jobs:
           node-version: 22
           registry-url: https://registry.npmjs.org
           cache: npm
+      - name: Sync npm version from release tag
+        run: |
+          VERSION="${{ github.event.release.tag_name }}"
+          VERSION="${VERSION#v}"
+
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Invalid release tag for npm version: $VERSION"
+            exit 1
+          fi
+
+          npm version "$VERSION" --no-git-tag-version --allow-same-version
       - run: npm ci
       - run: npm test
       - run: npm publish --provenance --access public
