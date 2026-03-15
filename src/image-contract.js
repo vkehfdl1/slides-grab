@@ -1,4 +1,4 @@
-const ABSOLUTE_FILESYSTEM_PATH_RE = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+const ABSOLUTE_FILESYSTEM_PATH_RE = /^(file:\/\/|\/(?!\/)|[A-Za-z]:[\\/]|\\\\)/i;
 const CSS_URL_RE = /url\(\s*(['"]?)(.*?)\1\s*\)/gi;
 
 export const LOCAL_ASSET_PREFIX = './assets/';
@@ -44,7 +44,9 @@ export function buildSlideRuntimeHtml(html, { baseHref, slideFile }) {
   const slideFile = ${JSON.stringify(slideFile)};
   const localAssetPrefix = ${JSON.stringify(LOCAL_ASSET_PREFIX)};
   const absolutePathRe = ${ABSOLUTE_FILESYSTEM_PATH_RE.toString()};
+  const cssUrlRe = ${CSS_URL_RE.toString()};
   const prefix = '[slides-grab:image]';
+  const localAssetBaseUrl = new URL(localAssetPrefix, document.baseURI).href;
 
   function describeElement(element) {
     if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
@@ -92,23 +94,54 @@ export function buildSlideRuntimeHtml(html, { baseHref, slideFile }) {
     for (const image of document.querySelectorAll('img[src]')) {
       const src = (image.getAttribute('src') || '').trim();
       if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith(localAssetPrefix) || src.startsWith(localAssetBaseUrl)) continue;
       if (src.startsWith('https://')) {
         warn('remote image is best-effort only', { src });
         continue;
       }
       if (absolutePathRe.test(src)) {
         fail('absolute filesystem image path is unsupported', { src });
+        continue;
       }
+      fail('unsupported image path; use ./assets/<file>, data:, or https://', { src });
     }
 
-    for (const element of document.body.querySelectorAll('*')) {
-      if (element === document.body) continue;
+    for (const element of [document.body, ...document.body.querySelectorAll('*')]) {
       const backgroundImage = window.getComputedStyle(element).backgroundImage;
       if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
-      fail('non-body background-image is not supported for slide content', {
-        element: describeElement(element),
-        backgroundImage,
-      });
+      const urls = Array.from(backgroundImage.matchAll(cssUrlRe))
+        .map((match) => (match[2] || '').trim())
+        .filter(Boolean);
+
+      if (element !== document.body) {
+        fail('non-body background-image is not supported for slide content', {
+          element: describeElement(element),
+          backgroundImage,
+        });
+      }
+
+      for (const src of urls) {
+        if (!src || src.startsWith('data:')) continue;
+        if (src.startsWith(localAssetPrefix) || src.startsWith(localAssetBaseUrl)) continue;
+        if (src.startsWith('https://')) {
+          warn('remote background image is best-effort only', {
+            element: describeElement(element),
+            src,
+          });
+          continue;
+        }
+        if (absolutePathRe.test(src)) {
+          fail('absolute filesystem background-image path is unsupported', {
+            element: describeElement(element),
+            src,
+          });
+          continue;
+        }
+        fail('unsupported background-image path; use ./assets/<file>, data:, or https://', {
+          element: describeElement(element),
+          src,
+        });
+      }
     }
   });
 })();

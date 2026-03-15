@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    html, body {
+      margin: 0;
+      width: 720pt;
+      height: 405pt;
+      font-family: sans-serif;
+      background: #ffffff;
+    }
+    body {
+      display: grid;
+      place-items: center;
+    }
+    .panel {
+      width: 440pt;
+      padding: 24pt;
+      border: 1pt solid #d1d5db;
+      border-radius: 16pt;
+      background: #f8fafc;
+    }
+    img {
+      display: block;
+      width: 100%;
+      height: 160pt;
+      object-fit: cover;
+      background: #e5e7eb;
+      border-radius: 12pt;
+      margin-bottom: 16pt;
+    }
+    h1 {
+      margin: 0 0 10pt 0;
+      font-size: 22pt;
+    }
+    p {
+      margin: 0;
+      font-size: 12pt;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <img src="../shared.svg" alt="Parent relative path">
+    <h1>Unsupported Relative Image Path</h1>
+    <p>This fixture uses a parent-relative image path that should be rejected by the image contract.</p>
+  </div>
+</body>
+</html>

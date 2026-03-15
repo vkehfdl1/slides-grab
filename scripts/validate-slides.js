@@ -2,7 +2,7 @@
 
 import { access, readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
 import {
@@ -148,6 +148,29 @@ async function fileExists(filePath) {
   }
 }
 
+function resolveLocalAssetPath(slidesDir, source) {
+  const value = typeof source === 'string' ? source.trim() : '';
+  if (!value) return null;
+
+  if (value.startsWith(LOCAL_ASSET_PREFIX)) {
+    return join(slidesDir, value.replace(/^\.\//, ''));
+  }
+
+  if (value.startsWith('file://')) {
+    try {
+      const assetPath = fileURLToPath(value);
+      const assetRoot = join(slidesDir, 'assets');
+      if (assetPath === assetRoot || assetPath.startsWith(`${assetRoot}/`)) {
+        return assetPath;
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
 function classifyImageSource(source) {
   const value = typeof source === 'string' ? source.trim() : '';
   if (!value) return { kind: 'empty' };
@@ -165,14 +188,15 @@ async function inspectImageContract(slidesDir, fileName, inspection) {
 
   for (const image of inspection.images) {
     const source = image.src;
+    const localAssetPath = resolveLocalAssetPath(slidesDir, source);
     const classification = classifyImageSource(source);
 
     if (classification.kind === 'data-url' || classification.kind === 'empty') {
       continue;
     }
 
-    if (classification.kind === 'local-asset-path') {
-      const assetPath = join(slidesDir, source.replace(/^\.\//, ''));
+    if (classification.kind === 'local-asset-path' || localAssetPath) {
+      const assetPath = localAssetPath ?? join(slidesDir, source.replace(/^\.\//, ''));
       if (!(await fileExists(assetPath))) {
         critical.push(buildImageIssue(
           'critical',
@@ -213,24 +237,38 @@ async function inspectImageContract(slidesDir, fileName, inspection) {
       ));
       continue;
     }
+
+    if (classification.kind === 'other') {
+      critical.push(buildImageIssue(
+        'critical',
+        'unsupported-image-path',
+        'Image paths must use ./assets/<file>, data:, or https://.',
+        {
+          element: buildElementPath(image.element),
+          source,
+        },
+      ));
+    }
   }
 
   for (const background of inspection.backgrounds) {
-    if (background.element === 'body') continue;
     if (background.urls.length === 0) continue;
 
-    critical.push(buildImageIssue(
-      'critical',
-      'unsupported-background-image',
-      'Non-body background-image usage is not supported for slide content. Use <img src="./assets/<file>"> instead.',
-      {
-        element: buildElementPath(background.element),
-        backgroundImage: background.backgroundImage,
-        sources: background.urls,
-      },
-    ));
+    if (background.element !== 'body') {
+      critical.push(buildImageIssue(
+        'critical',
+        'unsupported-background-image',
+        'Non-body background-image usage is not supported for slide content. Use <img src="./assets/<file>"> instead.',
+        {
+          element: buildElementPath(background.element),
+          backgroundImage: background.backgroundImage,
+          sources: background.urls,
+        },
+      ));
+    }
 
     for (const source of background.urls) {
+      const localAssetPath = resolveLocalAssetPath(slidesDir, source);
       const classification = classifyImageSource(source);
       if (classification.kind === 'remote-url' || classification.kind === 'remote-url-insecure') {
         warning.push(buildImageIssue(
@@ -242,18 +280,8 @@ async function inspectImageContract(slidesDir, fileName, inspection) {
             source,
           },
         ));
-      } else if (classification.kind === 'absolute-filesystem-path') {
-        critical.push(buildImageIssue(
-          'critical',
-          'absolute-filesystem-background-image-path',
-          'Absolute filesystem background-image paths are not portable.',
-          {
-            element: buildElementPath(background.element),
-            source,
-          },
-        ));
-      } else if (classification.kind === 'local-asset-path') {
-        const assetPath = join(slidesDir, source.replace(/^\.\//, ''));
+      } else if (classification.kind === 'local-asset-path' || localAssetPath) {
+        const assetPath = localAssetPath ?? join(slidesDir, source.replace(/^\.\//, ''));
         if (!(await fileExists(assetPath))) {
           critical.push(buildImageIssue(
             'critical',
@@ -266,6 +294,26 @@ async function inspectImageContract(slidesDir, fileName, inspection) {
             },
           ));
         }
+      } else if (classification.kind === 'absolute-filesystem-path') {
+        critical.push(buildImageIssue(
+          'critical',
+          'absolute-filesystem-background-image-path',
+          'Absolute filesystem background-image paths are not portable.',
+          {
+            element: buildElementPath(background.element),
+            source,
+          },
+        ));
+      } else if (classification.kind === 'other') {
+        critical.push(buildImageIssue(
+          'critical',
+          'unsupported-background-image-path',
+          'Background image paths must use ./assets/<file>, data:, or https://.',
+          {
+            element: buildElementPath(background.element),
+            source,
+          },
+        ));
       }
     }
   }

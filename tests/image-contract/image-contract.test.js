@@ -193,6 +193,25 @@ test('validate reports missing local assets and unsupported path patterns with s
   assert.ok(slide.critical.some((issue) => issue.code === 'absolute-filesystem-image-path'));
   assert.ok(slide.critical.some((issue) => issue.code === 'unsupported-background-image'));
   assert.ok(slide.warning.some((issue) => issue.code === 'remote-image-url'));
+
+  const bodyBackgroundResult = await runNodeScript(scriptPath, ['--slides-dir', path.join(FIXTURE_ROOT, 'body-background-missing-local-asset')]);
+  assert.equal(bodyBackgroundResult.code, 1, bodyBackgroundResult.stderr || bodyBackgroundResult.stdout);
+  const bodyBackgroundPayload = JSON.parse(bodyBackgroundResult.stdout);
+  assert.ok(
+    bodyBackgroundPayload.slides[0].critical.some((issue) => (
+      issue.code === 'missing-local-background-asset' &&
+      String(issue.assetPath || '').endsWith('/body-background-missing-local-asset/assets/missing-background.svg')
+    )),
+    JSON.stringify(bodyBackgroundPayload, null, 2),
+  );
+
+  const unsupportedRelativeResult = await runNodeScript(scriptPath, ['--slides-dir', path.join(FIXTURE_ROOT, 'unsupported-relative-path')]);
+  assert.equal(unsupportedRelativeResult.code, 1, unsupportedRelativeResult.stderr || unsupportedRelativeResult.stdout);
+  const unsupportedRelativePayload = JSON.parse(unsupportedRelativeResult.stdout);
+  assert.ok(
+    unsupportedRelativePayload.slides[0].critical.some((issue) => issue.code === 'unsupported-image-path' && issue.source === '../shared.svg'),
+    JSON.stringify(unsupportedRelativePayload, null, 2),
+  );
 });
 
 test('html2pdf can export the positive local-asset fixture', { concurrency: false }, async () => {
