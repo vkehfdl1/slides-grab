@@ -1,11 +1,11 @@
 ---
-name: ppt-design-skill
+name: slides-grab-design
 description: Stage 2 design skill for Codex. Generate and iterate slide-XX.html files in the selected slides workspace.
 metadata:
   short-description: Build HTML slides and viewer for review loop
 ---
 
-# PPT Design Skill (Codex)
+# slides-grab Design Skill (Codex)
 
 Use this after `slide-outline.md` is approved.
 

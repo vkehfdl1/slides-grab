@@ -1,11 +1,11 @@
 ---
-name: ppt-presentation-skill
+name: slides-grab
 description: End-to-end presentation workflow for Codex. Use when making a full presentation from scratch — planning, designing slides, editing, and exporting.
 metadata:
   short-description: Full pipeline from topic to PPTX/PDF
 ---
 
-# Presentation Skill (Codex) - Full Workflow Orchestrator
+# slides-grab Skill (Codex) - Full Workflow Orchestrator
 
 Guides you through the complete presentation pipeline from topic to exported file.
 
@@ -15,7 +15,7 @@ Guides you through the complete presentation pipeline from topic to exported fil
 
 ### Stage 1 — Plan
 
-Use **ppt-plan-skill** (`skills/ppt-plan-skill/SKILL.md`).
+Use **slides-grab-plan** (`skills/slides-grab-plan/SKILL.md`).
 
 1. Take user's topic, audience, and tone.
 2. Create `slide-outline.md`.
@@ -26,7 +26,7 @@ Use **ppt-plan-skill** (`skills/ppt-plan-skill/SKILL.md`).
 
 ### Stage 2 — Design
 
-Use **ppt-design-skill** (`skills/ppt-design-skill/SKILL.md`).
+Use **slides-grab-design** (`skills/slides-grab-design/SKILL.md`).
 
 1. Read approved `slide-outline.md`.
 2. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
@@ -39,7 +39,7 @@ Use **ppt-design-skill** (`skills/ppt-design-skill/SKILL.md`).
 
 ### Stage 3 — Export
 
-Use **ppt-pptx-skill** (`skills/ppt-pptx-skill/SKILL.md`).
+Use **slides-grab-export** (`skills/slides-grab-export/SKILL.md`).
 
 1. Confirm user wants conversion.
 2. Export to PPTX: `slides-grab convert --slides-dir <path> --output <name>.pptx`

@@ -1,11 +1,11 @@
 ---
-name: ppt-plan-skill
+name: slides-grab-plan
 description: Stage 1 planning skill for Codex. Build and iterate slide-outline.md until explicit user approval.
 metadata:
   short-description: Create and revise slide outline before design stage
 ---
 
-# PPT Plan Skill (Codex)
+# slides-grab Plan Skill (Codex)
 
 Use this when the user asks to start a new presentation from scratch.
 

@@ -7,7 +7,7 @@ import { getPackageRoot } from '../resolve.js';
 
 export const SLIDE_SIZE = { width: 960, height: 540 };
 
-const PPT_DESIGN_SKILL_PATH = join(getPackageRoot(), 'skills', 'ppt-design-skill', 'SKILL.md');
+const PPT_DESIGN_SKILL_PATH = join(getPackageRoot(), 'skills', 'slides-grab-design', 'SKILL.md');
 const DETAILED_DESIGN_SKILL_PATH = join(getPackageRoot(), '.claude', 'skills', 'design-skill', 'SKILL.md');
 const DETAILED_DESIGN_SECTION_HEADINGS = [
   '## Base Settings',

@@ -31,11 +31,11 @@ This project uses a 3-stage skill workflow under `skills/`:
 
 | Stage | Skill | What it does |
 |-------|-------|-------------|
-| 1. Plan | `skills/ppt-plan-skill/SKILL.md` | Create slide-outline.md, get user approval |
-| 2. Design | `skills/ppt-design-skill/SKILL.md` | Generate slide HTML files |
-| 3. Export | `skills/ppt-pptx-skill/SKILL.md` | Convert to PPTX/PDF |
+| 1. Plan | `skills/slides-grab-plan/SKILL.md` | Create slide-outline.md, get user approval |
+| 2. Design | `skills/slides-grab-design/SKILL.md` | Generate slide HTML files |
+| 3. Export | `skills/slides-grab-export/SKILL.md` | Convert to PPTX/PDF |
 
-Or use the integrated skill `skills/ppt-presentation-skill/SKILL.md` to go through all stages end-to-end.
+Or use the integrated skill `skills/slides-grab/SKILL.md` to go through all stages end-to-end.
 
 ### Key CLI commands
 

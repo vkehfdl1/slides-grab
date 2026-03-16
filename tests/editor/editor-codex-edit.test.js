@@ -74,7 +74,7 @@ test('buildCodexEditPrompt includes user prompt, bbox, and XPath targets', () =>
   assert.match(prompt, /Q1 Revenue/);
   assert.match(prompt, /Region 1/);
   assert.match(prompt, /Project skill guidance \(follow strictly\):/);
-  assert.match(prompt, /skills\/ppt-design-skill\/SKILL\.md/);
+  assert.match(prompt, /skills\/slides-grab-design\/SKILL\.md/);
   assert.match(prompt, /Keep slide size 720pt x 405pt\./);
   assert.match(prompt, /Detailed design\/export guardrails \(selected from the full design system\):/);
   assert.match(prompt, /Do not use non-body `background-image` for content imagery; use `<img>` instead\./);
@@ -118,7 +118,7 @@ test('buildCodexExecArgs attaches image and prompt to codex exec', () => {
 test('getPptDesignSkillPrompt loads bundled ppt design skill guidance', () => {
   const skillPrompt = getPptDesignSkillPrompt();
 
-  assert.match(skillPrompt, /# PPT Design Skill \(Codex\)/);
+  assert.match(skillPrompt, /# slides-grab Design Skill \(Codex\)/);
   assert.match(skillPrompt, /Keep slide size 720pt x 405pt\./);
   assert.match(skillPrompt, /reference them as `\.\/assets\/<file>`\./);
 });

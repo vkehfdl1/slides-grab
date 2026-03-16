@@ -1,11 +1,11 @@
 ---
-name: ppt-pptx-skill
+name: slides-grab-export
 description: Stage 3 conversion skill for Codex. Convert approved HTML slides to PPTX/PDF and validate artifacts.
 metadata:
   short-description: Convert slides and run conversion checks
 ---
 
-# PPTX Conversion Skill (Codex)
+# slides-grab Export Skill (Codex)
 
 Use this only after the user approves design output.
 

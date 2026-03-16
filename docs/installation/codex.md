@@ -29,11 +29,11 @@ Then restart Codex so skills are loaded.
 
 Codex skill references:
 
-- `skills/ppt-plan-skill/SKILL.md`
-- `skills/ppt-design-skill/SKILL.md`
-- `skills/ppt-pptx-skill/SKILL.md`
+- `skills/slides-grab-plan/SKILL.md`
+- `skills/slides-grab-design/SKILL.md`
+- `skills/slides-grab-export/SKILL.md`
 
-Or use the integrated skill: `skills/ppt-presentation-skill/SKILL.md`
+Or use the integrated skill: `skills/slides-grab/SKILL.md`
 
 Run one deck per workspace folder:
 
@@ -56,5 +56,5 @@ slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 Copy-paste into Codex:
 
 ```text
-Read docs/installation/codex.md first and follow it exactly. Use Codex skills (ppt-plan-skill, ppt-design-skill, ppt-pptx-skill), keep each deck in decks/<deck-name>, and run validate before convert/pdf.
+Read docs/installation/codex.md first and follow it exactly. Use Codex skills (slides-grab-plan, slides-grab-design, slides-grab-export) or the end-to-end slides-grab skill, keep each deck in decks/<deck-name>, and run validate before convert/pdf.
 ```
