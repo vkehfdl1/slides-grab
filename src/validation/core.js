@@ -1,5 +1,5 @@
 import { access, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import {
@@ -239,6 +239,27 @@ export async function findSlideFiles(slidesDir) {
     .filter((entry) => entry.isFile() && SLIDE_FILE_PATTERN.test(entry.name))
     .map((entry) => entry.name)
     .sort(sortSlideFiles);
+}
+
+export function selectSlideFiles(slideFiles, selectedSlides = [], slidesDir = '') {
+  if (!Array.isArray(selectedSlides) || selectedSlides.length === 0) {
+    return slideFiles;
+  }
+
+  const requested = [...new Set(
+    selectedSlides
+      .map((slide) => basename(String(slide).trim()))
+      .filter(Boolean),
+  )];
+
+  const available = new Set(slideFiles);
+  const missing = requested.filter((slide) => !available.has(slide));
+  if (missing.length > 0) {
+    const location = slidesDir ? ` in ${slidesDir}` : '';
+    throw new Error(`Requested slide file(s) not found${location}: ${missing.join(', ')}`);
+  }
+
+  return slideFiles.filter((slide) => available.has(slide) && requested.includes(slide));
 }
 
 export async function inspectSlide(page, fileName, slidesDir) {

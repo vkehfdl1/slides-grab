@@ -63,6 +63,10 @@ async function runCommand(relativePath, args = []) {
   }
 }
 
+function collectRepeatedOption(value, previous = []) {
+  return [...previous, value];
+}
+
 const program = new Command();
 
 program
@@ -83,10 +87,16 @@ program
 
 program
   .command('validate')
+  .alias('lint')
   .description('Run structured validation on slide HTML files (Playwright-based)')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
+  .option('--format <format>', 'Output format: concise, json, json-full', 'concise')
+  .option('--slide <file>', 'Validate only the named slide file (repeatable)', collectRepeatedOption, [])
   .action(async (options = {}) => {
-    const args = ['--slides-dir', options.slidesDir];
+    const args = ['--slides-dir', options.slidesDir, '--format', options.format];
+    for (const slide of options.slide || []) {
+      args.push('--slide', String(slide));
+    }
     await runCommand('scripts/validate-slides.js', args);
   });
 

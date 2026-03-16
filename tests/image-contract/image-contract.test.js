@@ -128,12 +128,14 @@ test('build-viewer injects slide runtime html for local assets', () => {
 test('validator CLI args still parse slides-dir', () => {
   assert.deepEqual(parseValidateCliArgs(['--slides-dir', 'decks/demo']), {
     slidesDir: 'decks/demo',
+    format: 'concise',
     help: false,
+    slides: [],
   });
 });
 
 test('validate passes for the canonical ./assets contract fixture', async () => {
-  const result = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('positive-local-asset')]);
+  const result = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('positive-local-asset'), '--format', 'json-full']);
   assert.equal(result.code, 0, result.stderr || result.stdout);
 
   const report = JSON.parse(result.stdout);
@@ -143,7 +145,7 @@ test('validate passes for the canonical ./assets contract fixture', async () => 
 });
 
 test('validate passes for body background-image with canonical ./assets URL', async () => {
-  const result = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('body-background-local-asset')]);
+  const result = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('body-background-local-asset'), '--format', 'json-full']);
   assert.equal(result.code, 0, result.stderr || result.stdout);
 
   const report = JSON.parse(result.stdout);
@@ -151,12 +153,12 @@ test('validate passes for body background-image with canonical ./assets URL', as
   assert.equal(report.slides[0].summary.criticalCount, 0);
 });
 test('validate reports missing local assets and discouraged path forms', async () => {
-  const missing = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('missing-local-asset')]);
+  const missing = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('missing-local-asset'), '--format', 'json-full']);
   assert.equal(missing.code, 1);
   const missingReport = JSON.parse(missing.stdout);
   assert.equal(missingReport.slides[0].critical.some((issue) => issue.code === 'missing-local-asset'), true);
 
-  const unsupported = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('unsupported-paths')]);
+  const unsupported = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', fixturePath('unsupported-paths'), '--format', 'json-full']);
   assert.equal(unsupported.code, 1);
   const unsupportedReport = JSON.parse(unsupported.stdout);
   assert.equal(unsupportedReport.slides[0].critical.some((issue) => issue.code === 'absolute-filesystem-image-path'), true);
