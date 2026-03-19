@@ -39,6 +39,7 @@
     "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/svg/html2svg.test.js",
     "test:e2e": "node --test tests/editor/editor-ui.e2e.test.js tests/editor/editor-concurrency.e2e.test.js",
     "edit": "node bin/ppt-agent.js edit",
+    "create": "node bin/ppt-agent.js create",
     "split": "node bin/ppt-agent.js split",
     "pdf": "node bin/ppt-agent.js pdf",
     "svg": "node bin/ppt-agent.js svg",

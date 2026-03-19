@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readdir, readFile, writeFile, mkdtemp, rm, mkdir } from 'node:fs/promises';
+import { readdir, readFile, writeFile, mkdtemp, rm, mkdir, stat, rename } from 'node:fs/promises';
 import { watch as fsWatch } from 'node:fs';
 import { basename, dirname, join, resolve, relative, sep } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -20,6 +20,8 @@ import {
   scaleSelectionToScreenshot,
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
+
+import { listTemplates } from '../src/resolve.js';
 
 import { mergePdfBuffers } from './html2pdf.js';
 import { PDFDocument } from 'pdf-lib';
@@ -76,12 +78,30 @@ function parseArgs(argv) {
     port: DEFAULT_PORT,
     slidesDir: DEFAULT_SLIDES_DIR,
     help: false,
+    createMode: false,
+    deckName: '',
   };
 
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '-h' || arg === '--help') {
       opts.help = true;
+      continue;
+    }
+
+    if (arg === '--create') {
+      opts.createMode = true;
+      continue;
+    }
+
+    if (arg === '--deck-name') {
+      opts.deckName = argv[i + 1] || '';
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--deck-name=')) {
+      opts.deckName = arg.slice('--deck-name='.length);
       continue;
     }
 
@@ -120,11 +140,15 @@ function parseArgs(argv) {
     throw new Error('`--port` must be a positive integer.');
   }
 
-  if (typeof opts.slidesDir !== 'string' || opts.slidesDir.trim() === '') {
-    throw new Error('`--slides-dir` must be a non-empty path.');
+  // In create mode, slidesDir is determined later (after topic is submitted)
+  if (!opts.createMode) {
+    if (typeof opts.slidesDir !== 'string' || opts.slidesDir.trim() === '') {
+      throw new Error('`--slides-dir` must be a non-empty path.');
+    }
+    opts.slidesDir = opts.slidesDir.trim();
   }
 
-  opts.slidesDir = opts.slidesDir.trim();
+  opts.deckName = opts.deckName.trim();
 
   return opts;
 }
@@ -248,6 +272,89 @@ function randomRunId() {
   const ts = Date.now();
   const rand = Math.floor(Math.random() * 100000);
   return `run-${ts}-${rand}`;
+}
+
+function parseOutline(content, deckName) {
+  const lines = content.split('\n');
+  const outline = { title: '', deckName: deckName || '', slides: [], rawHeader: '', rawFooter: '' };
+
+  for (const line of lines) {
+    const h1 = line.match(/^#\s+(.+)/);
+    if (h1) { outline.title = h1[1].trim().replace(/<[^>]*>/g, ''); break; }
+  }
+
+  for (const line of lines) {
+    const plain = line.replace(/\*\*(.*?)\*\*/g, '$1');
+    const dm = plain.match(/^-\s*deck-name:\s*(.+)/i);
+    if (dm) { outline.deckName = dm[1].trim(); break; }
+  }
+
+  // Find ### Slide boundaries and H1/H2 footer boundary
+  const slideStarts = [];
+  let footerStart = -1;
+  let foundFirstSlide = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    if (/^###\s+Slide\s+\d+/i.test(lines[i])) {
+      slideStarts.push(i);
+      foundFirstSlide = true;
+    } else if (foundFirstSlide && /^#{1,2}\s/.test(lines[i]) && !/^###/.test(lines[i])) {
+      if (footerStart < 0) footerStart = i;
+    }
+  }
+
+  if (slideStarts.length === 0) {
+    outline.rawHeader = content;
+    return outline;
+  }
+
+  // rawHeader: everything before first slide
+  outline.rawHeader = lines.slice(0, slideStarts[0]).join('\n');
+  if (outline.rawHeader) outline.rawHeader += '\n';
+
+  const contentEnd = footerStart >= 0 ? footerStart : lines.length;
+
+  // Parse each slide
+  for (let si = 0; si < slideStarts.length; si++) {
+    const start = slideStarts[si];
+    const end = si + 1 < slideStarts.length ? slideStarts[si + 1] : contentEnd;
+
+    const rawBlock = lines.slice(start, end).join('\n') + '\n';
+    const headerLine = lines[start];
+    const slideMatch = headerLine.match(/^###\s+Slide\s+\d+\s*(?:[-–—]\s*(.+))?/i);
+
+    const cur = {
+      type: '',
+      title: (slideMatch?.[1] || '').trim(),
+      details: [],
+      rawBlock,
+    };
+
+    for (let j = start + 1; j < end; j++) {
+      const line = lines[j];
+      if (/^---\s*$/.test(line)) continue;
+
+      const plain = line.replace(/\*\*(.*?)\*\*/g, '$1');
+      const tm = plain.match(/^-\s*type:\s*(.+)/i);
+      const tt = plain.match(/^-\s*title:\s*(.+)/i);
+
+      if (tm) { cur.type = tm[1].trim(); }
+      else if (tt) { cur.title = tt[1].trim(); }
+      else {
+        const trimmed = line.trimEnd();
+        if (trimmed) cur.details.push(trimmed);
+      }
+    }
+
+    outline.slides.push(cur);
+  }
+
+  // rawFooter: everything after the last slide region
+  if (footerStart >= 0) {
+    outline.rawFooter = lines.slice(footerStart).join('\n');
+  }
+
+  return outline;
 }
 
 function spawnCodexEdit({ prompt, imagePath, model, cwd, onLog }) {
@@ -458,16 +565,38 @@ function createRunStore() {
   };
 }
 
+function slugify(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s가-힣a-z0-9-]/g, '')
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40) || `deck-${Date.now()}`;
+}
+
 async function startServer(opts) {
   await loadDeps();
-  const slidesDirectory = resolve(process.cwd(), opts.slidesDir);
-  await mkdir(slidesDirectory, { recursive: true });
+  let slidesDirectory = opts.createMode
+    ? ''  // will be set when user submits topic
+    : resolve(process.cwd(), opts.slidesDir);
+
+  if (!opts.createMode) {
+    await mkdir(slidesDirectory, { recursive: true });
+  }
+
+  // If create mode with a pre-set deck name, resolve it now
+  if (opts.createMode && opts.deckName) {
+    slidesDirectory = resolve(process.cwd(), 'decks', opts.deckName);
+    await mkdir(slidesDirectory, { recursive: true });
+  }
 
   const runStore = createRunStore();
 
   const app = express();
   app.use(express.json({ limit: '5mb' }));
   app.use('/js', express.static(join(PACKAGE_ROOT, 'src', 'editor', 'js')));
+  app.use('/asset', express.static(join(PACKAGE_ROOT, 'asset')));
 
   const editorHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'editor.html');
 
@@ -504,8 +633,27 @@ async function startServer(opts) {
     }
   });
 
+  app.get('/api/editor-config', async (_req, res) => {
+    // If slides already exist in the directory, override createMode to false
+    let effectiveCreateMode = opts.createMode;
+    if (effectiveCreateMode && slidesDirectory) {
+      try {
+        const existing = await listSlideFiles(slidesDirectory);
+        if (existing.length > 0) effectiveCreateMode = false;
+      } catch { /* directory may not exist yet */ }
+    }
+    res.json({
+      createMode: effectiveCreateMode,
+      deckName: opts.deckName || '',
+      slidesDir: slidesDirectory ? toPosixPath(relative(process.cwd(), slidesDirectory) || slidesDirectory) : '',
+    });
+  });
+
   app.get('/api/slides', async (_req, res) => {
     try {
+      if (!slidesDirectory) {
+        return res.json([]);
+      }
       const files = await listSlideFiles(slidesDirectory);
       res.json(files);
     } catch (err) {
@@ -759,6 +907,521 @@ async function startServer(opts) {
       runStore.clearActiveRun(slide, runId);
       await rm(tmpPath, { recursive: true, force: true }).catch(() => {});
     }
+  });
+
+  // ── GET /api/templates ──────────────────────────────────────────────
+  app.get('/api/templates', (_req, res) => {
+    try {
+      const templates = listTemplates();
+      res.json(templates);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/outline — Load existing outline ───────────────────────
+  app.get('/api/outline', async (_req, res) => {
+    if (!slidesDirectory) {
+      return res.status(404).json({ error: 'No slides directory set.' });
+    }
+    const outlinePath = join(slidesDirectory, 'slide-outline.md');
+    try {
+      const content = await readFile(outlinePath, 'utf-8');
+      const outline = parseOutline(content, basename(slidesDirectory));
+      res.json(outline);
+    } catch {
+      res.status(404).json({ error: 'No slide-outline.md found.' });
+    }
+  });
+
+  // ── PUT /api/outline — Save edited outline ──────────────────────────
+  app.put('/api/outline', async (req, res) => {
+    if (!slidesDirectory) {
+      return res.status(404).json({ error: 'No slides directory set.' });
+    }
+    const { content } = req.body ?? {};
+    if (typeof content !== 'string') {
+      return res.status(400).json({ error: 'Missing `content` string.' });
+    }
+    const outlinePath = join(slidesDirectory, 'slide-outline.md');
+    try {
+      await writeFile(outlinePath, content, 'utf-8');
+      const outline = parseOutline(content, basename(slidesDirectory));
+      res.json(outline);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── POST /api/plan — Outline Planning ─────────────────────────────
+  const generateRunStore = createRunStore();
+  let activeGenerate = false;
+
+  app.post('/api/plan', async (req, res) => {
+    const { topic, requirements, model, slideCount: slideCountRange } = req.body ?? {};
+
+    if (typeof topic !== 'string' || topic.trim() === '') {
+      return res.status(400).json({ error: 'Missing or invalid `topic`.' });
+    }
+
+    if (activeGenerate) {
+      return res.status(409).json({ error: 'A generation is already in progress.' });
+    }
+
+    const selectedModel = typeof model === 'string' && CLAUDE_MODELS.includes(model.trim())
+      ? model.trim()
+      : CLAUDE_MODELS[0];
+
+    const runId = randomRunId();
+    activeGenerate = true;
+
+    broadcastSSE('planStarted', { runId, topic: topic.trim() });
+    res.json({ runId, topic: topic.trim(), model: selectedModel });
+
+    (async () => {
+      try {
+        const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim()
+          ? slideCountRange.trim()
+          : '8~12';
+
+        const promptLines = [
+          `주제: ${topic.trim()}`,
+        ];
+        if (typeof requirements === 'string' && requirements.trim()) {
+          promptLines.push(`요구사항: ${requirements.trim()}`);
+        }
+        promptLines.push(`슬라이드 수: ${countLabel}장`);
+        promptLines.push('');
+        promptLines.push('다음을 수행하세요:');
+        promptLines.push('');
+        promptLines.push('1. 주제에서 핵심 키워드 2~3개를 뽑아 영어 소문자 kebab-case 폴더명을 결정하세요.');
+        promptLines.push('   예: "인공지능 트렌드 2025" → ai-trends-2025');
+        promptLines.push('');
+        promptLines.push('2. 해당 폴더에 slide-outline.md를 생성하세요. (HTML 슬라이드는 생성하지 마세요)');
+        promptLines.push('   mkdir -p decks/<name> && 아웃라인 파일만 작성');
+        promptLines.push('');
+        promptLines.push('아웃라인 형식:');
+        promptLines.push('```');
+        promptLines.push('# 발표 제목');
+        promptLines.push('');
+        promptLines.push('## Meta');
+        promptLines.push('- deck-name: <kebab-case-name>');
+        promptLines.push('- slide-count: N');
+        promptLines.push('');
+        promptLines.push('## Slides');
+        promptLines.push('### Slide 1');
+        promptLines.push('- type: cover');
+        promptLines.push('- title: 제목');
+        promptLines.push('- content: 부제 또는 설명');
+        promptLines.push('');
+        promptLines.push('### Slide 2');
+        promptLines.push('- type: contents');
+        promptLines.push('- title: 목차');
+        promptLines.push('- content: 목차 항목들');
+        promptLines.push('...');
+        promptLines.push('```');
+        promptLines.push('');
+        promptLines.push('type은 다음 중 하나: cover, contents, section-divider, content, two-columns, split-layout, image-text, image-description, chart, statistics, key-metrics, timeline, funnel, matrix, quote, quotes-grid, highlight, principles, diagram, team, simple-list, big-metric, closing');
+        promptLines.push('');
+        promptLines.push('중요: slide-outline.md 파일만 생성하세요. HTML 파일은 생성하지 마세요.');
+
+        const fullPrompt = promptLines.join('\n');
+
+        const result = await spawnClaudeEdit({
+          prompt: fullPrompt,
+          imagePath: null,
+          model: selectedModel,
+          cwd: process.cwd(),
+          onLog: (stream, chunk) => {
+            broadcastSSE('planLog', { runId, stream, chunk });
+          },
+        });
+
+        const success = result.code === 0;
+
+        let outline = null;
+        let detectedDeckName = '';
+
+        if (success) {
+          try {
+            const decksRoot = resolve(process.cwd(), 'decks');
+            const dirs = await readdir(decksRoot, { withFileTypes: true });
+            let bestDir = '';
+            let bestMtime = 0;
+
+            for (const d of dirs) {
+              if (!d.isDirectory()) continue;
+              const outlinePath = join(decksRoot, d.name, 'slide-outline.md');
+              try {
+                const s = await stat(outlinePath);
+                if (s.mtimeMs > bestMtime) {
+                  bestMtime = s.mtimeMs;
+                  bestDir = d.name;
+                }
+              } catch { /* no outline */ }
+            }
+
+            if (bestDir) {
+              detectedDeckName = bestDir;
+              const outlinePath = join(decksRoot, bestDir, 'slide-outline.md');
+              const content = await readFile(outlinePath, 'utf-8');
+              outline = parseOutline(content, bestDir);
+
+              slidesDirectory = join(decksRoot, bestDir);
+              setupFileWatcher(slidesDirectory);
+            }
+          } catch (err) {
+            console.error('Failed to parse outline:', err);
+          }
+        }
+
+        broadcastSSE('planFinished', {
+          runId,
+          success,
+          message: success ? 'Outline ready.' : `Plan failed (exit code ${result.code}).`,
+          outline,
+          deckName: detectedDeckName,
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        broadcastSSE('planFinished', { runId, success: false, message, outline: null });
+      } finally {
+        activeGenerate = false;
+      }
+    })();
+  });
+
+  // ── POST /api/plan/revise — Revise outline with feedback ──────────
+  app.post('/api/plan/revise', async (req, res) => {
+    const { feedback, deckName, targetSlide } = req.body ?? {};
+
+    if (typeof feedback !== 'string' || feedback.trim() === '') {
+      return res.status(400).json({ error: 'Missing feedback.' });
+    }
+
+    if (activeGenerate) {
+      return res.status(409).json({ error: 'A generation is already in progress.' });
+    }
+
+    if (!slidesDirectory) {
+      return res.status(400).json({ error: 'No outline to revise.' });
+    }
+
+    const selectedModel = CLAUDE_MODELS[0];
+    const runId = randomRunId();
+    activeGenerate = true;
+
+    const targetLabel = typeof targetSlide === 'number'
+      ? `Revise Slide ${targetSlide}: ${feedback.trim().slice(0, 40)}`
+      : `Revise: ${feedback.trim().slice(0, 50)}`;
+    broadcastSSE('planStarted', { runId, topic: targetLabel });
+    res.json({ runId });
+
+    (async () => {
+      try {
+        const outlinePath = join(slidesDirectory, 'slide-outline.md');
+
+        const promptLines = [
+          '현재 아웃라인 파일을 수정 요청에 따라 업데이트하세요.',
+          '',
+          `파일 경로: ${outlinePath}`,
+          '',
+        ];
+
+        if (typeof targetSlide === 'number') {
+          promptLines.push(`대상: Slide ${targetSlide}만 수정하세요. 다른 슬라이드는 변경하지 마세요.`);
+          promptLines.push('');
+        }
+
+        promptLines.push('수정 요청:');
+        promptLines.push(feedback.trim());
+        promptLines.push('');
+        promptLines.push('규칙:');
+        promptLines.push('- slide-outline.md 파일만 수정하세요');
+        promptLines.push('- HTML 파일은 생성하지 마세요');
+        promptLines.push('- 기존 아웃라인 형식을 유지하세요');
+
+        const fullPrompt = promptLines.join('\n');
+
+        const result = await spawnClaudeEdit({
+          prompt: fullPrompt,
+          imagePath: null,
+          model: selectedModel,
+          cwd: process.cwd(),
+          onLog: (stream, chunk) => {
+            broadcastSSE('planLog', { runId, stream, chunk });
+          },
+        });
+
+        const success = result.code === 0;
+
+        let outline = null;
+        if (success) {
+          try {
+            const content = await readFile(outlinePath, 'utf-8');
+            outline = parseOutline(content, deckName || basename(slidesDirectory));
+          } catch (err) {
+            console.error('Failed to parse revised outline:', err);
+          }
+        }
+
+        broadcastSSE('planFinished', {
+          runId,
+          success,
+          message: success ? 'Outline revised.' : `Revision failed (exit code ${result.code}).`,
+          outline,
+          deckName: deckName || basename(slidesDirectory),
+        });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        broadcastSSE('planFinished', { runId, success: false, message, outline: null });
+      } finally {
+        activeGenerate = false;
+      }
+    })();
+  });
+
+  // ── POST /api/generate — Creation Mode ────────────────────────────
+
+  app.post('/api/generate', async (req, res) => {
+    const { topic, requirements, model, deckName, slideCount: slideCountRange, fromOutline } = req.body ?? {};
+
+    if (!fromOutline && (typeof topic !== 'string' || topic.trim() === '')) {
+      return res.status(400).json({ error: 'Missing or invalid `topic`.' });
+    }
+
+    if (activeGenerate) {
+      return res.status(409).json({ error: 'A generation is already in progress.' });
+    }
+
+    // Rename deck directory if user changed the name in outline review
+    if (fromOutline && slidesDirectory && typeof deckName === 'string' && deckName.trim()) {
+      const currentName = basename(slidesDirectory);
+      const newName = deckName.trim().replace(/[<>:"/\\|?*]/g, '-');
+      if (newName !== currentName) {
+        const newPath = resolve(dirname(slidesDirectory), newName);
+        try {
+          await rename(slidesDirectory, newPath);
+          slidesDirectory = newPath;
+          setupFileWatcher(slidesDirectory);
+        } catch (err) {
+          console.error('Failed to rename deck directory:', err);
+        }
+      }
+    }
+
+    // In create mode without a pre-set directory, resolve one now if deckName given
+    if (!slidesDirectory) {
+      if (typeof deckName === 'string' && deckName.trim()) {
+        const folderName = deckName.trim().replace(/[<>:"/\\|?*]/g, '-');
+        slidesDirectory = resolve(process.cwd(), 'decks', folderName);
+        await mkdir(slidesDirectory, { recursive: true });
+        setupFileWatcher(slidesDirectory);
+      }
+      // else: Claude will create the folder — we detect it after generation
+    }
+
+    // Only allow Claude models for generation
+    const selectedModel = typeof model === 'string' && CLAUDE_MODELS.includes(model.trim())
+      ? model.trim()
+      : CLAUDE_MODELS[0];
+
+    const runId = randomRunId();
+    activeGenerate = true;
+
+    generateRunStore.startRun({
+      runId,
+      slide: '__generate__',
+      prompt: (topic || '').trim(),
+      selectionsCount: 0,
+      model: selectedModel,
+    });
+
+    const resolvedDeckPath = slidesDirectory
+      ? toPosixPath(relative(process.cwd(), slidesDirectory) || slidesDirectory)
+      : '';
+    broadcastSSE('generateStarted', { runId, topic: (topic || '').trim(), deckPath: resolvedDeckPath });
+
+    res.json({ runId, topic: (topic || '').trim(), model: selectedModel, deckPath: resolvedDeckPath });
+
+    // Run Claude subprocess in background
+    (async () => {
+      try {
+        const slidesDir = resolvedDeckPath;
+
+        let fullPrompt;
+
+        if (fromOutline && slidesDirectory) {
+          // Generate from approved outline — skip outline creation
+          const outlinePath = join(slidesDirectory, 'slide-outline.md');
+          let outlineContent = '';
+          try {
+            outlineContent = await readFile(outlinePath, 'utf-8');
+          } catch { /* no outline file */ }
+
+          const promptLines = [
+            `작업 디렉토리: ${slidesDir}`,
+            '',
+            '아래 승인된 아웃라인 기반으로 HTML 슬라이드를 생성하세요.',
+            '',
+            '--- 아웃라인 ---',
+            outlineContent,
+            '--- 아웃라인 끝 ---',
+            '',
+            '다음 단계를 순서대로 수행하세요:',
+            '',
+            '1. 템플릿 기반으로 slide-01.html ~ slide-NN.html을 생성하세요.',
+            '   - 크기: 720pt x 405pt (body width/height)',
+            '   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")',
+            '   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용',
+            '   - slides-grab show-template <name> 으로 템플릿 확인 후 활용',
+            '   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다',
+            '',
+            '2. 승인 대기 없이 전체 슬라이드를 한번에 생성하세요.',
+            '',
+            `3. 완료 후: node scripts/build-viewer.js --slides-dir ${slidesDir}`,
+          ];
+          fullPrompt = promptLines.join('\n');
+        } else {
+          // Original flow — generate outline + slides together
+          const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim()
+            ? slideCountRange.trim()
+            : '8~12';
+
+          const hasDeckDir = !!slidesDir;
+          const promptLines = [
+            `주제: ${(topic || '').trim()}`,
+          ];
+          if (typeof requirements === 'string' && requirements.trim()) {
+            promptLines.push(`요구사항: ${requirements.trim()}`);
+          }
+          promptLines.push(`슬라이드 수: ${countLabel}장`);
+
+          if (hasDeckDir) {
+            promptLines.push(`작업 디렉토리: ${slidesDir}`);
+          }
+
+          promptLines.push(
+            '',
+            '다음 단계를 순서대로 수행하세요:',
+            '',
+          );
+
+          let stepNum = 1;
+
+          if (!hasDeckDir) {
+            promptLines.push(
+              `${stepNum}. 주제에서 핵심 키워드 2~3개를 뽑아 영어 소문자 kebab-case 폴더명을 결정하세요.`,
+              '   예: "인공지능 트렌드 2025" → decks/ai-trends-2025',
+              '   예: "스타트업 투자 전략" → decks/startup-investment-strategy',
+              '   mkdir -p decks/<name> 으로 폴더를 생성하세요.',
+            );
+            stepNum += 1;
+          }
+
+          const dirRef = hasDeckDir ? slidesDir : 'decks/<name>';
+          promptLines.push(
+            `${stepNum}. ${dirRef}/slide-outline.md 아웃라인을 생성하세요.`,
+          );
+          stepNum += 1;
+
+          promptLines.push(
+            `${stepNum}. 템플릿 기반으로 slide-01.html ~ slide-NN.html을 ${countLabel}장 생성하세요.`,
+            '   - 크기: 720pt x 405pt (body width/height)',
+            '   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")',
+            '   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용',
+            '   - slides-grab show-template <name> 으로 템플릿 확인 후 활용',
+            '   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다',
+          );
+          stepNum += 1;
+
+          promptLines.push(
+            `${stepNum}. 승인 대기 없이 전체 슬라이드를 한번에 생성하세요.`,
+          );
+          stepNum += 1;
+
+          promptLines.push(
+            `${stepNum}. 완료 후: node scripts/build-viewer.js --slides-dir ${dirRef}`,
+          );
+
+          fullPrompt = promptLines.join('\n');
+        }
+
+        const result = await spawnClaudeEdit({
+          prompt: fullPrompt,
+          imagePath: null,
+          model: selectedModel,
+          cwd: process.cwd(),
+          onLog: (stream, chunk) => {
+            generateRunStore.appendLog(runId, chunk);
+            broadcastSSE('generateLog', { runId, stream, chunk });
+          },
+        });
+
+        const success = result.code === 0;
+
+        // If slidesDirectory is still unset, detect the folder Claude created
+        if (!slidesDirectory && success) {
+          try {
+            const decksRoot = resolve(process.cwd(), 'decks');
+            const dirs = await readdir(decksRoot, { withFileTypes: true });
+            let bestDir = '';
+            let bestMtime = 0;
+            for (const d of dirs) {
+              if (!d.isDirectory()) continue;
+              const dirPath = join(decksRoot, d.name);
+              try {
+                const files = await listSlideFiles(dirPath);
+                if (files.length > 0) {
+                  const dirStat = await stat(dirPath);
+                  if (dirStat.mtimeMs > bestMtime) {
+                    bestMtime = dirStat.mtimeMs;
+                    bestDir = dirPath;
+                  }
+                }
+              } catch { /* skip */ }
+            }
+            if (bestDir) {
+              slidesDirectory = bestDir;
+              setupFileWatcher(slidesDirectory);
+            }
+          } catch { /* ignore */ }
+        }
+
+        let slideCount = 0;
+        try {
+          if (slidesDirectory) {
+            const files = await listSlideFiles(slidesDirectory);
+            slideCount = files.length;
+          }
+        } catch { /* ignore */ }
+
+        const resolvedPath = slidesDirectory
+          ? toPosixPath(relative(process.cwd(), slidesDirectory) || slidesDirectory)
+          : '';
+        const message = success
+          ? `${slideCount} slides generated.`
+          : `Generation failed (exit code ${result.code}).`;
+
+        generateRunStore.finishRun(runId, {
+          status: success ? 'success' : 'failed',
+          code: result.code,
+          message,
+        });
+
+        broadcastSSE('generateFinished', { runId, success, message, slideCount, deckPath: resolvedPath });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        generateRunStore.finishRun(runId, {
+          status: 'failed',
+          code: -1,
+          message,
+        });
+        broadcastSSE('generateFinished', { runId, success: false, message, slideCount: 0 });
+      } finally {
+        activeGenerate = false;
+      }
+    })();
   });
 
   // ── SVG / PNG Export ────────────────────────────────────────────────
@@ -1222,20 +1885,31 @@ async function startServer(opts) {
   });
 
   let debounceTimer = null;
-  const watcher = fsWatch(slidesDirectory, { persistent: false }, (_eventType, filename) => {
-    if (!filename || !SLIDE_FILE_PATTERN.test(filename)) return;
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => {
-      broadcastSSE('fileChanged', { file: filename });
-    }, 300);
-  });
+  let watcher = null;
+
+  function setupFileWatcher(dir) {
+    if (watcher) { try { watcher.close(); } catch { /* ignore */ } }
+    if (!dir) return;
+    watcher = fsWatch(dir, { persistent: false }, (_eventType, filename) => {
+      if (!filename || !SLIDE_FILE_PATTERN.test(filename)) return;
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        broadcastSSE('fileChanged', { file: filename });
+      }, 300);
+    });
+  }
+
+  if (slidesDirectory) {
+    setupFileWatcher(slidesDirectory);
+  }
 
   const server = app.listen(opts.port, () => {
     process.stdout.write('\n  slides-grab editor\n');
     process.stdout.write('  ─────────────────────────────────────\n');
+    process.stdout.write(`  Mode:        ${opts.createMode ? 'CREATE' : 'EDIT'}\n`);
     process.stdout.write(`  Local:       http://localhost:${opts.port}\n`);
     process.stdout.write(`  Models:      ${ALL_MODELS.join(', ')}\n`);
-    process.stdout.write(`  Slides:      ${slidesDirectory}\n`);
+    process.stdout.write(`  Slides:      ${slidesDirectory || '(will be created)'}\n`);
     process.stdout.write(`  Figma WS:    ws://localhost:${opts.port}/figma-ws\n`);
     process.stdout.write('  ─────────────────────────────────────\n\n');
   });
@@ -1272,7 +1946,7 @@ async function startServer(opts) {
 
   async function shutdown() {
     process.stdout.write('\n[editor] Shutting down...\n');
-    watcher.close();
+    if (watcher) watcher.close();
     for (const client of sseClients) {
       client.end();
     }

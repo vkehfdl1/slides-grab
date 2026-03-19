@@ -137,6 +137,22 @@ program
   });
 
 program
+  .command('create')
+  .description('Start editor in creation mode — generate a new presentation from scratch')
+  .option('--port <number>', 'Server port')
+  .option('--deck-name <name>', 'Deck folder name under decks/ (auto-generated if omitted)')
+  .action(async (options = {}) => {
+    const args = ['--create'];
+    if (options.deckName) {
+      args.push('--deck-name', options.deckName);
+    }
+    if (options.port) {
+      args.push('--port', String(options.port));
+    }
+    await runCommand('scripts/editor-server.js', args);
+  });
+
+program
   .command('split')
   .description('Split a multi-slide HTML file into individual slide-*.html files')
   .requiredOption('--input <path>', 'Source HTML file containing multiple slides')
