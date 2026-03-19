@@ -1724,29 +1724,27 @@
     /* ── Empty State Guide ── */
     .bbox-empty-guide {
       position: absolute;
-      inset: 0;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
       z-index: 7;
       display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(3, 7, 17, 0.5);
       pointer-events: none;
-      border-radius: 0;
     }
 
     .bbox-empty-guide.visible {
-      display: flex;
+      display: block;
     }
 
     .bbox-empty-guide-text {
-      padding: 12px 24px;
-      background: rgba(15, 23, 42, 0.9);
-      border: 1px dashed var(--border);
-      border-radius: var(--radius);
-      color: var(--text-1);
-      font-size: 13px;
-      font-family: var(--sans);
+      padding: 6px 14px;
+      background: rgba(15, 23, 42, 0.75);
+      border-radius: var(--radius-pill);
+      color: var(--text-2);
+      font-size: 11px;
+      font-family: var(--mono);
       pointer-events: none;
+      white-space: nowrap;
     }
 
     /* ── Keyboard Shortcuts Modal ── */
