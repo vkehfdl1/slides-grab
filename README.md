@@ -63,14 +63,33 @@ There are many AI tools that generate slide HTML. Almost none let you **visually
 All commands support `--slides-dir <path>` (default: `slides`).
 
 ```bash
-slides-grab edit              # Launch visual slide editor
-slides-grab build-viewer      # Build single-file viewer.html
-slides-grab validate          # Validate slide HTML (Playwright-based)
-slides-grab convert           # Export to PPTX
-slides-grab pdf               # Export to PDF
-slides-grab list-templates    # Show available slide templates
-slides-grab list-themes       # Show available color themes
+slides-grab create             # Start creation mode — generate a new deck from scratch
+slides-grab edit               # Launch visual slide editor
+slides-grab build-viewer       # Build single-file viewer.html
+slides-grab validate           # Validate slide HTML (Playwright-based)
+slides-grab convert            # Export to PPTX
+slides-grab pdf                # Export to PDF
+slides-grab list-templates     # Show available slide templates
+slides-grab list-themes        # Show available color themes
 ```
+
+### Create Mode (New)
+
+Generate a full presentation from a topic, without writing any HTML yourself.
+
+```bash
+npm run create                                        # Interactive — enter topic in browser
+npm run create -- --deck-name my-deck                 # Pre-set the deck folder name
+npm run create -- --deck-name my-deck --port 4000     # Use a custom port
+```
+
+**Workflow:**
+
+1. Run `npm run create` — the editor opens in **creation mode**
+2. Enter your **topic** and optional requirements, pick a slide count and model
+3. AI generates an **outline** — review it in editable cards
+4. **Revise** individual slides or the whole outline with feedback, or **Approve & Generate**
+5. Once generated, the editor switches to normal edit mode with your new slides
 
 ### Multi-Deck Workflow
 

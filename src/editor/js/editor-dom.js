@@ -69,3 +69,15 @@ export const figmaSendCurrent = $('#figma-send-current');
 export const figmaSendAll = $('#figma-send-all');
 export const figmaCancel = $('#figma-cancel');
 export const figmaToast = $('#figma-toast');
+
+export const creationPanel = $('#creation-panel');
+export const creationTopic = $('#creation-topic');
+export const creationRequirements = $('#creation-requirements');
+export const creationModel = $('#creation-model');
+export const creationGenerate = $('#creation-generate');
+export const creationDeckName = null; // removed from Phase 1; deck name is now in outline phase
+export const creationSlideCount = $('#creation-slide-count');
+export const creationLog = $('#creation-log');
+export const creationProgress = $('#creation-progress');
+export const editorSidebar = $('#editor-sidebar');
+export const btnNewDeck = $('#btn-new-deck');

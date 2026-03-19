@@ -1906,6 +1906,682 @@
     }
     .figma-btn-all:hover { background: #8b5cf6; }
     .figma-btn-all:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── Creation Mode ── */
+    .creation-panel {
+      flex: 1;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      background: var(--bg-0);
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .creation-panel.active {
+      display: flex;
+    }
+
+    .creation-content {
+      width: 100%;
+      max-width: 640px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin: auto 0;
+    }
+
+    .creation-header {
+      text-align: center;
+    }
+
+    .creation-header h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-0);
+      margin-bottom: 8px;
+    }
+
+    .creation-header p {
+      font-size: 14px;
+      color: var(--text-2);
+    }
+
+    .creation-input-area {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .creation-input-area textarea {
+      width: 100%;
+      background: var(--panel);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      font-family: var(--sans);
+      font-size: 14px;
+      resize: vertical;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .creation-input-area textarea:focus {
+      border-color: var(--accent);
+    }
+
+    #creation-topic {
+      min-height: 80px;
+    }
+
+    #creation-requirements {
+      min-height: 48px;
+      font-size: 13px;
+    }
+
+    .creation-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .creation-field {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .creation-field-short {
+      flex: 0 0 120px;
+    }
+
+    .creation-label {
+      font-size: 11px;
+      color: var(--text-2);
+      font-weight: 600;
+    }
+
+    .creation-field input,
+    .creation-field select {
+      height: 38px;
+      background: var(--panel);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-family: var(--sans);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .creation-field input:focus,
+    .creation-field select:focus {
+      border-color: var(--accent);
+    }
+
+    .creation-field input::placeholder {
+      color: var(--text-2);
+      font-size: 12px;
+    }
+
+    .creation-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+
+    .creation-actions select {
+      height: 38px;
+      background: var(--panel);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-family: var(--sans);
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    .creation-actions select:focus { border-color: var(--accent); }
+
+    #creation-generate {
+      height: 38px;
+      padding: 0 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition);
+      white-space: nowrap;
+    }
+
+    #creation-generate:hover { background: var(--accent-2); }
+    #creation-generate:disabled { opacity: 0.5; cursor: default; }
+
+    .creation-progress {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      overflow: hidden;
+    }
+
+    .creation-progress.inline {
+      margin-top: -8px;
+    }
+
+    .creation-log {
+      max-height: 200px;
+      overflow-y: auto;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.5;
+      color: var(--text-1);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .creation-view-result-btn {
+      width: 100%;
+      height: 48px;
+      margin-top: 16px;
+      background: var(--success);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .creation-view-result-btn:hover {
+      background: #16a34a;
+    }
+
+    .btn-new-deck {
+      background: var(--accent) !important;
+      color: #fff !important;
+      border-color: var(--accent) !important;
+      font-weight: 600;
+    }
+    .btn-new-deck:hover {
+      background: var(--accent-2) !important;
+    }
+
+    /* ── Outline Review ── */
+    .outline-review {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .outline-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .outline-back-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .outline-back-btn:hover {
+      border-color: var(--text-2);
+      color: var(--text-0);
+    }
+
+    .outline-meta {
+      flex: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .outline-meta h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+
+    .outline-count {
+      font-size: 13px;
+      color: var(--text-2);
+      font-weight: 500;
+    }
+
+    .outline-count::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--text-2);
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .outline-deck-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .outline-deck-row .creation-label {
+      white-space: nowrap;
+    }
+
+    .outline-deck-row input {
+      flex: 1;
+      height: 34px;
+      background: var(--panel);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0 10px;
+      font-family: var(--sans);
+      font-size: 13px;
+      outline: none;
+    }
+
+    .outline-deck-row input:focus {
+      border-color: var(--accent);
+    }
+
+    .outline-slides {
+      max-height: 50vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      transition: max-height 0.3s ease;
+    }
+
+    .outline-review.generating .outline-slides {
+      max-height: 25vh;
+    }
+
+    .outline-slides::-webkit-scrollbar { width: 4px; }
+    .outline-slides::-webkit-scrollbar-track { background: transparent; }
+    .outline-slides::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .outline-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 14px;
+      transition: background var(--transition);
+    }
+
+    .outline-card:hover {
+      background: rgba(255,255,255,0.025);
+    }
+
+    .outline-card + .outline-card {
+      border-top: 1px solid var(--border-soft);
+    }
+
+    .outline-card-num {
+      flex: 0 0 22px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-2);
+      text-align: right;
+      padding-top: 2px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .outline-card-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .outline-card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+
+    .outline-card-type {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 1px 6px;
+      border-radius: 3px;
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--accent-2);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .outline-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-0);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .outline-card-details {
+      margin-top: 4px;
+    }
+
+    .outline-detail-line {
+      font-size: 12px;
+      color: var(--text-1);
+      line-height: 1.5;
+      padding-left: 10px;
+      position: relative;
+    }
+
+    .outline-detail-line::before {
+      content: '\b7';
+      position: absolute;
+      left: 0;
+      color: var(--text-2);
+    }
+
+    .outline-feedback textarea {
+      width: 100%;
+      background: var(--panel);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      font-family: var(--sans);
+      font-size: 13px;
+      resize: vertical;
+      outline: none;
+      min-height: 44px;
+      transition: border-color var(--transition);
+    }
+
+    .outline-feedback textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .outline-feedback textarea::placeholder {
+      color: var(--text-2);
+    }
+
+    .outline-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .outline-btn {
+      height: 38px;
+      padding: 0 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+
+    .outline-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .outline-btn.working {
+      opacity: 1;
+      cursor: wait;
+      pointer-events: none;
+    }
+
+    .outline-btn-secondary.working {
+      background: var(--panel);
+      border-color: var(--accent);
+      color: var(--accent-2);
+    }
+
+    .outline-btn-primary.working {
+      background: var(--accent);
+    }
+
+    .outline-btn.done-success {
+      background: var(--success) !important;
+      border-color: var(--success) !important;
+      color: #fff !important;
+      opacity: 1;
+    }
+
+    .outline-btn.done-fail {
+      background: var(--danger) !important;
+      border-color: var(--danger) !important;
+      color: #fff !important;
+      opacity: 1;
+    }
+
+    /* ── Running Bunny Indicator ── */
+
+    @keyframes bunny-run {
+      0%   { left: -72px; transform: translateY(0) scaleX(1); }
+      5%   { transform: translateY(-18px) scaleX(1.02); }
+      10%  { transform: translateY(0) scaleX(0.98); }
+      15%  { transform: translateY(-14px) scaleX(1.02); }
+      20%  { transform: translateY(0) scaleX(0.98); }
+      25%  { transform: translateY(-18px) scaleX(1.02); }
+      30%  { transform: translateY(0) scaleX(0.98); }
+      35%  { transform: translateY(-14px) scaleX(1.02); }
+      40%  { transform: translateY(0) scaleX(0.98); }
+      45%  { transform: translateY(-18px) scaleX(1.02); }
+      50%  { transform: translateY(0) scaleX(0.98); }
+      55%  { transform: translateY(-14px) scaleX(1.02); }
+      60%  { transform: translateY(0) scaleX(0.98); }
+      65%  { transform: translateY(-18px) scaleX(1.02); }
+      70%  { transform: translateY(0) scaleX(0.98); }
+      75%  { transform: translateY(-14px) scaleX(1.02); }
+      80%  { transform: translateY(0) scaleX(0.98); }
+      85%  { transform: translateY(-18px) scaleX(1.02); }
+      90%  { transform: translateY(0) scaleX(0.98); }
+      95%  { transform: translateY(-14px) scaleX(1.02); }
+      100% { left: calc(100% + 4px); transform: translateY(0) scaleX(1); }
+    }
+
+    @keyframes bunny-dust {
+      0%   { opacity: 0.6; transform: scale(1); }
+      100% { opacity: 0; transform: scale(2.5) translateX(-8px); }
+    }
+
+    @keyframes track-shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .outline-run-track {
+      display: none;
+      position: relative;
+      height: 80px;
+      overflow: hidden;
+      border-radius: var(--radius);
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.04) 50%, transparent 100%),
+        linear-gradient(180deg, rgba(15,23,42,0.6) 0%, rgba(2,6,23,0.8) 100%);
+      background-size: 200% 100%, 100% 100%;
+      animation: track-shimmer 4s ease-in-out infinite;
+      border: 1px solid var(--border-soft);
+    }
+
+    .outline-review.generating .outline-run-track {
+      display: block;
+    }
+
+    .outline-bunny-runner {
+      position: absolute;
+      top: 50%;
+      margin-top: -32px;
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      animation: bunny-run 5s ease-in-out infinite;
+      filter: drop-shadow(0 0 12px rgba(59,130,246,0.35)) drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+      z-index: 2;
+    }
+
+    /* Ground line */
+    .outline-run-track::before {
+      content: '';
+      position: absolute;
+      bottom: 16px;
+      left: 24px;
+      right: 24px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border) 20%, var(--border) 80%, transparent);
+      opacity: 0.5;
+    }
+
+    /* Dust particles container */
+    .outline-run-track::after {
+      content: '· · ·';
+      position: absolute;
+      bottom: 18px;
+      left: 10%;
+      font-size: 14px;
+      color: var(--text-2);
+      letter-spacing: 8px;
+      opacity: 0;
+      animation: bunny-dust 1.2s ease-out infinite;
+      animation-delay: 0.3s;
+      z-index: 1;
+    }
+
+    .outline-run-status {
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: var(--text-2);
+      letter-spacing: 0.05em;
+      white-space: nowrap;
+    }
+
+    .outline-btn-secondary {
+      background: var(--panel);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+    }
+
+    .outline-btn-secondary:hover:not(:disabled) {
+      border-color: var(--text-2);
+    }
+
+    .outline-btn-primary {
+      background: var(--success);
+      color: #fff;
+    }
+
+    .outline-btn-primary:hover:not(:disabled) {
+      background: #16a34a;
+    }
+
+    .outline-card-badge {
+      margin-left: auto;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+      font-size: 10px;
+      font-weight: 600;
+      font-family: var(--sans);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 3px;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+
+    .outline-card-badge.edit:hover {
+      color: var(--accent-2);
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.08);
+    }
+
+    .outline-card-badge.save {
+      color: var(--success);
+      border-color: var(--success);
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .outline-card-badge.save:hover {
+      background: rgba(34, 197, 94, 0.18);
+    }
+
+    .outline-card.editing {
+      background: rgba(59, 130, 246, 0.03);
+      border-left: 2px solid var(--accent);
+      padding-left: 12px;
+    }
+
+    .outline-card-textarea {
+      width: 100%;
+      min-height: 80px;
+      margin-top: 8px;
+      background: var(--bg-1);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      resize: vertical;
+      outline: none;
+      tab-size: 2;
+      transition: border-color var(--transition);
+    }
+
+    .outline-card-textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .outline-card-title-input {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      border-bottom: 1px dashed var(--accent);
+      color: var(--text-0);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: var(--sans);
+      outline: none;
+      padding: 0 0 2px 0;
+    }
+
+    .outline-card-title-input:focus {
+      border-bottom-style: solid;
+    }
   </style>
 </head>
 <body>
@@ -1917,6 +2593,8 @@
         <button id="btn-next" title="Next slide (Right arrow)">Next &#9654;</button>
       </div>
       <div class="nav-spacer"></div>
+      <button class="nav-bar-btn btn-new-deck" id="btn-new-deck" title="New Presentation">+ New</button>
+      <button class="nav-bar-btn" id="btn-review-outline" title="Review Outline">Outline</button>
       <button class="nav-bar-btn" id="btn-pdf-export" title="PDF Export">PDF</button>
       <button class="nav-bar-btn" id="btn-svg-export" title="SVG/PNG Export">SVG</button>
       <button class="nav-bar-btn figma-btn" id="btn-figma-export" title="Send to Figma (plugin not connected)" disabled>
@@ -1928,6 +2606,63 @@
     </div>
 
     <div class="main-content">
+      <div class="creation-panel" id="creation-panel">
+        <div class="creation-content">
+          <div id="creation-phase-input">
+            <div class="creation-header">
+              <h2>New Presentation</h2>
+              <p>Describe your topic and AI will generate an outline first.</p>
+            </div>
+            <div class="creation-input-area">
+              <textarea id="creation-topic" placeholder="What is this presentation about?" rows="3"></textarea>
+              <textarea id="creation-requirements" placeholder="Additional requirements: style, language, constraints... (optional)" rows="2"></textarea>
+              <div class="creation-actions">
+                <select id="creation-slide-count">
+                  <option value="4~8">4 ~ 8</option>
+                  <option value="8~12" selected>8 ~ 12</option>
+                  <option value="12~16">12 ~ 16</option>
+                </select>
+                <select id="creation-model"></select>
+                <button id="creation-generate">Plan Outline</button>
+              </div>
+            </div>
+          </div>
+          <div id="creation-phase-outline" hidden>
+            <div class="outline-review">
+              <div class="outline-header">
+                <button class="outline-back-btn" id="outline-back">&#9664; Back</button>
+                <div class="outline-meta">
+                  <h2 id="outline-title">Outline Review</h2>
+                  <span class="outline-count" id="outline-count"></span>
+                </div>
+              </div>
+              <div class="outline-deck-row">
+                <label class="creation-label">Deck name</label>
+                <input id="outline-deck-name" type="text">
+              </div>
+              <div class="outline-slides" id="outline-slides"></div>
+              <div class="outline-run-track" id="outline-run-track">
+                <img src="/asset/buddy_logo.png" class="outline-bunny-runner" alt="">
+                <span class="outline-run-status">working on it...</span>
+              </div>
+              <div class="creation-progress inline" id="outline-progress" hidden>
+                <div class="creation-log" id="outline-log"></div>
+              </div>
+              <div class="outline-feedback">
+                <textarea id="outline-feedback" placeholder="Describe what you'd like to change..." rows="2"></textarea>
+              </div>
+              <div class="outline-actions">
+                <button id="outline-revise" class="outline-btn outline-btn-secondary">Revise</button>
+                <button id="outline-approve" class="outline-btn outline-btn-primary">Approve &amp; Generate</button>
+              </div>
+            </div>
+          </div>
+          <div class="creation-progress" id="creation-progress" hidden>
+            <div class="creation-log" id="creation-log"></div>
+          </div>
+        </div>
+      </div>
+
       <div class="slide-panel" id="slide-panel">
         <div class="slide-stage" id="slide-stage">
           <div class="slide-wrapper" id="slide-wrapper">

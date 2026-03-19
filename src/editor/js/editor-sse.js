@@ -12,6 +12,11 @@ import {
   onFigmaConnected, onFigmaDisconnected,
   onFigmaExportProgress, onFigmaExportFinished,
 } from './editor-figma-export.js';
+import {
+  isCreationMode, onGenerateStarted, onGenerateLog, onGenerateFinished,
+  refreshSlideList,
+} from './editor-create.js';
+import { onPlanStarted, onPlanLog, onPlanFinished } from './editor-outline.js';
 
 function upsertRun(run) {
   if (!run?.runId) return;
@@ -120,9 +125,61 @@ export function connectSSE() {
     }
   });
 
+  evtSource.addEventListener('planStarted', (event) => {
+    try {
+      onPlanStarted(JSON.parse(event.data));
+    } catch (error) {
+      console.error('planStarted parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('planLog', (event) => {
+    try {
+      onPlanLog(JSON.parse(event.data));
+    } catch (error) {
+      console.error('planLog parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('planFinished', (event) => {
+    try {
+      onPlanFinished(JSON.parse(event.data));
+    } catch (error) {
+      console.error('planFinished parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('generateStarted', (event) => {
+    try {
+      onGenerateStarted(JSON.parse(event.data));
+    } catch (error) {
+      console.error('generateStarted parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('generateLog', (event) => {
+    try {
+      onGenerateLog(JSON.parse(event.data));
+    } catch (error) {
+      console.error('generateLog parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('generateFinished', (event) => {
+    try {
+      onGenerateFinished(JSON.parse(event.data));
+    } catch (error) {
+      console.error('generateFinished parse error:', error);
+    }
+  });
+
   evtSource.addEventListener('fileChanged', (event) => {
     try {
       const { file } = JSON.parse(event.data);
+
+      // In creation mode while generating, do NOT auto-switch to edit mode
+      // (the user will click "생성 결과 보기" after generation finishes)
+
       if (file === currentSlideFile()) {
         const updatedAt = localFileUpdateBySlide.get(file);
         if (updatedAt && Date.now() - updatedAt < 2000) {

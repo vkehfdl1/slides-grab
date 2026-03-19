@@ -1,7 +1,13 @@
 // editor-state.js — State variables, constants, Maps/Sets
 
-export const SLIDE_W = 960;
-export const SLIDE_H = 540;
+// Default slide dimensions — updated dynamically per slide content
+export let SLIDE_W = 960;
+export let SLIDE_H = 540;
+
+export function setSlideSize(w, h) {
+  SLIDE_W = w;
+  SLIDE_H = h;
+}
 export const TOOL_MODE_DRAW = 'draw';
 export const TOOL_MODE_SELECT = 'select';
 export const POPOVER_TEXT = 'text';
@@ -29,4 +35,10 @@ export const state = {
   selectedModel: DEFAULT_MODELS[0],
   toolMode: TOOL_MODE_DRAW,
   hoveredObjectXPath: '',
+};
+
+export const creationState = {
+  active: false,
+  generating: false,
+  runId: null,
 };

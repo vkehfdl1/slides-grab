@@ -1,6 +1,6 @@
 // editor-init.js — Entry point: imports, event bindings, init()
 
-import { state, TOOL_MODE_DRAW, TOOL_MODE_SELECT } from './editor-state.js';
+import { state, TOOL_MODE_DRAW, TOOL_MODE_SELECT, setSlideSize } from './editor-state.js';
 import {
   btnPrev, btnNext, slideIframe, drawLayer, promptInput, modelSelect,
   btnSend, btnClearBboxes, slideCounter, btnPdfExport, btnSvgExport,
@@ -8,6 +8,7 @@ import {
   alignLeft, alignCenter, alignRight,
   popoverTextInput, popoverApplyText, popoverTextColorInput, popoverBgColorInput,
   popoverSizeInput, popoverApplySize, toolModeDrawBtn, toolModeSelectBtn,
+  btnNewDeck,
 } from './editor-dom.js';
 import {
   currentSlideFile, getSlideState, normalizeModelName, setStatus,
@@ -32,6 +33,8 @@ import { connectSSE, loadRunsInitial } from './editor-sse.js';
 import { openExportModal } from './editor-svg-export.js';
 import { openPdfExportModal } from './editor-pdf-export.js';
 import './editor-figma-export.js';
+import { showCreationMode, hideCreationMode, loadCreationModelOptions, checkCreateMode } from './editor-create.js';
+import { showOutlinePhase } from './editor-outline.js';
 
 // Late-binding: connect bbox changes to updateSendState
 onBboxChange(updateSendState);
@@ -52,6 +55,14 @@ btnPdfExport.addEventListener('click', openPdfExportModal);
 
 // SVG Export
 btnSvgExport.addEventListener('click', openExportModal);
+
+// New Deck — switch to creation mode
+if (btnNewDeck) {
+  btnNewDeck.addEventListener('click', async () => {
+    showCreationMode();
+    await loadCreationModelOptions();
+  });
+}
 
 // Clear bboxes
 btnClearBboxes.addEventListener('click', clearBboxesForCurrentSlide);
@@ -242,8 +253,35 @@ document.addEventListener('keydown', (event) => {
 // Resize
 window.addEventListener('resize', scaleSlide);
 
-// Iframe load
+// Iframe load — detect content size and adapt wrapper/iframe dimensions
 slideIframe.addEventListener('load', () => {
+  try {
+    const doc = slideIframe.contentDocument;
+    if (doc && doc.body) {
+      const body = doc.body;
+      const cs = doc.defaultView.getComputedStyle(body);
+      const w = parseFloat(cs.width);
+      const h = parseFloat(cs.height);
+      const wrapper = document.getElementById('slide-wrapper');
+      if (w > 0 && h > 0) {
+        setSlideSize(w, h);
+        wrapper.style.width = `${w}px`;
+        wrapper.style.height = `${h}px`;
+        slideIframe.style.width = `${w}px`;
+        slideIframe.style.height = `${h}px`;
+      } else {
+        // Reset to default
+        setSlideSize(960, 540);
+        wrapper.style.width = '960px';
+        wrapper.style.height = '540px';
+        slideIframe.style.width = '960px';
+        slideIframe.style.height = '540px';
+      }
+    }
+  } catch { /* cross-origin or no content */ }
+
+  scaleSlide();
+
   const slide = currentSlideFile();
   if (slide) {
     const ss = getSlideState(slide);
@@ -270,9 +308,25 @@ async function init() {
 
     state.slides = await res.json();
 
-    if (state.slides.length === 0) {
-      setStatus('No slides found.');
-      slideCounter.textContent = '0 / 0';
+    // Enter creation mode if: server is in create mode, or no slides exist
+    const isCreateMode = await checkCreateMode();
+    if (isCreateMode || state.slides.length === 0) {
+      showCreationMode();
+      await loadCreationModelOptions();
+      connectSSE();
+
+      // Auto-load outline if one exists in the deck
+      try {
+        const outlineRes = await fetch('/api/outline');
+        if (outlineRes.ok) {
+          const outline = await outlineRes.json();
+          showOutlinePhase(outline);
+          setStatus('Outline loaded. Review and provide feedback.');
+          return;
+        }
+      } catch { /* no outline */ }
+
+      setStatus('Enter a topic to generate slides.');
       return;
     }
 

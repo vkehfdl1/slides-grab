@@ -22,7 +22,11 @@ export function scaleSlide() {
   if (availW <= 0 || availH <= 0) return;
 
   const scale = Math.min(availW / SLIDE_W, availH / SLIDE_H, 1);
+  slideWrapper.style.transformOrigin = '0 0';
   slideWrapper.style.transform = `scale(${scale})`;
+  // Compensate layout size so flex centering uses the visual (scaled) size
+  slideWrapper.style.marginRight = `${-SLIDE_W * (1 - scale)}px`;
+  slideWrapper.style.marginBottom = `${-SLIDE_H * (1 - scale)}px`;
 }
 
 export function renderContextChips() {
