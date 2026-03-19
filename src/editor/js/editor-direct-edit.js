@@ -9,7 +9,9 @@ import { getSelectedObjectElement, renderObjectSelection, updateObjectEditorCont
 export function serializeSlideDocument(doc) {
   if (!doc?.documentElement) return '';
   const doctype = doc.doctype ? `<!DOCTYPE ${doc.doctype.name}>` : '<!DOCTYPE html>';
-  return `${doctype}\n${doc.documentElement.outerHTML}`;
+  const root = doc.documentElement.cloneNode(true);
+  root.querySelectorAll?.('[data-slides-grab-runtime]').forEach((node) => node.remove());
+  return `${doctype}\n${root.outerHTML}`;
 }
 
 async function persistDirectSlideHtml(slide, html, message) {

@@ -126,10 +126,10 @@ export function buildSlideRuntimeHtml(html, { baseHref, slideFile }) {
   const snippets = [];
 
   if (baseHref && !/<base\b/i.test(html)) {
-    snippets.push(`<base href="${baseHref}">`);
+    snippets.push(`<base href="${baseHref}" data-slides-grab-runtime="base">`);
   }
 
-  const script = `<script>
+  const script = `<script data-slides-grab-runtime="image-contract">
 (() => {
   const slideFile = ${JSON.stringify(slideFile)};
   const localAssetPrefix = ${JSON.stringify(LOCAL_ASSET_PREFIX)};

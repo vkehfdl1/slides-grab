@@ -1,12 +1,22 @@
 #!/usr/bin/env node
 
 import { readdir, writeFile } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import { basename, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import { PDFDocument } from 'pdf-lib';
+import sharp from 'sharp';
 
 import { ensureSlidesPassValidation } from './validate-slides.js';
+
+const require = createRequire(import.meta.url);
+const {
+  getResolutionChoices,
+  getResolutionSize,
+  normalizeResolutionPreset,
+} = require('../src/export-resolution.cjs');
+const { resolveWorkspaceResolution } = require('../src/slides-workspace.cjs');
 
 const DEFAULT_OUTPUT = 'slides.pdf';
 const DEFAULT_SLIDES_DIR = 'slides';
@@ -29,12 +39,14 @@ function printUsage() {
       `  --output <path>      Output PDF path (default: ${DEFAULT_OUTPUT})`,
       `  --slides-dir <path>  Slide directory (default: ${DEFAULT_SLIDES_DIR})`,
       `  --mode <mode>        PDF export mode: capture|print (default: ${DEFAULT_MODE})`,
+      `  --resolution <preset> Capture raster size preset: ${getResolutionChoices().join('|')}|4k (ignored in print mode)`,
       '  -h, --help           Show this help message',
       '',
       'Examples:',
       '  node scripts/html2pdf.js',
       '  node scripts/html2pdf.js --output dist/deck.pdf',
       '  node scripts/html2pdf.js --mode print --output dist/searchable.pdf',
+      '  node scripts/html2pdf.js --resolution 2160p --output dist/deck-4k.pdf',
     ].join('\n'),
   );
   process.stdout.write('\n');
@@ -76,6 +88,25 @@ function cssPixelsToPdfPoints(value) {
   return Math.round((normalizeDimension(value, 0) * PDF_POINTS_PER_INCH) / CSS_PIXELS_PER_INCH);
 }
 
+async function normalizeCaptureRasterSize(pngBytes, resolution = '') {
+  const targetSize = getResolutionSize(resolution);
+  if (!targetSize) {
+    return pngBytes;
+  }
+
+  const metadata = await sharp(pngBytes).metadata();
+  const currentWidth = normalizeDimension(metadata.width, targetSize.width);
+  const currentHeight = normalizeDimension(metadata.height, targetSize.height);
+  if (currentWidth === targetSize.width && currentHeight === targetSize.height) {
+    return pngBytes;
+  }
+
+  return sharp(pngBytes)
+    .resize(targetSize.width, targetSize.height, { fit: 'fill' })
+    .png()
+    .toBuffer();
+}
+
 function formatDiagnosticEntry(entry) {
   const prefix = entry.slideFile ? `${entry.slideFile}: ` : '';
   return `${prefix}${entry.message}`;
@@ -108,6 +139,7 @@ export function parseCliArgs(args) {
     output: DEFAULT_OUTPUT,
     slidesDir: DEFAULT_SLIDES_DIR,
     mode: DEFAULT_MODE,
+    resolution: '',
     help: false,
   };
 
@@ -152,6 +184,17 @@ export function parseCliArgs(args) {
       continue;
     }
 
+    if (arg === '--resolution') {
+      options.resolution = normalizeResolutionPreset(readOptionValue(args, i, '--resolution'));
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--resolution=')) {
+      options.resolution = normalizeResolutionPreset(arg.slice('--resolution='.length));
+      continue;
+    }
+
     throw new Error(`Unknown option: ${arg}`);
   }
 
@@ -165,6 +208,10 @@ export function parseCliArgs(args) {
   options.output = options.output.trim();
   options.slidesDir = options.slidesDir.trim();
   options.mode = normalizeMode(options.mode);
+  options.resolution = normalizeResolutionPreset(options.resolution);
+  if (options.mode === 'print') {
+    options.resolution = '';
+  }
 
   return options;
 }
@@ -181,6 +228,7 @@ export function buildPdfOptions(widthPx, heightPx) {
   return {
     width: `${normalizeDimension(widthPx, FALLBACK_SLIDE_SIZE.width)}px`,
     height: `${normalizeDimension(heightPx, FALLBACK_SLIDE_SIZE.height)}px`,
+    scale: 1,
     printBackground: true,
     pageRanges: '1',
     margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' },
@@ -188,19 +236,29 @@ export function buildPdfOptions(widthPx, heightPx) {
   };
 }
 
-export function buildPageOptions(mode = DEFAULT_MODE) {
+export function buildPageOptions(mode = DEFAULT_MODE, resolution = '') {
+  const normalizedMode = normalizeMode(mode);
+  const targetResolution = normalizedMode === 'capture' ? getResolutionSize(resolution) : null;
+
   return {
     viewport: {
       width: FALLBACK_SLIDE_SIZE.width,
       height: FALLBACK_SLIDE_SIZE.height,
     },
-    deviceScaleFactor: normalizeMode(mode) === 'capture' ? DEFAULT_CAPTURE_DEVICE_SCALE_FACTOR : 1,
+    deviceScaleFactor: normalizedMode === 'capture'
+      ? targetResolution
+        ? targetResolution.height / FALLBACK_SLIDE_SIZE.height
+        : DEFAULT_CAPTURE_DEVICE_SCALE_FACTOR
+      : 1,
   };
 }
 
 function chooseSlideFrame(metrics) {
   const viewportArea = Math.max(1, metrics.viewport.width * metrics.viewport.height);
   const bodyArea = Math.max(1, metrics.body.width * metrics.body.height);
+  const bodyAspectRatio =
+    metrics.body.height > 0 ? metrics.body.width / metrics.body.height : TARGET_ASPECT_RATIO;
+  const bodyAspectDelta = Math.abs(bodyAspectRatio - TARGET_ASPECT_RATIO);
   const bodyScrollArea = Math.max(1, metrics.body.scrollWidth * metrics.body.scrollHeight);
   const documentScrollArea = Math.max(1, metrics.document.scrollWidth * metrics.document.scrollHeight);
   const bodyHasOverflowingContent =
@@ -221,13 +279,30 @@ function chooseSlideFrame(metrics) {
     }))
     .sort((left, right) => right.area - left.area);
 
+  const bodyCandidate = candidates.find((candidate) => candidate.source === 'body');
+  if (
+    bodyCandidate &&
+    metrics.body.hasExplicitSize &&
+    !bodyHasOverflowingContent &&
+    bodyAspectDelta < 0.2 &&
+    bodyCandidate.coverage >= 0.45
+  ) {
+    return bodyCandidate;
+  }
+
   const preferredCandidate = candidates.find((candidate) => {
     if (candidate.source !== 'body-child') return false;
     if (candidate.coverage < 0.45) return false;
     return candidate.aspectDelta < 0.2;
   });
 
-  if (preferredCandidate && (bodyHasOverflowingContent || bodyArea > preferredCandidate.area * 1.15 || bodyScrollArea > preferredCandidate.area * 1.15 || documentScrollArea > preferredCandidate.area * 1.15)) {
+  if (
+    preferredCandidate &&
+    (bodyHasOverflowingContent ||
+      bodyAspectDelta > 0.2 ||
+      bodyScrollArea > bodyArea * 1.15 ||
+      documentScrollArea > bodyArea * 1.15)
+  ) {
     return preferredCandidate;
   }
 
@@ -329,6 +404,14 @@ export async function detectSlideFrame(page) {
         height: Number.parseFloat(bodyStyle.height) || bodyBox.height || 0,
         scrollWidth: body.scrollWidth || bodyBox.width || 0,
         scrollHeight: body.scrollHeight || bodyBox.height || 0,
+        hasExplicitSize: Boolean(
+          body.style.width ||
+            body.style.height ||
+            body.style.minWidth ||
+            body.style.minHeight ||
+            body.style.maxWidth ||
+            body.style.maxHeight
+        ),
       },
       candidates: directChildren,
     };
@@ -345,13 +428,12 @@ export async function detectSlideFrame(page) {
   };
 }
 
-export async function normalizeBodyToSlideFrame(page, slideFrame) {
-  return page.evaluate(({ width, height }) => {
+export async function normalizeBodyToSlideFrame(page, slideFrame, options = {}) {
+  return page.evaluate(({ width, height, resetPadding }) => {
     const body = document.body;
     const documentElement = document.documentElement;
 
     body.style.margin = '0';
-    body.style.padding = '0';
     body.style.width = `${width}px`;
     body.style.height = `${height}px`;
     body.style.minWidth = `${width}px`;
@@ -359,13 +441,20 @@ export async function normalizeBodyToSlideFrame(page, slideFrame) {
     body.style.overflow = 'hidden';
 
     documentElement.style.margin = '0';
-    documentElement.style.padding = '0';
     documentElement.style.width = `${width}px`;
     documentElement.style.height = `${height}px`;
     documentElement.style.minWidth = `${width}px`;
     documentElement.style.minHeight = `${height}px`;
     documentElement.style.overflow = 'hidden';
-  }, slideFrame);
+
+    if (resetPadding) {
+      body.style.padding = '0';
+      documentElement.style.padding = '0';
+    }
+  }, {
+    ...slideFrame,
+    resetPadding: options.resetPadding === true,
+  });
 }
 
 export async function isolateSlideFrame(page, slideFrame) {
@@ -470,13 +559,18 @@ export async function renderSlideToPdf(page, slideFile, slidesDir, options = {})
   const slidePath = join(slidesDir, slideFile);
   const slideUrl = pathToFileURL(slidePath).href;
   const mode = normalizeMode(options.mode ?? DEFAULT_MODE);
+  const captureResolution = mode === 'capture' ? normalizeResolutionPreset(options.resolution ?? '') : '';
 
   await page.goto(slideUrl, { waitUntil: 'load' });
   await waitForSlideRenderReady(page, options);
 
   const slideFrame = await detectSlideFrame(page);
   const normalizedSlideFrame = await isolateSlideFrame(page, slideFrame);
-  await normalizeBodyToSlideFrame(page, normalizedSlideFrame);
+  const shouldResetPadding =
+    slideFrame.source !== 'body' || slideFrame.x !== 0 || slideFrame.y !== 0;
+  await normalizeBodyToSlideFrame(page, normalizedSlideFrame, {
+    resetPadding: shouldResetPadding,
+  });
   await waitForSlideRenderReady(page, { ...options, runReadySignal: false });
 
   if (mode === 'capture') {
@@ -495,11 +589,12 @@ export async function renderSlideToPdf(page, slideFile, slidesDir, options = {})
         height: viewportSize.height,
       },
     });
+    const normalizedPngBytes = await normalizeCaptureRasterSize(pngBytes, captureResolution);
     return {
       mode,
       width: normalizedSlideFrame.width,
       height: normalizedSlideFrame.height,
-      pngBytes,
+      pngBytes: normalizedPngBytes,
     };
   }
 
@@ -553,6 +648,10 @@ async function main() {
   }
 
   const slidesDir = resolve(process.cwd(), options.slidesDir);
+  options.resolution = resolveWorkspaceResolution(slidesDir, options.resolution).resolution;
+  if (options.mode === 'print') {
+    options.resolution = '';
+  }
   await ensureSlidesPassValidation(slidesDir, { exportLabel: 'PDF export' });
   const slideFiles = await findSlideFiles(slidesDir);
   if (slideFiles.length === 0) {
@@ -560,7 +659,7 @@ async function main() {
   }
 
   const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage(buildPageOptions(options.mode));
+  const page = await browser.newPage(buildPageOptions(options.mode, options.resolution));
   const diagnostics = createSlideDiagnostics();
   diagnostics.attach(page);
   const renderedSlides = [];
@@ -569,7 +668,10 @@ async function main() {
     for (const slideFile of slideFiles) {
       diagnostics.beginSlide(slideFile);
       try {
-        const slideResult = await renderSlideToPdf(page, slideFile, slidesDir, { mode: options.mode });
+        const slideResult = await renderSlideToPdf(page, slideFile, slidesDir, {
+          mode: options.mode,
+          resolution: options.resolution,
+        });
         renderedSlides.push(slideResult);
       } catch (error) {
         throw decorateError(error, slideFile, diagnostics.getSlideDiagnostics(slideFile));

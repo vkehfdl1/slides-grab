@@ -66,11 +66,14 @@ On a fresh clone, only `--help`, `list-templates`, and `list-themes` work withou
 
 ```bash
 slides-grab edit              # Launch visual slide editor
+slides-grab edit --resolution 2160p  # Save a workspace resolution profile for this deck
 slides-grab build-viewer      # Build single-file viewer.html
 slides-grab validate          # Validate slide HTML (Playwright-based)
 slides-grab convert           # Export to experimental / unstable PPTX
+slides-grab convert --resolution 2160p  # Higher-resolution raster PPTX export
 slides-grab figma             # Export an experimental / unstable Figma Slides importable PPTX
 slides-grab pdf               # Export PDF in capture mode (default)
+slides-grab pdf --resolution 2160p  # Higher-resolution image-backed PDF export
 slides-grab pdf --mode print  # Export searchable/selectable text PDF
 slides-grab list-templates    # Show available slide templates
 slides-grab list-themes       # Show available color themes
@@ -88,6 +91,10 @@ Slides should store local image files in `<slides-dir>/assets/` and reference th
 Run `slides-grab validate --slides-dir <path>` before export to catch missing local assets and discouraged path forms.
 
 `slides-grab pdf` now defaults to `--mode capture`, which rasterizes each rendered slide into the PDF for better visual fidelity. Use `--mode print` when searchable/selectable browser text matters more than pixel-perfect parity.
+
+Deck workspaces can persist an export/display profile in `<slides-dir>/.slides-grab.json`. Running `slides-grab edit --resolution <preset>` stores that profile, and later `pdf`, `convert`, and `build-viewer` runs reuse it unless you pass another `--resolution` on the command line.
+
+For high-density displays or projector workflows, `slides-grab pdf --resolution <preset>` and `slides-grab convert --resolution <preset>` accept `720p`, `1080p`, `1440p`, `2160p`, or `4k` to raise raster export quality when needed.
 
 ### Multi-Deck Workflow
 

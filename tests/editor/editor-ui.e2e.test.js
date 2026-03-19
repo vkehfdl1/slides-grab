@@ -8,6 +8,7 @@ import { spawn } from 'node:child_process';
 import { chromium } from 'playwright';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const WORKSPACE_CONFIG_FILE = '.slides-grab.json';
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -276,6 +277,67 @@ test('keeps bbox prompt draft and model state per slide session', { concurrency:
   }
 });
 
+test('updates workspace resolution immediately from topbar dropdown', { concurrency: false }, async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-resolution-e2e-'));
+  await writeSlides(workspace);
+
+  const port = 3656;
+  const serverOutput = { value: '' };
+  const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
+  const server = spawn(process.execPath, [serverScriptPath, '--port', String(port), '--resolution', '1080p'], {
+    cwd: workspace,
+    env: {
+      ...process.env,
+      PPT_AGENT_PACKAGE_ROOT: REPO_ROOT,
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+  server.stdout.on('data', (chunk) => {
+    serverOutput.value += chunk.toString();
+  });
+  server.stderr.on('data', (chunk) => {
+    serverOutput.value += chunk.toString();
+  });
+
+  let browser;
+  try {
+    await waitForServerReady(port, server, serverOutput);
+
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
+    await page.goto(`http://localhost:${port}/`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#resolution-select');
+
+    const initialResolution = await page.$eval('#resolution-select', (el) => el.value);
+    assert.equal(initialResolution, '1080p');
+
+    await page.selectOption('#resolution-select', '2160p');
+    await page.waitForFunction(() => {
+      const status = document.querySelector('#status-message');
+      return status && /workspace resolution updated:\s*2160p/i.test(status.textContent || '');
+    });
+
+    const workspaceResponse = await fetch(`http://127.0.0.1:${port}/api/workspace`);
+    assert.equal(workspaceResponse.ok, true);
+    assert.deepEqual(await workspaceResponse.json(), {
+      resolution: '2160p',
+      resolutionSource: 'workspace',
+      size: { width: 3840, height: 2160 },
+    });
+
+    const savedWorkspaceConfig = JSON.parse(await readFile(join(workspace, 'slides', WORKSPACE_CONFIG_FILE), 'utf8'));
+    assert.deepEqual(savedWorkspaceConfig, { resolution: '2160p' });
+  } finally {
+    if (browser) {
+      await browser.close().catch(() => {});
+    }
+    server.kill('SIGTERM');
+    await sleep(400);
+    await rm(workspace, { recursive: true, force: true }).catch(() => {});
+  }
+});
+
 test('supports direct object selection through the persistent inspector and switching back to bbox mode', { concurrency: false }, async () => {
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-direct-edit-e2e-'));
   await writeSlides(workspace);
@@ -433,6 +495,8 @@ test('supports direct object selection through the persistent inspector and swit
     assert.match(savedHtml, /font-weight:\s*(700|bold)/i);
     assert.match(savedHtml, /(rgb\(17,\s*34,\s*51\)|#112233)/i);
     assert.match(savedHtml, /(rgb\(254,\s*226,\s*226\)|#fee2e2)/i);
+    assert.doesNotMatch(savedHtml, /data-slides-grab-runtime/i);
+    assert.doesNotMatch(savedHtml, /<base\b/i);
 
     await page.click('#tool-mode-draw');
     await page.mouse.move(drawLayer.x + drawLayer.width * 0.08, drawLayer.y + drawLayer.height * 0.10);

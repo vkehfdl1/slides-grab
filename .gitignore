@@ -59,4 +59,5 @@ screenshots/
 # Internal state
 .ralph/
 .omx/
+.omc/
 .githubclaw/

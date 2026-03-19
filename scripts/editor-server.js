@@ -5,6 +5,7 @@ import { watch as fsWatch } from 'node:fs';
 import { basename, dirname, join, resolve, relative, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 
 import {
@@ -23,6 +24,11 @@ import { buildSlideRuntimeHtml } from '../src/image-contract.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const PACKAGE_ROOT = process.env.PPT_AGENT_PACKAGE_ROOT || resolve(__dirname, '..');
+const require = createRequire(import.meta.url);
+const {
+  getSlidesWorkspaceInfo,
+  writeSlidesWorkspaceConfig,
+} = require('../src/slides-workspace.cjs');
 
 let express;
 let screenshotMod;
@@ -51,6 +57,7 @@ function printUsage() {
   process.stdout.write(`Options:\n`);
   process.stdout.write(`  --port <number>           Server port (default: ${DEFAULT_PORT})\n`);
   process.stdout.write(`  --slides-dir <path>       Slide directory (default: ${DEFAULT_SLIDES_DIR})\n`);
+  process.stdout.write(`  --resolution <preset>     Save workspace resolution profile (720p, 1080p, 1440p, 2160p, 4k)\n`);
   process.stdout.write(`  Model is selected in editor UI dropdown.\n`);
   process.stdout.write(`  -h, --help                Show this help message\n`);
 }
@@ -59,6 +66,7 @@ function parseArgs(argv) {
   const opts = {
     port: DEFAULT_PORT,
     slidesDir: DEFAULT_SLIDES_DIR,
+    resolution: '',
     help: false,
   };
 
@@ -91,6 +99,21 @@ function parseArgs(argv) {
       continue;
     }
 
+    if (arg === '--resolution') {
+      const rawValue = argv[i + 1];
+      if (!rawValue || rawValue.startsWith('-')) {
+        throw new Error('Missing value for `--resolution`.');
+      }
+      opts.resolution = rawValue;
+      i += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--resolution=')) {
+      opts.resolution = arg.slice('--resolution='.length);
+      continue;
+    }
+
     if (arg === '--codex-model') {
       // Backward compatibility: ignore legacy CLI option.
       i += 1;
@@ -109,6 +132,10 @@ function parseArgs(argv) {
   }
 
   opts.slidesDir = opts.slidesDir.trim();
+  if (typeof opts.resolution !== 'string') {
+    throw new Error('`--resolution` must be a string.');
+  }
+  opts.resolution = opts.resolution.trim();
 
   return opts;
 }
@@ -426,6 +453,18 @@ async function startServer(opts) {
   await loadDeps();
   const slidesDirectory = resolve(process.cwd(), opts.slidesDir);
   await mkdir(slidesDirectory, { recursive: true });
+  if (opts.resolution) {
+    writeSlidesWorkspaceConfig(slidesDirectory, { resolution: opts.resolution });
+  }
+  let workspace = getSlidesWorkspaceInfo(slidesDirectory, opts.resolution);
+
+  function workspacePayload() {
+    return {
+      resolution: workspace.resolution,
+      resolutionSource: workspace.resolutionSource,
+      size: workspace.size,
+    };
+  }
 
   const runStore = createRunStore();
 
@@ -449,6 +488,29 @@ async function startServer(opts) {
       res.type('html').send(html);
     } catch (err) {
       res.status(500).send(`Failed to load editor: ${err.message}`);
+    }
+  });
+
+  app.get('/api/workspace', (_req, res) => {
+    res.json(workspacePayload());
+  });
+
+  app.post('/api/workspace', (req, res) => {
+    const hasResolution = req.body && Object.prototype.hasOwnProperty.call(req.body, 'resolution');
+    if (!hasResolution || typeof req.body.resolution !== 'string') {
+      return res.status(400).json({ error: 'Missing or invalid `resolution` string.' });
+    }
+
+    try {
+      writeSlidesWorkspaceConfig(slidesDirectory, { resolution: req.body.resolution });
+      workspace = getSlidesWorkspaceInfo(slidesDirectory);
+      return res.json(workspacePayload());
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (/unknown resolution|must be one of/i.test(message)) {
+        return res.status(400).json({ error: message });
+      }
+      return res.status(500).json({ error: message });
     }
   });
 
@@ -745,6 +807,7 @@ async function startServer(opts) {
     process.stdout.write(`  Local:       http://localhost:${opts.port}\n`);
     process.stdout.write(`  Models:      ${ALL_MODELS.join(', ')}\n`);
     process.stdout.write(`  Slides:      ${slidesDirectory}\n`);
+    process.stdout.write(`  Resolution:  ${workspace.resolution || 'default'}\n`);
     process.stdout.write('  ─────────────────────────────────────\n\n');
   });
 

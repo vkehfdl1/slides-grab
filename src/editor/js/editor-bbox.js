@@ -21,7 +21,7 @@ export function scaleSlide() {
   const availH = slideStage.clientHeight - padY;
   if (availW <= 0 || availH <= 0) return;
 
-  const scale = Math.min(availW / SLIDE_W, availH / SLIDE_H, 1);
+  const scale = Math.min(availW / SLIDE_W, availH / SLIDE_H);
   slideWrapper.style.transform = `scale(${scale})`;
 }
 

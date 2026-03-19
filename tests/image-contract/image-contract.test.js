@@ -17,6 +17,13 @@ import {
   classifyImageSource,
   extractCssUrls,
 } from '../../src/image-contract.js';
+import workspaceModule from '../../src/slides-workspace.cjs';
+
+const {
+  WORKSPACE_CONFIG_FILE,
+  getSlidesWorkspaceInfo,
+  writeSlidesWorkspaceConfig,
+} = workspaceModule;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = path.join(__dirname, '..', 'fixtures', 'image-contract');
@@ -110,7 +117,7 @@ test('buildSlideRuntimeHtml injects base href and runtime diagnostics', () => {
     slideFile: 'slide-01.html',
   });
 
-  assert.match(html, /<base href="file:\/\/\/tmp\/deck\/">/);
+  assert.match(html, /<base href="file:\/\/\/tmp\/deck\/"[^>]*data-slides-grab-runtime="base"/);
   assert.match(html, /\[slides-grab:image\]/);
   assert.match(html, /missing local asset/);
 });
@@ -123,6 +130,28 @@ test('build-viewer injects slide runtime html for local assets', () => {
   assert.match(slides[0].html, /<base href="\.\//);
   assert.match(viewerHtml, /srcdoc="/);
   assert.match(viewerHtml, /\[slides-grab:image\]/);
+});
+
+test('slides workspace helpers persist resolution presets and compute effective size', async () => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'slides-grab-workspace-config-'));
+
+  try {
+    const written = writeSlidesWorkspaceConfig(workspace, { resolution: '4k' });
+    assert.equal(path.basename(written.configPath), WORKSPACE_CONFIG_FILE);
+    assert.deepEqual(written.config, { resolution: '2160p' });
+
+    const workspaceInfo = getSlidesWorkspaceInfo(workspace);
+    assert.equal(workspaceInfo.resolution, '2160p');
+    assert.equal(workspaceInfo.resolutionSource, 'workspace');
+    assert.deepEqual(workspaceInfo.size, { width: 3840, height: 2160 });
+
+    const overrideInfo = getSlidesWorkspaceInfo(workspace, '1440p');
+    assert.equal(overrideInfo.resolution, '1440p');
+    assert.equal(overrideInfo.resolutionSource, 'cli');
+    assert.deepEqual(overrideInfo.size, { width: 2560, height: 1440 });
+  } finally {
+    await rm(workspace, { recursive: true, force: true }).catch(() => {});
+  }
 });
 
 test('validator CLI args still parse slides-dir', () => {
@@ -230,7 +259,7 @@ test('editor server serves canonical local assets under /slides/assets', { concu
   await copyFile(path.join(sourceDir, 'assets', 'example.svg'), path.join(slidesDir, 'assets', 'example.svg'));
 
   const output = { value: '' };
-  const server = spawn(process.execPath, [path.join(REPO_ROOT, 'scripts', 'editor-server.js'), '--port', String(port)], {
+  const server = spawn(process.execPath, [path.join(REPO_ROOT, 'scripts', 'editor-server.js'), '--port', String(port), '--resolution', '2160p'], {
     cwd: workspace,
     env: {
       ...process.env,
@@ -252,6 +281,26 @@ test('editor server serves canonical local assets under /slides/assets', { concu
 
     const assetResponse = await fetch(`http://127.0.0.1:${port}/slides/assets/example.svg`);
     assert.equal(assetResponse.ok, true);
+    const workspaceResponse = await fetch(`http://127.0.0.1:${port}/api/workspace`);
+    assert.equal(workspaceResponse.ok, true);
+    assert.deepEqual(await workspaceResponse.json(), {
+      resolution: '2160p',
+      resolutionSource: 'cli',
+      size: { width: 3840, height: 2160 },
+    });
+    const updateWorkspaceResponse = await fetch(`http://127.0.0.1:${port}/api/workspace`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ resolution: '1440p' }),
+    });
+    assert.equal(updateWorkspaceResponse.ok, true);
+    assert.deepEqual(await updateWorkspaceResponse.json(), {
+      resolution: '1440p',
+      resolutionSource: 'workspace',
+      size: { width: 2560, height: 1440 },
+    });
 
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage();
@@ -261,6 +310,8 @@ test('editor server serves canonical local assets under /slides/assets', { concu
 
     const servedHtml = await readFile(path.join(slidesDir, 'slide-01.html'), 'utf8');
     assert.doesNotMatch(servedHtml, /<base href="\/slides\/">/);
+    const savedWorkspaceConfig = JSON.parse(await readFile(path.join(slidesDir, WORKSPACE_CONFIG_FILE), 'utf8'));
+    assert.deepEqual(savedWorkspaceConfig, { resolution: '1440p' });
   } finally {
     if (browser) {
       await browser.close().catch(() => {});

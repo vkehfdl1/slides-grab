@@ -51,12 +51,18 @@ function runPdfExport(args, cwd) {
 
 function canExtractPdfText() {
   const probe = spawnSync('pdftotext', ['-v'], { encoding: 'utf8' });
-  return probe.status === 0 || probe.stderr.includes('pdftotext');
+  if (probe.error?.code === 'ENOENT') {
+    return false;
+  }
+  return probe.status === 0 || probe.status === 1;
 }
 
 function canRasterizePdfPages() {
   const probe = spawnSync('pdftoppm', ['-v'], { encoding: 'utf8' });
-  return probe.status === 0 || probe.stderr.includes('pdftoppm');
+  if (probe.error?.code === 'ENOENT') {
+    return false;
+  }
+  return probe.status === 0 || probe.status === 1;
 }
 
 function extractPdfText(pdfPath) {
