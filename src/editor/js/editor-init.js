@@ -9,6 +9,9 @@ import {
   popoverTextInput, popoverApplyText, popoverTextColorInput, popoverBgColorInput,
   popoverSizeInput, popoverApplySize, toolModeDrawBtn, toolModeSelectBtn,
   btnNewDeck,
+  slideStrip, btnExportToggle, exportDropdown,
+  slideSkeleton, bboxEmptyGuide, shortcutsModal, shortcutsClose, btnShortcuts,
+  sidebarToggle, editorSidebar, btnSendLabel,
 } from './editor-dom.js';
 import {
   currentSlideFile, getSlideState, normalizeModelName, setStatus,
@@ -35,6 +38,7 @@ import { openPdfExportModal } from './editor-pdf-export.js';
 import './editor-figma-export.js';
 import { showCreationMode, hideCreationMode, loadCreationModelOptions, checkCreateMode } from './editor-create.js';
 import { showOutlinePhase } from './editor-outline.js';
+import { renderThumbnailStrip, updateActiveThumbnail } from './editor-thumbnails.js';
 
 // Late-binding: connect bbox changes to updateSendState
 onBboxChange(updateSendState);
@@ -235,11 +239,23 @@ document.addEventListener('keydown', (event) => {
   }
 
   if (event.key === 'Escape') {
+    // Close shortcuts modal if open
+    if (shortcutsModal && !shortcutsModal.hidden) {
+      shortcutsModal.hidden = true;
+      return;
+    }
     if (document.activeElement) document.activeElement.blur();
     return;
   }
 
   if (inPromptField) return;
+
+  // ? key for shortcuts
+  if (event.key === '?' && !event.ctrlKey && !event.metaKey) {
+    event.preventDefault();
+    toggleShortcutsModal();
+    return;
+  }
 
   if (event.key === 'ArrowLeft') {
     event.preventDefault();
@@ -252,6 +268,82 @@ document.addEventListener('keydown', (event) => {
 
 // Resize
 window.addEventListener('resize', scaleSlide);
+
+// Thumbnail strip click
+if (slideStrip) {
+  slideStrip.addEventListener('click', (event) => {
+    const thumb = event.target.closest('.slide-thumb');
+    if (!thumb) return;
+    const idx = parseInt(thumb.dataset.index, 10);
+    if (!isNaN(idx)) void goToSlide(idx);
+  });
+}
+
+// Export dropdown toggle
+if (btnExportToggle && exportDropdown) {
+  btnExportToggle.addEventListener('click', (event) => {
+    event.stopPropagation();
+    const isOpen = exportDropdown.classList.toggle('open');
+    btnExportToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+  document.addEventListener('click', () => {
+    exportDropdown.classList.remove('open');
+    btnExportToggle.setAttribute('aria-expanded', 'false');
+  });
+}
+
+// Keyboard shortcuts modal
+function toggleShortcutsModal() {
+  if (!shortcutsModal) return;
+  const isHidden = shortcutsModal.hidden;
+  shortcutsModal.hidden = !isHidden;
+}
+if (btnShortcuts) btnShortcuts.addEventListener('click', toggleShortcutsModal);
+if (shortcutsClose) shortcutsClose.addEventListener('click', () => { if (shortcutsModal) shortcutsModal.hidden = true; });
+if (shortcutsModal) {
+  shortcutsModal.addEventListener('click', (event) => {
+    if (event.target === shortcutsModal) shortcutsModal.hidden = true;
+  });
+}
+
+// Sidebar toggle
+if (sidebarToggle && editorSidebar) {
+  const savedState = localStorage.getItem('sidebar-collapsed');
+  if (savedState === 'true') editorSidebar.classList.add('collapsed');
+
+  sidebarToggle.addEventListener('click', () => {
+    const isCollapsed = editorSidebar.classList.toggle('collapsed');
+    sidebarToggle.innerHTML = isCollapsed ? '&#9656;' : '&#9666;';
+    localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
+    // Recalculate slide scale after sidebar resize
+    setTimeout(scaleSlide, 200);
+  });
+}
+
+// Prompt textarea auto-grow
+if (promptInput) {
+  const sidebarTextarea = document.querySelector('.sidebar-textarea');
+  if (sidebarTextarea) {
+    sidebarTextarea.addEventListener('input', () => {
+      sidebarTextarea.style.height = 'auto';
+      sidebarTextarea.style.height = Math.min(sidebarTextarea.scrollHeight, 200) + 'px';
+    });
+  }
+}
+
+// Run button dynamic label
+function updateRunButtonLabel() {
+  if (!btnSendLabel) return;
+  const model = normalizeModelName(modelSelect?.value || '');
+  if (model.startsWith('claude-')) {
+    btnSendLabel.textContent = 'Run Claude';
+  } else if (model.startsWith('gpt-')) {
+    btnSendLabel.textContent = 'Run Codex';
+  } else {
+    btnSendLabel.textContent = 'Run';
+  }
+}
+modelSelect?.addEventListener('change', updateRunButtonLabel);
 
 // Iframe load — detect content size and adapt wrapper/iframe dimensions
 slideIframe.addEventListener('load', () => {
@@ -281,6 +373,9 @@ slideIframe.addEventListener('load', () => {
   } catch { /* cross-origin or no content */ }
 
   scaleSlide();
+
+  // Hide loading skeleton
+  if (slideSkeleton) slideSkeleton.classList.remove('visible');
 
   const slide = currentSlideFile();
   if (slide) {
@@ -332,10 +427,12 @@ async function init() {
 
     await loadModelOptions();
     updateToolModeUI();
+    renderThumbnailStrip();
     await goToSlide(0);
     scaleSlide();
     await loadRunsInitial();
     connectSSE();
+    updateRunButtonLabel();
 
     setStatus(`Ready. Model: ${state.selectedModel}. Draw red pending bboxes, run Codex, then review green bboxes.`);
   } catch (error) {

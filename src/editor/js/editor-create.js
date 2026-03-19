@@ -5,13 +5,14 @@ import {
   creationPanel, creationTopic, creationRequirements, creationModel,
   creationGenerate, creationLog, creationProgress,
   creationDeckName, creationSlideCount,
-  slidePanel, editorSidebar, slideCounter, btnNewDeck,
+  slidePanel, editorSidebar, slideCounter, btnNewDeck, slideStrip,
 } from './editor-dom.js';
 import { setStatus, loadModelOptions } from './editor-utils.js';
 import { goToSlide } from './editor-navigation.js';
 import { updateToolModeUI } from './editor-select.js';
 import { scaleSlide } from './editor-bbox.js';
 import { resetOutlineIndicators } from './editor-outline.js';
+import { renderThumbnailStrip } from './editor-thumbnails.js';
 
 export function showCreationMode() {
   creationState.active = true;
@@ -19,6 +20,7 @@ export function showCreationMode() {
   if (slidePanel) slidePanel.style.display = 'none';
   if (editorSidebar) editorSidebar.style.display = 'none';
   if (btnNewDeck) btnNewDeck.style.display = 'none';
+  if (slideStrip) slideStrip.style.display = 'none';
   slideCounter.textContent = '0 / 0';
 
   // Reset to input phase
@@ -45,6 +47,7 @@ export function hideCreationMode() {
   if (slidePanel) slidePanel.style.display = '';
   if (editorSidebar) editorSidebar.style.display = '';
   if (btnNewDeck) btnNewDeck.style.display = '';
+  if (slideStrip) slideStrip.style.display = '';
 }
 
 export function isCreationMode() {
@@ -229,6 +232,7 @@ export async function refreshSlideList() {
       hideCreationMode();
       await loadModelOptions();
       updateToolModeUI();
+      renderThumbnailStrip();
       await goToSlide(0);
       scaleSlide();
       setStatus(`${state.slides.length} slides loaded. Switched to edit mode.`);
@@ -251,4 +255,20 @@ if (creationTopic) {
       submitGeneration();
     }
   });
+
+  // Cycling placeholder examples
+  const placeholders = [
+    'What is this presentation about?',
+    'Quarterly sales review for Q1 2026...',
+    'Technical architecture overview of our microservices...',
+    'Product launch strategy for mobile app...',
+    'Team onboarding guide for new engineers...',
+    'Annual company retrospective and goals...',
+  ];
+  let placeholderIdx = 0;
+  setInterval(() => {
+    if (creationTopic.value || document.activeElement === creationTopic) return;
+    placeholderIdx = (placeholderIdx + 1) % placeholders.length;
+    creationTopic.placeholder = placeholders[placeholderIdx];
+  }, 3000);
 }

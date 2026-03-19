@@ -96,8 +96,8 @@ test('supports multi-bbox selection and delete in the persistent inspector bbox 
     assert.equal(await page.locator('#editor-sidebar').count(), 1, 'persistent editor sidebar should be present');
     assert.equal(await page.locator('#editor-sidebar').isVisible(), true, 'persistent editor sidebar should be visible');
     assert.equal(await page.locator('#bbox-toolbar').isVisible(), true, 'bbox toolbar should be visible in draw mode');
-    const sendUsesNeutralStyle = await page.$eval('#btn-send', (el) => !el.classList.contains('sidebar-btn-primary'));
-    assert.equal(sendUsesNeutralStyle, true, 'send button should no longer use accent-primary styling');
+    const sendUsesPrimaryStyle = await page.$eval('#btn-send', (el) => el.classList.contains('sidebar-btn-primary'));
+    assert.equal(sendUsesPrimaryStyle, true, 'send button should use primary styling for clear visual hierarchy');
     const promptTag = await page.$eval('#prompt-input', (el) => el.tagName);
     assert.equal(promptTag, 'TEXTAREA', 'bbox prompt should stay a textarea in the persistent inspector');
     const bodyFont = await page.evaluate(() => getComputedStyle(document.body).fontFamily);

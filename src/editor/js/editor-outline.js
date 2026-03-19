@@ -173,6 +173,7 @@ function renderOutlineCards(slides) {
     const card = document.createElement('div');
     card.className = 'outline-card' + (i === editingIndex ? ' editing' : '');
     card.dataset.index = i;
+    card.dataset.type = (slide.type || 'content').toLowerCase();
 
     const isEditing = i === editingIndex;
     const cleanTitle = (slide.title || '').replace(/<[^>]*>/g, '').replace(/\*\*(.*?)\*\*/g, '$1');

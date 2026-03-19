@@ -3,7 +3,7 @@
 import { state, SLIDE_W, SLIDE_H, TOOL_MODE_DRAW } from './editor-state.js';
 import {
   slideIframe, slideStage, slideWrapper, bboxLayer, drawLayer, drawBox,
-  bboxCountEl, contextChipList, sessionFileChip,
+  bboxCountEl, contextChipList, sessionFileChip, bboxEmptyGuide,
 } from './editor-dom.js';
 import {
   currentSlideFile, getSlideState, normalizeBoxStatus, escapeHtml,
@@ -91,6 +91,13 @@ export function renderBboxes() {
   const reviewCount = ss.boxes.length - pendingCount;
   bboxCountEl.textContent = `${pendingCount} pending \u00b7 ${reviewCount} review`;
   renderContextChips();
+
+  // Show/hide empty state guide
+  if (bboxEmptyGuide) {
+    const showGuide = ss.boxes.length === 0 && state.toolMode === TOOL_MODE_DRAW;
+    bboxEmptyGuide.classList.toggle('visible', showGuide);
+  }
+
   _onBboxChange();
 }
 

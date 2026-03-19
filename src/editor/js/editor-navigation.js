@@ -3,7 +3,7 @@
 import { state } from './editor-state.js';
 import {
   slideIframe, slideCounter, btnPrev, btnNext, sessionFileChip,
-  promptInput, modelSelect,
+  promptInput, modelSelect, slideSkeleton,
 } from './editor-dom.js';
 import { currentSlideFile, getSlideState, normalizeModelName, setStatus } from './editor-utils.js';
 import { renderChatMessages } from './editor-chat.js';
@@ -11,6 +11,7 @@ import { renderBboxes, scaleSlide } from './editor-bbox.js';
 import { renderObjectSelection, updateObjectEditorControls } from './editor-select.js';
 import { flushDirectSaveForSlide } from './editor-direct-edit.js';
 import { updateSendState } from './editor-send.js';
+import { updateActiveThumbnail } from './editor-thumbnails.js';
 
 export function persistCurrentSlideDraft() {
   const slide = currentSlideFile();
@@ -31,6 +32,10 @@ export async function goToSlide(index) {
 
   state.currentIndex = index;
   const slide = currentSlideFile();
+
+  // Show loading skeleton
+  if (slideSkeleton) slideSkeleton.classList.add('visible');
+
   slideIframe.src = `/slides/${slide}`;
   if (sessionFileChip) sessionFileChip.textContent = slide;
   slideCounter.textContent = `${state.currentIndex + 1} / ${state.slides.length}`;
@@ -50,5 +55,6 @@ export async function goToSlide(index) {
   renderObjectSelection();
   updateObjectEditorControls();
   updateSendState();
+  updateActiveThumbnail(index);
   setStatus(`Loaded ${slide}`);
 }

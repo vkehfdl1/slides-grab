@@ -81,3 +81,23 @@ export const creationLog = $('#creation-log');
 export const creationProgress = $('#creation-progress');
 export const editorSidebar = $('#editor-sidebar');
 export const btnNewDeck = $('#btn-new-deck');
+
+// Phase 2+: Thumbnail strip
+export const slideStrip = $('#slide-strip');
+
+// Phase 3: Export dropdown
+export const btnExportToggle = $('#btn-export-toggle');
+export const exportDropdown = $('#export-dropdown');
+
+// Phase 4: Loading skeleton, empty guide, shortcuts
+export const slideSkeleton = $('#slide-skeleton');
+export const bboxEmptyGuide = $('#bbox-empty-guide');
+export const shortcutsModal = $('#shortcuts-modal');
+export const shortcutsClose = $('#shortcuts-close');
+export const btnShortcuts = $('#btn-shortcuts');
+
+// Phase 6: Sidebar toggle
+export const sidebarToggle = $('#sidebar-toggle');
+
+// Run button label
+export const btnSendLabel = $('#btn-send-label');

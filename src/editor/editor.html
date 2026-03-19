@@ -27,8 +27,25 @@
       --radius: 8px;
       --radius-sm: 6px;
       --radius-lg: 12px;
+      --radius-xs: 4px;
+      --radius-pill: 999px;
       --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2);
       --transition: 150ms ease-out;
+      /* Semantic surface tokens */
+      --surface-0: #08090b;
+      --surface-1: #0a0c0f;
+      --surface-2: #0d0f13;
+      --surface-3: #111318;
+      --text-muted: #8c93a0;
+      --border-subtle: #15181d;
+      --border-medium: #171a20;
+      --border-strong: #1b1f27;
+      --border-hover: #252b35;
+      --border-input: #1c2027;
+      --border-btn: #1f2530;
+      --text-bright: #f5f7fb;
+      --surface-hover: #141821;
+      --surface-btn: #171b22;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -52,8 +69,8 @@
 
     .nav-bar {
       height: 44px;
-      background: #08090b;
-      border-bottom: 1px solid #171a20;
+      background: var(--surface-0);
+      border-bottom: 1px solid var(--border-medium);
       display: flex;
       align-items: center;
       padding: 0 14px;
@@ -70,10 +87,10 @@
 
     .nav-bar button {
       height: 30px;
-      background: #111318;
+      background: var(--surface-3);
       color: var(--text-0);
-      border: 1px solid #1b2028;
-      border-radius: 999px;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-pill);
       padding: 0 12px;
       font-size: 12px;
       font-family: inherit;
@@ -81,9 +98,9 @@
       transition: all var(--transition);
     }
 
-    .nav-bar button:hover { background: #171b22; border-color: #252b35; }
+    .nav-bar button:hover { background: var(--surface-btn); border-color: var(--border-hover); }
     .nav-bar button:disabled { opacity: 0.3; cursor: default; }
-    .nav-bar button:disabled:hover { background: #111318; border-color: #1b2028; }
+    .nav-bar button:disabled:hover { background: var(--surface-3); border-color: var(--border-strong); }
 
     .slide-counter {
       color: var(--text-1);
@@ -117,6 +134,12 @@
       color: #fbbf24;
       background: hsl(40 80% 12%);
       border-color: hsl(40 50% 22%);
+      animation: status-pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes status-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
     }
 
     .slide-status-chip.success {
@@ -152,7 +175,7 @@
       min-width: 0;
       overflow: hidden;
       padding: 24px 28px;
-      background: #050607;
+      background: var(--bg-0);
     }
 
     .slide-toolbox {
@@ -1216,8 +1239,8 @@
 
     .status-bar {
       min-height: 32px;
-      background: #08090b;
-      border-top: 1px solid #15181d;
+      background: var(--surface-0);
+      border-top: 1px solid var(--border-subtle);
       display: flex;
       align-items: center;
       padding: 0 14px;
@@ -1253,8 +1276,8 @@
     .editor-sidebar {
       width: 336px;
       min-width: 336px;
-      border-left: 1px solid #171a20;
-      background: #0a0c0f;
+      border-left: 1px solid var(--border-medium);
+      background: var(--surface-1);
       display: flex;
       flex-direction: column;
       min-height: 0;
@@ -1265,9 +1288,9 @@
       gap: 4px;
       margin: 12px 14px 0;
       padding: 4px;
-      border: 1px solid #1b1f27;
-      border-radius: 14px;
-      background: #0d0f13;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      background: var(--surface-2);
       flex: 0 0 auto;
     }
 
@@ -1276,7 +1299,7 @@
       height: 34px;
       border: 1px solid transparent;
       background: transparent;
-      color: #8c93a0;
+      color: var(--text-muted);
       border-radius: 10px;
       font-size: 12px;
       font-family: var(--sans);
@@ -1294,12 +1317,12 @@
       height: 14px;
     }
 
-    .sidebar-mode-tab:hover { background: #141821; color: var(--text-0); }
+    .sidebar-mode-tab:hover { background: var(--surface-hover); color: var(--text-0); }
 
     .sidebar-mode-tab.active {
       border-color: rgba(96, 165, 250, 0.28);
       background: rgba(59, 130, 246, 0.12);
-      color: #f5f7fb;
+      color: var(--text-bright);
     }
 
     .sidebar-body {
@@ -1329,23 +1352,23 @@
       font-size: 11px;
       font-weight: 600;
       letter-spacing: -0.01em;
-      color: #8c93a0;
+      color: var(--text-muted);
       font-family: var(--sans);
     }
 
     .sidebar-divider {
       height: 1px;
-      background: #16191f;
+      background: var(--border-subtle);
       margin: 2px 0;
     }
 
     .sidebar-textarea {
       width: 100%;
       min-height: 72px;
-      border-radius: 12px;
-      border: 1px solid #1c2027;
-      background: #111318;
-      color: #f5f7fb;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-input);
+      background: var(--surface-3);
+      color: var(--text-bright);
       font-size: 13px;
       font-family: var(--sans);
       padding: 10px 12px;
@@ -1367,10 +1390,10 @@
     .sidebar-btn {
       width: 100%;
       height: 40px;
-      border: 1px solid #1f2530;
-      border-radius: 12px;
-      background: #111318;
-      color: #f5f7fb;
+      border: 1px solid var(--border-btn);
+      border-radius: var(--radius-lg);
+      background: var(--surface-3);
+      color: var(--text-bright);
       font-size: 13px;
       font-family: var(--sans);
       font-weight: 600;
@@ -1382,17 +1405,17 @@
       gap: 8px;
     }
 
-    .sidebar-btn:hover:not(:disabled) { background: #171b22; border-color: #282e38; }
+    .sidebar-btn:hover:not(:disabled) { background: var(--surface-btn); border-color: var(--border-hover); }
     .sidebar-btn:disabled { opacity: 0.35; cursor: default; }
 
     .sidebar-btn-primary {
-      background: #111318;
-      color: #f5f7fb;
-      border: 1px solid #1f2530;
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
     }
 
     .sidebar-btn-primary:hover:not(:disabled) {
-      background: #171b22;
+      background: var(--accent-2);
     }
 
     .sidebar-btn-primary .btn-send-icon {
@@ -1405,10 +1428,10 @@
       flex: 1;
       min-width: 0;
       height: 36px;
-      border-radius: 12px;
-      border: 1px solid #1c2027;
-      background: #111318;
-      color: #f5f7fb;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-input);
+      background: var(--surface-3);
+      color: var(--text-bright);
       font-size: 12px;
       font-family: var(--sans);
       padding: 0 11px;
@@ -1431,7 +1454,7 @@
     }
 
     .sidebar-unit {
-      color: #8c93a0;
+      color: var(--text-muted);
       font-size: 12px;
       font-family: var(--sans);
     }
@@ -1445,10 +1468,10 @@
     .sidebar-btn-sm {
       height: 36px;
       padding: 0 12px;
-      border-radius: 12px;
-      border: 1px solid #1f2530;
-      background: #111318;
-      color: #f5f7fb;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-btn);
+      background: var(--surface-3);
+      color: var(--text-bright);
       font-size: 11px;
       font-family: var(--sans);
       font-weight: 600;
@@ -1457,7 +1480,7 @@
       transition: all var(--transition);
     }
 
-    .sidebar-btn-sm:hover:not(:disabled) { background: #171b22; border-color: #282e38; }
+    .sidebar-btn-sm:hover:not(:disabled) { background: var(--surface-btn); border-color: var(--border-hover); }
     .sidebar-btn-sm:disabled { opacity: 0.35; cursor: default; }
 
     .sidebar-color-row {
@@ -1475,16 +1498,16 @@
 
     .sidebar-color-label {
       font-size: 11px;
-      color: #8c93a0;
+      color: var(--text-muted);
       font-family: var(--sans);
     }
 
     .sidebar-color {
       width: 100%;
       height: 38px;
-      border-radius: 12px;
-      border: 1px solid #1c2027;
-      background: #111318;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-input);
+      background: var(--surface-3);
       cursor: pointer;
       padding: 3px;
     }
@@ -1502,8 +1525,8 @@
       height: 36px;
       border-radius: 10px;
       padding: 0 8px;
-      border-color: #1f2530;
-      background: #111318;
+      border-color: var(--border-btn);
+      background: var(--surface-3);
     }
 
     .editor-sidebar .tool-icon-btn.tight {
@@ -1516,10 +1539,10 @@
       display: flex;
       align-items: center;
       padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid #1c2027;
-      background: #111318;
-      color: #d9dee7;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-input);
+      background: var(--surface-3);
+      color: var(--text-1);
       font-size: 12px;
       font-family: var(--sans);
       overflow: hidden;
@@ -1528,13 +1551,13 @@
     }
 
     .sidebar-object-card .mini-tag {
-      color: #8ab4ff;
+      color: var(--accent-2);
       font-weight: 600;
       margin-right: 4px;
     }
 
     .select-empty-hint {
-      color: #7f8794;
+      color: var(--text-muted);
       font-size: 12px;
       font-family: var(--sans);
       padding: 6px 0;
@@ -1543,8 +1566,8 @@
     .sidebar-hint {
       flex: 0 0 auto;
       padding: 10px 14px;
-      border-top: 1px solid #16191f;
-      color: #6f7784;
+      border-top: 1px solid var(--border-subtle);
+      color: var(--text-2);
       font-size: 12px;
       font-family: var(--sans);
       min-height: 36px;
@@ -1555,8 +1578,369 @@
 
     :focus-visible {
       outline: none;
-      box-shadow: 0 0 0 3px var(--ring);
+      box-shadow: 0 0 0 2px var(--accent), 0 0 0 4px rgba(59, 130, 246, 0.25);
     }
+
+    /* ── Slide Thumbnail Strip ── */
+    .slide-strip {
+      height: 52px;
+      background: var(--surface-0);
+      border-bottom: 1px solid var(--border-medium);
+      display: flex;
+      align-items: center;
+      padding: 4px 14px;
+      gap: 6px;
+      overflow-x: auto;
+      flex-shrink: 0;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .slide-strip::-webkit-scrollbar { height: 3px; }
+    .slide-strip::-webkit-scrollbar-track { background: transparent; }
+    .slide-strip::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .slide-thumb {
+      flex: 0 0 auto;
+      width: 72px;
+      height: 42px;
+      border-radius: var(--radius-xs);
+      border: 1.5px solid var(--border);
+      background: var(--panel-2);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide-thumb:hover {
+      border-color: var(--border-hover);
+      background: var(--panel);
+    }
+
+    .slide-thumb.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+    }
+
+    .slide-thumb-num {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--text-2);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .slide-thumb.active .slide-thumb-num {
+      color: var(--accent-2);
+    }
+
+    /* ── Export Dropdown ── */
+    .export-dropdown-wrapper {
+      position: relative;
+    }
+
+    .export-dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      min-width: 140px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      z-index: 200;
+      display: none;
+    }
+
+    .export-dropdown.open {
+      display: block;
+      animation: fadeIn var(--transition) forwards;
+    }
+
+    .export-dropdown-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      padding: 8px 12px;
+      background: none;
+      border: none;
+      color: var(--text-0);
+      font-size: 12px;
+      font-family: var(--sans);
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      transition: background var(--transition);
+    }
+
+    .export-dropdown-item:hover {
+      background: var(--border);
+    }
+
+    .export-dropdown-item:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .export-dropdown-item:disabled:hover {
+      background: none;
+    }
+
+    /* ── Slide Loading Skeleton ── */
+    .slide-skeleton {
+      position: absolute;
+      inset: 0;
+      z-index: 5;
+      background: var(--panel-2);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .slide-skeleton.visible {
+      display: flex;
+    }
+
+    .slide-skeleton::after {
+      content: '';
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent 25%, rgba(255,255,255,0.03) 50%, transparent 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s ease-in-out infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Empty State Guide ── */
+    .bbox-empty-guide {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(3, 7, 17, 0.5);
+      pointer-events: none;
+      border-radius: 0;
+    }
+
+    .bbox-empty-guide.visible {
+      display: flex;
+    }
+
+    .bbox-empty-guide-text {
+      padding: 12px 24px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--text-1);
+      font-size: 13px;
+      font-family: var(--sans);
+      pointer-events: none;
+    }
+
+    /* ── Keyboard Shortcuts Modal ── */
+    .shortcuts-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+    }
+
+    .shortcuts-overlay[hidden] { display: none; }
+
+    .shortcuts-modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      min-width: 320px;
+      max-width: 420px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    .shortcuts-modal h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-0);
+      margin: 0 0 16px;
+    }
+
+    .shortcut-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    .shortcut-row:last-child {
+      border-bottom: none;
+    }
+
+    .shortcut-desc {
+      font-size: 12px;
+      color: var(--text-1);
+    }
+
+    .shortcut-keys {
+      display: flex;
+      gap: 4px;
+    }
+
+    .shortcut-key {
+      background: var(--panel-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xs);
+      padding: 2px 8px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text-0);
+    }
+
+    .shortcuts-close {
+      margin-top: 16px;
+      width: 100%;
+      height: 34px;
+      background: var(--surface-3);
+      color: var(--text-0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+
+    .shortcuts-close:hover { background: var(--border); }
+
+    /* ── Skip Link ── */
+    .skip-link {
+      position: absolute;
+      top: -100%;
+      left: 0;
+      background: var(--accent);
+      color: #fff;
+      padding: 8px 16px;
+      font-size: 13px;
+      z-index: 10001;
+      border-radius: 0 0 var(--radius-sm) 0;
+      text-decoration: none;
+    }
+
+    .skip-link:focus {
+      top: 0;
+    }
+
+    /* ── sr-only ── */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ── Prompt hint ── */
+    .prompt-run-hint {
+      color: var(--text-2);
+      font-size: 10px;
+      font-family: var(--mono);
+      text-align: right;
+      padding-top: 2px;
+    }
+
+    /* ── Sidebar collapse ── */
+    .sidebar-toggle {
+      position: absolute;
+      top: 50%;
+      left: -14px;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 48px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-medium);
+      border-right: none;
+      border-radius: var(--radius-xs) 0 0 var(--radius-xs);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      font-size: 10px;
+      z-index: 50;
+      transition: all var(--transition);
+    }
+
+    .sidebar-toggle:hover {
+      background: var(--surface-btn);
+      color: var(--text-0);
+    }
+
+    .editor-sidebar {
+      position: relative;
+      transition: width var(--transition), min-width var(--transition), opacity var(--transition);
+    }
+
+    .editor-sidebar.collapsed {
+      width: 0;
+      min-width: 0;
+      overflow: hidden;
+      border-left: none;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .editor-sidebar.collapsed .sidebar-toggle {
+      left: -14px;
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* ── Outline card type border colors ── */
+    .outline-card[data-type="cover"] { border-left: 3px solid #8b5cf6; }
+    .outline-card[data-type="section-divider"] { border-left: 3px solid #f59e0b; }
+    .outline-card[data-type="content"] { border-left: 3px solid var(--accent); }
+    .outline-card[data-type="chart"] { border-left: 3px solid #06b6d4; }
+    .outline-card[data-type="timeline"] { border-left: 3px solid #ec4899; }
+    .outline-card[data-type="closing"] { border-left: 3px solid var(--success); }
+    .outline-card[data-type="diagram"] { border-left: 3px solid #f97316; }
+    .outline-card[data-type="quote"] { border-left: 3px solid #a78bfa; }
+    .outline-card[data-type="statistics"],
+    .outline-card[data-type="big-metric"],
+    .outline-card[data-type="key-metrics"] { border-left: 3px solid #14b8a6; }
+    .outline-card[data-type="team"] { border-left: 3px solid #fb923c; }
+    .outline-card[data-type="image-text"],
+    .outline-card[data-type="image-description"] { border-left: 3px solid #818cf8; }
+    .outline-card[data-type="split-layout"],
+    .outline-card[data-type="two-columns"] { border-left: 3px solid #38bdf8; }
+
+    /* ── Nav bar ghost buttons ── */
+    .nav-bar-btn.ghost {
+      background: transparent;
+      border: none;
+      color: var(--text-1);
+      font-weight: 600;
+    }
+    .nav-bar-btn.ghost:hover { background: rgba(255,255,255,0.06); color: var(--text-0); }
 
     @media (max-width: 1380px) {
       .slide-toolbox {
@@ -1570,6 +1954,39 @@
       }
       .prompt-input {
         min-width: 160px;
+      }
+    }
+
+    @media (max-width: 1024px) {
+      .editor-sidebar {
+        width: 0;
+        min-width: 0;
+        overflow: hidden;
+        border-left: none;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .editor-sidebar .sidebar-toggle {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .slide-panel {
+        padding: 12px 16px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .export-dropdown-wrapper,
+      .nav-bar-btn.ghost,
+      .slide-strip {
+        display: none;
+      }
+      .slide-panel {
+        padding: 8px;
+      }
+      .nav-bar {
+        padding: 0 8px;
+        gap: 6px;
       }
     }
 
@@ -2269,7 +2686,7 @@
       text-transform: uppercase;
       letter-spacing: 0.04em;
       padding: 1px 6px;
-      border-radius: 3px;
+      border-radius: var(--radius-xs);
       background: rgba(59, 130, 246, 0.12);
       color: var(--accent-2);
       white-space: nowrap;
@@ -2516,7 +2933,7 @@
       letter-spacing: 0.04em;
       cursor: pointer;
       padding: 2px 8px;
-      border-radius: 3px;
+      border-radius: var(--radius-xs);
       transition: all var(--transition);
       flex-shrink: 0;
     }
@@ -2585,25 +3002,33 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#slide-stage">Skip to slide</a>
   <div class="editor-container">
-    <div class="nav-bar">
+    <div class="nav-bar" role="navigation" aria-label="Editor navigation">
       <div class="nav-controls">
-        <button id="btn-prev" title="Previous slide (Left arrow)">&#9664; Prev</button>
-        <span class="slide-counter" id="slide-counter">-- / --</span>
-        <button id="btn-next" title="Next slide (Right arrow)">Next &#9654;</button>
+        <button id="btn-prev" title="Previous slide (Left arrow)" aria-label="Previous slide">&#9664; Prev</button>
+        <span class="slide-counter" id="slide-counter" aria-live="polite">-- / --</span>
+        <button id="btn-next" title="Next slide (Right arrow)" aria-label="Next slide">Next &#9654;</button>
       </div>
       <div class="nav-spacer"></div>
       <button class="nav-bar-btn btn-new-deck" id="btn-new-deck" title="New Presentation">+ New</button>
-      <button class="nav-bar-btn" id="btn-review-outline" title="Review Outline">Outline</button>
-      <button class="nav-bar-btn" id="btn-pdf-export" title="PDF Export">PDF</button>
-      <button class="nav-bar-btn" id="btn-svg-export" title="SVG/PNG Export">SVG</button>
-      <button class="nav-bar-btn figma-btn" id="btn-figma-export" title="Send to Figma (plugin not connected)" disabled>
-        <span class="figma-conn-dot" id="figma-conn-dot"></span>
-        Figma
-      </button>
-      <span class="slide-status-chip idle" id="slide-status-chip">idle</span>
-      <span class="brand">ppt-agent</span>
+      <button class="nav-bar-btn ghost" id="btn-review-outline" title="Review Outline">Outline</button>
+      <div class="export-dropdown-wrapper">
+        <button class="nav-bar-btn ghost" id="btn-export-toggle" title="Export options" aria-haspopup="true" aria-expanded="false">Export</button>
+        <div class="export-dropdown" id="export-dropdown" role="menu">
+          <button class="export-dropdown-item" id="btn-pdf-export" role="menuitem">PDF Export</button>
+          <button class="export-dropdown-item" id="btn-svg-export" role="menuitem">SVG / PNG Export</button>
+          <button class="export-dropdown-item" id="btn-figma-export" role="menuitem" disabled>
+            <span class="figma-conn-dot" id="figma-conn-dot"></span>
+            Send to Figma
+          </button>
+        </div>
+      </div>
+      <button class="nav-bar-btn ghost" id="btn-shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
+      <span class="slide-status-chip idle" id="slide-status-chip" aria-label="Slide status">idle</span>
     </div>
+
+    <div class="slide-strip" id="slide-strip" role="tablist" aria-label="Slide thumbnails"></div>
 
     <div class="main-content">
       <div class="creation-panel" id="creation-panel">
@@ -2666,6 +3091,10 @@
       <div class="slide-panel" id="slide-panel">
         <div class="slide-stage" id="slide-stage">
           <div class="slide-wrapper" id="slide-wrapper">
+            <div class="slide-skeleton" id="slide-skeleton"></div>
+            <div class="bbox-empty-guide" id="bbox-empty-guide">
+              <span class="bbox-empty-guide-text">Drag on the slide to add edit regions</span>
+            </div>
             <button class="clear-overlay-btn" id="btn-clear-bboxes" title="Clear all boxes on current slide">Clear Boxes</button>
             <iframe id="slide-iframe" sandbox="allow-same-origin allow-scripts" loading="eager"></iframe>
             <div class="bbox-layer" id="bbox-layer"></div>
@@ -2680,7 +3109,8 @@
         </div>
       </div>
 
-      <aside class="editor-sidebar" id="editor-sidebar">
+      <aside class="editor-sidebar" id="editor-sidebar" aria-label="Editor sidebar">
+        <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Toggle sidebar" title="Toggle sidebar">&#9666;</button>
         <div class="sidebar-mode-tabs">
           <button type="button" class="sidebar-mode-tab active" id="tool-mode-draw" aria-pressed="true">
             <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14v14H5zM9 5v14M15 5v14M5 9h14M5 15h14"/></svg>
@@ -2710,10 +3140,11 @@
                 <option value="gpt-5.3-codex-spark">gpt-5.3-codex-spark</option>
               </select>
             </div>
-            <button class="sidebar-btn" id="btn-send" title="Run Codex">
+            <button class="sidebar-btn sidebar-btn-primary" id="btn-send" title="Run (Ctrl+Enter)">
               <svg class="btn-send-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 11.2 19.6 4.4c.8-.3 1.7.5 1.4 1.4l-6.8 16.2c-.3.8-1.4.9-1.9.1L9.2 16l-6.1-3.1c-.8-.5-.7-1.6.3-1.7Zm5.1 3.6 3.2 1.6 4.9-11.7-11.7 4.9 3.6 1.8 6.2-3.7c.4-.2.8.1.6.6l-6.8 6.5Z"/></svg>
-              Run Codex
+              <span id="btn-send-label">Run</span>
             </button>
+            <span class="prompt-run-hint">Ctrl+Enter to run</span>
           </div>
 
           <div class="sidebar-panel" id="select-toolbar" hidden>
@@ -2756,31 +3187,31 @@
             <div class="sidebar-divider"></div>
             <div class="sidebar-section">
               <span class="sidebar-label">Style</span>
-              <div class="sidebar-icon-grid">
-                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-bold" title="Bold (⌘B)">
+              <div class="sidebar-icon-grid" role="toolbar" aria-label="Text style">
+                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-bold" title="Bold (⌘B)" aria-label="Bold">
                   <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 12a4 4 0 0 0 0-8H6v8"/><path d="M15 20a4 4 0 0 0 0-8H6v8"/></svg>
                 </button>
-                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-italic" title="Italic (⌘I)">
+                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-italic" title="Italic (⌘I)" aria-label="Italic">
                   <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M19 4h-9M14 20H5M15 4 9 20"/></svg>
                 </button>
-                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-underline" title="Underline (⌘U)">
+                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-underline" title="Underline (⌘U)" aria-label="Underline">
                   <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><path d="M4 20h16"/></svg>
                 </button>
-                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-strike" title="Strikethrough">
+                <button type="button" class="tool-icon-btn style-toggle tight" id="toggle-strike" title="Strikethrough" aria-label="Strikethrough">
                   <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4H9a3 3 0 0 0-2.83 4"/><path d="M14 12a4 4 0 0 1 0 8H6"/><path d="M4 12h16"/></svg>
                 </button>
               </div>
             </div>
             <div class="sidebar-section">
               <span class="sidebar-label">Align</span>
-              <div class="sidebar-icon-grid">
-                <button type="button" class="tool-icon-btn align-btn tight" id="align-left" title="Align left">
+              <div class="sidebar-icon-grid" role="toolbar" aria-label="Text alignment">
+                <button type="button" class="tool-icon-btn align-btn tight" id="align-left" title="Align left" aria-label="Align left">
                   <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 6H3M15 12H3M17 18H3"/></svg>
                 </button>
-                <button type="button" class="tool-icon-btn align-btn tight" id="align-center" title="Align center">
+                <button type="button" class="tool-icon-btn align-btn tight" id="align-center" title="Align center" aria-label="Align center">
                   <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 6H3M17 12H7M19 18H5"/></svg>
                 </button>
-                <button type="button" class="tool-icon-btn align-btn tight" id="align-right" title="Align right">
+                <button type="button" class="tool-icon-btn align-btn tight" id="align-right" title="Align right" aria-label="Align right">
                   <svg class="tool-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 6H3M21 12H9M21 18H7"/></svg>
                 </button>
               </div>
@@ -2799,7 +3230,7 @@
         <span class="status-dot" id="status-dot"></span>
         <span id="status-connection">Connecting...</span>
       </span>
-      <span class="status-message" id="status-message"></span>
+      <span class="status-message" id="status-message" aria-live="polite"></span>
     </div>
 
     <div class="svg-export-overlay" id="svg-export-modal" hidden>
@@ -2907,6 +3338,45 @@
     </div>
   </div>
   <div class="figma-toast" id="figma-toast"></div>
+
+  <div class="shortcuts-overlay" id="shortcuts-modal" hidden>
+    <div class="shortcuts-modal" role="dialog" aria-label="Keyboard shortcuts">
+      <h3>Keyboard Shortcuts</h3>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Previous slide</span>
+        <div class="shortcut-keys"><span class="shortcut-key">&#8592;</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Next slide</span>
+        <div class="shortcut-keys"><span class="shortcut-key">&#8594;</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Run / Send</span>
+        <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">Enter</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Bold</span>
+        <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">B</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Italic</span>
+        <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">I</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Underline</span>
+        <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">U</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Shortcuts help</span>
+        <div class="shortcut-keys"><span class="shortcut-key">?</span></div>
+      </div>
+      <div class="shortcut-row">
+        <span class="shortcut-desc">Close / Blur</span>
+        <div class="shortcut-keys"><span class="shortcut-key">Esc</span></div>
+      </div>
+      <button class="shortcuts-close" id="shortcuts-close">Close</button>
+    </div>
+  </div>
 
   <script type="module" src="/js/editor-init.js"></script>
 </body>
