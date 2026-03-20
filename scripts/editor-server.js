@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { readdir, readFile, writeFile, mkdtemp, rm, mkdir, stat, rename, copyFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile, mkdtemp, rm, mkdir, stat, rename, copyFile, unlink } from 'node:fs/promises';
 import { watch as fsWatch } from 'node:fs';
 import { basename, dirname, join, resolve, relative, sep } from 'node:path';
 import { spawn } from 'node:child_process';
@@ -247,7 +247,12 @@ async function backupSlides(deckDir) {
     slideFiles.map((f) => copyFile(join(deckDir, f), join(backupDir, f))),
   );
 
-  console.log(`Backed up ${slideFiles.length} slides → ${backupDir}`);
+  // Remove originals so Claude generates all slides fresh
+  await Promise.all(
+    slideFiles.map((f) => unlink(join(deckDir, f))),
+  );
+
+  console.log(`Backed up ${slideFiles.length} slides → ${backupDir} (originals removed)`);
   return backupDir;
 }
 
@@ -1447,7 +1452,8 @@ async function startServer(opts) {
           const promptLines = [
             `작업 디렉토리: ${slidesDir}`,
             '',
-            '아래 승인된 아웃라인 기반으로 HTML 슬라이드를 생성하세요.',
+            '아래 승인된 아웃라인 기반으로 HTML 슬라이드를 새로 생성하세요.',
+            '기존 슬라이드는 백업 후 삭제되었으므로, 모든 슬라이드를 빠짐없이 새로 만들어야 합니다.',
             '',
             '--- 아웃라인 ---',
             outlineContent,
