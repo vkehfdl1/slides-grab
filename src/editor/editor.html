@@ -109,7 +109,7 @@
     }
 
     .nav-bar button:hover { background: var(--surface-btn); border-color: var(--border-hover); }
-    .nav-bar button:disabled { opacity: 0.3; cursor: default; }
+    .nav-bar button:disabled { opacity: 0.35; cursor: not-allowed; }
     .nav-bar button:disabled:hover { background: var(--surface-3); border-color: var(--border-strong); }
 
     .slide-counter {
@@ -2183,6 +2183,12 @@
       transition: all var(--transition);
     }
     .nav-bar-btn:hover { background: var(--accent-2); }
+    .nav-bar-btn:disabled,
+    .nav-bar-btn.ghost:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
 
     .nav-bar-btn.figma-btn {
       background: #1e1e1e;
@@ -2194,7 +2200,7 @@
       position: relative;
     }
     .nav-bar-btn.figma-btn:hover { background: #2a2a2a; border-color: #555; }
-    .nav-bar-btn.figma-btn:disabled { opacity: 0.35; cursor: default; }
+    .nav-bar-btn.figma-btn:disabled { opacity: 0.35; cursor: not-allowed; }
     .nav-bar-btn.figma-btn:disabled:hover { background: #1e1e1e; border-color: #333; }
 
     .figma-conn-dot {
