@@ -469,6 +469,17 @@ async function init() {
       return;
     }
 
+    // Check if outline exists and enable/disable button accordingly
+    const btnOutline = document.getElementById('btn-review-outline');
+    if (btnOutline) {
+      try {
+        const outlineCheck = await fetch('/api/outline');
+        btnOutline.disabled = !outlineCheck.ok;
+      } catch {
+        btnOutline.disabled = true;
+      }
+    }
+
     await loadModelOptions();
     updateToolModeUI();
     renderThumbnailStrip();

@@ -304,6 +304,11 @@ export async function refreshSlideList() {
 
     if (state.slides.length > 0) {
       hideCreationMode();
+      // Check outline existence to enable/disable Outline button
+      try {
+        const outlineCheck = await fetch('/api/outline');
+        if (btnReviewOutline) btnReviewOutline.disabled = !outlineCheck.ok;
+      } catch { /* leave disabled */ }
       await loadModelOptions();
       updateToolModeUI();
       renderThumbnailStrip();
