@@ -308,7 +308,9 @@ export async function refreshSlideList() {
       try {
         const outlineCheck = await fetch('/api/outline');
         if (btnReviewOutline) btnReviewOutline.disabled = !outlineCheck.ok;
-      } catch { /* leave disabled */ }
+      } catch {
+        if (btnReviewOutline) btnReviewOutline.disabled = true;
+      }
       await loadModelOptions();
       updateToolModeUI();
       renderThumbnailStrip();
