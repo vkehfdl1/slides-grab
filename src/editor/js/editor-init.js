@@ -286,7 +286,8 @@ if (btnExportToggle && exportDropdown) {
     const isOpen = exportDropdown.classList.toggle('open');
     btnExportToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
   });
-  document.addEventListener('click', () => {
+  document.addEventListener('click', (event) => {
+    if (event.target.closest('.export-dropdown-wrapper')) return;
     exportDropdown.classList.remove('open');
     btnExportToggle.setAttribute('aria-expanded', 'false');
   });
@@ -313,10 +314,10 @@ if (sidebarToggle && editorSidebar) {
 
   sidebarToggle.addEventListener('click', () => {
     const isCollapsed = editorSidebar.classList.toggle('collapsed');
-    sidebarToggle.innerHTML = isCollapsed ? '&#9656;' : '&#9666;';
+    sidebarToggle.textContent = isCollapsed ? '\u25b8' : '\u25c2';
     localStorage.setItem('sidebar-collapsed', isCollapsed ? 'true' : 'false');
-    // Recalculate slide scale after sidebar resize
-    setTimeout(scaleSlide, 200);
+    // Recalculate slide scale after sidebar transition completes
+    editorSidebar.addEventListener('transitionend', scaleSlide, { once: true });
   });
 }
 

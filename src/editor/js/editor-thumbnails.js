@@ -1,8 +1,7 @@
 // editor-thumbnails.js — Slide thumbnail strip rendering
 
 import { state } from './editor-state.js';
-
-const slideStrip = document.getElementById('slide-strip');
+import { slideStrip } from './editor-dom.js';
 
 export function renderThumbnailStrip() {
   if (!slideStrip) return;

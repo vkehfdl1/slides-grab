@@ -43,6 +43,7 @@ export function showCreationMode() {
 
 export function hideCreationMode() {
   creationState.active = false;
+  if (_placeholderTimer) { clearInterval(_placeholderTimer); _placeholderTimer = null; }
   if (creationPanel) creationPanel.classList.remove('active');
   if (slidePanel) slidePanel.style.display = '';
   if (editorSidebar) editorSidebar.style.display = '';
@@ -266,9 +267,11 @@ if (creationTopic) {
     'Annual company retrospective and goals...',
   ];
   let placeholderIdx = 0;
-  setInterval(() => {
+  _placeholderTimer = setInterval(() => {
     if (creationTopic.value || document.activeElement === creationTopic) return;
     placeholderIdx = (placeholderIdx + 1) % placeholders.length;
     creationTopic.placeholder = placeholders[placeholderIdx];
   }, 3000);
 }
+
+let _placeholderTimer = null;
