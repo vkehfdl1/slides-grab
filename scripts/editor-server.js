@@ -864,6 +864,111 @@ async function startServer(opts) {
     }
   });
 
+  // ── Deck rename ──
+  app.patch('/api/decks/:name/rename', async (req, res) => {
+    const oldName = basename(req.params.name);
+    const { newName: rawNewName } = req.body ?? {};
+    if (typeof rawNewName !== 'string' || !rawNewName.trim()) {
+      return res.status(400).json({ error: 'Missing newName.' });
+    }
+    const sanitized = rawNewName.trim().replace(/[<>:"/\\|?*]/g, '-');
+    if (!sanitized) {
+      return res.status(400).json({ error: 'Invalid name after sanitization.' });
+    }
+    const decksRoot = resolve(process.cwd(), 'decks');
+    const oldPath = resolve(decksRoot, oldName);
+    const newPath = resolve(decksRoot, sanitized);
+    try {
+      await stat(oldPath);
+    } catch {
+      return res.status(404).json({ error: 'Deck not found.' });
+    }
+    if (oldPath === newPath) {
+      return res.json({ ok: true, oldName, newName: sanitized });
+    }
+    try {
+      await stat(newPath);
+      return res.status(409).json({ error: 'A deck with that name already exists.' });
+    } catch { /* good — no conflict */ }
+    try {
+      // Delete cached thumbnail
+      await unlink(join(oldPath, '.thumb.png')).catch(() => {});
+      await rename(oldPath, newPath);
+      // Update server state if this was the active deck
+      if (slidesDirectory && resolve(slidesDirectory) === oldPath) {
+        slidesDirectory = newPath;
+        opts.deckName = sanitized;
+        setupFileWatcher(slidesDirectory);
+      }
+      res.json({ ok: true, oldName, newName: sanitized });
+    } catch (err) {
+      res.status(500).json({ error: `Rename failed: ${err.message}` });
+    }
+  });
+
+  // ── Deck duplicate ──
+  app.post('/api/decks/:name/duplicate', async (req, res) => {
+    const srcName = basename(req.params.name);
+    const decksRoot = resolve(process.cwd(), 'decks');
+    const srcPath = resolve(decksRoot, srcName);
+    try {
+      await stat(srcPath);
+    } catch {
+      return res.status(404).json({ error: 'Deck not found.' });
+    }
+    // Find unique name: "name-copy", "name-copy-2", ...
+    let copyName = `${srcName}-copy`;
+    let copyPath = resolve(decksRoot, copyName);
+    let suffix = 2;
+    while (true) {
+      try { await stat(copyPath); } catch { break; }
+      copyName = `${srcName}-copy-${suffix++}`;
+      copyPath = resolve(decksRoot, copyName);
+    }
+    try {
+      await mkdir(copyPath, { recursive: true });
+      const entries = await readdir(srcPath, { withFileTypes: true });
+      for (const entry of entries) {
+        if (!entry.isFile() || entry.name.startsWith('.')) continue;
+        await copyFile(join(srcPath, entry.name), join(copyPath, entry.name));
+      }
+      res.json({ ok: true, name: copyName });
+    } catch (err) {
+      res.status(500).json({ error: `Duplicate failed: ${err.message}` });
+    }
+  });
+
+  // ── Deck delete ──
+  app.delete('/api/decks/:name', async (req, res) => {
+    const deckName = basename(req.params.name);
+    const decksRoot = resolve(process.cwd(), 'decks');
+    const deckPath = resolve(decksRoot, deckName);
+    if (!deckPath.startsWith(decksRoot)) {
+      return res.status(400).json({ error: 'Invalid deck name.' });
+    }
+    try {
+      await stat(deckPath);
+    } catch {
+      return res.status(404).json({ error: 'Deck not found.' });
+    }
+    try {
+      // Close file watcher BEFORE deleting to avoid EPERM on Windows
+      const isActive = slidesDirectory && resolve(slidesDirectory) === deckPath;
+      if (isActive) {
+        if (watcher) { try { watcher.close(); } catch { /* ignore */ } watcher = null; }
+      }
+      await rm(deckPath, { recursive: true, force: true });
+      if (isActive) {
+        slidesDirectory = null;
+        opts.deckName = '';
+        opts.createMode = true;
+      }
+      res.json({ ok: true, deleted: deckName });
+    } catch (err) {
+      res.status(500).json({ error: `Delete failed: ${err.message}` });
+    }
+  });
+
   app.post('/api/slides/:file/save', async (req, res) => {
     let file;
     try {

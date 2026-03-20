@@ -308,6 +308,174 @@
       animation: spin 0.8s linear infinite;
       margin: 0 auto 12px;
     }
+
+    /* ── Deck card actions (kebab menu) ── */
+    .deck-card { position: relative; }
+
+    .deck-card-actions {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+    .deck-card:hover .deck-card-actions { opacity: 1; }
+
+    .deck-kebab-btn {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-0);
+      font-size: 16px;
+      cursor: pointer;
+      transition: all var(--transition);
+      line-height: 1;
+      padding: 0;
+      font-family: inherit;
+    }
+    .deck-kebab-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+    }
+
+    /* ── Dropdown menu ── */
+    .deck-action-menu {
+      position: fixed;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      min-width: 140px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      z-index: 200;
+      animation: menuFadeIn 120ms ease-out;
+    }
+    @keyframes menuFadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .deck-action-item {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: none;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-0);
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .deck-action-item:hover { background: var(--border); }
+    .deck-action-item.danger { color: var(--danger); }
+    .deck-action-item.danger:hover { background: rgba(239, 68, 68, 0.12); }
+
+    /* ── Modal ── */
+    .deck-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      backdrop-filter: blur(4px);
+      animation: menuFadeIn 120ms ease-out;
+    }
+    .deck-modal-overlay[hidden] { display: none; }
+
+    .deck-modal {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      min-width: 360px;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+    }
+    .deck-modal h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+    .deck-modal p {
+      font-size: 13px;
+      color: var(--text-1);
+      line-height: 1.6;
+    }
+    .deck-modal p strong { color: var(--text-0); }
+
+    .deck-rename-input {
+      width: 100%;
+      height: 36px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 0 12px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-0);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .deck-rename-input:focus { border-color: var(--accent); }
+    .deck-rename-error {
+      font-size: 12px;
+      color: var(--danger);
+      margin-top: -8px;
+      min-height: 16px;
+    }
+
+    .deck-modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .deck-modal-actions button {
+      height: 32px;
+      border-radius: var(--radius-sm);
+      padding: 0 16px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all var(--transition);
+    }
+    .deck-modal-actions button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-modal-cancel {
+      background: var(--surface-2);
+      color: var(--text-1);
+      border: 1px solid var(--border-strong) !important;
+    }
+    .btn-modal-cancel:hover { background: var(--surface-hover); color: var(--text-0); }
+    .btn-modal-confirm {
+      background: var(--accent);
+      color: #fff;
+    }
+    .btn-modal-confirm:hover { filter: brightness(1.15); }
+    .btn-modal-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-modal-danger:hover { filter: brightness(1.15); }
   </style>
 </head>
 <body>
@@ -331,6 +499,31 @@
     </div>
 
     <div class="status-bar" id="status-bar">Loading...</div>
+
+    <!-- Rename Modal -->
+    <div class="deck-modal-overlay" id="rename-modal" hidden>
+      <div class="deck-modal">
+        <h3>Rename Deck</h3>
+        <input class="deck-rename-input" id="rename-input" type="text" autocomplete="off" placeholder="New name...">
+        <div class="deck-rename-error" id="rename-error"></div>
+        <div class="deck-modal-actions">
+          <button class="btn-modal-cancel" id="rename-cancel">Cancel</button>
+          <button class="btn-modal-confirm" id="rename-confirm">Rename</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="deck-modal-overlay" id="delete-modal" hidden>
+      <div class="deck-modal">
+        <h3>Delete Deck</h3>
+        <p>Are you sure you want to delete <strong id="delete-deck-name"></strong>? This action cannot be undone.</p>
+        <div class="deck-modal-actions">
+          <button class="btn-modal-cancel" id="delete-cancel">Cancel</button>
+          <button class="btn-modal-danger" id="delete-confirm">Delete</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script type="module">
@@ -340,6 +533,8 @@
     const btnNewDeck = document.getElementById('btn-new-deck');
 
     let allDecks = [];
+    let renamingDeck = null;
+    let deletingDeck = null;
 
     function timeAgo(dateStr) {
       const now = Date.now();
@@ -386,6 +581,9 @@
         const thumbUrl = `/api/decks/${encodeURIComponent(deck.name)}/thumbnail`;
         html += `
           <div class="deck-card" data-deck="${deck.name}" role="button" tabindex="0">
+            <div class="deck-card-actions">
+              <button class="deck-kebab-btn" data-deck="${deck.name}" title="More actions" aria-label="More actions">&#8942;</button>
+            </div>
             <div class="deck-thumb">
               <img src="${thumbUrl}" loading="lazy" alt="${deck.name}"
                    onerror="this.style.display='none'; this.nextElementSibling.style.display='';">
@@ -419,6 +617,8 @@
       for (const card of deckContainer.querySelectorAll('.deck-card:not(.new-deck-card)')) {
         card.addEventListener('click', () => navigateToDeck(card.dataset.deck));
         card.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigateToDeck(card.dataset.deck); });
+        const kebab = card.querySelector('.deck-kebab-btn');
+        if (kebab) kebab.addEventListener('click', (e) => { e.stopPropagation(); openKebabMenu(e, card.dataset.deck); });
       }
 
       const newDeckCard = document.getElementById('card-new-deck');
@@ -450,6 +650,144 @@
 
     // New Deck button (nav bar)
     btnNewDeck.addEventListener('click', navigateCreate);
+
+    // ── Kebab menu ──
+    function closeKebabMenu() {
+      const existing = document.querySelector('.deck-action-menu');
+      if (existing) existing.remove();
+    }
+
+    function openKebabMenu(e, deckName) {
+      closeKebabMenu();
+      const btn = e.currentTarget;
+      const rect = btn.getBoundingClientRect();
+      const menu = document.createElement('div');
+      menu.className = 'deck-action-menu';
+      menu.innerHTML = `
+        <button class="deck-action-item" data-action="rename">Rename</button>
+        <button class="deck-action-item" data-action="duplicate">Duplicate</button>
+        <button class="deck-action-item danger" data-action="delete">Delete</button>
+      `;
+      menu.style.top = `${rect.bottom + 4}px`;
+      menu.style.left = `${rect.right - 140}px`;
+      document.body.appendChild(menu);
+
+      menu.querySelector('[data-action="rename"]').addEventListener('click', () => { closeKebabMenu(); openRenameModal(deckName); });
+      menu.querySelector('[data-action="duplicate"]').addEventListener('click', () => { closeKebabMenu(); duplicateDeck(deckName); });
+      menu.querySelector('[data-action="delete"]').addEventListener('click', () => { closeKebabMenu(); openDeleteModal(deckName); });
+
+      const onClickOutside = (ev) => {
+        if (!menu.contains(ev.target) && ev.target !== btn) {
+          closeKebabMenu();
+          document.removeEventListener('click', onClickOutside, true);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', onClickOutside, true), 0);
+    }
+
+    // ── Duplicate ──
+    async function duplicateDeck(deckName) {
+      statusBar.textContent = 'Duplicating...';
+      try {
+        const res = await fetch(`/api/decks/${encodeURIComponent(deckName)}/duplicate`, { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || 'Duplicate failed.'); return; }
+        await loadDecks();
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // ── Rename modal ──
+    const renameModal = document.getElementById('rename-modal');
+    const renameInput = document.getElementById('rename-input');
+    const renameError = document.getElementById('rename-error');
+    const renameConfirmBtn = document.getElementById('rename-confirm');
+
+    function openRenameModal(deckName) {
+      renamingDeck = deckName;
+      renameInput.value = deckName;
+      renameError.textContent = '';
+      renameConfirmBtn.disabled = false;
+      renameModal.hidden = false;
+      setTimeout(() => { renameInput.focus(); renameInput.select(); }, 50);
+    }
+
+    function closeRenameModal() {
+      renameModal.hidden = true;
+      renamingDeck = null;
+    }
+
+    async function submitRename() {
+      const newName = renameInput.value.trim();
+      if (!newName) { renameError.textContent = 'Name cannot be empty.'; return; }
+      if (newName === renamingDeck) { closeRenameModal(); return; }
+      renameError.textContent = '';
+      renameConfirmBtn.disabled = true;
+      try {
+        const res = await fetch(`/api/decks/${encodeURIComponent(renamingDeck)}/rename`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ newName }),
+        });
+        const data = await res.json();
+        if (!res.ok) { renameError.textContent = data.error || 'Rename failed.'; renameConfirmBtn.disabled = false; return; }
+        closeRenameModal();
+        await loadDecks();
+      } catch (err) {
+        renameError.textContent = err.message;
+        renameConfirmBtn.disabled = false;
+      }
+    }
+
+    document.getElementById('rename-cancel').addEventListener('click', closeRenameModal);
+    renameConfirmBtn.addEventListener('click', submitRename);
+    renameInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitRename(); });
+    renameModal.addEventListener('click', (e) => { if (e.target === renameModal) closeRenameModal(); });
+
+    // ── Delete modal ──
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteDeckNameEl = document.getElementById('delete-deck-name');
+    const deleteConfirmBtn = document.getElementById('delete-confirm');
+
+    function openDeleteModal(deckName) {
+      deletingDeck = deckName;
+      deleteDeckNameEl.textContent = deckName;
+      deleteConfirmBtn.disabled = false;
+      deleteModal.hidden = false;
+    }
+
+    function closeDeleteModal() {
+      deleteModal.hidden = true;
+      deletingDeck = null;
+    }
+
+    async function submitDelete() {
+      deleteConfirmBtn.disabled = true;
+      try {
+        const res = await fetch(`/api/decks/${encodeURIComponent(deletingDeck)}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (!res.ok) { alert(data.error || 'Delete failed.'); deleteConfirmBtn.disabled = false; return; }
+        closeDeleteModal();
+        await loadDecks();
+      } catch (err) {
+        alert(err.message);
+        deleteConfirmBtn.disabled = false;
+      }
+    }
+
+    document.getElementById('delete-cancel').addEventListener('click', closeDeleteModal);
+    deleteConfirmBtn.addEventListener('click', submitDelete);
+    deleteModal.addEventListener('click', (e) => { if (e.target === deleteModal) closeDeleteModal(); });
+
+    // ── Global keyboard ──
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeKebabMenu();
+        if (!renameModal.hidden) closeRenameModal();
+        if (!deleteModal.hidden) closeDeleteModal();
+      }
+    });
 
     // Load decks
     async function loadDecks() {
