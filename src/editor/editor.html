@@ -79,6 +79,16 @@
       gap: 12px;
     }
 
+    .nav-deck-name {
+      color: var(--text-1);
+      font-size: 13px;
+      font-weight: 600;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .nav-controls {
       display: flex;
       align-items: center;
@@ -2330,6 +2340,7 @@
       justify-content: center;
       background: var(--bg-0);
       padding: 40px;
+      position: relative;
       overflow-y: auto;
     }
 
@@ -2796,6 +2807,137 @@
       opacity: 1;
     }
 
+    /* ── Plan Loading Overlay (Phase 1) ── */
+
+    .plan-loading {
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(3, 7, 17, 0.82);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .plan-loading.active {
+      display: flex;
+    }
+
+    .plan-loading-track {
+      position: relative;
+      width: min(480px, 80%);
+      height: 120px;
+      overflow: hidden;
+    }
+
+    @keyframes bunny-run-large {
+      0%   { left: -120px; transform: translateY(0) scaleX(1); }
+      5%   { transform: translateY(-22px) scaleX(1.02); }
+      10%  { transform: translateY(0) scaleX(0.98); }
+      15%  { transform: translateY(-18px) scaleX(1.02); }
+      20%  { transform: translateY(0) scaleX(0.98); }
+      25%  { transform: translateY(-22px) scaleX(1.02); }
+      30%  { transform: translateY(0) scaleX(0.98); }
+      35%  { transform: translateY(-18px) scaleX(1.02); }
+      40%  { transform: translateY(0) scaleX(0.98); }
+      45%  { transform: translateY(-22px) scaleX(1.02); }
+      50%  { transform: translateY(0) scaleX(0.98); }
+      55%  { transform: translateY(-18px) scaleX(1.02); }
+      60%  { transform: translateY(0) scaleX(0.98); }
+      65%  { transform: translateY(-22px) scaleX(1.02); }
+      70%  { transform: translateY(0) scaleX(0.98); }
+      75%  { transform: translateY(-18px) scaleX(1.02); }
+      80%  { transform: translateY(0) scaleX(0.98); }
+      85%  { transform: translateY(-22px) scaleX(1.02); }
+      90%  { transform: translateY(0) scaleX(0.98); }
+      95%  { transform: translateY(-18px) scaleX(1.02); }
+      100% { left: calc(100% + 8px); transform: translateY(0) scaleX(1); }
+    }
+
+    .plan-loading-bunny {
+      position: absolute;
+      top: 50%;
+      margin-top: -48px;
+      width: 96px;
+      height: 96px;
+      object-fit: contain;
+      animation: bunny-run-large 4.5s ease-in-out infinite;
+      filter:
+        drop-shadow(0 0 24px rgba(59,130,246,0.4))
+        drop-shadow(0 0 48px rgba(59,130,246,0.15))
+        drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+      z-index: 2;
+    }
+
+    .plan-loading-ground {
+      position: absolute;
+      bottom: 12px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(148,163,184,0.2) 20%, rgba(148,163,184,0.2) 80%, transparent);
+    }
+
+    .plan-loading-track::after {
+      content: '· · · ·';
+      position: absolute;
+      bottom: 16px;
+      left: 8%;
+      font-size: 16px;
+      color: var(--text-2);
+      letter-spacing: 10px;
+      opacity: 0;
+      animation: bunny-dust 1.2s ease-out infinite;
+      animation-delay: 0.3s;
+      z-index: 1;
+    }
+
+    .plan-loading-body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .plan-loading-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: 0.01em;
+    }
+
+    @keyframes loading-dots {
+      0%, 20% { content: ''; }
+      40% { content: '.'; }
+      60% { content: '..'; }
+      80%, 100% { content: '...'; }
+    }
+
+    .plan-loading-label::after {
+      content: '';
+      animation: loading-dots 1.5s steps(1) infinite;
+    }
+
+    .plan-loading-timer {
+      font-size: 22px;
+      font-weight: 300;
+      color: var(--text-2);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.05em;
+    }
+
+    .plan-loading-step {
+      font-size: 12px;
+      color: var(--accent-2);
+      min-height: 1.4em;
+      transition: opacity 0.3s;
+    }
+
     /* ── Running Bunny Indicator ── */
 
     @keyframes bunny-run {
@@ -2967,9 +3109,9 @@
       border: 1px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 10px 12px;
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 12px;
-      line-height: 1.6;
+      font-family: var(--sans);
+      font-size: 13px;
+      line-height: 1.7;
       resize: vertical;
       outline: none;
       tab-size: 2;
@@ -3003,6 +3145,8 @@
   <a class="skip-link" href="#slide-stage">Skip to slide</a>
   <div class="editor-container">
     <div class="nav-bar" role="navigation" aria-label="Editor navigation">
+      <a href="/" class="nav-bar-btn ghost" id="btn-back-browser" title="Back to Deck Browser" style="text-decoration:none; display:none;">&#9664; Decks</a>
+      <span class="nav-deck-name" id="nav-deck-name" style="display:none;"></span>
       <div class="nav-controls">
         <button id="btn-prev" title="Previous slide (Left arrow)" aria-label="Previous slide">&#9664; Prev</button>
         <span class="slide-counter" id="slide-counter" aria-live="polite">-- / --</span>
@@ -3030,6 +3174,17 @@
 
     <div class="main-content">
       <div class="creation-panel" id="creation-panel">
+        <div class="plan-loading" id="plan-loading">
+          <div class="plan-loading-track">
+            <img src="/asset/buddy_logo.png" class="plan-loading-bunny" alt="">
+            <div class="plan-loading-ground"></div>
+          </div>
+          <div class="plan-loading-body">
+            <span class="plan-loading-label" id="plan-loading-label">Generating outline</span>
+            <span class="plan-loading-timer" id="plan-loading-timer">0:00</span>
+            <span class="plan-loading-step" id="plan-loading-step"></span>
+          </div>
+        </div>
         <div class="creation-content">
           <div id="creation-phase-input">
             <div class="creation-header">

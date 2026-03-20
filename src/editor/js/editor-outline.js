@@ -2,7 +2,7 @@
 
 import { creationState } from './editor-state.js';
 import { setStatus } from './editor-utils.js';
-import { appendCreationLog, showCreationMode, loadCreationModelOptions } from './editor-create.js';
+import { appendCreationLog, showCreationMode, loadCreationModelOptions, showPlanLoading, updatePlanLoadingStep } from './editor-create.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -28,11 +28,12 @@ let editingIndex = -1;
  * @param {'success'|'fail'} [result] — omit to just reset silently
  */
 export function resetOutlineIndicators(result) {
-  // Hide bunny track
+  // Hide bunny track + overlay
   const review = document.querySelector('.outline-review');
   if (review) review.classList.remove('generating');
   const oProgress = document.getElementById('outline-progress');
   if (oProgress) oProgress.hidden = true;
+  showPlanLoading(false);
 
   // Flash + restore buttons
   const revBtn = outlineRevise;
@@ -412,6 +413,7 @@ if (outlineRevise) {
     outlineRevise.classList.add('working');
     outlineRevise.textContent = 'Revising...';
     if (outlineApprove) outlineApprove.style.display = 'none';
+    showPlanLoading(true, 'Revising outline');
 
     // Clear previous log
     const oLog = document.getElementById('outline-log');
@@ -439,6 +441,7 @@ if (outlineRevise) {
     } catch (err) {
       creationState.generating = false;
       resetOutlineIndicators('fail');
+      showPlanLoading(false);
       appendCreationLog(`[Error] ${err.message}\n`);
       setStatus(`Revision failed: ${err.message}`);
     }
@@ -462,6 +465,7 @@ if (outlineApprove) {
     outlineApprove.classList.add('working');
     outlineApprove.textContent = 'Generating...';
     if (outlineRevise) outlineRevise.style.display = 'none';
+    showPlanLoading(true, 'Generating slides');
 
     // Clear previous log and show progress
     const oLog = document.getElementById('outline-log');
@@ -490,6 +494,7 @@ if (outlineApprove) {
     } catch (err) {
       creationState.generating = false;
       resetOutlineIndicators('fail');
+      showPlanLoading(false);
       appendCreationLog(`[Error] ${err.message}\n`);
       setStatus(`Generation failed: ${err.message}`);
     }
@@ -510,6 +515,7 @@ export function onPlanLog(payload) {
 
 export function onPlanFinished(payload) {
   creationState.generating = false;
+  showPlanLoading(false);
 
   if (payload.success && payload.outline) {
     resetOutlineIndicators('success');

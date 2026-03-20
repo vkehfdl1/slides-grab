@@ -14,6 +14,67 @@ import { scaleSlide } from './editor-bbox.js';
 import { resetOutlineIndicators } from './editor-outline.js';
 import { renderThumbnailStrip } from './editor-thumbnails.js';
 
+let _planLoadingTimer = null;
+let _planLoadingStart = 0;
+
+export function showPlanLoading(visible, label) {
+  const el = document.getElementById('plan-loading');
+  if (!el) return;
+  el.classList.toggle('active', visible);
+
+  if (visible) {
+    if (label) {
+      const labelEl = document.getElementById('plan-loading-label');
+      if (labelEl) labelEl.textContent = label;
+    }
+    const stepEl = document.getElementById('plan-loading-step');
+    if (stepEl) stepEl.textContent = '';
+
+    // Start timer
+    _planLoadingStart = Date.now();
+    const timerEl = document.getElementById('plan-loading-timer');
+    if (timerEl) timerEl.textContent = '0:00';
+    clearInterval(_planLoadingTimer);
+    _planLoadingTimer = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - _planLoadingStart) / 1000);
+      const m = Math.floor(elapsed / 60);
+      const s = String(elapsed % 60).padStart(2, '0');
+      if (timerEl) timerEl.textContent = `${m}:${s}`;
+    }, 1000);
+  } else {
+    clearInterval(_planLoadingTimer);
+    _planLoadingTimer = null;
+  }
+}
+
+export function updatePlanLoadingStep(step) {
+  const el = document.getElementById('plan-loading-step');
+  if (el) el.textContent = step;
+}
+
+/**
+ * Feed raw log chunks into the overlay step area.
+ * Extracts the last meaningful line to show activity.
+ */
+let _lastLogLine = '';
+export function feedPlanLoadingLog(chunk) {
+  if (!chunk || typeof chunk !== 'string') return;
+  const el = document.getElementById('plan-loading-step');
+  if (!el) return;
+
+  // Split chunk into lines, find the last non-empty one
+  const lines = chunk.split('\n').map(l => l.trim()).filter(Boolean);
+  if (lines.length === 0) return;
+
+  const line = lines[lines.length - 1];
+  // Skip duplicate or very short lines
+  if (line === _lastLogLine || line.length < 3) return;
+  _lastLogLine = line;
+
+  // Truncate for display
+  el.textContent = line.length > 70 ? line.slice(0, 67) + '...' : line;
+}
+
 export function showCreationMode() {
   creationState.active = true;
   if (creationPanel) creationPanel.classList.add('active');
@@ -28,6 +89,7 @@ export function showCreationMode() {
   const phaseOutline = document.getElementById('creation-phase-outline');
   if (phaseInput) phaseInput.hidden = false;
   if (phaseOutline) phaseOutline.hidden = true;
+  showPlanLoading(false);
 
   if (creationGenerate) {
     creationGenerate.disabled = false;
@@ -111,6 +173,7 @@ export async function submitGeneration() {
   if (creationGenerate) creationGenerate.disabled = true;
   if (creationProgress) creationProgress.hidden = false;
   if (creationLog) creationLog.textContent = '';
+  showPlanLoading(true, 'Generating outline');
   setStatus('Planning outline...');
 
   try {
@@ -131,6 +194,7 @@ export async function submitGeneration() {
   } catch (err) {
     creationState.generating = false;
     if (creationGenerate) creationGenerate.disabled = false;
+    showPlanLoading(false);
     appendCreationLog(`[Error] ${err.message}\n`);
     setStatus(`Plan failed: ${err.message}`);
   }
@@ -152,11 +216,6 @@ export function appendCreationLog(text) {
   logEl.textContent += text;
   logEl.scrollTop = logEl.scrollHeight;
 
-  // Shrink outline slides when progress is visible
-  if (inOutline) {
-    const review = document.querySelector('.outline-review');
-    if (review) review.classList.add('generating');
-  }
 }
 
 export function onGenerateStarted(payload) {
@@ -171,6 +230,7 @@ export function onGenerateLog(payload) {
 
 export function onGenerateFinished(payload) {
   creationState.generating = false;
+  showPlanLoading(false);
 
   const outlinePhase = document.getElementById('creation-phase-outline');
   const inOutline = outlinePhase && !outlinePhase.hidden;
@@ -274,4 +334,4 @@ if (creationTopic) {
   }, 3000);
 }
 
-let _placeholderTimer = null;
+var _placeholderTimer = null;

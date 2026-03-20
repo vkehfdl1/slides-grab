@@ -153,6 +153,18 @@ program
   });
 
 program
+  .command('browse')
+  .description('Open deck browser to view and manage all decks')
+  .option('--port <number>', 'Server port')
+  .action(async (options = {}) => {
+    const args = ['--browse'];
+    if (options.port) {
+      args.push('--port', String(options.port));
+    }
+    await runCommand('scripts/editor-server.js', args);
+  });
+
+program
   .command('split')
   .description('Split a multi-slide HTML file into individual slide-*.html files')
   .requiredOption('--input <path>', 'Source HTML file containing multiple slides')

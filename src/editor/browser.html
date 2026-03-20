@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deck Browser - slides-grab</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    :root {
+      --bg-0: #030711;
+      --bg-1: #0a0f1a;
+      --panel: #0f172a;
+      --panel-2: #020617;
+      --border: #1e293b;
+      --border-soft: #172033;
+      --text-0: #f8fafc;
+      --text-1: #94a3b8;
+      --text-2: #64748b;
+      --accent: #3b82f6;
+      --accent-2: #60a5fa;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --warn: #f59e0b;
+      --sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      --ring: hsla(213, 27%, 84%, 0.15);
+      --radius: 8px;
+      --radius-sm: 6px;
+      --radius-lg: 12px;
+      --radius-pill: 999px;
+      --shadow-card: 0 1px 2px rgba(0,0,0,0.3), 0 4px 8px rgba(0,0,0,0.2);
+      --transition: 150ms ease-out;
+      --surface-0: #08090b;
+      --surface-1: #0a0c0f;
+      --surface-2: #0d0f13;
+      --surface-3: #111318;
+      --text-muted: #8c93a0;
+      --border-subtle: #15181d;
+      --border-medium: #171a20;
+      --border-strong: #1b1f27;
+      --border-hover: #252b35;
+      --surface-hover: #141821;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-0);
+      font-family: var(--sans);
+      color: var(--text-0);
+      letter-spacing: 0.01em;
+    }
+
+    .browser-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Nav bar ── */
+    .nav-bar {
+      height: 52px;
+      background: var(--surface-0);
+      border-bottom: 1px solid var(--border-medium);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      flex-shrink: 0;
+      gap: 16px;
+    }
+
+    .nav-brand {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-brand span {
+      color: var(--accent);
+    }
+
+    .nav-spacer { flex: 1; }
+
+    .btn-new-deck {
+      height: 32px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+
+    .btn-new-deck:hover { background: var(--accent-2); }
+
+    /* ── Main content ── */
+    .main-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    /* ── Search ── */
+    .search-bar {
+      max-width: 480px;
+      margin-bottom: 24px;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 40px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 0 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-0);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+
+    .search-input::placeholder { color: var(--text-2); }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* ── Deck grid ── */
+    .deck-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .deck-card {
+      background: var(--surface-1);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      cursor: pointer;
+      transition: all var(--transition);
+      box-shadow: var(--shadow-card);
+    }
+
+    .deck-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4), 0 0 0 1px var(--accent);
+    }
+
+    .deck-card.new-deck-card {
+      border-style: dashed;
+      border-color: var(--border-hover);
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 220px;
+    }
+
+    .deck-card.new-deck-card:hover {
+      border-color: var(--accent);
+      background: rgba(59, 130, 246, 0.04);
+    }
+
+    .new-deck-inner {
+      text-align: center;
+      color: var(--text-2);
+    }
+
+    .new-deck-icon {
+      font-size: 32px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .new-deck-label {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* ── Thumbnail ── */
+    .deck-thumb {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .deck-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .deck-thumb-placeholder {
+      color: var(--text-2);
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    /* ── Card body ── */
+    .deck-info {
+      padding: 14px 16px;
+    }
+
+    .deck-name {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-0);
+      margin-bottom: 6px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .deck-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .deck-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .deck-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: var(--radius-pill);
+      background: rgba(59, 130, 246, 0.12);
+      color: var(--accent-2);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-2);
+    }
+
+    .empty-state-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.4;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-1);
+      margin-bottom: 8px;
+    }
+
+    .empty-state-desc {
+      font-size: 14px;
+      margin-bottom: 24px;
+    }
+
+    /* ── Status bar ── */
+    .status-bar {
+      height: 28px;
+      background: var(--surface-0);
+      border-top: 1px solid var(--border-medium);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      font-size: 11px;
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+
+    /* ── Loading ── */
+    .loading {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-2);
+      font-size: 14px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--border-strong);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="browser-container">
+    <div class="nav-bar">
+      <div class="nav-brand">slides<span>-grab</span></div>
+      <div class="nav-spacer"></div>
+      <button class="btn-new-deck" id="btn-new-deck">+ New Deck</button>
+    </div>
+
+    <div class="main-content" id="main-content">
+      <div class="search-bar">
+        <input class="search-input" id="search-input" type="text" placeholder="Search decks..." autocomplete="off">
+      </div>
+      <div id="deck-container">
+        <div class="loading">
+          <div class="loading-spinner"></div>
+          Loading decks...
+        </div>
+      </div>
+    </div>
+
+    <div class="status-bar" id="status-bar">Loading...</div>
+  </div>
+
+  <script type="module">
+    const deckContainer = document.getElementById('deck-container');
+    const searchInput = document.getElementById('search-input');
+    const statusBar = document.getElementById('status-bar');
+    const btnNewDeck = document.getElementById('btn-new-deck');
+
+    let allDecks = [];
+
+    function timeAgo(dateStr) {
+      const now = Date.now();
+      const then = new Date(dateStr).getTime();
+      const diffSec = Math.floor((now - then) / 1000);
+      if (diffSec < 60) return 'just now';
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}m ago`;
+      const diffHour = Math.floor(diffMin / 60);
+      if (diffHour < 24) return `${diffHour}h ago`;
+      const diffDay = Math.floor(diffHour / 24);
+      if (diffDay < 30) return `${diffDay}d ago`;
+      const diffMonth = Math.floor(diffDay / 30);
+      if (diffMonth < 12) return `${diffMonth}mo ago`;
+      return `${Math.floor(diffMonth / 12)}y ago`;
+    }
+
+    function renderDecks(decks) {
+      if (decks.length === 0 && allDecks.length === 0) {
+        deckContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">&#128196;</div>
+            <div class="empty-state-title">No decks yet</div>
+            <div class="empty-state-desc">Create your first presentation to get started.</div>
+            <button class="btn-new-deck" onclick="navigateCreate()">+ New Deck</button>
+          </div>
+        `;
+        return;
+      }
+
+      if (decks.length === 0) {
+        deckContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-title">No matches</div>
+            <div class="empty-state-desc">No decks match your search.</div>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '<div class="deck-grid">';
+
+      for (const deck of decks) {
+        const thumbUrl = `/api/decks/${encodeURIComponent(deck.name)}/thumbnail`;
+        html += `
+          <div class="deck-card" data-deck="${deck.name}" role="button" tabindex="0">
+            <div class="deck-thumb">
+              <img src="${thumbUrl}" loading="lazy" alt="${deck.name}"
+                   onerror="this.style.display='none'; this.nextElementSibling.style.display='';">
+              <span class="deck-thumb-placeholder" style="display:none;">No preview</span>
+            </div>
+            <div class="deck-info">
+              <div class="deck-name" title="${deck.name}">${deck.name}</div>
+              <div class="deck-meta">
+                <span class="deck-meta-item">${deck.slideCount} slides</span>
+                <span class="deck-meta-item">${timeAgo(deck.lastModified)}</span>
+                ${deck.hasOutline ? '<span class="deck-badge">outline</span>' : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      html += `
+        <div class="deck-card new-deck-card" id="card-new-deck" role="button" tabindex="0">
+          <div class="new-deck-inner">
+            <div class="new-deck-icon">+</div>
+            <div class="new-deck-label">New Deck</div>
+          </div>
+        </div>
+      `;
+
+      html += '</div>';
+      deckContainer.innerHTML = html;
+
+      // Event listeners
+      for (const card of deckContainer.querySelectorAll('.deck-card:not(.new-deck-card)')) {
+        card.addEventListener('click', () => navigateToDeck(card.dataset.deck));
+        card.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigateToDeck(card.dataset.deck); });
+      }
+
+      const newDeckCard = document.getElementById('card-new-deck');
+      if (newDeckCard) {
+        newDeckCard.addEventListener('click', navigateCreate);
+        newDeckCard.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigateCreate(); });
+      }
+    }
+
+    function navigateToDeck(deckName) {
+      window.location.href = `/editor?deck=${encodeURIComponent(deckName)}`;
+    }
+
+    window.navigateCreate = function navigateCreate() {
+      window.location.href = '/editor?create=1';
+    };
+
+    // Search
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase().trim();
+      const filtered = query
+        ? allDecks.filter((d) => d.name.toLowerCase().includes(query))
+        : allDecks;
+      renderDecks(filtered);
+      statusBar.textContent = query
+        ? `${filtered.length} of ${allDecks.length} decks`
+        : `${allDecks.length} decks`;
+    });
+
+    // New Deck button (nav bar)
+    btnNewDeck.addEventListener('click', navigateCreate);
+
+    // Load decks
+    async function loadDecks() {
+      try {
+        const res = await fetch('/api/decks');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        allDecks = await res.json();
+        renderDecks(allDecks);
+        statusBar.textContent = `${allDecks.length} decks`;
+      } catch (err) {
+        deckContainer.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-title">Failed to load decks</div>
+            <div class="empty-state-desc">${err.message}</div>
+          </div>
+        `;
+        statusBar.textContent = 'Error loading decks';
+      }
+    }
+
+    loadDecks();
+  </script>
+</body>
+</html>

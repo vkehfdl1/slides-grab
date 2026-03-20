@@ -14,7 +14,7 @@ import {
 } from './editor-figma-export.js';
 import {
   isCreationMode, onGenerateStarted, onGenerateLog, onGenerateFinished,
-  refreshSlideList,
+  refreshSlideList, updatePlanLoadingStep, feedPlanLoadingLog,
 } from './editor-create.js';
 import { onPlanStarted, onPlanLog, onPlanFinished } from './editor-outline.js';
 
@@ -135,7 +135,9 @@ export function connectSSE() {
 
   evtSource.addEventListener('planLog', (event) => {
     try {
-      onPlanLog(JSON.parse(event.data));
+      const data = JSON.parse(event.data);
+      onPlanLog(data);
+      if (data.stream !== 'stderr') feedPlanLoadingLog(data.chunk);
     } catch (error) {
       console.error('planLog parse error:', error);
     }
@@ -149,6 +151,13 @@ export function connectSSE() {
     }
   });
 
+  evtSource.addEventListener('progress', (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      updatePlanLoadingStep(data.step || '');
+    } catch { /* ignore */ }
+  });
+
   evtSource.addEventListener('generateStarted', (event) => {
     try {
       onGenerateStarted(JSON.parse(event.data));
@@ -159,7 +168,9 @@ export function connectSSE() {
 
   evtSource.addEventListener('generateLog', (event) => {
     try {
-      onGenerateLog(JSON.parse(event.data));
+      const data = JSON.parse(event.data);
+      onGenerateLog(data);
+      if (data.stream !== 'stderr') feedPlanLoadingLog(data.chunk);
     } catch (error) {
       console.error('generateLog parse error:', error);
     }

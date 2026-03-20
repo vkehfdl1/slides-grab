@@ -397,30 +397,63 @@ async function init() {
   setStatus('Loading slide list...');
 
   try {
+    const urlParams = new URLSearchParams(window.location.search);
+
+    // If ?deck= param exists, switch to that deck first (from browse page)
+    const deckParam = urlParams.get('deck');
+    if (deckParam) {
+      const switchRes = await fetch('/api/decks/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deckName: deckParam }),
+      });
+      if (!switchRes.ok) {
+        const err = await switchRes.json().catch(() => ({}));
+        throw new Error(`Failed to switch deck: ${err.error || switchRes.statusText}`);
+      }
+    }
+
+    // Detect browse mode: show back button and deck name in nav bar
+    const configRes = await fetch('/api/editor-config');
+    const config = configRes.ok ? await configRes.json() : {};
+    if (config.browseMode) {
+      const backBtn = document.getElementById('btn-back-browser');
+      const deckNameEl = document.getElementById('nav-deck-name');
+      if (backBtn) backBtn.style.display = '';
+      if (deckNameEl && config.deckName) {
+        deckNameEl.textContent = config.deckName;
+        deckNameEl.style.display = '';
+      }
+    }
+
+    // Handle ?create=1 query param (from browser "New Deck" button)
+    const forceCreate = urlParams.get('create') === '1';
+
     const res = await fetch('/api/slides');
     if (!res.ok) {
       throw new Error(`Failed to fetch slide list: ${res.status}`);
     }
 
     state.slides = await res.json();
-
-    // Enter creation mode if: server is in create mode, or no slides exist
+    // Enter creation mode if: server is in create mode, or no slides exist, or ?create=1
     const isCreateMode = await checkCreateMode();
-    if (isCreateMode || state.slides.length === 0) {
+    if (forceCreate || isCreateMode || state.slides.length === 0) {
       showCreationMode();
       await loadCreationModelOptions();
       connectSSE();
 
-      // Auto-load outline if one exists in the deck
-      try {
-        const outlineRes = await fetch('/api/outline');
-        if (outlineRes.ok) {
-          const outline = await outlineRes.json();
-          showOutlinePhase(outline);
-          setStatus('Outline loaded. Review and provide feedback.');
-          return;
-        }
-      } catch { /* no outline */ }
+      // Auto-load outline if one exists in the deck (skip for explicit new deck)
+      if (!forceCreate) {
+        try {
+          const outlineRes = await fetch('/api/outline');
+          if (outlineRes.ok) {
+            const outline = await outlineRes.json();
+            showOutlinePhase(outline);
+            setStatus('Outline loaded. Review and provide feedback.');
+            return;
+          }
+        } catch { /* no outline */ }
+      }
 
       setStatus('Enter a topic to generate slides.');
       return;

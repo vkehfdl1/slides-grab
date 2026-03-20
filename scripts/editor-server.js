@@ -79,6 +79,7 @@ function parseArgs(argv) {
     slidesDir: DEFAULT_SLIDES_DIR,
     help: false,
     createMode: false,
+    browseMode: false,
     deckName: '',
   };
 
@@ -91,6 +92,11 @@ function parseArgs(argv) {
 
     if (arg === '--create') {
       opts.createMode = true;
+      continue;
+    }
+
+    if (arg === '--browse') {
+      opts.browseMode = true;
       continue;
     }
 
@@ -140,8 +146,8 @@ function parseArgs(argv) {
     throw new Error('`--port` must be a positive integer.');
   }
 
-  // In create mode, slidesDir is determined later (after topic is submitted)
-  if (!opts.createMode) {
+  // In create/browse mode, slidesDir is determined later
+  if (!opts.createMode && !opts.browseMode) {
     if (typeof opts.slidesDir !== 'string' || opts.slidesDir.trim() === '') {
       throw new Error('`--slides-dir` must be a non-empty path.');
     }
@@ -577,11 +583,11 @@ function slugify(text) {
 
 async function startServer(opts) {
   await loadDeps();
-  let slidesDirectory = opts.createMode
-    ? ''  // will be set when user submits topic
+  let slidesDirectory = (opts.createMode || opts.browseMode)
+    ? ''  // will be set when user submits topic or selects a deck
     : resolve(process.cwd(), opts.slidesDir);
 
-  if (!opts.createMode) {
+  if (!opts.createMode && !opts.browseMode) {
     await mkdir(slidesDirectory, { recursive: true });
   }
 
@@ -595,10 +601,14 @@ async function startServer(opts) {
 
   const app = express();
   app.use(express.json({ limit: '5mb' }));
-  app.use('/js', express.static(join(PACKAGE_ROOT, 'src', 'editor', 'js')));
+  app.use('/js', express.static(join(PACKAGE_ROOT, 'src', 'editor', 'js'), {
+    etag: false, lastModified: false,
+    setHeaders: (res) => { res.setHeader('Cache-Control', 'no-store'); },
+  }));
   app.use('/asset', express.static(join(PACKAGE_ROOT, 'asset')));
 
   const editorHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'editor.html');
+  const browserHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'browser.html');
 
   function broadcastRunsSnapshot() {
     broadcastSSE('runsSnapshot', {
@@ -608,6 +618,16 @@ async function startServer(opts) {
   }
 
   app.get('/', async (_req, res) => {
+    try {
+      const targetPath = opts.browseMode ? browserHtmlPath : editorHtmlPath;
+      const html = await readFile(targetPath, 'utf-8');
+      res.type('html').send(html);
+    } catch (err) {
+      res.status(500).send(`Failed to load page: ${err.message}`);
+    }
+  });
+
+  app.get('/editor', async (_req, res) => {
     try {
       const html = await readFile(editorHtmlPath, 'utf-8');
       res.type('html').send(html);
@@ -644,7 +664,8 @@ async function startServer(opts) {
     }
     res.json({
       createMode: effectiveCreateMode,
-      deckName: opts.deckName || '',
+      browseMode: opts.browseMode || false,
+      deckName: opts.deckName || (slidesDirectory ? basename(slidesDirectory) : ''),
       slidesDir: slidesDirectory ? toPosixPath(relative(process.cwd(), slidesDirectory) || slidesDirectory) : '',
     });
   });
@@ -658,6 +679,116 @@ async function startServer(opts) {
       res.json(files);
     } catch (err) {
       res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── Deck browser APIs ──
+
+  app.get('/api/decks', async (_req, res) => {
+    try {
+      const decksRoot = resolve(process.cwd(), 'decks');
+      let entries;
+      try {
+        entries = await readdir(decksRoot, { withFileTypes: true });
+      } catch {
+        return res.json([]);
+      }
+      const decks = [];
+      for (const entry of entries) {
+        if (!entry.isDirectory() || entry.name.startsWith('_') || entry.name.startsWith('.')) continue;
+        const deckPath = join(decksRoot, entry.name);
+        try {
+          const slideFiles = await listSlideFiles(deckPath);
+          const deckStat = await stat(deckPath);
+          let hasOutline = false;
+          try { await stat(join(deckPath, 'slide-outline.md')); hasOutline = true; } catch { /* no outline */ }
+          decks.push({
+            name: entry.name,
+            slideCount: slideFiles.length,
+            lastModified: deckStat.mtime.toISOString(),
+            hasOutline,
+            firstSlide: slideFiles[0] || null,
+          });
+        } catch { /* skip unreadable dirs */ }
+      }
+      decks.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+      res.json(decks);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  app.post('/api/decks/switch', async (req, res) => {
+    const { deckName } = req.body ?? {};
+    if (typeof deckName !== 'string' || !deckName.trim()) {
+      return res.status(400).json({ error: 'Missing deckName.' });
+    }
+    const sanitized = deckName.trim();
+    const newDir = resolve(process.cwd(), 'decks', sanitized);
+    try {
+      await stat(newDir);
+    } catch {
+      return res.status(404).json({ error: 'Deck not found.' });
+    }
+    slidesDirectory = newDir;
+    opts.deckName = sanitized;
+    opts.createMode = false;
+    setupFileWatcher(slidesDirectory);
+    res.json({
+      deckName: sanitized,
+      slidesDir: toPosixPath(relative(process.cwd(), slidesDirectory) || slidesDirectory),
+    });
+  });
+
+  app.get('/api/decks/:name/thumbnail', async (req, res) => {
+    const deckName = req.params.name;
+    const deckPath = resolve(process.cwd(), 'decks', deckName);
+    try {
+      await stat(deckPath);
+    } catch {
+      return res.status(404).json({ error: 'Deck not found.' });
+    }
+    try {
+      const slideFiles = await listSlideFiles(deckPath);
+      if (slideFiles.length === 0) {
+        return res.status(404).json({ error: 'No slides in deck.' });
+      }
+      const firstSlide = slideFiles[0];
+      const thumbPath = join(deckPath, '.thumb.png');
+
+      // Check cache: thumb exists and is newer than first slide
+      let useCache = false;
+      try {
+        const thumbStat = await stat(thumbPath);
+        const slideStat = await stat(join(deckPath, firstSlide));
+        if (thumbStat.mtime >= slideStat.mtime) useCache = true;
+      } catch { /* no cache */ }
+
+      if (useCache) {
+        const thumbBuf = await readFile(thumbPath);
+        res.type('image/png').send(thumbBuf);
+        return;
+      }
+
+      // Generate thumbnail using file:// URL (no race condition with slidesDirectory)
+      const tmpPath = await mkdtemp(join(tmpdir(), 'thumb-'));
+      const screenshotPath = join(tmpPath, 'thumb.png');
+
+      await withScreenshotPage(async (page) => {
+        await screenshotMod.captureSlideScreenshot(
+          page, firstSlide, screenshotPath, deckPath, { useHttp: false },
+        );
+      });
+
+      const thumbBuf = await readFile(screenshotPath);
+      // Cache to deck folder
+      try { await writeFile(thumbPath, thumbBuf); } catch { /* ignore cache write failure */ }
+      // Clean up temp
+      try { await rm(tmpPath, { recursive: true }); } catch { /* ignore */ }
+
+      res.type('image/png').send(thumbBuf);
+    } catch (err) {
+      res.status(500).json({ error: `Thumbnail generation failed: ${err.message}` });
     }
   });
 
@@ -976,6 +1107,7 @@ async function startServer(opts) {
     activeGenerate = true;
 
     broadcastSSE('planStarted', { runId, topic: topic.trim() });
+    broadcastSSE('progress', { runId, phase: 'plan', step: 'Analyzing topic and structuring outline' });
     res.json({ runId, topic: topic.trim(), model: selectedModel });
 
     (async () => {
@@ -1027,6 +1159,8 @@ async function startServer(opts) {
 
         const fullPrompt = promptLines.join('\n');
 
+        broadcastSSE('progress', { runId, phase: 'plan', step: 'Generating outline with AI' });
+
         const result = await spawnClaudeEdit({
           prompt: fullPrompt,
           imagePath: null,
@@ -1041,6 +1175,10 @@ async function startServer(opts) {
 
         let outline = null;
         let detectedDeckName = '';
+
+        if (success) {
+          broadcastSSE('progress', { runId, phase: 'plan', step: 'Parsing generated outline' });
+        }
 
         if (success) {
           try {
@@ -1115,6 +1253,7 @@ async function startServer(opts) {
       ? `Revise Slide ${targetSlide}: ${feedback.trim().slice(0, 40)}`
       : `Revise: ${feedback.trim().slice(0, 50)}`;
     broadcastSSE('planStarted', { runId, topic: targetLabel });
+    broadcastSSE('progress', { runId, phase: 'revise', step: 'Applying revision feedback' });
     res.json({ runId });
 
     (async () => {
@@ -1241,6 +1380,7 @@ async function startServer(opts) {
       ? toPosixPath(relative(process.cwd(), slidesDirectory) || slidesDirectory)
       : '';
     broadcastSSE('generateStarted', { runId, topic: (topic || '').trim(), deckPath: resolvedDeckPath });
+    broadcastSSE('progress', { runId, phase: 'generate', step: 'Preparing slide templates' });
 
     res.json({ runId, topic: (topic || '').trim(), model: selectedModel, deckPath: resolvedDeckPath });
 
@@ -1347,6 +1487,8 @@ async function startServer(opts) {
           fullPrompt = promptLines.join('\n');
         }
 
+        broadcastSSE('progress', { runId, phase: 'generate', step: 'Building slides with AI' });
+
         const result = await spawnClaudeEdit({
           prompt: fullPrompt,
           imagePath: null,
@@ -1359,6 +1501,10 @@ async function startServer(opts) {
         });
 
         const success = result.code === 0;
+
+        if (success) {
+          broadcastSSE('progress', { runId, phase: 'generate', step: 'Finalizing slides' });
+        }
 
         // If slidesDirectory is still unset, detect the folder Claude created
         if (!slidesDirectory && success) {
@@ -1904,9 +2050,10 @@ async function startServer(opts) {
   }
 
   const server = app.listen(opts.port, () => {
+    const mode = opts.browseMode ? 'BROWSE' : opts.createMode ? 'CREATE' : 'EDIT';
     process.stdout.write('\n  slides-grab editor\n');
     process.stdout.write('  ─────────────────────────────────────\n');
-    process.stdout.write(`  Mode:        ${opts.createMode ? 'CREATE' : 'EDIT'}\n`);
+    process.stdout.write(`  Mode:        ${mode}\n`);
     process.stdout.write(`  Local:       http://localhost:${opts.port}\n`);
     process.stdout.write(`  Models:      ${ALL_MODELS.join(', ')}\n`);
     process.stdout.write(`  Slides:      ${slidesDirectory || '(will be created)'}\n`);
