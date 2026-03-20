@@ -413,6 +413,14 @@ async function init() {
       }
     }
 
+    // Handle ?create=1 query param (from browser "New Deck" button)
+    const forceCreate = urlParams.get('create') === '1';
+
+    // Reset server state for new deck creation
+    if (forceCreate) {
+      await fetch('/api/decks/new', { method: 'POST' }).catch(() => {});
+    }
+
     // Detect browse mode: show back button and deck name in nav bar
     const configRes = await fetch('/api/editor-config');
     const config = configRes.ok ? await configRes.json() : {};
@@ -420,14 +428,16 @@ async function init() {
       const backBtn = document.getElementById('btn-back-browser');
       const deckNameEl = document.getElementById('nav-deck-name');
       if (backBtn) backBtn.style.display = '';
-      if (deckNameEl && config.deckName) {
-        deckNameEl.textContent = config.deckName;
-        deckNameEl.style.display = '';
+      if (deckNameEl) {
+        if (forceCreate) {
+          deckNameEl.textContent = '';
+          deckNameEl.style.display = 'none';
+        } else if (config.deckName) {
+          deckNameEl.textContent = config.deckName;
+          deckNameEl.style.display = '';
+        }
       }
     }
-
-    // Handle ?create=1 query param (from browser "New Deck" button)
-    const forceCreate = urlParams.get('create') === '1';
 
     const res = await fetch('/api/slides');
     if (!res.ok) {
@@ -448,7 +458,7 @@ async function init() {
           const outlineRes = await fetch('/api/outline');
           if (outlineRes.ok) {
             const outline = await outlineRes.json();
-            showOutlinePhase(outline);
+            showOutlinePhase(outline, { isExistingDeck: state.slides.length > 0 });
             setStatus('Outline loaded. Review and provide feedback.');
             return;
           }
