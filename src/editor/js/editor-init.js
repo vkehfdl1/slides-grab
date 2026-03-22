@@ -39,6 +39,7 @@ import './editor-figma-export.js';
 import { showCreationMode, hideCreationMode, loadCreationModelOptions, checkCreateMode, loadImportModelOptions, switchToImportTab, submitImport } from './editor-create.js';
 import { showOutlinePhase } from './editor-outline.js';
 import { renderThumbnailStrip, updateActiveThumbnail } from './editor-thumbnails.js';
+import { loadPacks } from './editor-pack.js';
 
 // Late-binding: connect bbox changes to updateSendState
 onBboxChange(updateSendState);
@@ -449,8 +450,7 @@ async function init() {
     const isCreateMode = await checkCreateMode();
     if (forceCreate || isCreateMode || state.slides.length === 0) {
       showCreationMode();
-      await loadCreationModelOptions();
-      await loadImportModelOptions();
+      await Promise.all([loadCreationModelOptions(), loadImportModelOptions(), loadPacks()]);
       connectSSE();
 
       // Auto-load outline if one exists in the deck (skip for explicit new deck)

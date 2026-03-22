@@ -1,0 +1,12 @@
+{
+  "id": "corporate",
+  "name": "Corporate",
+  "description": "Clean white background with navy text and blue accent — professional business style",
+  "tags": ["light", "business", "professional"],
+  "colors": {
+    "bg-primary": "#ffffff",
+    "text-primary": "#1e293b",
+    "text-secondary": "#64748b",
+    "accent": "#2563eb"
+  }
+}

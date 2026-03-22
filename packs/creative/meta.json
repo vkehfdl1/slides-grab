@@ -1,0 +1,12 @@
+{
+  "id": "creative",
+  "name": "Creative",
+  "description": "Vibrant gradients and bold colors — energetic creative style",
+  "tags": ["colorful", "creative", "gradient"],
+  "colors": {
+    "bg-primary": "#0f0c29",
+    "text-primary": "#ffffff",
+    "text-secondary": "#c4b5fd",
+    "accent": "#f472b6"
+  }
+}

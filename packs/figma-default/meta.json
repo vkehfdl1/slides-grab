@@ -1,0 +1,12 @@
+{
+  "id": "figma-default",
+  "name": "Figma Default",
+  "description": "Clean white background with black text and orange accent — the classic default",
+  "tags": ["light", "clean", "default"],
+  "colors": {
+    "bg-primary": "#ffffff",
+    "text-primary": "#000000",
+    "text-secondary": "#6b6b6b",
+    "accent": "#FC5E20"
+  }
+}

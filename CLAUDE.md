@@ -30,9 +30,45 @@ npm ci && npx playwright install chromium
 slides-grab validate --slides-dir decks/<deck-name>
 ```
 
-## Available Templates
+## Template Pack System
 
-`templates/` 디렉토리에서 사용 가능한 템플릿 (23종):
+템플릿은 `packs/` 디렉토리에서 팩 단위로 관리됩니다. 각 팩은 고유한 시각 디자인을 제공합니다.
+
+### Available Packs (4종)
+
+| ID | 이름 | 컨셉 | 보유 템플릿 |
+|---|---|---|---|
+| `figma-default` | Figma Default | 흰 배경 + 검정 + 오렌지 (기본값) | 23개 전체 |
+| `midnight` | Midnight | 딥 네이비 + 골드. 프리미엄 다크 | 핵심 7개 |
+| `corporate` | Corporate | 화이트 + 네이비/블루. 비즈니스 | 핵심 7개 |
+| `creative` | Creative | 그라디언트 + 핑크/인디고. 크리에이티브 | 핵심 7개 |
+
+### Pack CLI Commands
+
+```bash
+# 팩 목록 보기
+slides-grab list-packs
+
+# 팩 상세 보기
+slides-grab show-pack midnight
+
+# 팩 전용 템플릿 보기 (없으면 figma-default fallback)
+slides-grab show-template cover --pack midnight
+```
+
+### Pack Resolution
+
+1. `packs/<packId>/templates/<name>.html` 확인
+2. 없으면 `packs/figma-default/templates/<name>.html` fallback
+3. 팩 미지정 시 figma-default 사용
+
+### 핵심 7개 템플릿 (신규 팩 공통)
+
+`cover`, `content`, `contents`, `two-columns`, `section-divider`, `highlight`, `closing`
+
+나머지 16개 타입(chart, timeline, matrix 등)은 figma-default에서 fallback.
+
+## Available Templates (23종)
 
 | 템플릿 | 설명 |
 |--------|------|

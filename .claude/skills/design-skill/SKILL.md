@@ -12,12 +12,14 @@ Delivers minimal, refined design based on existing templates and theme system.
 
 ## Core Style Principles
 
+- **Font**: Pretendard (CDN link below)
+- **Slide Size**: 720pt x 405pt (16:9, fixed)
+- **Style**: Determined by the selected template pack
+
+### Default Style (figma-default pack)
 - **Background**: White (`#ffffff`)
 - **Text**: Black (`#000000`), secondary `#6b6b6b`
 - **Accent**: `#FC5E20`
-- **Font**: Pretendard (CDN link below)
-- **Slide Size**: 720pt x 405pt (16:9, fixed)
-- **Style**: Clean, minimal Figma Slides default aesthetic
 
 ### Pretendard Webfont CDN
 ```html
@@ -26,31 +28,63 @@ Delivers minimal, refined design based on existing templates and theme system.
 
 ---
 
+## Template Pack System
+
+Templates are organized into **packs** in the `packs/` directory. Each pack provides a different visual design.
+
+Available packs: `figma-default`, `midnight`, `corporate`, `creative`
+
+### How to use packs
+
+1. **Check available packs**:
+   ```bash
+   slides-grab list-packs
+   ```
+
+2. **View pack details** (colors, owned templates, fallback info):
+   ```bash
+   slides-grab show-pack <pack-id>
+   ```
+
+3. **View a template from a specific pack**:
+   ```bash
+   slides-grab show-template <template-name> --pack <pack-id>
+   ```
+   If the pack doesn't own that template, it falls back to `figma-default`.
+
+4. **Follow the pack's design language**: Use the pack's colors, typography scale, and visual style consistently across all slides.
+
+### Pack Resolution
+
+When a pack is specified (e.g., `midnight`):
+- Templates owned by the pack are used directly
+- Missing templates fall back to `figma-default`, but **colors/style should be adapted** to match the selected pack
+
+---
+
 ## Template-First Design Rule
 
-**Slides must be designed based on existing templates in the `templates/` directory.**
+**Slides must be designed based on existing templates from the selected pack.**
 
 Do NOT invent custom layouts, typography scales, color systems, or component patterns from scratch.
 Instead, follow the structure and styling of the matching template.
 
 ### How to use templates
 
-1. **Check available templates**: See the full list in `CLAUDE.md` (23 templates available)
+1. **Check available templates**: See the full list in `CLAUDE.md` (23 template types available)
 2. **View template content**: Use the CLI command to inspect a template before designing:
    ```bash
-   slides-grab show-template <template-name>
+   slides-grab show-template <template-name> --pack <pack-id>
    ```
-   Example: `slides-grab show-template cover`, `slides-grab show-template timeline`
+   Example: `slides-grab show-template cover --pack midnight`
 3. **Follow the template**: Copy the template's HTML structure, CSS patterns, and layout as the base for the slide
 4. **Customize content only**: Replace placeholder text/data with actual content from `slide-outline.md`
+5. **When no pack is specified**: Default to `figma-default` pack (original behavior)
 
 ### Theme CSS Variables
 
-All color and styling decisions must follow the CSS variables defined in `themes/figma-default.css`.
-
-- Read `themes/figma-default.css` to understand the available CSS custom properties
-- Use these variables consistently across all slides
-- Do NOT hardcode colors that conflict with the theme
+When using `figma-default` pack, color and styling decisions should follow `themes/figma-default.css`.
+For other packs, follow the pack's `meta.json` color definitions.
 
 ---
 

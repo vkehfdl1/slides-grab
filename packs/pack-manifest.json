@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "defaultPack": "figma-default",
+  "packs": ["figma-default", "midnight", "corporate", "creative"]
+}

@@ -4,6 +4,7 @@ import { creationState } from './editor-state.js';
 import { setStatus } from './editor-utils.js';
 import { appendCreationLog, showCreationMode, loadCreationModelOptions, showPlanLoading, updatePlanLoadingStep } from './editor-create.js';
 import { btnReviewOutline } from './editor-dom.js';
+import { getSelectedPack } from './editor-pack.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -89,7 +90,18 @@ export function showOutlinePhase(outline, { isExistingDeck = false } = {}) {
     outlineDeckName.title = isExistingDeck ? '기존 덱 — 이름 변경 불가' : '';
     outlineDeckName.style.opacity = isExistingDeck ? '0.6' : '';
   }
-  if (outlineCount) outlineCount.textContent = `${outline.slides?.length || 0} slides`;
+  if (outlineCount) {
+    const packLabel = outline.pack || getSelectedPack() || '';
+    const packBadge = packLabel && packLabel !== 'figma-default'
+      ? ` <span class="outline-pack-badge">${packLabel}</span>`
+      : '';
+    outlineCount.innerHTML = `${outline.slides?.length || 0} slides${packBadge}`;
+  }
+
+  // Sync pack selection from outline if present
+  if (outline.pack) {
+    import('./editor-pack.js').then(m => m.setSelectedPack(outline.pack));
+  }
 
   renderOutlineCards(outline.slides || []);
   updateFeedbackPlaceholder();
@@ -486,7 +498,7 @@ if (outlineApprove) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           topic: currentOutline?.title || '',
-          deckName, model, fromOutline: true,
+          deckName, model, fromOutline: true, packId: getSelectedPack(),
         }),
       });
       if (!res.ok) {

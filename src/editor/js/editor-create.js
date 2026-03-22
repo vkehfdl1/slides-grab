@@ -12,6 +12,7 @@ import {
   importFileName, importFileClear, importSlideCount, importResearchMode,
   importModel, importSubmit,
 } from './editor-dom.js';
+import { getSelectedPack } from './editor-pack.js';
 import { setStatus, loadModelOptions } from './editor-utils.js';
 import { goToSlide } from './editor-navigation.js';
 import { updateToolModeUI } from './editor-select.js';
@@ -210,7 +211,7 @@ export async function submitGeneration() {
     const res = await fetch('/api/plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic, requirements, model, slideCount }),
+      body: JSON.stringify({ topic, requirements, model, slideCount, packId: getSelectedPack() }),
     });
 
     if (!res.ok) {
@@ -525,7 +526,7 @@ export async function submitImport(content) {
     const res = await fetch('/api/import-md', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: mdContent, model, slideCount, researchMode }),
+      body: JSON.stringify({ content: mdContent, model, slideCount, researchMode, packId: getSelectedPack() }),
     });
 
     if (!res.ok) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readdir, readFile, writeFile, mkdtemp, rm, mkdir, stat, rename, copyFile, unlink } from 'node:fs/promises';
-import { watch as fsWatch } from 'node:fs';
+import { watch as fsWatch, existsSync } from 'node:fs';
 import { basename, dirname, join, resolve, relative, sep } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
@@ -21,7 +21,7 @@ import {
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
 
-import { listTemplates } from '../src/resolve.js';
+import { listTemplates, listPacks, resolvePack, listPackTemplates } from '../src/resolve.js';
 
 import { mergePdfBuffers } from './html2pdf.js';
 import { PDFDocument } from 'pdf-lib';
@@ -343,7 +343,7 @@ function randomRunId() {
 
 function parseOutline(content, deckName) {
   const lines = content.split('\n');
-  const outline = { title: '', deckName: deckName || '', slides: [], rawHeader: '', rawFooter: '' };
+  const outline = { title: '', deckName: deckName || '', pack: '', slides: [], rawHeader: '', rawFooter: '' };
 
   for (const line of lines) {
     const h1 = line.match(/^#\s+(.+)/);
@@ -354,6 +354,13 @@ function parseOutline(content, deckName) {
     const plain = line.replace(/\*\*(.*?)\*\*/g, '$1');
     const dm = plain.match(/^-\s*deck-name:\s*(.+)/i);
     if (dm) { outline.deckName = dm[1].trim(); break; }
+  }
+
+  // Parse pack meta field
+  for (const line of lines) {
+    const plain = line.replace(/\*\*(.*?)\*\*/g, '$1');
+    const pm = plain.match(/^-\s*pack:\s*(.+)/i);
+    if (pm) { outline.pack = pm[1].trim(); break; }
   }
 
   // Find ### Slide boundaries and H1/H2 footer boundary
@@ -1227,6 +1234,42 @@ async function startServer(opts) {
     }
   });
 
+  // ── GET /api/packs — List all template packs ───────────────────────
+  app.get('/api/packs', (_req, res) => {
+    try {
+      const packs = listPacks();
+      res.json(packs);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── GET /api/packs/:id/preview — Pack preview image ────────────────
+  app.get('/api/packs/:id/preview', (req, res) => {
+    const pack = resolvePack(req.params.id);
+    if (!pack) return res.status(404).send('Pack not found');
+
+    const previewPath = join(pack.path, 'preview.png');
+    if (existsSync(previewPath)) {
+      return res.sendFile(previewPath);
+    }
+
+    // Fallback: generate a gradient preview based on pack colors
+    const colors = pack.meta.colors || {};
+    const bg = colors['bg-primary'] || '#333';
+    const accent = colors.accent || '#666';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="280" height="158" viewBox="0 0 280 158">
+      <rect width="280" height="158" fill="${bg}" rx="4"/>
+      <rect x="20" y="20" width="160" height="12" rx="2" fill="${accent}" opacity="0.9"/>
+      <rect x="20" y="42" width="120" height="8" rx="2" fill="${colors['text-primary'] || '#fff'}" opacity="0.4"/>
+      <rect x="20" y="58" width="100" height="8" rx="2" fill="${colors['text-secondary'] || '#aaa'}" opacity="0.3"/>
+      <rect x="20" y="90" width="240" height="1" fill="${accent}" opacity="0.2"/>
+      <rect x="20" y="110" width="80" height="6" rx="1" fill="${colors['text-secondary'] || '#aaa'}" opacity="0.25"/>
+      <rect x="20" y="124" width="60" height="6" rx="1" fill="${colors['text-secondary'] || '#aaa'}" opacity="0.15"/>
+    </svg>`;
+    res.type('image/svg+xml').send(svg);
+  });
+
   // ── GET /api/outline — Load existing outline ───────────────────────
   app.get('/api/outline', async (_req, res) => {
     if (!slidesDirectory) {
@@ -1283,7 +1326,7 @@ async function startServer(opts) {
   let activeGenerate = false;
 
   app.post('/api/import-md', async (req, res) => {
-    const { content: mdContent, filePath, model, slideCount, researchMode } = req.body ?? {};
+    const { content: mdContent, filePath, model, slideCount, researchMode, packId: reqImportPackId } = req.body ?? {};
 
     // Read MD content from body or file
     let rawMd = '';
@@ -1368,9 +1411,13 @@ async function startServer(opts) {
         promptLines.push('```');
         promptLines.push('# 발표 제목');
         promptLines.push('');
+        const importPackId = typeof reqImportPackId === 'string' && reqImportPackId.trim() ? reqImportPackId.trim() : '';
         promptLines.push('## Meta');
         promptLines.push('- deck-name: <kebab-case-name>');
         promptLines.push('- slide-count: N');
+        if (importPackId) {
+          promptLines.push(`- pack: ${importPackId}`);
+        }
         promptLines.push('');
         promptLines.push('## Slides');
         promptLines.push('### Slide 1');
@@ -1465,7 +1512,7 @@ async function startServer(opts) {
   // ── POST /api/plan — Outline Planning ─────────────────────────────
 
   app.post('/api/plan', async (req, res) => {
-    const { topic, requirements, model, slideCount: slideCountRange } = req.body ?? {};
+    const { topic, requirements, model, slideCount: slideCountRange, packId: reqPackId } = req.body ?? {};
 
     if (typeof topic !== 'string' || topic.trim() === '') {
       return res.status(400).json({ error: 'Missing or invalid `topic`.' });
@@ -1491,6 +1538,7 @@ async function startServer(opts) {
         const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim()
           ? slideCountRange.trim()
           : '8~12';
+        const selectedPackId = typeof reqPackId === 'string' && reqPackId.trim() ? reqPackId.trim() : '';
 
         const promptLines = [
           `주제: ${topic.trim()}`,
@@ -1515,6 +1563,9 @@ async function startServer(opts) {
         promptLines.push('## Meta');
         promptLines.push('- deck-name: <kebab-case-name>');
         promptLines.push('- slide-count: N');
+        if (selectedPackId) {
+          promptLines.push(`- pack: ${selectedPackId}`);
+        }
         promptLines.push('');
         promptLines.push('## Slides');
         promptLines.push('### Slide 1');
@@ -1699,7 +1750,7 @@ async function startServer(opts) {
   // ── POST /api/generate — Creation Mode ────────────────────────────
 
   app.post('/api/generate', async (req, res) => {
-    const { topic, requirements, model, deckName, slideCount: slideCountRange, fromOutline } = req.body ?? {};
+    const { topic, requirements, model, deckName, slideCount: slideCountRange, fromOutline, packId: reqGenPackId } = req.body ?? {};
 
     if (!fromOutline && (typeof topic !== 'string' || topic.trim() === '')) {
       return res.status(400).json({ error: 'Missing or invalid `topic`.' });
@@ -1788,6 +1839,13 @@ async function startServer(opts) {
             outlineContent = await readFile(outlinePath, 'utf-8');
           } catch { /* no outline file */ }
 
+          // Detect pack from request or outline
+          const outlineParsed = parseOutline(outlineContent, '');
+          const genPackId = (typeof reqGenPackId === 'string' && reqGenPackId.trim())
+            ? reqGenPackId.trim()
+            : (outlineParsed.pack || '');
+          const packTemplateList = genPackId ? listPackTemplates(genPackId) : [];
+
           const promptLines = [
             `작업 디렉토리: ${slidesDir}`,
             '',
@@ -1798,26 +1856,47 @@ async function startServer(opts) {
             outlineContent,
             '--- 아웃라인 끝 ---',
             '',
-            '다음 단계를 순서대로 수행하세요:',
-            '',
-            '1. 템플릿 기반으로 slide-01.html ~ slide-NN.html을 생성하세요.',
-            '   - 크기: 720pt x 405pt (body width/height)',
-            '   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")',
-            '   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용',
-            '   - slides-grab show-template <name> 으로 템플릿 확인 후 활용',
-            '   - backup/ 폴더는 절대 수정하지 마세요 (이전 슬라이드 백업)',
-            '   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다',
-            '',
-            '2. 승인 대기 없이 전체 슬라이드를 한번에 생성하세요.',
-            '',
-            `3. 완료 후: node scripts/build-viewer.js --slides-dir ${slidesDir}`,
           ];
+
+          if (genPackId) {
+            promptLines.push(`사용할 템플릿 팩: ${genPackId}`);
+            if (packTemplateList.length > 0) {
+              promptLines.push(`이 팩의 보유 템플릿: ${packTemplateList.join(', ')}`);
+            }
+            promptLines.push('');
+            promptLines.push('각 슬라이드 생성 시:');
+            promptLines.push(`- slides-grab show-template <type> --pack ${genPackId} 로 팩 전용 템플릿 확인`);
+            promptLines.push('- 팩에 없는 타입은 slides-grab show-template <type> 으로 기본 템플릿을 사용하되,');
+            promptLines.push('  팩의 색상/분위기에 맞게 색상을 조정하세요.');
+            promptLines.push('');
+          }
+
+          promptLines.push('다음 단계를 순서대로 수행하세요:');
+          promptLines.push('');
+          promptLines.push('1. 템플릿 기반으로 slide-01.html ~ slide-NN.html을 생성하세요.');
+          promptLines.push('   - 크기: 720pt x 405pt (body width/height)');
+          promptLines.push('   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")');
+          promptLines.push('   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용');
+          if (genPackId) {
+            promptLines.push(`   - slides-grab show-template <name> --pack ${genPackId} 으로 템플릿 확인 후 활용`);
+          } else {
+            promptLines.push('   - slides-grab show-template <name> 으로 템플릿 확인 후 활용');
+          }
+          promptLines.push('   - backup/ 폴더는 절대 수정하지 마세요 (이전 슬라이드 백업)');
+          promptLines.push('   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다');
+          promptLines.push('');
+          promptLines.push('2. 승인 대기 없이 전체 슬라이드를 한번에 생성하세요.');
+          promptLines.push('');
+          promptLines.push(`3. 완료 후: node scripts/build-viewer.js --slides-dir ${slidesDir}`);
+
           fullPrompt = promptLines.join('\n');
         } else {
           // Original flow — generate outline + slides together
           const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim()
             ? slideCountRange.trim()
             : '8~12';
+          const genPackId2 = typeof reqGenPackId === 'string' && reqGenPackId.trim() ? reqGenPackId.trim() : '';
+          const packTemplateList2 = genPackId2 ? listPackTemplates(genPackId2) : [];
 
           const hasDeckDir = !!slidesDir;
           const promptLines = [
@@ -1830,6 +1909,19 @@ async function startServer(opts) {
 
           if (hasDeckDir) {
             promptLines.push(`작업 디렉토리: ${slidesDir}`);
+          }
+
+          if (genPackId2) {
+            promptLines.push('');
+            promptLines.push(`사용할 템플릿 팩: ${genPackId2}`);
+            if (packTemplateList2.length > 0) {
+              promptLines.push(`이 팩의 보유 템플릿: ${packTemplateList2.join(', ')}`);
+            }
+            promptLines.push('');
+            promptLines.push('각 슬라이드 생성 시:');
+            promptLines.push(`- slides-grab show-template <type> --pack ${genPackId2} 로 팩 전용 템플릿 확인`);
+            promptLines.push('- 팩에 없는 타입은 slides-grab show-template <type> 으로 기본 템플릿을 사용하되,');
+            promptLines.push('  팩의 색상/분위기에 맞게 색상을 조정하세요.');
           }
 
           promptLines.push(
@@ -1861,7 +1953,9 @@ async function startServer(opts) {
             '   - 크기: 720pt x 405pt (body width/height)',
             '   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")',
             '   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용',
-            '   - slides-grab show-template <name> 으로 템플릿 확인 후 활용',
+            genPackId2
+              ? `   - slides-grab show-template <name> --pack ${genPackId2} 으로 템플릿 확인 후 활용`
+              : '   - slides-grab show-template <name> 으로 템플릿 확인 후 활용',
             '   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다',
           );
           stepNum += 1;

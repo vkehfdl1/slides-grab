@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: linear-gradient(170deg, #0f1f38 0%, #0a1628 50%, #07101e 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60pt 80pt;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400pt;
+    height: 250pt;
+    background: radial-gradient(ellipse, rgba(201,169,110,0.04) 0%, transparent 60%);
+  }
+  .card {
+    position: relative;
+    padding: 36pt 48pt;
+    border: 1pt solid rgba(201,169,110,0.15);
+    border-radius: 6pt;
+    background: rgba(201,169,110,0.03);
+    box-shadow: 0 4pt 24pt rgba(0,0,0,0.2), inset 0 1pt 0 rgba(201,169,110,0.08);
+  }
+  .gold-quote {
+    font-size: 28pt;
+    color: #c9a96e;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 12pt;
+  }
+  h2 {
+    font-size: 20pt;
+    font-weight: 800;
+    color: #e8edf5;
+    letter-spacing: -0.5pt;
+    margin-bottom: 16pt;
+    line-height: 1.3;
+  }
+  p {
+    font-size: 13pt;
+    line-height: 1.7;
+    color: #8899b0;
+    max-width: 420pt;
+  }
+  a {
+    display: inline-block;
+    margin-top: 16pt;
+    font-size: 11pt;
+    color: #c9a96e;
+    font-weight: 600;
+    text-decoration: none;
+    letter-spacing: 0.3pt;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="gold-quote">"</div>
+    <h2>Highlight</h2>
+    <p>Use this slide to highlight a single, important thing. To keep it short and sweet, you might link away to relevant doc or file.</p>
+    <a href="#">View details &rarr;</a>
+  </div>
+</body>
+</html>

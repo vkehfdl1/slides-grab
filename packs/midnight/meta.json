@@ -1,0 +1,12 @@
+{
+  "id": "midnight",
+  "name": "Midnight",
+  "description": "Deep navy background with gold accent — premium dark style",
+  "tags": ["dark", "premium", "business"],
+  "colors": {
+    "bg-primary": "#0a1628",
+    "text-primary": "#e8edf5",
+    "text-secondary": "#8899b0",
+    "accent": "#c9a96e"
+  }
+}

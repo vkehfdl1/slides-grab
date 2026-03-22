@@ -252,19 +252,76 @@ program
   });
 
 program
+  .command('list-packs')
+  .description('List all available template packs')
+  .action(async () => {
+    const { listPacks } = await import('../src/resolve.js');
+    const packs = listPacks();
+    if (packs.length === 0) {
+      console.log('No packs found.');
+      return;
+    }
+    console.log('Available template packs:\n');
+    for (const p of packs) {
+      const colors = Object.entries(p.colors).map(([k, v]) => `${k}: ${v}`).join(', ');
+      console.log(`  ${p.id.padEnd(18)} ${p.name.padEnd(16)} ${p.templates.length} templates`);
+      console.log(`  ${''.padEnd(18)} ${p.description}`);
+      console.log(`  ${''.padEnd(18)} ${colors}`);
+      console.log();
+    }
+    console.log(`Total: ${packs.length} packs`);
+  });
+
+program
+  .command('show-pack')
+  .description('Show details and templates of a specific pack')
+  .argument('<id>', 'Pack ID (e.g. "midnight", "corporate")')
+  .action(async (id) => {
+    const { resolvePack, listPackTemplates, listTemplates } = await import('../src/resolve.js');
+    const pack = resolvePack(id);
+    if (!pack) {
+      console.error(`Pack "${id}" not found.`);
+      process.exitCode = 1;
+      return;
+    }
+    const ownTemplates = listPackTemplates(id);
+    const allTemplates = listTemplates().map(t => t.name);
+
+    console.log(`Pack: ${pack.meta.name} (${id})`);
+    console.log(`Description: ${pack.meta.description}`);
+    console.log(`Tags: ${(pack.meta.tags || []).join(', ')}`);
+    console.log(`Colors:`);
+    for (const [key, val] of Object.entries(pack.meta.colors || {})) {
+      console.log(`  ${key}: ${val}`);
+    }
+    console.log(`\nOwn templates (${ownTemplates.length}):`);
+    for (const t of ownTemplates) {
+      console.log(`  ${t}`);
+    }
+    const fallback = allTemplates.filter(t => !ownTemplates.includes(t));
+    if (fallback.length > 0) {
+      console.log(`\nFallback to figma-default (${fallback.length}):`);
+      for (const t of fallback) {
+        console.log(`  ${t}`);
+      }
+    }
+  });
+
+program
   .command('show-template')
   .description('Print the contents of a template file')
   .argument('<name>', 'Template name (e.g. "cover", "content", "chart")')
-  .action(async (name) => {
+  .option('--pack <id>', 'Pack ID to resolve template from')
+  .action(async (name, options) => {
     const { resolveTemplate } = await import('../src/resolve.js');
-    const result = resolveTemplate(name);
+    const result = resolveTemplate(name, options.pack);
     if (!result) {
-      console.error(`Template "${name}" not found.`);
+      console.error(`Template "${name}" not found${options.pack ? ` in pack "${options.pack}"` : ''}.`);
       process.exitCode = 1;
       return;
     }
     const content = readFileSync(result.path, 'utf-8');
-    console.log(`# Template: ${name} (${result.source})`);
+    console.log(`# Template: ${name} (${result.source}, pack: ${result.pack})`);
     console.log(`# Path: ${result.path}\n`);
     console.log(content);
   });

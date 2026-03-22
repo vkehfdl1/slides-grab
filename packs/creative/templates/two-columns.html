@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    padding: 48pt 64pt;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    top: -50pt;
+    left: 50%;
+    width: 200pt;
+    height: 200pt;
+    background: radial-gradient(circle, rgba(244,114,182,0.06) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  h2 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5pt;
+    margin-bottom: 32pt;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24pt 32pt;
+    flex: 1;
+  }
+  .card {
+    background: rgba(255,255,255,0.05);
+    border: 1pt solid rgba(196,181,253,0.1);
+    border-radius: 10pt;
+    padding: 20pt 22pt;
+  }
+  .card h3 {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8pt;
+  }
+  .card p {
+    font-size: 11pt;
+    line-height: 1.6;
+    color: #c4b5fd;
+  }
+</style>
+</head>
+<body>
+  <h2>Two columns</h2>
+  <div class="grid">
+    <div class="card">
+      <h3>First thing</h3>
+      <p>Add a quick description of each thing, with enough context to understand what's up.</p>
+    </div>
+    <div class="card">
+      <h3>Second thing</h3>
+      <p>Keep 'em short and sweet, so they're easy to scan and remember.</p>
+    </div>
+    <div class="card">
+      <h3>Third thing</h3>
+      <p>Keep 'em short and sweet, so they're easy to scan and remember.</p>
+    </div>
+    <div class="card">
+      <h3>Fourth thing</h3>
+      <p>If you've got a bunch, add another row, or use multiple copies of this slide.</p>
+    </div>
+  </div>
+</body>
+</html>

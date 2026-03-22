@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #3b82f6 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 64pt 80pt;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 280pt;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
+  }
+  body::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4pt;
+    background: rgba(255,255,255,0.15);
+  }
+  .section-num {
+    font-size: 12pt;
+    font-weight: 700;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 2pt;
+    text-transform: uppercase;
+    margin-bottom: 16pt;
+  }
+  h1 {
+    font-size: 38pt;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -1pt;
+    line-height: 1.2;
+    margin-bottom: 14pt;
+  }
+  p {
+    font-size: 14pt;
+    color: rgba(255,255,255,0.7);
+    font-weight: 400;
+    line-height: 1.5;
+    max-width: 420pt;
+  }
+</style>
+</head>
+<body>
+  <span class="section-num">Section 01</span>
+  <h1>Section Title</h1>
+  <p>Brief description of what this section covers and why it matters.</p>
+</body>
+</html>

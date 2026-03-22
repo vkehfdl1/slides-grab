@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: linear-gradient(170deg, #0f1f38 0%, #0a1628 50%, #07101e 100%);
+    padding: 48pt 64pt;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 180pt;
+    height: 180pt;
+    background: radial-gradient(circle, rgba(201,169,110,0.04) 0%, transparent 70%);
+  }
+  h2 {
+    font-size: 22pt;
+    font-weight: 800;
+    color: #e8edf5;
+    letter-spacing: -0.5pt;
+    margin-bottom: 36pt;
+  }
+  .toc {
+    display: flex;
+    flex-direction: column;
+    gap: 16pt;
+  }
+  .toc-item {
+    display: flex;
+    align-items: baseline;
+    gap: 16pt;
+    padding-bottom: 16pt;
+    border-bottom: 1pt solid rgba(136,153,176,0.12);
+  }
+  .toc-item:last-child { border-bottom: none; }
+  .toc-num {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #c9a96e;
+    min-width: 24pt;
+    letter-spacing: 0.5pt;
+  }
+  .toc-title {
+    font-size: 13pt;
+    font-weight: 600;
+    color: #e8edf5;
+  }
+  .toc-desc {
+    font-size: 11pt;
+    color: #8899b0;
+    margin-left: auto;
+  }
+</style>
+</head>
+<body>
+  <h2>Contents</h2>
+  <div class="toc">
+    <div class="toc-item">
+      <span class="toc-num">01</span>
+      <span class="toc-title">First section</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">02</span>
+      <span class="toc-title">Second section</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">03</span>
+      <span class="toc-title">Third section</span>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">04</span>
+      <span class="toc-title">Fourth section</span>
+    </div>
+  </div>
+</body>
+</html>

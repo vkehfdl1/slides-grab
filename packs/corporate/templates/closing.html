@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 64pt 80pt;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120pt;
+    height: 3pt;
+    background: #2563eb;
+    border-radius: 2pt;
+  }
+  h1 {
+    font-size: 36pt;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -1pt;
+    margin-bottom: 10pt;
+  }
+  .tagline {
+    font-size: 14pt;
+    color: #64748b;
+    font-weight: 400;
+    margin-bottom: 36pt;
+    line-height: 1.5;
+  }
+  .contact {
+    display: flex;
+    flex-direction: column;
+    gap: 6pt;
+    padding: 18pt 32pt;
+    background: #f8fafc;
+    border-radius: 6pt;
+    border: 1pt solid #e2e8f0;
+  }
+  .contact-name {
+    font-size: 12pt;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .contact-detail {
+    font-size: 10pt;
+    color: #64748b;
+    font-weight: 400;
+  }
+  .contact-email {
+    font-size: 10pt;
+    color: #2563eb;
+    font-weight: 500;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+  <h1>Thank You</h1>
+  <p class="tagline">We look forward to discussing next steps.</p>
+  <div class="contact">
+    <span class="contact-name">Contact Name</span>
+    <span class="contact-detail">Title, Department</span>
+    <a class="contact-email" href="#">contact@company.com</a>
+  </div>
+</body>
+</html>

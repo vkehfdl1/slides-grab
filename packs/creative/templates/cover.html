@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 64pt 80pt;
+    position: relative;
+    overflow: hidden;
+  }
+  body::before {
+    content: '';
+    position: absolute;
+    top: -80pt;
+    right: -40pt;
+    width: 280pt;
+    height: 280pt;
+    background: radial-gradient(circle, rgba(244,114,182,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  body::after {
+    content: '';
+    position: absolute;
+    bottom: -60pt;
+    left: -30pt;
+    width: 200pt;
+    height: 200pt;
+    background: radial-gradient(circle, rgba(129,140,248,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+  h1 {
+    font-size: 46pt;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -1.5pt;
+    line-height: 1.12;
+    margin-bottom: 16pt;
+    position: relative;
+    text-shadow: 0 2pt 12pt rgba(244,114,182,0.2);
+  }
+  .accent-underline {
+    width: 64pt;
+    height: 4pt;
+    background: linear-gradient(90deg, #f472b6, #818cf8);
+    border-radius: 2pt;
+    margin-bottom: 32pt;
+  }
+  p {
+    font-size: 15pt;
+    color: #c4b5fd;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="accent-underline"></div>
+  <h1>Slide Deck Title</h1>
+  <p>This is just the beginning of something big.</p>
+</body>
+</html>

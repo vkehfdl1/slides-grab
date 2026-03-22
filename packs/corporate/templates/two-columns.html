@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #ffffff;
+    padding: 48pt 64pt;
+    display: flex;
+    flex-direction: column;
+  }
+  .header {
+    margin-bottom: 28pt;
+    padding-bottom: 14pt;
+    border-bottom: 2pt solid #2563eb;
+  }
+  h2 {
+    font-size: 24pt;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.5pt;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32pt;
+    flex: 1;
+  }
+  .column {
+    display: flex;
+    flex-direction: column;
+    gap: 10pt;
+  }
+  .column h3 {
+    font-size: 14pt;
+    font-weight: 700;
+    color: #1e293b;
+    padding-bottom: 8pt;
+    border-bottom: 1pt solid #e2e8f0;
+  }
+  .column p {
+    font-size: 11pt;
+    line-height: 1.7;
+    color: #64748b;
+    font-weight: 400;
+  }
+  .column .tag {
+    display: inline-block;
+    margin-top: auto;
+    padding: 4pt 10pt;
+    background: #eff6ff;
+    color: #2563eb;
+    font-size: 9pt;
+    font-weight: 600;
+    border-radius: 3pt;
+    align-self: flex-start;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h2>Comparison Overview</h2>
+  </div>
+  <div class="grid">
+    <div class="column">
+      <h3>Current State</h3>
+      <p>Description of the current situation, baseline metrics, and existing challenges that need to be addressed in the transformation.</p>
+      <span class="tag">As-Is</span>
+    </div>
+    <div class="column">
+      <h3>Target State</h3>
+      <p>Description of the desired future state, target metrics, and expected improvements after successful implementation.</p>
+      <span class="tag">To-Be</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: #ffffff;
+    padding: 48pt 64pt;
+    display: flex;
+    flex-direction: column;
+  }
+  h2 {
+    font-size: 24pt;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.5pt;
+    margin-bottom: 36pt;
+  }
+  .toc {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+  }
+  .toc-item {
+    display: flex;
+    align-items: center;
+    gap: 16pt;
+    padding: 14pt 0;
+    border-bottom: 1pt solid #e2e8f0;
+  }
+  .toc-item:last-child {
+    border-bottom: none;
+  }
+  .toc-num {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28pt;
+    height: 28pt;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 11pt;
+    font-weight: 700;
+    border-radius: 4pt;
+    flex-shrink: 0;
+  }
+  .toc-content {
+    display: flex;
+    flex-direction: column;
+    gap: 3pt;
+  }
+  .toc-title {
+    font-size: 13pt;
+    font-weight: 700;
+    color: #1e293b;
+  }
+  .toc-desc {
+    font-size: 10pt;
+    color: #64748b;
+    font-weight: 400;
+  }
+</style>
+</head>
+<body>
+  <h2>Agenda</h2>
+  <div class="toc">
+    <div class="toc-item">
+      <span class="toc-num">01</span>
+      <div class="toc-content">
+        <span class="toc-title">Executive Summary</span>
+        <span class="toc-desc">Key findings and strategic recommendations</span>
+      </div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">02</span>
+      <div class="toc-content">
+        <span class="toc-title">Market Analysis</span>
+        <span class="toc-desc">Industry trends and competitive landscape</span>
+      </div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">03</span>
+      <div class="toc-content">
+        <span class="toc-title">Strategic Framework</span>
+        <span class="toc-desc">Proposed approach and implementation roadmap</span>
+      </div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">04</span>
+      <div class="toc-content">
+        <span class="toc-title">Financial Impact</span>
+        <span class="toc-desc">Projected outcomes and investment requirements</span>
+      </div>
+    </div>
+    <div class="toc-item">
+      <span class="toc-num">05</span>
+      <div class="toc-content">
+        <span class="toc-title">Next Steps</span>
+        <span class="toc-desc">Action items and timeline</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
