@@ -39,6 +39,7 @@
     "scripts/html2pdf.js",
     "scripts/html2pptx.js",
     "scripts/install-codex-skills.js",
+    "scripts/render-tldraw.js",
     "scripts/validate-slides.js",
     "skills/",
     "src/",
@@ -53,7 +54,7 @@
     "validate": "node scripts/validate-slides.js",
     "convert": "node convert.cjs",
     "codex:install-skills": "node scripts/install-codex-skills.js --force",
-    "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/pdf/html2pdf.e2e.test.js tests/figma/figma-export.test.js tests/image-contract/image-contract.test.js tests/validation/validate-slides.test.js",
+    "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/pdf/html2pdf.e2e.test.js tests/figma/figma-export.test.js tests/image-contract/image-contract.test.js tests/tldraw/render-tldraw.test.js tests/validation/validate-slides.test.js",
     "test:e2e": "node --test tests/editor/editor-ui.e2e.test.js tests/editor/editor-concurrency.e2e.test.js"
   },
   "dependencies": {
@@ -62,7 +63,10 @@
     "pdf-lib": "^1.17.1",
     "playwright": "^1.40.0",
     "pptxgenjs": "^3.12.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
     "react-icons": "^5.0.0",
-    "sharp": "^0.33.0"
+    "sharp": "^0.33.0",
+    "tldraw": "^4.4.1"
   }
 }
