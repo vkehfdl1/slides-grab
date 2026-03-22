@@ -44,3 +44,5 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 ## Reference
 For full constraints and style system, follow:
 - `references/design-rules.md`
+- `references/detailed-design-rules.md`
+- `references/design-system-full.md` — archived full design system, templates, and advanced pattern guidance

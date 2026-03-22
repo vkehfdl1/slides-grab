@@ -37,3 +37,4 @@ Produce an approved `slide-outline.md` before any slide HTML generation.
 ## Reference
 If needed, use the bundled outline reference:
 - `references/outline-format.md`
+- `references/plan-workflow-reference.md` — archived detailed planning workflow and organizer-agent guidance

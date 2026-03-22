@@ -31,13 +31,13 @@ Paste one of these into your coding agent:
 **Claude Code:**
 
 ```
-Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/prompts/setup-claude.md and follow every step.
+Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/installation/claude.md and follow every step.
 ```
 
 **Codex:**
 
 ```
-Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/prompts/setup-codex.md and follow every step.
+Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/installation/codex.md and follow every step.
 ```
 
 Or use the repo directly if you want to develop on slides-grab itself:
@@ -126,8 +126,6 @@ This command reuses the HTML to PPTX pipeline and emits a `.pptx` deck intended 
 
 ## Installation Guides
 
-- [Claude Code setup](docs/prompts/setup-claude.md)
-- [Codex setup](docs/prompts/setup-codex.md)
 - [Claude detailed guide](docs/installation/claude.md)
 - [Codex detailed guide](docs/installation/codex.md)
 

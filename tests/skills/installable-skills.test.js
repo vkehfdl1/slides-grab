@@ -28,9 +28,15 @@ test('npm pack includes bundled skill references for installable skills', () => 
   const filePaths = new Set(packInfo.files.map((entry) => entry.path));
 
   assert.ok(filePaths.has('skills/slides-grab-plan/references/outline-format.md'));
+  assert.ok(filePaths.has('skills/slides-grab-plan/references/plan-workflow-reference.md'));
   assert.ok(filePaths.has('skills/slides-grab-design/references/design-rules.md'));
   assert.ok(filePaths.has('skills/slides-grab-design/references/detailed-design-rules.md'));
+  assert.ok(filePaths.has('skills/slides-grab-design/references/design-system-full.md'));
   assert.ok(filePaths.has('skills/slides-grab-export/references/export-rules.md'));
+  assert.ok(filePaths.has('skills/slides-grab-export/references/pptx-skill-reference.md'));
+  assert.ok(filePaths.has('skills/slides-grab-export/references/html2pptx.md'));
+  assert.ok(filePaths.has('skills/slides-grab-export/references/ooxml.md'));
+  assert.ok(filePaths.has('skills/slides-grab/references/presentation-workflow-reference.md'));
   assert.ok(filePaths.has('src/pptx-raster-export.cjs'));
   assert.ok(!filePaths.has('scripts/install-codex-skills.js'));
 });

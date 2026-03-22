@@ -38,3 +38,6 @@ Convert reviewed slide HTML into PDF reliably, and into experimental / unstable 
 ## Reference
 For detailed conversion behavior and tools, use:
 - `references/export-rules.md`
+- `references/pptx-skill-reference.md` — archived full PPTX workflow guidance
+- `references/html2pptx.md` — archived converter usage guide
+- `references/ooxml.md` — archived OOXML reference
