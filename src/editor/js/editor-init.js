@@ -1,8 +1,8 @@
 // editor-init.js — Entry point: imports, event bindings, init()
 
-import { state, TOOL_MODE_DRAW, TOOL_MODE_SELECT, DEFAULT_RESOLUTIONS } from './editor-state.js';
+import { state, TOOL_MODE_DRAW, TOOL_MODE_SELECT } from './editor-state.js';
 import {
-  btnPrev, btnNext, slideIframe, drawLayer, promptInput, modelSelect, resolutionSelect,
+  btnPrev, btnNext, slideIframe, drawLayer, promptInput, modelSelect,
   btnSend, btnClearBboxes, slideCounter,
   toggleBold, toggleItalic, toggleUnderline, toggleStrike,
   alignLeft, alignCenter, alignRight,
@@ -32,71 +32,6 @@ import { connectSSE, loadRunsInitial } from './editor-sse.js';
 
 // Late-binding: connect bbox changes to updateSendState
 onBboxChange(updateSendState);
-
-function normalizeWorkspaceResolution(value) {
-  const normalized = typeof value === 'string' ? value.trim().toLowerCase() : '';
-  return DEFAULT_RESOLUTIONS.includes(normalized) ? normalized : '';
-}
-
-function applyWorkspaceInfo(workspace = null) {
-  const nextResolution = normalizeWorkspaceResolution(workspace?.resolution);
-  state.workspaceResolution = nextResolution;
-  resolutionSelect.value = nextResolution;
-}
-
-function formatReadyStatus() {
-  const resolutionLabel = state.workspaceResolution || 'default';
-  return `Ready. Model: ${state.selectedModel}. Workspace resolution: ${resolutionLabel}. Draw red pending bboxes, run Codex, then review green bboxes.`;
-}
-
-let resolutionUpdateToken = 0;
-
-async function updateWorkspaceResolution() {
-  const previousResolution = state.workspaceResolution;
-  const nextResolution = normalizeWorkspaceResolution(resolutionSelect.value);
-
-  const token = ++resolutionUpdateToken;
-  resolutionSelect.disabled = true;
-  setStatus(`Applying workspace resolution: ${nextResolution || 'default'}...`);
-
-  try {
-    const response = await fetch('/api/workspace', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ resolution: nextResolution }),
-    });
-
-    if (!response.ok) {
-      let message = `HTTP ${response.status}`;
-      try {
-        const payload = await response.json();
-        if (typeof payload?.error === 'string' && payload.error.trim() !== '') {
-          message = payload.error.trim();
-        }
-      } catch {
-        // ignore response parse errors
-      }
-      throw new Error(message);
-    }
-
-    const payload = await response.json();
-    if (token !== resolutionUpdateToken) return;
-
-    applyWorkspaceInfo(payload);
-    scaleSlide();
-    setStatus(`Workspace resolution updated: ${state.workspaceResolution || 'default'}.`);
-  } catch (error) {
-    if (token !== resolutionUpdateToken) return;
-    resolutionSelect.value = previousResolution;
-    setStatus(`Failed to update workspace resolution: ${error.message}`);
-  } finally {
-    if (token === resolutionUpdateToken) {
-      resolutionSelect.disabled = false;
-    }
-  }
-}
 
 // Bbox layer events
 initBboxLayerEvents();
@@ -154,10 +89,6 @@ modelSelect.addEventListener('change', () => {
   saveSelectedModel(state.selectedModel);
   updateSendState();
   setStatus(`Model selected: ${state.selectedModel}`);
-});
-
-resolutionSelect.addEventListener('change', () => {
-  void updateWorkspaceResolution();
 });
 
 // Prompt input
@@ -330,18 +261,12 @@ async function init() {
   setStatus('Loading slide list...');
 
   try {
-    const [slidesResponse, workspaceResponse] = await Promise.all([
-      fetch('/api/slides'),
-      fetch('/api/workspace').catch(() => null),
-    ]);
-
-    if (!slidesResponse.ok) {
-      throw new Error(`Failed to fetch slide list: ${slidesResponse.status}`);
+    const res = await fetch('/api/slides');
+    if (!res.ok) {
+      throw new Error(`Failed to fetch slide list: ${res.status}`);
     }
 
-    state.slides = await slidesResponse.json();
-    const workspace = workspaceResponse?.ok ? await workspaceResponse.json() : null;
-    applyWorkspaceInfo(workspace);
+    state.slides = await res.json();
 
     if (state.slides.length === 0) {
       setStatus('No slides found.');
@@ -356,7 +281,7 @@ async function init() {
     await loadRunsInitial();
     connectSSE();
 
-    setStatus(formatReadyStatus());
+    setStatus(`Ready. Model: ${state.selectedModel}. Draw red pending bboxes, run Codex, then review green bboxes.`);
   } catch (error) {
     setStatus(`Error loading slides: ${error.message}`);
     console.error('Init error:', error);

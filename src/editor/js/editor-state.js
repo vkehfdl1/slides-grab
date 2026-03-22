@@ -9,7 +9,6 @@ export const POPOVER_TEXT_COLOR = 'text-color';
 export const POPOVER_BG_COLOR = 'bg-color';
 export const POPOVER_SIZE = 'size';
 export const DEFAULT_MODELS = ['gpt-5.4', 'gpt-5.3-codex', 'gpt-5.3-codex-spark', 'claude-opus-4-6', 'claude-sonnet-4-6'];
-export const DEFAULT_RESOLUTIONS = ['', '720p', '1080p', '1440p', '2160p'];
 export const DIRECT_TEXT_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li']);
 export const NON_SELECTABLE_TAGS = new Set(['html', 'head', 'body', 'script', 'style', 'link', 'meta', 'noscript']);
 
@@ -28,7 +27,6 @@ export const state = {
   availableModels: DEFAULT_MODELS.slice(),
   defaultModel: DEFAULT_MODELS[0],
   selectedModel: DEFAULT_MODELS[0],
-  workspaceResolution: '',
   toolMode: TOOL_MODE_DRAW,
   hoveredObjectXPath: '',
 };

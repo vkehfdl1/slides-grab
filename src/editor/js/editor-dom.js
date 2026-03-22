@@ -41,7 +41,6 @@ export const sessionFileChip = $('#session-file-chip');
 export const contextChipList = $('#context-chip-list');
 export const promptInput = $('#prompt-input');
 export const modelSelect = $('#model-select');
-export const resolutionSelect = $('#resolution-select');
 export const btnClearBboxes = $('#btn-clear-bboxes');
 export const bboxCountEl = $('#bbox-count');
 export const btnSend = $('#btn-send');

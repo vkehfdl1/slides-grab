@@ -9,14 +9,10 @@
  */
 
 import { readFileSync, writeFileSync, readdirSync } from 'fs';
-import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import { join, resolve } from 'path';
 
 import { buildSlideRuntimeHtml } from '../src/image-contract.js';
-
-const require = createRequire(import.meta.url);
-const { resolveWorkspaceResolution } = require('../src/slides-workspace.cjs');
 
 const DEFAULT_SLIDES_DIR = 'slides';
 
@@ -27,7 +23,6 @@ function printUsage() {
       '',
       'Options:',
       `  --slides-dir <path>  Slide directory (default: ${DEFAULT_SLIDES_DIR})`,
-      '  --resolution <preset>  Override workspace resolution label for this viewer build',
       '  -h, --help           Show this help message',
     ].join('\n'),
   );
@@ -45,7 +40,6 @@ function readOptionValue(args, index, optionName) {
 export function parseCliArgs(args) {
   const options = {
     slidesDir: DEFAULT_SLIDES_DIR,
-    resolution: '',
     help: false,
   };
 
@@ -68,17 +62,6 @@ export function parseCliArgs(args) {
       continue;
     }
 
-    if (arg === '--resolution') {
-      options.resolution = readOptionValue(args, i, '--resolution');
-      i += 1;
-      continue;
-    }
-
-    if (arg.startsWith('--resolution=')) {
-      options.resolution = arg.slice('--resolution='.length);
-      continue;
-    }
-
     throw new Error(`Unknown option: ${arg}`);
   }
 
@@ -87,10 +70,6 @@ export function parseCliArgs(args) {
   }
 
   options.slidesDir = options.slidesDir.trim();
-  if (typeof options.resolution !== 'string') {
-    throw new Error('--resolution must be a string.');
-  }
-  options.resolution = options.resolution.trim();
   return options;
 }
 
@@ -127,12 +106,7 @@ export function loadSlides(slidesDir) {
   });
 }
 
-export function buildViewerHtml(slides, options = {}) {
-  const resolutionLabel = typeof options.resolution === 'string' ? options.resolution.trim() : '';
-  const resolutionBadge = resolutionLabel
-    ? `<span class="resolution-badge" id="resolution-badge">${resolutionLabel}</span>`
-    : '';
-
+export function buildViewerHtml(slides) {
   return `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -200,18 +174,6 @@ export function buildViewerHtml(slides, options = {}) {
       font-variant-numeric: tabular-nums;
     }
 
-    .resolution-badge {
-      color: #9fb4d4;
-      border: 1px solid #2e415a;
-      background: #152233;
-      border-radius: 999px;
-      padding: 5px 10px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-
     .btn-fullscreen {
       position: absolute;
       right: 16px;
@@ -262,7 +224,6 @@ export function buildViewerHtml(slides, options = {}) {
     <div class="nav-bar">
       <button id="btn-prev" title="Previous (\\u2190)">Prev</button>
       <span class="slide-counter" id="counter">1 / ${slides.length}</span>
-      ${resolutionBadge}
       <button id="btn-next" title="Next (\\u2192)">Next</button>
       <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
     </div>
@@ -353,7 +314,6 @@ export function main(args = process.argv.slice(2)) {
 
   const slidesDir = resolve(process.cwd(), options.slidesDir);
   const output = join(slidesDir, 'viewer.html');
-  const resolution = resolveWorkspaceResolution(slidesDir, options.resolution).resolution;
 
   let slides;
   try {
@@ -372,9 +332,9 @@ export function main(args = process.argv.slice(2)) {
   }
 
   console.log(`Found ${slides.length} slides`);
-  writeFileSync(output, buildViewerHtml(slides, { resolution }), 'utf-8');
+  writeFileSync(output, buildViewerHtml(slides), 'utf-8');
   console.log(`Built viewer: ${output}`);
-  return { slidesDir, output, slides, resolution };
+  return { slidesDir, output, slides };
 }
 
 const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);

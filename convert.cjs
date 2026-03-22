@@ -8,7 +8,6 @@ const {
   getResolutionSize,
   normalizeResolutionPreset,
 } = require('./src/export-resolution.cjs');
-const { resolveWorkspaceResolution } = require('./src/slides-workspace.cjs');
 
 // Inline a simplified version that uses Playwright Chromium (not Chrome)
 const DEFAULT_SLIDES_DIR = 'slides';
@@ -196,7 +195,6 @@ async function main() {
   pres.layout = 'LAYOUT_WIDE'; // 16:9
 
   const slidesDir = path.resolve(process.cwd(), options.slidesDir);
-  options.resolution = resolveWorkspaceResolution(slidesDir, options.resolution).resolution;
   const { ensureSlidesPassValidation } = await import('./scripts/validate-slides.js');
   await ensureSlidesPassValidation(slidesDir, { exportLabel: 'PPTX export' });
   const files = fs.readdirSync(slidesDir)

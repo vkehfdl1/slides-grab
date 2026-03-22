@@ -81,12 +81,8 @@ program
   .command('build-viewer')
   .description('Build viewer.html from slide HTML files')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
-  .option('--resolution <preset>', 'Override workspace resolution label for this viewer build')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];
-    if (options.resolution) {
-      args.push('--resolution', String(options.resolution));
-    }
     await runCommand('scripts/build-viewer.js', args);
   });
 
@@ -163,14 +159,10 @@ program
   .description('Start interactive slide editor with Codex image-based edit flow')
   .option('--port <number>', 'Server port')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
-  .option('--resolution <preset>', 'Save workspace resolution profile: 720p, 1080p, 1440p, 2160p, or 4k')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];
     if (options.port) {
       args.push('--port', String(options.port));
-    }
-    if (options.resolution) {
-      args.push('--resolution', String(options.resolution));
     }
     await runCommand('scripts/editor-server.js', args);
   });

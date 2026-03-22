@@ -96,45 +96,6 @@
 
     .nav-spacer { flex: 1; }
 
-    .nav-resolution {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 0 8px 0 10px;
-      height: 30px;
-      border: 1px solid #1b2028;
-      border-radius: 999px;
-      background: #111318;
-      flex: 0 0 auto;
-    }
-
-    .nav-resolution-label {
-      color: #8c93a0;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-      font-family: var(--sans);
-    }
-
-    .nav-resolution-select {
-      width: 154px;
-      min-width: 0;
-      height: 22px;
-      border-radius: 999px;
-      border: 1px solid #252b35;
-      background: #0d1016;
-      color: #e4e8ef;
-      font-size: 11px;
-      font-family: var(--mono);
-      padding: 0 8px;
-      outline: none;
-    }
-
-    .nav-resolution-select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px var(--ring);
-    }
-
     .slide-status-chip {
       margin-right: 12px;
       font-size: 10px;
@@ -1607,9 +1568,6 @@
         min-width: 138px;
         width: 138px;
       }
-      .nav-resolution-select {
-        width: 138px;
-      }
       .prompt-input {
         min-width: 160px;
       }
@@ -1625,16 +1583,6 @@
         <button id="btn-next" title="Next slide (Right arrow)">Next &#9654;</button>
       </div>
       <div class="nav-spacer"></div>
-      <div class="nav-resolution">
-        <label for="resolution-select" class="nav-resolution-label">Resolution</label>
-        <select id="resolution-select" class="nav-resolution-select">
-          <option value="">default (960x540)</option>
-          <option value="720p">720p (1280x720)</option>
-          <option value="1080p">1080p (1920x1080)</option>
-          <option value="1440p">1440p (2560x1440)</option>
-          <option value="2160p">2160p / 4k (3840x2160)</option>
-        </select>
-      </div>
       <span class="slide-status-chip idle" id="slide-status-chip">idle</span>
       <span class="brand">ppt-agent</span>
     </div>

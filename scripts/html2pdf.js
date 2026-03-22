@@ -16,7 +16,6 @@ const {
   getResolutionSize,
   normalizeResolutionPreset,
 } = require('../src/export-resolution.cjs');
-const { resolveWorkspaceResolution } = require('../src/slides-workspace.cjs');
 
 const DEFAULT_OUTPUT = 'slides.pdf';
 const DEFAULT_SLIDES_DIR = 'slides';
@@ -228,7 +227,6 @@ export function buildPdfOptions(widthPx, heightPx) {
   return {
     width: `${normalizeDimension(widthPx, FALLBACK_SLIDE_SIZE.width)}px`,
     height: `${normalizeDimension(heightPx, FALLBACK_SLIDE_SIZE.height)}px`,
-    scale: 1,
     printBackground: true,
     pageRanges: '1',
     margin: { top: '0px', right: '0px', bottom: '0px', left: '0px' },
@@ -237,15 +235,13 @@ export function buildPdfOptions(widthPx, heightPx) {
 }
 
 export function buildPageOptions(mode = DEFAULT_MODE, resolution = '') {
-  const normalizedMode = normalizeMode(mode);
-  const targetResolution = normalizedMode === 'capture' ? getResolutionSize(resolution) : null;
-
+  const targetResolution = normalizeMode(mode) === 'capture' ? getResolutionSize(resolution) : null;
   return {
     viewport: {
       width: FALLBACK_SLIDE_SIZE.width,
       height: FALLBACK_SLIDE_SIZE.height,
     },
-    deviceScaleFactor: normalizedMode === 'capture'
+    deviceScaleFactor: normalizeMode(mode) === 'capture'
       ? targetResolution
         ? targetResolution.height / FALLBACK_SLIDE_SIZE.height
         : DEFAULT_CAPTURE_DEVICE_SCALE_FACTOR
@@ -256,9 +252,6 @@ export function buildPageOptions(mode = DEFAULT_MODE, resolution = '') {
 function chooseSlideFrame(metrics) {
   const viewportArea = Math.max(1, metrics.viewport.width * metrics.viewport.height);
   const bodyArea = Math.max(1, metrics.body.width * metrics.body.height);
-  const bodyAspectRatio =
-    metrics.body.height > 0 ? metrics.body.width / metrics.body.height : TARGET_ASPECT_RATIO;
-  const bodyAspectDelta = Math.abs(bodyAspectRatio - TARGET_ASPECT_RATIO);
   const bodyScrollArea = Math.max(1, metrics.body.scrollWidth * metrics.body.scrollHeight);
   const documentScrollArea = Math.max(1, metrics.document.scrollWidth * metrics.document.scrollHeight);
   const bodyHasOverflowingContent =
@@ -279,30 +272,13 @@ function chooseSlideFrame(metrics) {
     }))
     .sort((left, right) => right.area - left.area);
 
-  const bodyCandidate = candidates.find((candidate) => candidate.source === 'body');
-  if (
-    bodyCandidate &&
-    metrics.body.hasExplicitSize &&
-    !bodyHasOverflowingContent &&
-    bodyAspectDelta < 0.2 &&
-    bodyCandidate.coverage >= 0.45
-  ) {
-    return bodyCandidate;
-  }
-
   const preferredCandidate = candidates.find((candidate) => {
     if (candidate.source !== 'body-child') return false;
     if (candidate.coverage < 0.45) return false;
     return candidate.aspectDelta < 0.2;
   });
 
-  if (
-    preferredCandidate &&
-    (bodyHasOverflowingContent ||
-      bodyAspectDelta > 0.2 ||
-      bodyScrollArea > bodyArea * 1.15 ||
-      documentScrollArea > bodyArea * 1.15)
-  ) {
+  if (preferredCandidate && (bodyHasOverflowingContent || bodyArea > preferredCandidate.area * 1.15 || bodyScrollArea > preferredCandidate.area * 1.15 || documentScrollArea > preferredCandidate.area * 1.15)) {
     return preferredCandidate;
   }
 
@@ -404,14 +380,6 @@ export async function detectSlideFrame(page) {
         height: Number.parseFloat(bodyStyle.height) || bodyBox.height || 0,
         scrollWidth: body.scrollWidth || bodyBox.width || 0,
         scrollHeight: body.scrollHeight || bodyBox.height || 0,
-        hasExplicitSize: Boolean(
-          body.style.width ||
-            body.style.height ||
-            body.style.minWidth ||
-            body.style.minHeight ||
-            body.style.maxWidth ||
-            body.style.maxHeight
-        ),
       },
       candidates: directChildren,
     };
@@ -428,12 +396,13 @@ export async function detectSlideFrame(page) {
   };
 }
 
-export async function normalizeBodyToSlideFrame(page, slideFrame, options = {}) {
-  return page.evaluate(({ width, height, resetPadding }) => {
+export async function normalizeBodyToSlideFrame(page, slideFrame) {
+  return page.evaluate(({ width, height }) => {
     const body = document.body;
     const documentElement = document.documentElement;
 
     body.style.margin = '0';
+    body.style.padding = '0';
     body.style.width = `${width}px`;
     body.style.height = `${height}px`;
     body.style.minWidth = `${width}px`;
@@ -441,20 +410,13 @@ export async function normalizeBodyToSlideFrame(page, slideFrame, options = {}) 
     body.style.overflow = 'hidden';
 
     documentElement.style.margin = '0';
+    documentElement.style.padding = '0';
     documentElement.style.width = `${width}px`;
     documentElement.style.height = `${height}px`;
     documentElement.style.minWidth = `${width}px`;
     documentElement.style.minHeight = `${height}px`;
     documentElement.style.overflow = 'hidden';
-
-    if (resetPadding) {
-      body.style.padding = '0';
-      documentElement.style.padding = '0';
-    }
-  }, {
-    ...slideFrame,
-    resetPadding: options.resetPadding === true,
-  });
+  }, slideFrame);
 }
 
 export async function isolateSlideFrame(page, slideFrame) {
@@ -566,11 +528,7 @@ export async function renderSlideToPdf(page, slideFile, slidesDir, options = {})
 
   const slideFrame = await detectSlideFrame(page);
   const normalizedSlideFrame = await isolateSlideFrame(page, slideFrame);
-  const shouldResetPadding =
-    slideFrame.source !== 'body' || slideFrame.x !== 0 || slideFrame.y !== 0;
-  await normalizeBodyToSlideFrame(page, normalizedSlideFrame, {
-    resetPadding: shouldResetPadding,
-  });
+  await normalizeBodyToSlideFrame(page, normalizedSlideFrame);
   await waitForSlideRenderReady(page, { ...options, runReadySignal: false });
 
   if (mode === 'capture') {
@@ -648,10 +606,6 @@ async function main() {
   }
 
   const slidesDir = resolve(process.cwd(), options.slidesDir);
-  options.resolution = resolveWorkspaceResolution(slidesDir, options.resolution).resolution;
-  if (options.mode === 'print') {
-    options.resolution = '';
-  }
   await ensureSlidesPassValidation(slidesDir, { exportLabel: 'PDF export' });
   const slideFiles = await findSlideFiles(slidesDir);
   if (slideFiles.length === 0) {
