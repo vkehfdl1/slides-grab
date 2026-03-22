@@ -2,20 +2,20 @@
 
 Follow every step below. Run each command and verify before moving on.
 
-## 1. Clone and install
+## 1. Install the npm package
 
 ```bash
-git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
-npm ci && npx playwright install chromium
+npm install slides-grab
+npx playwright install chromium
 ```
 
 ## 2. Install Codex skills
 
 ```bash
-npm exec -- slides-grab install-codex-skills --force
+npx skills add ./node_modules/slides-grab -g -a codex --yes --copy
 ```
 
-Then restart Codex so the skills are loaded.
+Then restart Codex so the shared skills are loaded.
 
 ## 3. Verify
 
@@ -25,17 +25,26 @@ npm exec -- slides-grab --help
 
 You should see the CLI help output with commands: edit, build-viewer, validate, convert, figma, pdf, etc. Actual export commands require a deck directory containing `slide-*.html`.
 
-## 4. How to use
+## 4. Developer / repo clone path
 
-This project uses a 3-stage skill workflow under `skills/`:
+```bash
+git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
+npm ci
+npx playwright install chromium
+npx skills add . -g -a codex --yes --copy
+```
+
+## 5. How to use
+
+This project uses a 3-stage installed skill workflow:
 
 | Stage | Skill | What it does |
 |-------|-------|-------------|
-| 1. Plan | `skills/slides-grab-plan/SKILL.md` | Create slide-outline.md, get user approval |
-| 2. Design | `skills/slides-grab-design/SKILL.md` | Generate slide HTML files |
-| 3. Export | `skills/slides-grab-export/SKILL.md` | Convert to PDF + experimental / unstable PPTX/Figma |
+| 1. Plan | `slides-grab-plan` | Create slide-outline.md, get user approval |
+| 2. Design | `slides-grab-design` | Generate slide HTML files |
+| 3. Export | `slides-grab-export` | Convert to PDF + experimental / unstable PPTX/Figma |
 
-Or use the integrated skill `skills/slides-grab/SKILL.md` to go through all stages end-to-end.
+Or use the integrated `slides-grab` skill to go through all stages end-to-end.
 
 ### Key CLI commands
 

@@ -64,7 +64,7 @@ test('slides-grab help lists the figma command', () => {
   });
 
   assert.match(output, /\bfigma\b/);
-  assert.match(output, /experimental[\s\S]*Figma[\s\S]*Slides importable PPTX/i);
+  assert.match(output, /experimental[\s\S]*Figma[\s\S]*Slides[\s\S]*importable PPTX/i);
 });
 
 test('figma command help documents manual import intent', () => {

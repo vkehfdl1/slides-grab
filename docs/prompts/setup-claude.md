@@ -2,11 +2,11 @@
 
 Follow every step below. Run each command and verify before moving on.
 
-## 1. Clone and install
+## 1. Install the npm package
 
 ```bash
-git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
-npm ci && npx playwright install chromium
+npm install slides-grab
+npx playwright install chromium
 ```
 
 ## 2. Verify
@@ -17,17 +17,34 @@ npm exec -- slides-grab --help
 
 You should see the CLI help output with commands: edit, build-viewer, validate, convert, pdf, etc. Actual export commands require a deck directory containing `slide-*.html`.
 
-## 3. How to use
+## 3. Install shared skills
 
-This project uses a 3-stage skill workflow under `.claude/skills/`:
+```bash
+npx skills add ./node_modules/slides-grab -g -a claude-code --yes --copy
+```
+
+Then restart Claude Code so the shared skills are loaded.
+
+## 4. Developer / repo clone path
+
+```bash
+git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
+npm ci
+npx playwright install chromium
+npx skills add . -g -a claude-code --yes --copy
+```
+
+## 5. How to use
+
+This project uses a 3-stage installed skill workflow:
 
 | Stage | Skill | What it does |
 |-------|-------|-------------|
-| 1. Plan | `.claude/skills/plan-skill/SKILL.md` | Create slide-outline.md, get user approval |
-| 2. Design | `.claude/skills/design-skill/SKILL.md` | Generate slide HTML files |
-| 3. Export | `.claude/skills/pptx-skill/SKILL.md` | Convert to PPTX/PDF |
+| 1. Plan | `slides-grab-plan` | Create slide-outline.md, get user approval |
+| 2. Design | `slides-grab-design` | Generate slide HTML files |
+| 3. Export | `slides-grab-export` | Convert to PPTX/PDF |
 
-Or use the integrated skill `.claude/skills/presentation-skill/SKILL.md` to go through all stages end-to-end.
+Or use the integrated `slides-grab` skill to go through all stages end-to-end.
 
 ### Key CLI commands
 

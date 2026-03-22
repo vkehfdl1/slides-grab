@@ -40,7 +40,7 @@ Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/prompts/se
 Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/prompts/setup-codex.md and follow every step.
 ```
 
-Or clone manually:
+Or use the repo directly if you want to develop on slides-grab itself:
 
 ```bash
 git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
@@ -48,6 +48,14 @@ npm ci && npx playwright install chromium
 ```
 
 > Requires **Node.js >= 18**.
+
+### No-clone install
+
+```bash
+npm install slides-grab
+npx playwright install chromium
+npx skills add ./node_modules/slides-grab -g -a codex -a claude-code --yes --copy
+```
 
 ## Why This Project?
 
@@ -125,11 +133,19 @@ This command reuses the HTML to PPTX pipeline and emits a `.pptx` deck intended 
 
 ## npm Package
 
-Also available as an npm package for standalone CLI usage:
+Also available as an npm package for standalone CLI + skill usage:
 
 ```bash
 npm install slides-grab
 ```
+
+Install shared agent skills with Vercel Agent Skills:
+
+```bash
+npx skills add ./node_modules/slides-grab -g -a codex -a claude-code --yes --copy
+```
+
+This npm-install path is enough for normal usage. Clone the repo only when you want to modify or contribute to `slides-grab` itself.
 
 ## Project Structure
 
@@ -139,8 +155,7 @@ src/editor/       Visual editor (HTML + JS client modules)
 scripts/          Build, validate, convert, editor server
 templates/        Slide HTML templates (cover, content, chart, ...)
 themes/           Color themes (modern-dark, executive, sage, ...)
-.claude/skills/   Claude Code skill definitions
-skills/           Codex skill definitions
+skills/           Shared Vercel-installable agent skills + references
 docs/             Installation & usage guides
 ```
 

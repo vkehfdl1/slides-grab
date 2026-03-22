@@ -8,7 +8,7 @@ import { getPackageRoot } from '../resolve.js';
 export const SLIDE_SIZE = { width: 960, height: 540 };
 
 const PPT_DESIGN_SKILL_PATH = join(getPackageRoot(), 'skills', 'slides-grab-design', 'SKILL.md');
-const DETAILED_DESIGN_SKILL_PATH = join(getPackageRoot(), '.claude', 'skills', 'design-skill', 'SKILL.md');
+const DETAILED_DESIGN_SKILL_PATH = join(getPackageRoot(), 'skills', 'slides-grab-design', 'references', 'detailed-design-rules.md');
 const DETAILED_DESIGN_SECTION_HEADINGS = [
   '## Base Settings',
   '### 4. Image Usage Rules (Local Asset / Data URL / Remote URL / Placeholder)',
@@ -39,7 +39,7 @@ const DETAILED_DESIGN_SKILL_FALLBACK = [
   '- Never place text directly in <div> or <span>.',
   '',
   '## Workflow (Stage 2: Design + Human Review)',
-  '- After slide generation or edits, run node scripts/build-viewer.js --slides-dir <path>.',
+  '- After slide generation or edits, run npm exec -- slides-grab build-viewer --slides-dir <path>.',
   '- Edit only the relevant HTML file during revision loops.',
   '- Never start PPTX conversion without explicit approval.',
   '- Never forget to rebuild the viewer after slide changes.',

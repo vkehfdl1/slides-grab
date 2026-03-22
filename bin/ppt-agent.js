@@ -167,18 +167,6 @@ program
     await runCommand('scripts/editor-server.js', args);
   });
 
-program
-  .command('install-codex-skills')
-  .description('Install project Codex skills into $CODEX_HOME/skills (default: ~/.codex/skills)')
-  .option('--force', 'Overwrite existing skill directories')
-  .option('--dry-run', 'Preview what would be installed')
-  .action(async (options = {}) => {
-    const args = [];
-    if (options.force) args.push('--force');
-    if (options.dryRun) args.push('--dry-run');
-    await runCommand('scripts/install-codex-skills.js', args);
-  });
-
 // --- Template/theme discovery commands ---
 
 program

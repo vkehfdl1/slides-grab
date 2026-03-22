@@ -1,12 +1,12 @@
 # Codex Setup And Usage
 
-This guide is for running `slides-grab` with Codex and repo-local Codex skills.
+This guide is for running `slides-grab` with Codex and shared Vercel-installed skills.
 
-## 1) Clone and Install
+## 1) Install the npm Package
 
 ```bash
-git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
-npm ci && npx playwright install chromium
+npm install slides-grab
+npx playwright install chromium
 ```
 
 Verify:
@@ -17,23 +17,33 @@ npm exec -- slides-grab --help
 
 ## 2) Install Codex Skills
 
-Install project skills into `~/.codex/skills`:
+From the local npm install:
 
 ```bash
-npm exec -- slides-grab install-codex-skills --force
+npx skills add ./node_modules/slides-grab -g -a codex --yes --copy
 ```
 
-Then restart Codex so skills are loaded.
+Then restart Codex so the installed skills are loaded.
 
-## 3) Codex Workflow
+## 3) Developer / Repo Clone Path
 
-Codex skill references:
+If you want to work on `slides-grab` itself instead of consuming the package:
 
-- `skills/slides-grab-plan/SKILL.md`
-- `skills/slides-grab-design/SKILL.md`
-- `skills/slides-grab-export/SKILL.md`
+```bash
+git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
+npm ci
+npx playwright install chromium
+npx skills add . -g -a codex --yes --copy
+```
 
-Or use the integrated skill: `skills/slides-grab/SKILL.md`
+## 4) Codex Workflow
+
+Installed skill names:
+
+- `slides-grab-plan`
+- `slides-grab-design`
+- `slides-grab-export`
+- `slides-grab`
 
 Run one deck per workspace folder:
 
@@ -51,10 +61,10 @@ slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 
 `slides-grab pdf` defaults to `--mode capture` for browser-faithful rendering. Switch to `--mode print` when you need searchable/selectable text in the exported PDF.
 
-## 4) Recommended Codex Kickoff Prompt
+## 5) Recommended Codex Kickoff Prompt
 
 Copy-paste into Codex:
 
 ```text
-Read docs/installation/codex.md first and follow it exactly. Use Codex skills (slides-grab-plan, slides-grab-design, slides-grab-export) or the end-to-end slides-grab skill, keep each deck in decks/<deck-name>, and run validate before convert/pdf.
+Read docs/installation/codex.md first and follow it exactly. Install slides-grab with npm, install the shared skills from ./node_modules/slides-grab using Vercel Agent Skills, use slides-grab-plan/design/export (or slides-grab), keep each deck in decks/<deck-name>, and run validate before convert/pdf.
 ```

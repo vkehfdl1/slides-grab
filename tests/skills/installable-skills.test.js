@@ -1,0 +1,45 @@
+import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import test from 'node:test';
+
+const INSTALLABLE_SKILLS = [
+  'skills/slides-grab/SKILL.md',
+  'skills/slides-grab-plan/SKILL.md',
+  'skills/slides-grab-design/SKILL.md',
+  'skills/slides-grab-export/SKILL.md',
+];
+
+test('installable skills use packaged commands and avoid .claude runtime paths', () => {
+  for (const file of INSTALLABLE_SKILLS) {
+    const text = readFileSync(file, 'utf-8');
+    assert.doesNotMatch(text, /\.claude\/skills\//, `${file} should not reference .claude skill paths`);
+    assert.doesNotMatch(text, /node scripts\//, `${file} should not execute repo-local scripts directly`);
+    assert.match(text, /npm exec -- slides-grab|Use the installed/, `${file} should describe installed/package-first usage`);
+  }
+});
+
+test('npm pack includes bundled skill references for installable skills', () => {
+  const output = execFileSync('npm', ['pack', '--json', '--dry-run'], {
+    cwd: process.cwd(),
+    encoding: 'utf-8',
+  });
+  const [packInfo] = JSON.parse(output);
+  const filePaths = new Set(packInfo.files.map((entry) => entry.path));
+
+  assert.ok(filePaths.has('skills/slides-grab-plan/references/outline-format.md'));
+  assert.ok(filePaths.has('skills/slides-grab-design/references/design-rules.md'));
+  assert.ok(filePaths.has('skills/slides-grab-design/references/detailed-design-rules.md'));
+  assert.ok(filePaths.has('skills/slides-grab-export/references/export-rules.md'));
+  assert.ok(filePaths.has('src/pptx-raster-export.cjs'));
+  assert.ok(!filePaths.has('scripts/install-codex-skills.js'));
+});
+
+test('slides-grab help no longer exposes the legacy custom skill installer', () => {
+  const output = execFileSync(process.execPath, ['bin/ppt-agent.js', '--help'], {
+    cwd: process.cwd(),
+    encoding: 'utf-8',
+  });
+
+  assert.doesNotMatch(output, /\binstall-codex-skills\b/);
+});

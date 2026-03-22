@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 
 const require = createRequire(import.meta.url);
-const { buildPageOptions, getTargetRasterSize, parseArgs } = require('../../convert.cjs');
+const { buildPageOptions, getTargetRasterSize, parseArgs } = require('../../src/pptx-raster-export.cjs');
 
 test('parseArgs applies default slides dir and output', () => {
   assert.deepEqual(parseArgs([]), {

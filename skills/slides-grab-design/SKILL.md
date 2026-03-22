@@ -24,9 +24,9 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 ## Workflow
 1. Read approved `slide-outline.md`.
 2. Generate slide HTML files with 2-digit numbering in selected `--slides-dir`.
-3. Run `slides-grab validate --slides-dir <path>` after generation or edits.
+3. Run `npm exec -- slides-grab validate --slides-dir <path>` after generation or edits.
 4. If validation fails, automatically fix the source slide HTML/CSS and re-run validation until it passes.
-5. Run `node scripts/build-viewer.js --slides-dir <path>` only after validation passes.
+5. Run `npm exec -- slides-grab build-viewer --slides-dir <path>` only after validation passes.
 6. Iterate on user feedback by editing only requested slide files, then re-run validation and rebuild the viewer.
 7. Keep revising until user approves conversion stage.
 
@@ -37,9 +37,10 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 - Allow `data:` URLs when the slide must be fully self-contained.
 - Treat remote `https://` images as best-effort only, and never use absolute filesystem paths.
 - Prefer `<img>` for slide imagery and `data-image-placeholder` when no final asset exists.
-- Do not present slides for review until `slides-grab validate --slides-dir <path>` passes.
+- Do not present slides for review until `npm exec -- slides-grab validate --slides-dir <path>` passes.
 - Do not start conversion before approval.
+- Use the packaged CLI and bundled references only; do not depend on unpublished agent-specific files.
 
 ## Reference
 For full constraints and style system, follow:
-- `.claude/skills/design-skill/SKILL.md`
+- `references/design-rules.md`
