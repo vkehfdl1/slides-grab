@@ -159,6 +159,18 @@ export function getSlideState(slide) {
   return slideStates.get(slide);
 }
 
+export function isTextInput(el) {
+  if (!el) return false;
+  const tag = el.tagName;
+  if (tag === 'TEXTAREA' || tag === 'SELECT') return true;
+  if (tag === 'INPUT') {
+    const type = (el.type || '').toLowerCase();
+    return !type || type === 'text' || type === 'number' || type === 'search'
+      || type === 'url' || type === 'email' || type === 'tel' || type === 'password';
+  }
+  return el.isContentEditable === true;
+}
+
 export function getLatestRunForSlide(slide) {
   const runs = Array.from(runsById.values())
     .filter((run) => run.slide === slide)

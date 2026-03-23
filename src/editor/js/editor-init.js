@@ -15,7 +15,7 @@ import {
 } from './editor-dom.js';
 import {
   currentSlideFile, getSlideState, normalizeModelName, setStatus,
-  saveSelectedModel, loadModelOptions, clamp,
+  saveSelectedModel, loadModelOptions, clamp, isTextInput,
 } from './editor-utils.js';
 import { renderChatMessages } from './editor-chat.js';
 import {
@@ -224,9 +224,9 @@ alignRight.addEventListener('click', () => {
 
 // Global keyboard
 document.addEventListener('keydown', (event) => {
-  const inPromptField = document.activeElement === promptInput;
+  const inTextField = isTextInput(document.activeElement);
 
-  if (state.toolMode === TOOL_MODE_SELECT && (event.ctrlKey || event.metaKey) && !inPromptField) {
+  if (state.toolMode === TOOL_MODE_SELECT && (event.ctrlKey || event.metaKey) && !inTextField) {
     const key = event.key.toLowerCase();
     if (key === 'b') { event.preventDefault(); if (!toggleBold.disabled) toggleBold.click(); return; }
     if (key === 'i') { event.preventDefault(); if (!toggleItalic.disabled) toggleItalic.click(); return; }
@@ -249,7 +249,7 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
-  if (inPromptField) return;
+  if (inTextField) return;
 
   // ? key for shortcuts
   if (event.key === '?' && !event.ctrlKey && !event.metaKey) {
@@ -258,12 +258,18 @@ document.addEventListener('keydown', (event) => {
     return;
   }
 
-  if (event.key === 'ArrowLeft') {
+  if (event.key === 'PageUp') {
     event.preventDefault();
     void goToSlide(state.currentIndex - 1);
-  } else if (event.key === 'ArrowRight') {
+  } else if (event.key === 'PageDown') {
     event.preventDefault();
     void goToSlide(state.currentIndex + 1);
+  } else if (event.key === 'Home') {
+    event.preventDefault();
+    void goToSlide(0);
+  } else if (event.key === 'End') {
+    event.preventDefault();
+    void goToSlide(state.slides.length - 1);
   }
 });
 
