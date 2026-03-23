@@ -1,7 +1,7 @@
 {
   "name": "slides-grab",
   "version": "1.0.0",
-  "description": "Agent-first presentation framework — plan, design, and visually edit HTML slides with Claude Code or Codex, then export to PPTX/PDF",
+  "description": "Agent-first presentation framework — plan, design, and visually edit HTML slides with Claude Code or Codex, then export to PDF or experimental/unstable PPTX/Figma formats",
   "license": "MIT",
   "author": "vkehfdl1",
   "repository": {
@@ -30,12 +30,29 @@
   "bin": {
     "slides-grab": "./bin/ppt-agent.js"
   },
+  "files": [
+    "bin/",
+    "convert.cjs",
+    "scripts/build-viewer.js",
+    "scripts/editor-server.js",
+    "scripts/figma-export.js",
+    "scripts/html2pdf.js",
+    "scripts/html2pptx.js",
+    "scripts/html2svg.js",
+    "scripts/validate-slides.js",
+    "skills/",
+    "src/",
+    "packs/",
+    "templates/",
+    "themes/",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
-    "html2pptx": "node .claude/skills/pptx-skill/scripts/html2pptx.js",
+    "html2pptx": "node scripts/html2pptx.js",
     "build-viewer": "node scripts/build-viewer.js",
     "validate": "node scripts/validate-slides.js",
     "convert": "node convert.cjs",
-    "codex:install-skills": "node scripts/install-codex-skills.js --force",
     "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/svg/html2svg.test.js",
     "test:e2e": "node --test tests/editor/editor-ui.e2e.test.js tests/editor/editor-concurrency.e2e.test.js",
     "edit": "node bin/ppt-agent.js edit",

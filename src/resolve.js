@@ -44,31 +44,6 @@ export function getSlidesDir(slidesDir = process.env.PPT_AGENT_SLIDES_DIR || 'sl
 // ── Pack helpers ─────────────────────────────────────────────────────
 
 /**
- * Locate the packs directory. Local first, then package.
- * @returns {string | null}
- */
-function findPacksDir() {
-  const localDir = join(getCwd(), 'packs');
-  if (existsSync(localDir)) return localDir;
-
-  const pkgDir = join(PACKAGE_ROOT, 'packs');
-  if (existsSync(pkgDir)) return pkgDir;
-
-  return null;
-}
-
-/**
- * Read and parse a JSON file. Returns null on failure.
- */
-function readJsonSafe(filePath) {
-  try {
-    return JSON.parse(readFileSync(filePath, 'utf-8'));
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Parse CSS variables from a theme.css file content.
  * @param {string} css
  * @returns {Record<string, string>}
@@ -167,29 +142,40 @@ export function listPackTemplates(packId) {
  * @returns {Array<{ id: string, name: string, colors: Record<string, string>, templates: string[] }>}
  */
 export function listPacks() {
-  const packsDir = findPacksDir();
-  if (!packsDir) return [];
+  // Auto-discover packs: scan both local and package packs dirs
+  // for subdirectories containing theme.css
+  const seen = new Map(); // id → pack entry (local wins over package)
 
-  const manifest = readJsonSafe(join(packsDir, 'pack-manifest.json'));
-  const packIds = manifest?.packs || [];
+  for (const baseDir of [join(getCwd(), 'packs'), join(PACKAGE_ROOT, 'packs')]) {
+    if (!existsSync(baseDir)) continue;
+    for (const entry of readdirSync(baseDir, { withFileTypes: true })) {
+      if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name.startsWith('_')) continue;
+      if (seen.has(entry.name)) continue; // local takes priority
+      const packDir = join(baseDir, entry.name);
+      if (!existsSync(join(packDir, 'theme.css'))) continue;
 
-  return packIds
-    .map(id => {
-      const pack = resolvePack(id);
-      if (!pack) return null;
-      const info = getPackInfo(id);
-      const templatesDir = join(pack.path, 'templates');
+      const info = getPackInfo(entry.name);
+      const templatesDir = join(packDir, 'templates');
       const templates = existsSync(templatesDir)
         ? readdirSync(templatesDir).filter(f => f.endsWith('.html')).map(f => f.replace('.html', '')).sort()
         : [];
-      return {
-        id,
-        name: info?.name || id,
+      seen.set(entry.name, {
+        id: entry.name,
+        name: info?.name || entry.name,
         colors: info?.colors || {},
         templates,
-      };
-    })
-    .filter(Boolean);
+      });
+    }
+  }
+
+  // Put figma-default first, then sort rest alphabetically
+  const result = Array.from(seen.values());
+  result.sort((a, b) => {
+    if (a.id === DEFAULT_PACK) return -1;
+    if (b.id === DEFAULT_PACK) return 1;
+    return a.id.localeCompare(b.id);
+  });
+  return result;
 }
 
 /**

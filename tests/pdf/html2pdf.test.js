@@ -19,6 +19,8 @@ test('parseCliArgs applies defaults for output and help', () => {
   assert.deepEqual(parsed, {
     output: 'slides.pdf',
     slidesDir: 'slides',
+    mode: 'capture',
+    resolution: '2160p',
     help: false,
   });
 });

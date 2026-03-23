@@ -1,340 +1,167 @@
 #!/usr/bin/env node
 
-import { readdir } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 
-const FRAME_PT = { width: 720, height: 405 };
-const PT_TO_PX = 96 / 72;
-const FRAME_PX = {
-  width: FRAME_PT.width * PT_TO_PX,
-  height: FRAME_PT.height * PT_TO_PX
+import {
+  DEFAULT_SLIDES_DIR,
+  DEFAULT_VALIDATE_FORMAT,
+  getValidateUsage,
+  parseValidateCliArgs,
+} from '../src/validation/cli.js';
+import {
+  createValidationFailure,
+  createValidationResult,
+  ensureSlidesPassValidation,
+  findSlideFiles,
+  formatValidationFailureForExport,
+  scanSlides,
+  selectSlideFiles,
+} from '../src/validation/core.js';
+
+export {
+  DEFAULT_SLIDES_DIR,
+  ensureSlidesPassValidation,
+  findSlideFiles,
+  formatValidationFailureForExport,
+  parseValidateCliArgs as parseCliArgs,
 };
-const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;
-const TEXT_SELECTOR = 'p,h1,h2,h3,h4,h5,h6,li';
-const TOLERANCE_PX = 0.5;
-const DEFAULT_SLIDES_DIR = 'slides';
 
-function toSlideOrder(fileName) {
-  const match = fileName.match(/\d+/);
-  return match ? Number.parseInt(match[0], 10) : Number.POSITIVE_INFINITY;
-}
+export function flattenValidationResult(result) {
+  const diagnostics = [];
 
-function sortSlideFiles(a, b) {
-  const orderA = toSlideOrder(a);
-  const orderB = toSlideOrder(b);
-  if (orderA !== orderB) return orderA - orderB;
-  return a.localeCompare(b);
-}
-
-function buildIssue(code, message, payload = {}) {
-  return { code, message, ...payload };
-}
-
-function summarizeSlides(slides) {
-  const summary = {
-    totalSlides: slides.length,
-    passedSlides: 0,
-    failedSlides: 0,
-    criticalIssues: 0,
-    warnings: 0
-  };
-
-  for (const slide of slides) {
-    if (slide.status === 'pass') {
-      summary.passedSlides += 1;
-    } else {
-      summary.failedSlides += 1;
-    }
-    summary.criticalIssues += slide.summary.criticalCount;
-    summary.warnings += slide.summary.warningCount;
-  }
-
-  return summary;
-}
-
-function printUsage() {
-  process.stdout.write(
-    [
-      'Usage: node scripts/validate-slides.js [options]',
-      '',
-      'Options:',
-      `  --slides-dir <path>  Slide directory (default: ${DEFAULT_SLIDES_DIR})`,
-      '  -h, --help           Show this help message',
-    ].join('\n'),
-  );
-  process.stdout.write('\n');
-}
-
-function readOptionValue(args, index, optionName) {
-  const next = args[index + 1];
-  if (!next || next.startsWith('-')) {
-    throw new Error(`Missing value for ${optionName}.`);
-  }
-  return next;
-}
-
-function parseCliArgs(args) {
-  const options = {
-    slidesDir: DEFAULT_SLIDES_DIR,
-    help: false,
-  };
-
-  for (let i = 0; i < args.length; i += 1) {
-    const arg = args[i];
-
-    if (arg === '-h' || arg === '--help') {
-      options.help = true;
-      continue;
-    }
-
-    if (arg === '--slides-dir') {
-      options.slidesDir = readOptionValue(args, i, '--slides-dir');
-      i += 1;
-      continue;
-    }
-
-    if (arg.startsWith('--slides-dir=')) {
-      options.slidesDir = arg.slice('--slides-dir='.length);
-      continue;
-    }
-
-    throw new Error(`Unknown option: ${arg}`);
-  }
-
-  if (typeof options.slidesDir !== 'string' || options.slidesDir.trim() === '') {
-    throw new Error('--slides-dir must be a non-empty string.');
-  }
-
-  options.slidesDir = options.slidesDir.trim();
-  return options;
-}
-
-async function findSlideFiles(slidesDir) {
-  const entries = await readdir(slidesDir, { withFileTypes: true });
-  return entries
-    .filter((entry) => entry.isFile() && SLIDE_FILE_PATTERN.test(entry.name))
-    .map((entry) => entry.name)
-    .sort(sortSlideFiles);
-}
-
-async function inspectSlide(page, fileName, slidesDir) {
-  const slidePath = join(slidesDir, fileName);
-  const slideUrl = pathToFileURL(slidePath).href;
-
-  await page.goto(slideUrl, { waitUntil: 'load' });
-  await page.evaluate(async () => {
-    if (document.fonts?.ready) {
-      await document.fonts.ready;
-    }
-  });
-
-  const inspection = await page.evaluate(
-    ({ framePx, textSelector, tolerancePx }) => {
-      const skipTags = new Set(['SCRIPT', 'STYLE', 'META', 'LINK', 'HEAD', 'TITLE', 'NOSCRIPT']);
-      const critical = [];
-      const warning = [];
-      const seenOverlaps = new Set();
-
-      const round = (value) => Number(value.toFixed(2));
-
-      const normalizeRect = (rect) => {
-        const left = rect.left ?? rect.x ?? 0;
-        const top = rect.top ?? rect.y ?? 0;
-        const width = rect.width ?? (rect.right - left) ?? 0;
-        const height = rect.height ?? (rect.bottom - top) ?? 0;
-        const right = rect.right ?? (left + width);
-        const bottom = rect.bottom ?? (top + height);
-        return {
-          x: round(left),
-          y: round(top),
-          width: round(width),
-          height: round(height),
-          left: round(left),
-          top: round(top),
-          right: round(right),
-          bottom: round(bottom)
-        };
-      };
-
-      const elementPath = (element) => {
-        if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
-        if (element === document.body) return 'body';
-
-        const parts = [];
-        let current = element;
-
-        while (current && current.nodeType === Node.ELEMENT_NODE && current !== document.body) {
-          let part = current.tagName.toLowerCase();
-          if (current.id) {
-            part += `#${current.id}`;
-            parts.unshift(part);
-            break;
-          }
-
-          const classNames = Array.from(current.classList).slice(0, 2);
-          if (classNames.length > 0) {
-            part += `.${classNames.join('.')}`;
-          }
-
-          if (current.parentElement) {
-            const siblingsOfSameTag = Array.from(current.parentElement.children)
-              .filter((sibling) => sibling.tagName === current.tagName);
-            if (siblingsOfSameTag.length > 1) {
-              const index = siblingsOfSameTag.indexOf(current);
-              part += `:nth-of-type(${index + 1})`;
+  for (const slide of result.slides || []) {
+    for (const issue of slide.critical || []) {
+      diagnostics.push({
+        slide: slide.slide,
+        severity: 'error',
+        code: issue.code,
+        message: issue.message,
+        location: issue.element || issue.parent || undefined,
+        related: Array.isArray(issue.elements) ? issue.elements : undefined,
+        source: issue.source,
+        assetPath: issue.assetPath,
+        detail: issue.detail,
+        metrics: issue.metrics,
+        bbox: issue.bbox
+          ? {
+              x: issue.bbox.x,
+              y: issue.bbox.y,
+              width: issue.bbox.width,
+              height: issue.bbox.height,
             }
-          }
-
-          parts.unshift(part);
-          current = current.parentElement;
-        }
-
-        return `body > ${parts.join(' > ')}`;
-      };
-
-      const isVisible = (element) => {
-        if (skipTags.has(element.tagName)) return false;
-        const style = window.getComputedStyle(element);
-        if (style.display === 'none' || style.visibility === 'hidden' || Number(style.opacity) === 0) {
-          return false;
-        }
-        const rect = element.getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
-      };
-
-      const bodyRect = document.body.getBoundingClientRect();
-      const frameRect = {
-        left: bodyRect.left,
-        top: bodyRect.top,
-        right: bodyRect.left + (bodyRect.width || framePx.width),
-        bottom: bodyRect.top + (bodyRect.height || framePx.height),
-        width: bodyRect.width || framePx.width,
-        height: bodyRect.height || framePx.height
-      };
-
-      const allVisibleElements = Array.from(document.body.querySelectorAll('*')).filter(isVisible);
-      const visibleSet = new Set(allVisibleElements);
-
-      for (const element of allVisibleElements) {
-        const rect = element.getBoundingClientRect();
-        const outsideFrame = (
-          rect.left < frameRect.left - tolerancePx ||
-          rect.top < frameRect.top - tolerancePx ||
-          rect.right > frameRect.right + tolerancePx ||
-          rect.bottom > frameRect.bottom + tolerancePx
-        );
-
-        if (outsideFrame) {
-          critical.push({
-            code: 'overflow-outside-frame',
-            message: 'Element exceeds the 720pt x 405pt slide frame.',
-            element: elementPath(element),
-            bbox: normalizeRect(rect),
-            frame: normalizeRect(frameRect)
-          });
-        }
-      }
-
-      const textElements = Array.from(document.querySelectorAll(textSelector));
-      for (const element of textElements) {
-        if (!isVisible(element)) continue;
-        const content = (element.textContent || '').trim();
-        if (!content) continue;
-
-        const clipped = element.scrollHeight > element.clientHeight;
-        if (!clipped) continue;
-
-        critical.push({
-          code: 'text-clipped',
-          message: 'Text element is clipped because scrollHeight is larger than clientHeight.',
-          element: elementPath(element),
-          metrics: {
-            scrollHeight: element.scrollHeight,
-            clientHeight: element.clientHeight
-          },
-          bbox: normalizeRect(element.getBoundingClientRect())
-        });
-      }
-
-      const parents = [document.body, ...allVisibleElements];
-      for (const parent of parents) {
-        const children = Array.from(parent.children).filter((child) => visibleSet.has(child));
-        if (children.length < 2) continue;
-
-        for (let i = 0; i < children.length; i += 1) {
-          for (let j = i + 1; j < children.length; j += 1) {
-            const first = children[i];
-            const second = children[j];
-
-            const rectA = first.getBoundingClientRect();
-            const rectB = second.getBoundingClientRect();
-
-            const overlapWidth = Math.min(rectA.right, rectB.right) - Math.max(rectA.left, rectB.left);
-            const overlapHeight = Math.min(rectA.bottom, rectB.bottom) - Math.max(rectA.top, rectB.top);
-
-            if (overlapWidth <= tolerancePx || overlapHeight <= tolerancePx) continue;
-
-            const firstPath = elementPath(first);
-            const secondPath = elementPath(second);
-            const overlapKey = [firstPath, secondPath].sort().join('::');
-
-            if (seenOverlaps.has(overlapKey)) continue;
-            seenOverlaps.add(overlapKey);
-
-            warning.push({
-              code: 'sibling-overlap',
-              message: 'Sibling elements overlap in their bounding boxes.',
-              parent: elementPath(parent),
-              elements: [firstPath, secondPath],
-              intersection: {
-                x: round(Math.max(rectA.left, rectB.left)),
-                y: round(Math.max(rectA.top, rectB.top)),
-                width: round(overlapWidth),
-                height: round(overlapHeight)
-              },
-              boxes: [normalizeRect(rectA), normalizeRect(rectB)]
-            });
-          }
-        }
-      }
-
-      return {
-        critical,
-        warning
-      };
-    },
-    {
-      framePx: FRAME_PX,
-      textSelector: TEXT_SELECTOR,
-      tolerancePx: TOLERANCE_PX
+          : undefined,
+        intersection: issue.intersection,
+      });
     }
-  );
 
-  const summary = {
-    criticalCount: inspection.critical.length,
-    warningCount: inspection.warning.length
-  };
+    for (const issue of slide.warning || []) {
+      diagnostics.push({
+        slide: slide.slide,
+        severity: 'warning',
+        code: issue.code,
+        message: issue.message,
+        location: issue.element || issue.parent || undefined,
+        related: Array.isArray(issue.elements) ? issue.elements : undefined,
+        source: issue.source,
+        assetPath: issue.assetPath,
+        detail: issue.detail,
+        metrics: issue.metrics,
+        bbox: issue.bbox
+          ? {
+              x: issue.bbox.x,
+              y: issue.bbox.y,
+              width: issue.bbox.width,
+              height: issue.bbox.height,
+            }
+          : undefined,
+        intersection: issue.intersection,
+      });
+    }
+  }
 
   return {
-    slide: fileName,
-    status: summary.criticalCount > 0 ? 'fail' : 'pass',
-    critical: inspection.critical,
-    warning: inspection.warning,
-    summary
+    schemaVersion: 1,
+    generatedAt: result.generatedAt,
+    summary: {
+      totalSlides: result.summary?.totalSlides ?? 0,
+      passedSlides: result.summary?.passedSlides ?? 0,
+      failedSlides: result.summary?.failedSlides ?? 0,
+      errors: result.summary?.criticalIssues ?? 0,
+      warnings: result.summary?.warnings ?? 0,
+    },
+    diagnostics,
+    ...(result.error ? { error: result.error } : {}),
   };
 }
 
-async function main() {
-  const options = parseCliArgs(process.argv.slice(2));
-  if (options.help) {
-    printUsage();
-    return;
+function formatDiagnosticLine(diagnostic) {
+  const target = diagnostic.location
+    || (diagnostic.related && diagnostic.related.length > 0 ? diagnostic.related.join(' <> ') : '')
+    || diagnostic.source
+    || '';
+
+  const extra = [];
+  if (diagnostic.source) extra.push(`source=${diagnostic.source}`);
+  if (diagnostic.assetPath) extra.push(`assetPath=${diagnostic.assetPath}`);
+  if (diagnostic.metrics) {
+    extra.push(
+      Object.entries(diagnostic.metrics)
+        .map(([key, value]) => `${key}=${value}`)
+        .join(' '),
+    );
+  }
+  if (diagnostic.bbox) {
+    extra.push(`bbox=${diagnostic.bbox.x},${diagnostic.bbox.y} ${diagnostic.bbox.width}x${diagnostic.bbox.height}`);
+  }
+  if (diagnostic.intersection) {
+    extra.push(
+      `intersection=${diagnostic.intersection.x},${diagnostic.intersection.y} ${diagnostic.intersection.width}x${diagnostic.intersection.height}`,
+    );
+  }
+  if (diagnostic.detail) extra.push(`detail=${diagnostic.detail}`);
+
+  const targetSuffix = target ? ` ${target}` : '';
+  const extraSuffix = extra.length > 0 ? ` (${extra.join('; ')})` : '';
+  return `${diagnostic.slide}:${diagnostic.severity}[${diagnostic.code}]${targetSuffix} - ${diagnostic.message}${extraSuffix}`;
+}
+
+export function formatValidationResult(result, format = DEFAULT_VALIDATE_FORMAT) {
+  if (format === 'json-full') {
+    return `${JSON.stringify(result, null, 2)}\n`;
   }
 
-  const slidesDir = resolve(process.cwd(), options.slidesDir);
-  const slideFiles = await findSlideFiles(slidesDir);
+  const flattened = flattenValidationResult(result);
+  if (format === 'json') {
+    return `${JSON.stringify(flattened, null, 2)}\n`;
+  }
+
+  const lines = flattened.diagnostics.map(formatDiagnosticLine);
+  if (flattened.error) {
+    lines.push(`validation:error[validation-failed] - ${flattened.error}`);
+  }
+  lines.push(
+    `summary: ${flattened.summary.totalSlides} slide(s) checked, ${flattened.summary.passedSlides} passed, ${flattened.summary.failedSlides} failed, ${flattened.summary.errors} error(s), ${flattened.summary.warnings} warning(s)`,
+  );
+  return `${lines.join('\n')}\n`;
+}
+
+function peekValidateFormat(args = []) {
+  for (let i = 0; i < args.length; i += 1) {
+    const arg = args[i];
+    if (arg === '--format') {
+      return args[i + 1] || DEFAULT_VALIDATE_FORMAT;
+    }
+    if (arg.startsWith('--format=')) {
+      return arg.slice('--format='.length) || DEFAULT_VALIDATE_FORMAT;
+    }
+  }
+  return DEFAULT_VALIDATE_FORMAT;
+}
+
+export async function validateSlides(slidesDir, { selectedSlides = [] } = {}) {
+  const slideFiles = selectSlideFiles(await findSlideFiles(slidesDir), selectedSlides, slidesDir);
   if (slideFiles.length === 0) {
     throw new Error(`No slide-*.html files found in: ${slidesDir}`);
   }
@@ -343,74 +170,35 @@ async function main() {
   const context = await browser.newContext({ viewport: { width: 1920, height: 1080 } });
   const page = await context.newPage();
 
-  const slides = [];
   try {
-    for (const slideFile of slideFiles) {
-      try {
-        const result = await inspectSlide(page, slideFile, slidesDir);
-        slides.push(result);
-      } catch (error) {
-        slides.push({
-          slide: slideFile,
-          status: 'fail',
-          critical: [
-            buildIssue(
-              'slide-validation-error',
-              'Slide validation failed before checks could complete.',
-              { detail: error instanceof Error ? error.message : String(error) }
-            )
-          ],
-          warning: [],
-          summary: {
-            criticalCount: 1,
-            warningCount: 0
-          }
-        });
-      }
-    }
+    const slides = await scanSlides(page, slidesDir, slideFiles);
+    return createValidationResult(slides);
   } finally {
     await browser.close();
   }
+}
 
-  const result = {
-    generatedAt: new Date().toISOString(),
-    frame: {
-      widthPt: FRAME_PT.width,
-      heightPt: FRAME_PT.height,
-      widthPx: FRAME_PX.width,
-      heightPx: FRAME_PX.height
-    },
-    slides,
-    summary: summarizeSlides(slides)
-  };
+export async function main(args = process.argv.slice(2)) {
+  const options = parseValidateCliArgs(args);
+  if (options.help) {
+    process.stdout.write(`${getValidateUsage()}\n`);
+    return;
+  }
 
-  process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-
+  const slidesDir = resolve(process.cwd(), options.slidesDir);
+  const result = await validateSlides(slidesDir, { selectedSlides: options.slides });
+  process.stdout.write(formatValidationResult(result, options.format));
   if (result.summary.failedSlides > 0) {
     process.exitCode = 1;
   }
 }
 
-main().catch((error) => {
-  const failure = {
-    generatedAt: new Date().toISOString(),
-    frame: {
-      widthPt: FRAME_PT.width,
-      heightPt: FRAME_PT.height,
-      widthPx: FRAME_PX.width,
-      heightPx: FRAME_PX.height
-    },
-    slides: [],
-    summary: {
-      totalSlides: 0,
-      passedSlides: 0,
-      failedSlides: 0,
-      criticalIssues: 1,
-      warnings: 0
-    },
-    error: error instanceof Error ? error.message : String(error)
-  };
+const isMain = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
-  process.stdout.write(`${JSON.stringify(failure, null, 2)}\n`);
-  process.exit(1);
-});
+if (isMain) {
+  main().catch((error) => {
+    const failure = createValidationFailure(error);
+    process.stdout.write(formatValidationResult(failure, peekValidateFormat(process.argv.slice(2))));
+    process.exit(1);
+  });
+}

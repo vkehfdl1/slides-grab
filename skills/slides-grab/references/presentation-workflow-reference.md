@@ -1,8 +1,3 @@
----
-name: presentation-skill
-description: End-to-end presentation workflow. Use when making a full presentation from scratch — planning, designing slides, editing, and exporting.
----
-
 # Presentation Skill - Full Workflow Orchestrator
 
 Guides you through the complete presentation pipeline from topic to exported file.
@@ -28,11 +23,12 @@ Use **design-skill** (`.claude/skills/design-skill/SKILL.md`).
 
 1. Read approved `slide-outline.md`.
 2. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
-3. Validate: `slides-grab validate --slides-dir <path>` — fix and re-run until it passes.
-4. Build the viewer: `slides-grab build-viewer --slides-dir <path>`
-5. Present viewer to user for review.
-6. Revise individual slides based on feedback, then re-validate and rebuild viewer.
-7. Optionally launch the visual editor: `slides-grab edit --slides-dir <path>`
+3. Run validation: `slides-grab validate --slides-dir <path>`
+4. If validation fails, automatically fix the slide HTML/CSS until validation passes.
+5. Build the viewer: `node scripts/build-viewer.js --slides-dir <path>`
+6. Present viewer to user for review.
+7. Revise individual slides based on feedback, then re-run validation and rebuild the viewer.
+8. Optionally launch the visual editor: `slides-grab edit --slides-dir <path>`
 
 **Do not proceed to Stage 3 without approval.**
 
@@ -41,9 +37,9 @@ Use **design-skill** (`.claude/skills/design-skill/SKILL.md`).
 Use **pptx-skill** (`.claude/skills/pptx-skill/SKILL.md`).
 
 1. Confirm user wants conversion.
-2. Export to PDF (recommended): `slides-grab pdf --slides-dir <path> --output <name>.pdf`
-3. Export to PPTX (experimental / unstable): `slides-grab convert --slides-dir <path> --output <name>.pptx`
-4. Report results. Warn user that PPTX is best-effort and may need manual cleanup.
+2. Export to PPTX: `slides-grab convert --slides-dir <path> --output <name>.pptx` (**experimental / unstable**)
+3. Export to PDF (if requested): `slides-grab pdf --slides-dir <path> --output <name>.pdf`
+4. Report results.
 
 ---
 
@@ -53,3 +49,4 @@ Use **pptx-skill** (`.claude/skills/pptx-skill/SKILL.md`).
 2. **Get explicit user approval** before advancing to the next stage.
 3. **Read each stage's SKILL.md** for detailed rules — this skill only orchestrates.
 4. **Use `decks/<deck-name>/`** as the slides workspace for multi-deck projects.
+5. **Call out export risk clearly**: PPTX and Figma export are experimental / unstable and should be described as best-effort output.

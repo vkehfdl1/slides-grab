@@ -1,94 +1,6 @@
----
-name: design-skill
-description: Design presentation slides as polished HTML. Use when generating slide HTML, visual design, or layout composition is needed.
----
+# Charts, Icons & Image Library Reference
 
-# Design Skill - Professional Presentation Design System
-
-A skill for designing HTML slides for top-tier business presentations.
-Delivers minimal, refined design based on existing templates and theme system.
-
----
-
-## Core Style Principles
-
-- **Font**: Pretendard (CDN link below)
-- **Slide Size**: 720pt x 405pt (16:9, fixed)
-- **Style**: Determined by the selected template pack
-
-### Default Style (figma-default pack)
-- **Background**: White (`#ffffff`)
-- **Text**: Black (`#000000`), secondary `#6b6b6b`
-- **Accent**: `#FC5E20`
-
-### Pretendard Webfont CDN
-```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
-```
-
----
-
-## Template Pack System
-
-Templates are organized into **packs** in the `packs/` directory. Each pack provides a different visual design.
-
-Available packs: `figma-default`, `midnight`, `corporate`, `creative`
-
-### How to use packs
-
-1. **Check available packs**:
-   ```bash
-   slides-grab list-packs
-   ```
-
-2. **View pack details** (colors, owned templates, fallback info):
-   ```bash
-   slides-grab show-pack <pack-id>
-   ```
-
-3. **View a template from a specific pack**:
-   ```bash
-   slides-grab show-template <template-name> --pack <pack-id>
-   ```
-   If the pack doesn't own that template, it falls back to `figma-default`.
-
-4. **Follow the pack's design language**: Use the pack's colors, typography scale, and visual style consistently across all slides.
-
-### Pack Resolution
-
-When a pack is specified (e.g., `midnight`):
-- Templates owned by the pack are used directly
-- Missing templates fall back to `figma-default`, but **colors/style should be adapted** to match the selected pack
-
----
-
-## Template-First Design Rule
-
-**Slides must be designed based on existing templates from the selected pack.**
-
-Do NOT invent custom layouts, typography scales, color systems, or component patterns from scratch.
-Instead, follow the structure and styling of the matching template.
-
-### How to use templates
-
-1. **Check available templates**: See the full list in `CLAUDE.md` (23 template types available)
-2. **View template content**: Use the CLI command to inspect a template before designing:
-   ```bash
-   slides-grab show-template <template-name> --pack <pack-id>
-   ```
-   Example: `slides-grab show-template cover --pack midnight`
-3. **Follow the template**: Copy the template's HTML structure, CSS patterns, and layout as the base for the slide
-4. **Customize content only**: Replace placeholder text/data with actual content from `slide-outline.md`
-5. **When no pack is specified**: Default to `figma-default` pack (original behavior)
-
-### Theme CSS Variables
-
-Each pack has a `theme.css` file defining CSS variables (`:root { --bg-primary, --text-primary, --accent, ... }`).
-Templates use these variables via `var(--xxx)` instead of hardcoded colors.
-
-- View a pack's theme: `slides-grab show-theme <pack-id>`
-- All templates include the `:root` block inline for standalone rendering
-- When generating slides, copy the `:root` variables from the pack's template and use `var()` references
+Reusable chart examples, SVG icon snippets, and image usage patterns for slide design.
 
 ---
 
@@ -186,9 +98,11 @@ Recommendations:
 - Write Mermaid DSL inside `<pre class="mermaid">`.
 - Fix the diagram container size for stable layout.
 
-### 3. Inline SVG Icon & Emoji Guide
+---
 
-#### SVG Icon 기본 사용법
+## Inline SVG Icon & Emoji Guide
+
+### SVG Icon 기본 사용법
 
 ```html
 <div style="display: flex; align-items: center; gap: 8pt;">
@@ -205,7 +119,7 @@ Rules:
 - Use HEX values with `#` prefix for `stroke`/`fill` colors.
 - Place text outside SVG using `<p>`, `<h1>`-`<h6>` tags.
 
-#### Emoji vs SVG Icon 선택 기준
+### Emoji vs SVG Icon 선택 기준
 
 SVG 내보내기 시 이모지/특수문자는 자동으로 래스터 PNG로 변환된다. 벡터 품질을 유지하려면 인라인 SVG 아이콘을 우선 사용한다.
 
@@ -218,7 +132,7 @@ SVG 내보내기 시 이모지/특수문자는 자동으로 래스터 PNG로 변
 
 **핵심 원칙**: 슬라이드의 구조적 시각 요소는 SVG, 분위기·톤 보조는 이모지. 이모지를 쓸 때는 본문 폰트 사이즈(14pt 이하) 수준에서 사용하면 래스터 품질이 충분하다.
 
-#### SVG 아이콘 스니펫 라이브러리
+### SVG 아이콘 스니펫 라이브러리
 
 이모지 대신 사용할 수 있는 인라인 SVG 모음. `stroke`/`fill` 색상과 `width`/`height` 크기를 변경하여 테마에 맞춘다.
 
@@ -561,7 +475,11 @@ SVG 내보내기 시 이모지/특수문자는 자동으로 래스터 PNG로 변
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2 20h20M5 20V8l7-5 7 5v12" stroke="#1f2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 20v-6h4v6" stroke="#1f2937" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 ```
 
-**숫자 불릿 (① ② ③ 대체)**
+---
+
+## Numbered Bullet Icons
+
+**숫자 불릿 (numbered circle bullets)**
 ```html
 <!-- 번호 원형 불릿 — 숫자와 색상을 변경하여 사용 -->
 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#FC5E20"/><text x="12" y="16" text-anchor="middle" fill="#fff" font-size="13" font-family="Pretendard, sans-serif" font-weight="600">1</text></svg>
@@ -573,117 +491,27 @@ SVG 내보내기 시 이모지/특수문자는 자동으로 래스터 PNG로 변
 <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1f2937"/><text x="12" y="16" text-anchor="middle" fill="#fff" font-size="13" font-family="Pretendard, sans-serif" font-weight="600">A</text></svg>
 ```
 
-### 4. Image Usage Rules (Local Path / URL / Placeholder)
+---
 
-#### Local Path Image
+## Image Usage Rules (Local Path / URL / Placeholder)
+
+### Local Path Image
 ```html
 <img src="/Users/yourname/projects/assets/team-photo.png" alt="Team photo" style="width: 220pt; height: 140pt; object-fit: cover;">
 ```
 
-#### URL Image
+### URL Image
 ```html
 <img src="https://images.example.com/hero.png" alt="Hero image" style="width: 220pt; height: 140pt; object-fit: cover;">
 ```
 
-#### Placeholder (Image Stand-In)
+### Placeholder (Image Stand-In)
 ```html
 <div data-image-placeholder style="width: 220pt; height: 140pt; border: 1px dashed #c7c7c7; background: #f3f4f6;"></div>
 ```
 
-Rules:
+### Rules
 - Always include `alt` on `img` tags.
 - Prefer local paths; URL images risk network failures.
 - Use `data-image-placeholder` to reserve space when no image is available yet.
 - Use high-resolution originals and fit with `object-fit`.
-
----
-
-## Text Usage Rules
-
-### Required Tags
-```html
-<!-- All text MUST be inside these tags -->
-<p>, <h1>-<h6>, <ul>, <ol>, <li>
-
-<!-- Forbidden - ignored in PowerPoint conversion -->
-<div>text here</div>
-<span>text here</span>
-```
-
-### Recommended Usage
-```html
-<!-- Good -->
-<h1 style="...">Title</h1>
-<p style="...">Body text</p>
-
-<!-- Bad -->
-<div style="...">Text directly in div</div>
-```
-
----
-
-## Output and File Structure
-
-### File Save Rules
-```
-<slides-dir>/   (default: slides/)
-├── slide-01.html  (Cover)
-├── slide-02.html  (Contents)
-├── slide-03.html  (Section Divider)
-├── slide-04.html  (Content)
-├── ...
-└── slide-XX.html  (Closing)
-```
-
-### File Naming Rules
-- Use 2-digit numbers: `slide-01.html`, `slide-02.html`
-- Name sequentially
-- No special characters or spaces
-
----
-
-## Workflow (Stage 2: Design + Human Review)
-
-This skill is **Stage 2**. It works from the `slide-outline.md` approved by the user in Stage 1 (plan-skill).
-
-### Prerequisites
-- `slide-outline.md` must exist and be approved by the user.
-
-### Steps
-
-1. **Analyze + Design**: Read `slide-outline.md`, decide theme/layout, generate HTML slides
-2. **Validate**: After generation or edits, run:
-   ```bash
-   slides-grab validate --slides-dir <path>
-   ```
-   If validation fails, fix the source slide HTML/CSS and re-run until it passes.
-3. **Build viewer**: Only after validation passes, run:
-   ```bash
-   slides-grab build-viewer --slides-dir <path>
-   ```
-4. **Guide user to review**: Tell the user to check slides in the browser:
-   ```
-   open <slides-dir>/viewer.html
-   ```
-5. **Revision loop**: When the user requests changes to specific slides:
-   - Edit only the relevant HTML file
-   - Re-run `slides-grab validate --slides-dir <path>`
-   - After validation passes, re-run `slides-grab build-viewer --slides-dir <path>`
-   - Guide user to review again
-6. **Completion**: Repeat the revision loop until the user signals approval for conversion
-
-### Absolute Rules
-- **Never start conversion without approval** — Conversion is the responsibility of `pptx-skill` and requires explicit user approval.
-- **Never skip validation** — Run `slides-grab validate` after every generation/edit pass.
-- **Never build viewer before validation passes** — Validate first, build viewer second.
-
----
-
-## Important Notes
-
-1. **CSS gradients**: Not supported in PowerPoint conversion — replace with background images
-2. **Webfonts**: Always include the Pretendard CDN link
-3. **Image contract**: Store local assets in `<slides-dir>/assets/` and reference as `./assets/<file>`. Allow `data:` URLs for self-contained slides. Remote `https://` URLs are best-effort only. Never use absolute filesystem paths.
-4. **Colors**: Always include `#` prefix in CSS
-5. **Text rules**: Never place text directly in div/span
-6. **SVG 내보내기와 이모지**: 이모지·특수문자(✓ ① ▶ 등)는 SVG 내보내기 시 래스터 PNG로 자동 변환됨. 벡터 품질이 중요한 경우 위 "SVG 아이콘 스니펫"의 인라인 SVG를 사용

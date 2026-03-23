@@ -1,16 +1,11 @@
----
-name: pptx-skill
-description: Convert HTML slides to PowerPoint (PPTX) files. Use when PPTX generation, editing, or thumbnail creation is needed.
----
+# PPTX Skill - Experimental / Unstable PowerPoint Conversion
 
-# PPTX Skill - PowerPoint Conversion
-
-Converts HTML slides into PowerPoint presentation files.
+Converts HTML slides into experimental / unstable PowerPoint presentation files on a best-effort basis.
 
 ## Feature Overview
 
 ### 1. New Presentation (HTML -> PPTX)
-Convert HTML slide files to PowerPoint
+Convert HTML slide files to experimental / unstable PowerPoint output
 
 ### 2. Edit Existing Presentation
 Modify contents of a PPTX file
@@ -32,41 +27,24 @@ If prerequisites are not met, guide the user to review slides in `<slides-dir>/v
 
 ## Core Workflow
 
-### HTML -> PPTX Conversion (experimental / unstable)
+### HTML -> PPTX Conversion
 
-> **Warning:** PPTX export is **experimental / unstable**. Expect best-effort output, layout shifts, and manual cleanup in PowerPoint. Always tell the user this upfront.
+1. **Prepare HTML slides**
+   - Verify HTML files exist in selected `--slides-dir` (default: `slides/`)
+   - Validate each file is 720pt x 405pt (16:9) specification
 
-1. **Validate slides first**
-   ```bash
-   slides-grab validate --slides-dir <path>
-   ```
-   Do not proceed if validation fails.
-
-2. **Run conversion**
+2. **Run html2pptx.js** (experimental / unstable)
    ```bash
    slides-grab convert --slides-dir <path> --output presentation.pptx
    ```
-   Script-level alternative:
+   - Script-level alternative:
    ```bash
    node .claude/skills/pptx-skill/scripts/html2pptx.js
    ```
 
 3. **Verify results**
-   - Check generated PPTX file
+   - Check generated PPTX file carefully; expect best-effort fidelity only
    - Visual verification via thumbnail
-
-### HTML -> PDF Conversion (recommended)
-
-PDF is the most reliable export format.
-
-```bash
-slides-grab pdf --slides-dir <path> --output presentation.pdf
-```
-
-Options:
-- `--mode capture` (default) — rasterized, pixel-perfect fidelity
-- `--mode print` — searchable/selectable text
-- `--resolution 2160p` (default) — also accepts `720p`, `1080p`, `1440p`, `4k`
 
 ## Script Usage
 
@@ -235,6 +213,8 @@ slide.addChart(pres.ChartType.line, [...], {...});
 - Poppler: PDF to image (pdftoppm)
 
 ## Important Notes
+
+- PPTX export is **experimental / unstable** and may require manual cleanup after generation.
 
 1. **Color codes**: No `#` prefix in PptxGenJS
 2. **Fonts**: Web-safe fonts only
