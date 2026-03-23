@@ -32,63 +32,49 @@ Delivers minimal, refined design based on existing templates and theme system.
 
 Templates are organized into **packs** in the `packs/` directory. Each pack provides a different visual design.
 
-Available packs: `figma-default`, `midnight`, `corporate`, `creative`
+All packs share a common set of template type names defined in `packs/common-types.json`.
 
 ### How to use packs
 
-1. **Check available packs**:
-   ```bash
-   slides-grab list-packs
-   ```
+1. **Check available packs**: `slides-grab list-packs`
+2. **View pack details**: `slides-grab show-pack <pack-id>` (colors, owned templates, missing types)
+3. **View a template**: `slides-grab show-template <type> --pack <pack-id>`
+4. **Follow the pack's design language** consistently across all slides.
 
-2. **View pack details** (colors, owned templates, fallback info):
-   ```bash
-   slides-grab show-pack <pack-id>
-   ```
+### Pack Resolution (2-tier)
 
-3. **View a template from a specific pack**:
-   ```bash
-   slides-grab show-template <template-name> --pack <pack-id>
-   ```
-   If the pack doesn't own that template, it falls back to `figma-default`.
-
-4. **Follow the pack's design language**: Use the pack's colors, typography scale, and visual style consistently across all slides.
-
-### Pack Resolution
-
-When a pack is specified (e.g., `midnight`):
-- Templates owned by the pack are used directly
-- Missing templates fall back to `figma-default`, but **colors/style should be adapted** to match the selected pack
+1. **Pack has the template** → use it directly via `show-template <type> --pack <pack-id>`
+2. **Pack doesn't have the template** → design from scratch using the pack's `theme.css` colors
+   - Do NOT fall back to figma-default HTML structure
+   - Use `slides-grab show-theme <pack-id>` to get CSS variables
+   - Create a layout that fits the pack's visual language
 
 ---
 
 ## Template-First Design Rule
 
-**Slides must be designed based on existing templates from the selected pack.**
+**If the pack owns the template type, use it as the base.** Copy its HTML structure, CSS, and layout — only replace placeholder content.
 
-Do NOT invent custom layouts, typography scales, color systems, or component patterns from scratch.
-Instead, follow the structure and styling of the matching template.
+**If the pack doesn't own the template type**, design the slide from scratch:
+- Get colors via `slides-grab show-theme <pack-id>`
+- Use the pack's typography scale, spacing, and visual style
+- Match the look of other slides in the same pack
+- Do NOT copy figma-default templates — they have a different design language
 
 ### How to use templates
 
-1. **Check available templates**: See the full list in `CLAUDE.md` (23 template types available)
-2. **View template content**: Use the CLI command to inspect a template before designing:
-   ```bash
-   slides-grab show-template <template-name> --pack <pack-id>
-   ```
-   Example: `slides-grab show-template cover --pack midnight`
-3. **Follow the template**: Copy the template's HTML structure, CSS patterns, and layout as the base for the slide
-4. **Customize content only**: Replace placeholder text/data with actual content from `slide-outline.md`
-5. **When no pack is specified**: Default to `figma-default` pack (original behavior)
+1. **Check pack's templates**: `slides-grab show-pack <pack-id>` to see owned types
+2. **View template**: `slides-grab show-template <type> --pack <pack-id>`
+3. **Follow the template**: Copy HTML structure, adapt content from `slide-outline.md`
+4. **When no pack is specified**: Default to `figma-default` pack
 
 ### Theme CSS Variables
 
-Each pack has a `theme.css` file defining CSS variables (`:root { --bg-primary, --text-primary, --accent, ... }`).
-Templates use these variables via `var(--xxx)` instead of hardcoded colors.
+Each pack has a `theme.css` with CSS variables (`:root { --bg-primary, --text-primary, --accent, ... }`).
 
-- View a pack's theme: `slides-grab show-theme <pack-id>`
-- All templates include the `:root` block inline for standalone rendering
-- When generating slides, copy the `:root` variables from the pack's template and use `var()` references
+- View: `slides-grab show-theme <pack-id>`
+- Templates include `:root` block inline for standalone rendering
+- Use `var()` references instead of hardcoded colors
 
 ---
 

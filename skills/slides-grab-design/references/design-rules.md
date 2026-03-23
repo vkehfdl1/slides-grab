@@ -48,14 +48,11 @@ slides-grab show-template <name> --pack <pack-id>   # View a template from a spe
 Each pack has a `theme.css` defining `:root { --bg-primary, --text-primary, --accent, ... }`.
 Templates use `var()` references. Copy the `:root` block when generating slides.
 
-### Core 7 templates (all packs)
-`cover`, `content`, `contents`, `two-columns`, `section-divider`, `highlight`, `closing`
+### Common template types
+Defined in `packs/common-types.json`. Each pack implements a subset.
+Check pack coverage: `slides-grab show-pack <pack-id>`
 
-### Full 23 templates (figma-default)
-`big-metric`, `chart`, `closing`, `content`, `contents`, `cover`, `diagram`, `funnel`,
-`highlight`, `image-description`, `image-text`, `key-metrics`, `matrix`, `principles`,
-`quote`, `quotes-grid`, `section-divider`, `simple-list`, `split-layout`, `statistics`,
-`team`, `timeline`, `two-columns`
+For types not owned by the pack, AI designs from scratch using the pack's theme.css colors.
 
 ## Legacy theme references
 - `themes/executive.css`

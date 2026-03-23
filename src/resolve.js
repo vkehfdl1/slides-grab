@@ -348,6 +348,18 @@ export function listThemes() {
 }
 
 /**
+ * Read common template types from packs/common-types.json.
+ * @returns {Record<string, string>} type name → description
+ */
+let _commonTypesCache;
+export function getCommonTypes() {
+  if (_commonTypesCache) return _commonTypesCache;
+  const typesPath = join(PACKAGE_ROOT, 'packs', 'common-types.json');
+  try { _commonTypesCache = JSON.parse(readFileSync(typesPath, 'utf-8')); } catch { _commonTypesCache = {}; }
+  return _commonTypesCache;
+}
+
+/**
  * Resolve a script path. Always from package.
  * @param {string} relativePath — e.g. "scripts/validate-slides.js"
  */

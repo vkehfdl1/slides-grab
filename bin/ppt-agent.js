@@ -275,7 +275,7 @@ program
   .description('Show details and templates of a specific pack')
   .argument('<id>', 'Pack ID (e.g. "midnight", "corporate")')
   .action(async (id) => {
-    const { getPackInfo, listPackTemplates, listTemplates } = await import('../src/resolve.js');
+    const { getPackInfo, listPackTemplates, getCommonTypes } = await import('../src/resolve.js');
     const info = getPackInfo(id);
     if (!info) {
       console.error(`Pack "${id}" not found.`);
@@ -283,7 +283,8 @@ program
       return;
     }
     const ownTemplates = listPackTemplates(id);
-    const allTemplates = listTemplates().map(t => t.name);
+    const commonTypes = getCommonTypes();
+    const allTypeNames = Object.keys(commonTypes);
 
     console.log(`Pack: ${info.name} (${id})`);
     console.log(`Colors:`);
@@ -292,12 +293,13 @@ program
     }
     console.log(`\nOwn templates (${ownTemplates.length}):`);
     for (const t of ownTemplates) {
-      console.log(`  ${t}`);
+      const desc = commonTypes[t] || '';
+      console.log(`  ${t.padEnd(20)} ${desc ? `— ${desc}` : ''}`);
     }
-    const fallback = allTemplates.filter(t => !ownTemplates.includes(t));
-    if (fallback.length > 0) {
-      console.log(`\nFallback to figma-default (${fallback.length}):`);
-      for (const t of fallback) {
+    const missing = allTypeNames.filter(t => !ownTemplates.includes(t));
+    if (missing.length > 0) {
+      console.log(`\nNot in pack — AI generates from theme.css (${missing.length}):`);
+      for (const t of missing) {
         console.log(`  ${t}`);
       }
     }

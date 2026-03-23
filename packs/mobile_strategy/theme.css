@@ -1,0 +1,67 @@
+/* Theme tokens and optional helper classes */
+:root {
+  --bg-primary: #0f0c29;
+  --bg-secondary: #302b63;
+  --bg-elevated: #24243e;
+  --text-primary: #ffffff;
+  --text-secondary: #c4b5fd;
+  --accent: #f472b6;
+  --accent-secondary: #818cf8;
+  --border: rgba(196, 181, 253, 0.12);
+
+  --slide-bg: #f3f3f1;
+  --canvas-bg: #d9d9d9;
+  --text-strong: #111111;
+  --text-muted: #737373;
+  --text-soft: #808080;
+  --text-subtle: #5f5f5f;
+  --footer-text: rgba(17,17,17,.82);
+  --footer-text-dark: rgba(255,255,255,.78);
+  --footer-dot: #cdcdca;
+  --footer-dot-dark: rgba(255,255,255,.26);
+}
+
+/* Apply by adding one of these classes to <body> */
+body.theme-purple-dusk {
+  --bg-primary: #0f0c29;
+  --bg-secondary: #302b63;
+  --bg-elevated: #24243e;
+  --text-primary: #ffffff;
+  --text-secondary: #c4b5fd;
+  --accent: #f472b6;
+  --accent-secondary: #818cf8;
+  --border: rgba(196, 181, 253, 0.12);
+}
+
+body.theme-midnight-blue {
+  --bg-primary: #071421;
+  --bg-secondary: #12314f;
+  --bg-elevated: #0f2237;
+  --text-primary: #ffffff;
+  --text-secondary: #b8d8ff;
+  --accent: #6ee7ff;
+  --accent-secondary: #5b8cff;
+  --border: rgba(184, 216, 255, 0.16);
+}
+
+body.theme-emerald-night {
+  --bg-primary: #061510;
+  --bg-secondary: #103b33;
+  --bg-elevated: #0f2823;
+  --text-primary: #ffffff;
+  --text-secondary: #b5f5dd;
+  --accent: #53e6b2;
+  --accent-secondary: #9ae66e;
+  --border: rgba(181, 245, 221, 0.16);
+}
+
+body.theme-rose-dusk {
+  --bg-primary: #190d14;
+  --bg-secondary: #4d2439;
+  --bg-elevated: #2d1723;
+  --text-primary: #ffffff;
+  --text-secondary: #ffd1e1;
+  --accent: #ff7cb6;
+  --accent-secondary: #f3a6c6;
+  --border: rgba(255, 209, 225, 0.16);
+}

@@ -21,7 +21,7 @@ import {
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
 
-import { listTemplates, listPacks, resolvePack, listPackTemplates, normalizePackId, getPackInfo } from '../src/resolve.js';
+import { listTemplates, listPacks, resolvePack, listPackTemplates, normalizePackId, getPackInfo, getCommonTypes } from '../src/resolve.js';
 
 import { mergePdfBuffers } from './html2pdf.js';
 import { PDFDocument } from 'pdf-lib';
@@ -339,6 +339,55 @@ function randomRunId() {
   const ts = Date.now();
   const rand = Math.floor(Math.random() * 100000);
   return `run-${ts}-${rand}`;
+}
+
+/**
+ * Append outline format example + pack/type instructions to prompt lines.
+ * Shared by /api/import-md and /api/plan.
+ */
+function appendOutlinePrompt(promptLines, packId, { includePresenterNote = false } = {}) {
+  promptLines.push('아웃라인 형식:');
+  promptLines.push('```');
+  promptLines.push('# 발표 제목');
+  promptLines.push('');
+  promptLines.push('## Meta');
+  promptLines.push('- deck-name: <kebab-case-name>');
+  promptLines.push('- slide-count: N');
+  if (packId) {
+    promptLines.push(`- pack: ${packId}`);
+  }
+  promptLines.push('');
+  promptLines.push('## Slides');
+  promptLines.push('### Slide 1');
+  promptLines.push('- type: cover');
+  promptLines.push('- title: 제목');
+  promptLines.push('- content: 부제 또는 설명');
+  if (includePresenterNote) {
+    promptLines.push('- presenter-note: 발표 내용 (있는 경우)');
+  }
+  promptLines.push('');
+  promptLines.push('### Slide 2');
+  promptLines.push('- type: contents');
+  promptLines.push('- title: 목차');
+  promptLines.push('- content: 목차 항목들');
+  promptLines.push('...');
+  promptLines.push('```');
+  promptLines.push('');
+
+  const allTypeNames = Object.keys(getCommonTypes());
+  if (packId) {
+    const packTemplates = listPackTemplates(packId);
+    promptLines.push(`사용할 팩: ${packId}`);
+    promptLines.push(`이 팩이 보유한 type: ${packTemplates.join(', ')}`);
+    promptLines.push(`전체 공통 type: ${allTypeNames.join(', ')}`);
+    promptLines.push('');
+    promptLines.push('팩이 보유한 템플릿을 최대한 사용하세요.');
+    promptLines.push('팩에 없는 type의 슬라이드는, AI가 팩의 theme 색상으로 직접 디자인합니다.');
+  } else {
+    promptLines.push(`type은 다음 중 하나: ${allTypeNames.join(', ')}`);
+  }
+  promptLines.push('');
+  promptLines.push('중요: slide-outline.md 파일만 생성하세요. HTML 파일은 생성하지 마세요.');
 }
 
 function parseOutline(content, deckName) {
@@ -1416,35 +1465,8 @@ async function startServer(opts) {
         promptLines.push('2. 해당 폴더에 slide-outline.md를 생성하세요. (HTML 슬라이드는 생성하지 마세요)');
         promptLines.push('   mkdir -p decks/<name> && 아웃라인 파일만 작성');
         promptLines.push('');
-        promptLines.push('아웃라인 형식:');
-        promptLines.push('```');
-        promptLines.push('# 발표 제목');
-        promptLines.push('');
         const importPackId = normalizePackId(reqImportPackId);
-        promptLines.push('## Meta');
-        promptLines.push('- deck-name: <kebab-case-name>');
-        promptLines.push('- slide-count: N');
-        if (importPackId) {
-          promptLines.push(`- pack: ${importPackId}`);
-        }
-        promptLines.push('');
-        promptLines.push('## Slides');
-        promptLines.push('### Slide 1');
-        promptLines.push('- type: cover');
-        promptLines.push('- title: 제목');
-        promptLines.push('- content: 부제 또는 설명');
-        promptLines.push('- presenter-note: 발표 내용 (있는 경우)');
-        promptLines.push('');
-        promptLines.push('### Slide 2');
-        promptLines.push('- type: contents');
-        promptLines.push('- title: 목차');
-        promptLines.push('- content: 목차 항목들');
-        promptLines.push('...');
-        promptLines.push('```');
-        promptLines.push('');
-        promptLines.push('type은 다음 중 하나: cover, contents, section-divider, content, two-columns, split-layout, image-text, image-description, chart, statistics, key-metrics, timeline, funnel, matrix, quote, quotes-grid, highlight, principles, diagram, team, simple-list, big-metric, closing');
-        promptLines.push('');
-        promptLines.push('중요: slide-outline.md 파일만 생성하세요. HTML 파일은 생성하지 마세요.');
+        appendOutlinePrompt(promptLines, importPackId, { includePresenterNote: true });
 
         const fullPrompt = promptLines.join('\n');
 
@@ -1565,33 +1587,7 @@ async function startServer(opts) {
         promptLines.push('2. 해당 폴더에 slide-outline.md를 생성하세요. (HTML 슬라이드는 생성하지 마세요)');
         promptLines.push('   mkdir -p decks/<name> && 아웃라인 파일만 작성');
         promptLines.push('');
-        promptLines.push('아웃라인 형식:');
-        promptLines.push('```');
-        promptLines.push('# 발표 제목');
-        promptLines.push('');
-        promptLines.push('## Meta');
-        promptLines.push('- deck-name: <kebab-case-name>');
-        promptLines.push('- slide-count: N');
-        if (selectedPackId) {
-          promptLines.push(`- pack: ${selectedPackId}`);
-        }
-        promptLines.push('');
-        promptLines.push('## Slides');
-        promptLines.push('### Slide 1');
-        promptLines.push('- type: cover');
-        promptLines.push('- title: 제목');
-        promptLines.push('- content: 부제 또는 설명');
-        promptLines.push('');
-        promptLines.push('### Slide 2');
-        promptLines.push('- type: contents');
-        promptLines.push('- title: 목차');
-        promptLines.push('- content: 목차 항목들');
-        promptLines.push('...');
-        promptLines.push('```');
-        promptLines.push('');
-        promptLines.push('type은 다음 중 하나: cover, contents, section-divider, content, two-columns, split-layout, image-text, image-description, chart, statistics, key-metrics, timeline, funnel, matrix, quote, quotes-grid, highlight, principles, diagram, team, simple-list, big-metric, closing');
-        promptLines.push('');
-        promptLines.push('중요: slide-outline.md 파일만 생성하세요. HTML 파일은 생성하지 마세요.');
+        appendOutlinePrompt(promptLines, selectedPackId);
 
         const fullPrompt = promptLines.join('\n');
 
@@ -1872,9 +1868,9 @@ async function startServer(opts) {
             }
             promptLines.push('');
             promptLines.push('각 슬라이드 생성 시:');
-            promptLines.push(`- slides-grab show-template <type> --pack ${genPackId} 로 팩 전용 템플릿 확인`);
-            promptLines.push('- 팩에 없는 타입은 slides-grab show-template <type> 으로 기본 템플릿을 사용하되,');
-            promptLines.push('  팩의 색상/분위기에 맞게 색상을 조정하세요.');
+            promptLines.push(`- 팩에 있는 type → slides-grab show-template <type> --pack ${genPackId} 로 템플릿 기반 생성`);
+            promptLines.push(`- 팩에 없는 type → slides-grab show-theme ${genPackId} 로 색상 확인 후, 720pt×405pt 크기로 직접 HTML 디자인`);
+            promptLines.push('  (figma-default 템플릿을 복사하지 말고, 팩의 색상/분위기로 새로 만드세요)');
             promptLines.push('');
           }
 
@@ -1926,9 +1922,9 @@ async function startServer(opts) {
             }
             promptLines.push('');
             promptLines.push('각 슬라이드 생성 시:');
-            promptLines.push(`- slides-grab show-template <type> --pack ${genPackId2} 로 팩 전용 템플릿 확인`);
-            promptLines.push('- 팩에 없는 타입은 slides-grab show-template <type> 으로 기본 템플릿을 사용하되,');
-            promptLines.push('  팩의 색상/분위기에 맞게 색상을 조정하세요.');
+            promptLines.push(`- 팩에 있는 type → slides-grab show-template <type> --pack ${genPackId2} 로 템플릿 기반 생성`);
+            promptLines.push(`- 팩에 없는 type → slides-grab show-theme ${genPackId2} 로 색상 확인 후, 720pt×405pt 크기로 직접 HTML 디자인`);
+            promptLines.push('  (figma-default 템플릿을 복사하지 말고, 팩의 색상/분위기로 새로 만드세요)');
           }
 
           promptLines.push(
