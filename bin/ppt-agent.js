@@ -189,6 +189,19 @@ program
   });
 
 program
+  .command('review')
+  .description('Analyze a presentation deck and generate quality report')
+  .requiredOption('--deck <name>', 'Deck folder name under decks/')
+  .option('--audience <type>', 'Target audience (e.g., investors, technical, general)')
+  .option('--time <minutes>', 'Presentation time in minutes', '15')
+  .action(async (options = {}) => {
+    const args = ['--deck', options.deck];
+    if (options.audience) args.push('--audience', options.audience);
+    if (options.time) args.push('--time', String(options.time));
+    await runCommand('scripts/review.js', args);
+  });
+
+program
   .command('retheme')
   .description('Re-generate a deck with a different template pack (one-click redesign)')
   .requiredOption('--deck <name>', 'Deck folder name under decks/')

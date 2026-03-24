@@ -24,6 +24,7 @@ import {
 import { listTemplates, listPacks, resolvePack, resolveTemplate, listPackTemplates, normalizePackId, getPackInfo, getCommonTypes } from '../src/resolve.js';
 import { parseSource, detectSourceType } from '../src/parsers.js';
 import { prepareRetheme } from '../src/retheme.js';
+import { analyzeDeck } from '../src/review.js';
 
 import { mergePdfBuffers } from './html2pdf.js';
 import { PDFDocument } from 'pdf-lib';
@@ -1886,6 +1887,31 @@ async function startServer(opts) {
         activeGenerate = false;
       }
     })();
+  });
+
+  // ── POST /api/review — Analyze deck quality ──────────────────────
+  app.post('/api/review', async (req, res) => {
+    const { deckName, audience, timeMinutes } = req.body ?? {};
+
+    const name = deckName || (slidesDirectory ? basename(slidesDirectory) : '');
+    if (!name) {
+      return res.status(400).json({ error: 'deckName required.' });
+    }
+
+    const deckDir = resolve(process.cwd(), 'decks', name);
+    if (!existsSync(deckDir)) {
+      return res.status(404).json({ error: `Deck not found: ${name}` });
+    }
+
+    try {
+      const result = await analyzeDeck(deckDir, {
+        audience: audience || undefined,
+        timeMinutes: typeof timeMinutes === 'number' ? timeMinutes : 15,
+      });
+      res.json(result);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // ── POST /api/plan — Outline Planning ─────────────────────────────

@@ -422,6 +422,123 @@ if (rethemeBtn && rethemeModal) {
   });
 }
 
+// ── Review panel ──
+const reviewBtn = document.getElementById('btn-review-deck');
+const reviewPanel = document.getElementById('review-panel');
+const reviewClose = document.getElementById('review-close');
+
+if (reviewBtn && reviewPanel) {
+  reviewBtn.addEventListener('click', async () => {
+    const reviewLoading = document.getElementById('review-loading');
+    const reviewContent = document.getElementById('review-content');
+    if (reviewLoading) reviewLoading.hidden = false;
+    if (reviewContent) reviewContent.hidden = true;
+    reviewPanel.hidden = false;
+
+    // Get deck name
+    let deckName = '';
+    try {
+      const cfgRes = await fetch('/api/editor-config');
+      if (cfgRes.ok) {
+        const cfg = await cfgRes.json();
+        deckName = cfg.deckName;
+      }
+    } catch { /* */ }
+
+    if (!deckName) {
+      if (reviewLoading) reviewLoading.textContent = '덱을 찾을 수 없습니다.';
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deckName }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+        if (reviewLoading) reviewLoading.textContent = `분석 실패: ${err.error}`;
+        return;
+      }
+
+      const data = await res.json();
+      renderReviewResult(data);
+    } catch (err) {
+      if (reviewLoading) reviewLoading.textContent = `분석 실패: ${err.message}`;
+    }
+  });
+
+  reviewClose?.addEventListener('click', () => { reviewPanel.hidden = true; });
+  reviewPanel.addEventListener('click', (e) => { if (e.target === reviewPanel) reviewPanel.hidden = true; });
+}
+
+function renderReviewResult(data) {
+  const reviewLoading = document.getElementById('review-loading');
+  const reviewContent = document.getElementById('review-content');
+  if (reviewLoading) reviewLoading.hidden = true;
+  if (reviewContent) reviewContent.hidden = false;
+
+  const title = document.getElementById('review-title');
+  if (title) title.textContent = `Review: ${data.deckName}`;
+
+  const grade = document.getElementById('review-grade');
+  if (grade) grade.textContent = `${data.grade}`;
+
+  const scoreText = document.getElementById('review-score-text');
+  if (scoreText) scoreText.textContent = `${data.score} / 100  •  ${data.slideCount} slides`;
+
+  const barFill = document.getElementById('review-bar-fill');
+  if (barFill) barFill.style.width = `${data.score}%`;
+
+  // Categories
+  const catsEl = document.getElementById('review-categories');
+  if (catsEl) {
+    catsEl.innerHTML = '';
+    for (const [, cat] of Object.entries(data.categories || {})) {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding: 8px 12px; background: var(--surface-1); border-radius: var(--radius); border: 1px solid var(--border);';
+      const stars = Math.round(cat.score / 20);
+      div.innerHTML = `<div style="font-size: 12px; color: var(--text-2);">${cat.label}</div><div style="font-size: 14px;">${'★'.repeat(stars)}${'☆'.repeat(5 - stars)} <span style="color: var(--text-2); font-size: 12px;">(${cat.score})</span></div>`;
+      catsEl.appendChild(div);
+    }
+  }
+
+  // Issues
+  const issuesSection = document.getElementById('review-issues-section');
+  const issuesEl = document.getElementById('review-issues');
+  if (issuesEl && data.issues?.length > 0) {
+    if (issuesSection) issuesSection.hidden = false;
+    issuesEl.innerHTML = '';
+    for (const issue of data.issues) {
+      const div = document.createElement('div');
+      div.style.cssText = 'padding: 8px 12px; background: var(--surface-1); border-radius: var(--radius); font-size: 13px; border-left: 3px solid ' + (issue.severity === 'error' ? 'var(--danger)' : issue.severity === 'warn' ? 'var(--warn)' : 'var(--accent)') + ';';
+      const loc = issue.slide ? `<strong>Slide ${issue.slide}:</strong> ` : '';
+      div.innerHTML = `${loc}${issue.message}`;
+      issuesEl.appendChild(div);
+    }
+  } else if (issuesSection) {
+    issuesSection.hidden = true;
+  }
+
+  // Strengths
+  const strengthsSection = document.getElementById('review-strengths-section');
+  const strengthsEl = document.getElementById('review-strengths');
+  if (strengthsEl && data.strengths?.length > 0) {
+    if (strengthsSection) strengthsSection.hidden = false;
+    strengthsEl.innerHTML = '';
+    for (const s of data.strengths) {
+      const div = document.createElement('div');
+      div.style.cssText = 'font-size: 13px; color: var(--success);';
+      div.textContent = `✓ ${s}`;
+      strengthsEl.appendChild(div);
+    }
+  } else if (strengthsSection) {
+    strengthsSection.hidden = true;
+  }
+}
+
 // Prompt textarea auto-grow
 if (promptInput) {
   const sidebarTextarea = document.querySelector('.sidebar-textarea');

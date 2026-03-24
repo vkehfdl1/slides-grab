@@ -3917,6 +3917,7 @@
       <div class="nav-spacer"></div>
       <button class="nav-bar-btn btn-new-deck" id="btn-new-deck" title="New Presentation">+ New</button>
       <button class="nav-bar-btn ghost" id="btn-review-outline" title="Review Outline">Outline</button>
+      <button class="nav-bar-btn ghost" id="btn-review-deck" title="Analyze presentation quality">Review</button>
       <div class="export-dropdown-wrapper">
         <button class="nav-bar-btn ghost" id="btn-export-toggle" title="Export options" aria-haspopup="true" aria-expanded="false">Export</button>
         <div class="export-dropdown" id="export-dropdown" role="menu">
@@ -4413,6 +4414,37 @@
         <button class="shortcuts-close" id="retheme-cancel">Cancel</button>
         <button class="shortcuts-close" id="retheme-confirm" style="background: var(--accent); color: #fff; border-color: var(--accent);">Retheme</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Review Panel (overlay) -->
+  <div class="shortcuts-overlay" id="review-panel" hidden>
+    <div class="shortcuts-modal" role="dialog" aria-label="Presentation review" style="max-width: 480px; max-height: 80vh; overflow-y: auto;">
+      <h3 id="review-title">Presentation Review</h3>
+      <div id="review-loading" style="text-align: center; padding: 24px; color: var(--text-2);">Analyzing...</div>
+      <div id="review-content" hidden>
+        <!-- Score -->
+        <div style="text-align: center; margin: 16px 0;">
+          <div style="font-size: 32px; font-weight: 700; color: var(--text-0);" id="review-grade"></div>
+          <div style="font-size: 13px; color: var(--text-2);" id="review-score-text"></div>
+          <div id="review-bar" style="height: 6px; background: var(--surface-2); border-radius: 3px; margin-top: 8px; overflow: hidden;">
+            <div id="review-bar-fill" style="height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.5s;"></div>
+          </div>
+        </div>
+        <!-- Categories -->
+        <div id="review-categories" style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px;"></div>
+        <!-- Issues -->
+        <div id="review-issues-section" hidden>
+          <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 8px;">Issues</h4>
+          <div id="review-issues" style="display: flex; flex-direction: column; gap: 6px;"></div>
+        </div>
+        <!-- Strengths -->
+        <div id="review-strengths-section" hidden style="margin-top: 12px;">
+          <h4 style="font-size: 13px; color: var(--text-2); margin-bottom: 8px;">Strengths</h4>
+          <div id="review-strengths" style="display: flex; flex-direction: column; gap: 4px;"></div>
+        </div>
+      </div>
+      <button class="shortcuts-close" id="review-close" style="margin-top: 16px;">Close</button>
     </div>
   </div>
 
