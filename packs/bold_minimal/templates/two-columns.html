@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .header-area { margin-bottom: 24px; }
+    .cols-wrapper { display: flex; gap: 40px; flex: 1; }
+    .col-left, .col-right { flex: 1; display: flex; flex-direction: column; gap: 16px; }
+
+    .data-box {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+    }
+    .box-label { font-size: 10px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; }
+    .box-value { font-size: 32px; font-weight: 800; color: var(--bg-accent); text-shadow: 1px 1px 0 #000; }
+
+    .investor-list { font-size: 14px; font-weight: 600; line-height: 1.6; }
+
+    .usage-list { display: flex; flex-direction: column; gap: 12px; }
+    .usage-item { display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px; }
+    .usage-item h4 { font-size: 14px; font-weight: 700; }
+    .usage-item p { font-size: 11px; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="header-area">
+      <div class="slide-label" data-slot="label">FUNDRAISING</div>
+      <h2 class="slide-title" data-slot="title">We're raising a new round to grow our business.</h2>
+    </div>
+    <div class="cols-wrapper">
+      <div class="col-left">
+        <div class="data-box">
+          <div class="box-label">Target Investment</div>
+          <div class="box-value" data-slot="target-amount">$XXMM</div>
+        </div>
+        <div class="data-box" style="flex: 1;">
+          <div class="box-label">Current Investors</div>
+          <div class="investor-list" data-slot="investors">
+            Investor A<br>Investor B<br>Investor C
+          </div>
+        </div>
+      </div>
+      <div class="col-right">
+        <div class="box-label" style="margin-bottom: 0;">WHICH WILL BE USED TO ↓</div>
+        <div class="usage-list">
+          <div class="usage-item">
+            <h4 data-slot="use-1-title">Investment 1</h4>
+            <p data-slot="use-1-desc">Explain how you'll use your newfound funding.</p>
+          </div>
+          <div class="usage-item">
+            <h4 data-slot="use-2-title">Investment 2</h4>
+            <p data-slot="use-2-desc">Tie it back to something you've mentioned previously.</p>
+          </div>
+          <div class="usage-item" style="border-bottom: none;">
+            <h4 data-slot="use-3-title">Investment 3</h4>
+            <p data-slot="use-3-desc">Add links / docs to provide more context for your audience.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

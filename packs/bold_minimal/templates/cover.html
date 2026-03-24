@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .cover-layout {
+      display: flex;
+      height: 100%;
+      position: relative;
+      z-index: 1;
+    }
+    .cover-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .cover-accent {
+      position: absolute;
+      right: -40px;
+      top: -32px;
+      bottom: -32px;
+      width: 45%;
+      background-color: var(--bg-accent);
+      z-index: -1;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="cover-layout">
+      <div class="cover-content">
+        <div class="slide-label" data-slot="label">MONTH XX YEAR</div>
+        <h1 class="slide-title massive" data-slot="title">Startup Pitch</h1>
+        <p class="slide-body" data-slot="subtitle">TAGLINE</p>
+      </div>
+    </div>
+    <div class="cover-accent"></div>
+    <div class="slide-footer">
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -21,5 +21,7 @@
   "quotes-grid": "multiple quotes in grid",
   "principles": "3-4 principles/items in card grid",
   "simple-list": "compact vertical list",
-  "team": "team member profiles grid"
+  "team": "team member profiles grid",
+  "logo-grid": "grid of client/partner/product logos",
+  "table": "data table or matrix with rows and columns"
 }

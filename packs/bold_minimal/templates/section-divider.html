@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .section-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .slide.bg-accent .badge {
+      border-color: var(--border-color);
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="slide bg-accent">
+    <div class="section-content">
+      <h1 class="slide-title massive" data-slot="title">Section X</h1>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

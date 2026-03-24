@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .header-area { margin-bottom: 32px; }
+    .timeline-wrapper {
+      position: relative;
+      flex: 1;
+      margin-top: 20px;
+    }
+    .timeline-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background-color: var(--border-color);
+    }
+    .timeline-nodes {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 24px;
+    }
+    .node {
+      flex: 1;
+      position: relative;
+      margin-right: 16px;
+    }
+    .node:last-child { margin-right: 0; }
+    .node::before {
+      content: '';
+      position: absolute;
+      top: -29px; /* Align to center of line */
+      left: 50%;
+      transform: translateX(-50%);
+      width: 10px;
+      height: 10px;
+      background-color: var(--border-color);
+      border-radius: 50%;
+    }
+    .node::after {
+      content: '';
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      width: 1px;
+      height: 24px;
+      background-color: var(--border-color);
+    }
+    .node-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="header-area">
+      <div class="slide-label" data-slot="label">MILESTONES</div>
+      <h2 class="slide-title" data-slot="title">Here's how we go to where we are today.</h2>
+    </div>
+    <div class="timeline-wrapper">
+      <div class="timeline-line"></div>
+      <div class="timeline-nodes">
+        <div class="node">
+          <div class="node-card" data-slot="step-1">Add a quick description of each company milestone.</div>
+        </div>
+        <div class="node">
+          <div class="node-card" data-slot="step-2">Provide enough context for viewers to understand.</div>
+        </div>
+        <div class="node">
+          <div class="node-card" data-slot="step-3">Provide links to relevant docs or files as necessary.</div>
+        </div>
+        <div class="node">
+          <div class="node-card" data-slot="step-4">If you have more milestones, make a copy of this slide.</div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,50 +1,46 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>split-layout</title>
-  <link rel="stylesheet" href="theme.css" />
-  <link rel="stylesheet" href="base.css" />
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
   <style>
-    .split-layout { display:grid; grid-template-columns: .96fr 1.04fr; gap: 24pt; height:100%; }
-    .split-title { font-size: 30pt; line-height: 1.02; max-width: 260pt; margin-bottom: 16pt; }
-    .insight-list { display:flex; flex-direction:column; gap: 12pt; }
-    .insight-item { padding-left: 10pt; border-left: 2.5pt solid var(--accent); }
-    .insight-item:nth-child(2) { border-color: var(--accent-warm); }
-    .insight-item:nth-child(3) { border-color: var(--accent-tertiary); }
-    .insight-item:nth-child(4) { border-color: var(--accent-secondary); }
-    .insight-item h3 { margin:0 0 4pt; font-size: 12pt; }
-    .insight-item p { margin:0; font-size: 10pt; line-height:1.46; color:var(--text-secondary); }
-    .media-grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 10pt; align-content:center; }
-    .media-grid .media-slot { height: 74pt; }
+    .slide-layout { display: flex; height: 100%; gap: 40px; }
+    .col-left { flex: 0.5; display: flex; flex-direction: column; gap: 16px; justify-content: flex-start; }
+    .col-right { flex: 0.5; display: flex; flex-direction: column; gap: 16px; }
+
+    .rank-badge { color: #86efac; font-weight: 700; font-size: 14px; margin-bottom: -8px; }
+    .headline { font-size: 24px; font-weight: 600; line-height: 1.2; color: var(--text-main); }
+
+    .image-slot {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px dashed var(--border-subtle);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 12px;
+    }
   </style>
 </head>
 <body>
-  <main class="slide theme-section">
-    <div class="split-layout">
-      <section>
-        <p class="kicker" data-slot="label">Report Data Sources</p>
-        <h1 class="slide-title split-title" data-slot="title">Aggregated data for a holistic view</h1>
-        <div class="insight-list">
-          <article class="insight-item"><h3 data-slot="label">Support Insights</h3><p data-slot="body">Analyze support tickets, forum posts, and repeated operational blockers over a defined period.</p></article>
-          <article class="insight-item"><h3 data-slot="label">Sales Insights</h3><p data-slot="body">Capture deal blockers, win/loss notes, and strategic account feedback tied to opportunity quality.</p></article>
-          <article class="insight-item"><h3 data-slot="label">Community Insights</h3><p data-slot="body">Aggregate public channels, community threads, and social posts to surface demand signals.</p></article>
-          <article class="insight-item"><h3 data-slot="label">Business Insights</h3><p data-slot="body">Review churn reasons, usage trends, and commercial health data for a fuller picture.</p></article>
-        </div>
-      </section>
-      <section class="media-grid">
-        <div class="media-slot" data-slot="image" data-label="asset 1"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 2"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 3"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 4"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 5"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 6"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 7"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 8"></div>
-        <div class="media-slot" data-slot="image" data-label="asset 9"></div>
-      </section>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="col-left">
+        <div class="rank-badge" data-slot="rank">Rank 1</div>
+        <div class="slide-label" style="color: var(--text-main);" data-slot="category">USER INTERFACE IMPROVEMENTS</div>
+        <h2 class="headline" data-slot="headline">Simplifying the user interface for new casual users</h2>
+        <p class="slide-body" data-slot="desc-1">Users have expressed that the current interface is not intuitive, leading to confusion and inefficiencies.</p>
+        <p class="slide-body" data-slot="desc-2">Common feature requests include a more streamlined layout, easier navigation, and clearer labeling of functions.</p>
+      </div>
+      <div class="col-right">
+        <div class="slide-label">EXAMPLES</div>
+        <div class="image-slot" data-slot="image-1">[add example here!]</div>
+        <div class="image-slot" data-slot="image-2">[add example here!]</div>
+      </div>
     </div>
-  </main>
+  </div>
 </body>
 </html>

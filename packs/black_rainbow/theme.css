@@ -1,91 +1,13 @@
 :root {
-  --bg-primary: #050505;
-  --bg-secondary: #0d0d0d;
-  --bg-elevated: #141414;
-  --surface: rgba(255, 255, 255, 0.06);
-  --surface-strong: rgba(255, 255, 255, 0.1);
-  --surface-soft: rgba(255, 255, 255, 0.03);
-  --text-primary: #f5f5f5;
-  --text-secondary: rgba(255, 255, 255, 0.76);
-  --text-muted: rgba(255, 255, 255, 0.48);
-  --text-dark: #121212;
-  --accent: #f08ca0;
-  --accent-secondary: #8c82ff;
-  --accent-tertiary: #81dff5;
-  --accent-quaternary: #9be89b;
-  --accent-warm: #f0c48a;
-  --border: rgba(255, 255, 255, 0.14);
-  --border-strong: rgba(255, 255, 255, 0.24);
-  --table-bg: #eceaea;
-  --table-stripe: #e3e1e1;
-  --table-text: #171717;
-  --success: #9cf3a8;
-  --warning: #f4e79b;
-  --info: #a4e7ee;
-  --danger: #f3b6bf;
-  --shadow-soft: 0 14pt 36pt rgba(0, 0, 0, 0.22);
-  --shadow-card: 0 10pt 22pt rgba(0, 0, 0, 0.18);
-  --radius-sm: 7pt;
-  --radius-md: 12pt;
-  --radius-lg: 18pt;
-  --slide-padding-x: 34pt;
-  --slide-padding-y: 26pt;
-  --font-display: "Inter", "Arial Narrow", Arial, sans-serif;
-  --font-body: "Inter", Arial, sans-serif;
-}
+  /* Dark mode palette */
+  --bg-base: #000000;
+  --bg-surface: #111111;
+  --text-main: #ffffff;
+  --text-muted: #a1a1aa;
 
-:root[data-theme="light"] {
-  --bg-primary: #faf8f7;
-  --bg-secondary: #f0ecea;
-  --bg-elevated: #ffffff;
-  --surface: rgba(0, 0, 0, 0.04);
-  --surface-strong: rgba(0, 0, 0, 0.08);
-  --surface-soft: rgba(0, 0, 0, 0.02);
-  --text-primary: #161616;
-  --text-secondary: rgba(22, 22, 22, 0.76);
-  --text-muted: rgba(22, 22, 22, 0.48);
-  --text-dark: #161616;
-  --border: rgba(0, 0, 0, 0.1);
-  --border-strong: rgba(0, 0, 0, 0.16);
-  --table-bg: #ffffff;
-  --table-stripe: #f2f0f0;
-  --table-text: #171717;
-}
+  /* Rainbow/Neon Gradient */
+  --rainbow-gradient: linear-gradient(90deg, #ff7171, #ffb86c, #86efac, #60a5fa, #c084fc);
+  --border-subtle: #27272a;
 
-.theme-hero {
-  background:
-    radial-gradient(circle at 16% 16%, rgba(240, 140, 160, 0.24), transparent 0 18%),
-    radial-gradient(circle at 82% 18%, rgba(129, 223, 245, 0.18), transparent 0 17%),
-    radial-gradient(circle at 70% 84%, rgba(140, 130, 255, 0.24), transparent 0 22%),
-    radial-gradient(circle at 26% 78%, rgba(240, 196, 138, 0.18), transparent 0 20%),
-    linear-gradient(145deg, #040404 0%, #0b0b0b 40%, #070707 100%);
-}
-
-.theme-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: radial-gradient(rgba(255,255,255,0.045) 0.55pt, transparent 0.55pt);
-  background-size: 7pt 7pt;
-  opacity: 0.18;
-  mix-blend-mode: soft-light;
-}
-
-.theme-section {
-  background:
-    radial-gradient(circle at 14% 22%, rgba(240, 140, 160, 0.2), transparent 0 20%),
-    radial-gradient(circle at 88% 12%, rgba(155, 232, 155, 0.13), transparent 0 17%),
-    radial-gradient(circle at 54% 88%, rgba(129, 223, 245, 0.15), transparent 0 22%),
-    linear-gradient(180deg, #040404 0%, #090909 100%);
-}
-
-.theme-table {
-  background: linear-gradient(180deg, #060606 0%, #090909 100%);
-}
-
-.theme-light-surface {
-  --text-primary: var(--table-text);
-  --text-secondary: rgba(23, 23, 23, 0.76);
-  --text-muted: rgba(23, 23, 23, 0.46);
+  --font-sans: 'Inter', -apple-system, sans-serif;
 }

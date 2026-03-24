@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .highlight-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-width: 90%;
+    }
+    .highlight-body {
+      margin-top: 16px;
+      font-size: 14px;
+      max-width: 60%;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="highlight-content">
+      <h1 class="slide-title massive" data-slot="title">This is the problem we want to solve.</h1>
+      <p class="slide-body highlight-body" data-slot="body">Use this slide to introduce the big problem in the world you've set out to address, then back it up with a data point right here.</p>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,39 +1,41 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>cover</title>
-  <link rel="stylesheet" href="theme.css" />
-  <link rel="stylesheet" href="base.css" />
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
   <style>
-    .cover-layout { display:flex; flex-direction:column; justify-content:space-between; height:100%; }
-    .cover-main { padding-top: 8pt; max-width: 360pt; }
-    .cover-title { font-size: 64pt; line-height: .9; letter-spacing: -.06em; margin: 0 0 14pt; }
-    .cover-meta { display:flex; gap: 22pt; align-items:flex-end; }
-    .meta-block { display:flex; flex-direction:column; gap:4pt; }
-    .meta-label { font-size: 8.5pt; letter-spacing:.16em; text-transform:uppercase; color: var(--text-muted); }
-    .meta-value { font-size: 11.5pt; color: var(--text-secondary); }
+    .cover-layout {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+    }
+    .cover-main-title {
+      font-size: 56px;
+      font-weight: 700;
+      background: var(--rainbow-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-top: 100px;
+    }
+    .meta-data {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
   </style>
 </head>
 <body>
-  <main class="slide theme-hero">
+  <div class="slide">
     <div class="cover-layout">
-      <div class="cover-main">
-        <p class="kicker" data-slot="label">Product</p>
-        <h1 class="slide-title cover-title" data-slot="title">Title</h1>
-      </div>
-      <div class="cover-meta">
-        <div class="meta-block">
-          <span class="meta-label">Produced By</span>
-          <span class="meta-value" data-slot="author">Name of producer</span>
-        </div>
-        <div class="meta-block">
-          <span class="meta-label">Date</span>
-          <span class="meta-value" data-slot="subtitle">Month DD, YYYY</span>
-        </div>
+      <div class="slide-label" data-slot="label">PRODUCT</div>
+      <h1 class="cover-main-title" data-slot="title">Title</h1>
+      <div class="meta-data">
+        <div class="slide-body" data-slot="producer">Produced By</div>
+        <div class="slide-body" data-slot="date">Date</div>
       </div>
     </div>
-  </main>
+  </div>
 </body>
 </html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .header-area { margin-bottom: 32px; text-align: center; }
+    .poll-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .poll-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-light);
+      border-radius: 16px;
+      padding: 32px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    }
+    .poll-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+    .poll-question { font-size: 18px; font-weight: 800; }
+    .poll-status { font-size: 12px; color: var(--text-secondary); }
+
+    .poll-slider-track {
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(to right, #EF4444, #F59E0B, #10B981); /* Red to Yellow to Green */
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .poll-marker {
+      width: 4px;
+      height: 16px;
+      background: var(--text-primary);
+      position: absolute;
+      top: -4px;
+    }
+    .poll-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .label-red { color: #EF4444; }
+    .label-yellow { color: #F59E0B; }
+    .label-green { color: #10B981; }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="header-area">
+      <div class="slide-label" data-slot="label">PULSE CHECK</div>
+      <h2 class="slide-title" data-slot="title">Let's align!</h2>
+      <p class="slide-body" style="margin: 0 auto;" data-slot="body">Give additional context and information about the poll you're conducting, and encourage everyone to take part in it.</p>
+    </div>
+    <div class="poll-container">
+      <div class="poll-card">
+        <div class="poll-header">
+          <div class="poll-question" data-slot="question">Does this vision resonate with you?</div>
+          <div class="poll-status" data-slot="status">No votes yet</div>
+        </div>
+        <div class="poll-slider-track">
+          <div class="poll-marker" style="left: 0;"></div>
+          <div class="poll-marker" style="left: 25%;"></div>
+          <div class="poll-marker" style="left: 50%;"></div>
+          <div class="poll-marker" style="left: 75%;"></div>
+          <div class="poll-marker" style="left: 100%;"></div>
+        </div>
+        <div class="poll-labels">
+          <span class="label-red" data-slot="scale-min">Strongly disagree</span>
+          <span class="label-yellow" data-slot="scale-mid">Neutral</span>
+          <span class="label-green" data-slot="scale-max">Strongly agree</span>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

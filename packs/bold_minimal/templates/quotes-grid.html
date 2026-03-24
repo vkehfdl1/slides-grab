@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .header-area { margin-bottom: 24px; }
+    .quotes-wrapper {
+      display: flex;
+      gap: 16px;
+      flex: 1;
+      margin-bottom: 24px;
+    }
+    .quote-card {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .quote-text {
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 1.4;
+      margin-bottom: 16px;
+    }
+    .quote-text::before {
+      content: '"';
+      color: var(--bg-accent);
+      font-size: 24px;
+      line-height: 0;
+      vertical-align: bottom;
+      margin-right: 4px;
+    }
+    .quote-author {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .author-logo {
+      width: 40px;
+      height: 20px;
+      background-color: var(--border-light);
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="header-area">
+      <div class="slide-label" data-slot="label">QUOTES</div>
+      <h2 class="slide-title" data-slot="title">We're getting a great response from the market.</h2>
+    </div>
+    <div class="quotes-wrapper">
+      <div class="quote-card">
+        <p class="quote-text" data-slot="quote-1">This is high praise from a customer or partner that will reinforce your pitch.</p>
+        <div class="quote-author">
+          <div class="author-logo" data-slot="logo-1"></div>
+        </div>
+      </div>
+      <div class="quote-card">
+        <p class="quote-text" data-slot="quote-2">These should relate to something you've mentioned previously.</p>
+        <div class="quote-author">
+          <div class="author-logo" data-slot="logo-2"></div>
+        </div>
+      </div>
+      <div class="quote-card">
+        <p class="quote-text" data-slot="quote-3">You might also highlight reviews, PR statements, or other show-stopping quotes.</p>
+        <div class="quote-author">
+          <div class="author-logo" data-slot="logo-3"></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

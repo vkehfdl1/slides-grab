@@ -1,74 +1,59 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>chart-table</title>
-  <link rel="stylesheet" href="theme.css" />
-  <link rel="stylesheet" href="base.css" />
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
   <style>
-    .table-top { margin-bottom: 14pt; max-width: 560pt; }
-    .table-title { font-size: 23pt; line-height: 1.04; margin-bottom: 6pt; }
-    .rankings .table-header,
-    .rankings .table-row { grid-template-columns: 56pt 1.9fr .65fr .64fr .66fr; column-gap: 12pt; }
-    .rankings .table-row { min-height: 37pt; }
-    .theme-block strong { display:block; margin-bottom: 4pt; font-size: 10pt; }
-    .theme-block span { display:block; color: rgba(23,23,23,.72); font-size: 8.8pt; }
-    .mini-pill { display:inline-flex; justify-content:center; align-items:center; min-width: 33pt; padding: 4pt 8pt; border-radius: 999pt; font-size: 8.6pt; }
-    .mini-pill.gray { background:#8f8f96; color:#fff; }
-    .mini-pill.green { background:#9cf3a8; color:#11441d; font-weight:700; }
-    .heat .table-header,
-    .heat .table-row { grid-template-columns: 36pt 1.2fr 1.7fr .46fr .46fr .56fr .56fr; column-gap: 10pt; }
-    .heat .heat-cell { text-align:center; padding: 8pt 0; border-radius: 0; }
-    .heat-advanced .heat-cell.sales { background: var(--danger); }
-    .heat-advanced .heat-cell.support { background: #f0b8cf; }
-    .heat-advanced .heat-cell.community { background: #efe796; }
-    .heat-advanced .heat-cell.community.alt,
-    .heat-advanced .heat-cell.sales.alt,
-    .heat-advanced .heat-cell.support.alt { background: var(--success); }
-    .table-rail {
-      position:absolute; left: 8pt; bottom: 26pt; top: 138pt; width: 16pt;
-      writing-mode: vertical-rl; transform: rotate(180deg);
-      display:flex; justify-content:center; align-items:center;
-      font-size:9pt; letter-spacing:.16em; text-transform:uppercase; color:var(--text-muted);
-    }
+    .slide-layout { display: flex; height: 100%; gap: 40px; }
+    .col-left { flex: 0.45; display: flex; flex-direction: column; gap: 16px; }
+    .col-right { flex: 0.55; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
+
+    .rank-badge { color: #86efac; font-weight: 700; font-size: 14px; margin-bottom: -8px; }
+    .headline { font-size: 24px; font-weight: 600; line-height: 1.2; color: var(--text-main); }
+
+    .bar-row { display: flex; align-items: center; gap: 16px; }
+    .bar-label { width: 60px; font-size: 12px; font-weight: 600; text-align: right; }
+    .bar-track { flex: 1; background: var(--bg-surface); height: 28px; border-radius: 4px; overflow: hidden; display: flex; align-items: center; position: relative; }
+    .bar-fill { height: 100%; background: var(--text-main); border-radius: 4px; }
+    .bar-value { font-size: 11px; margin-left: 8px; font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body>
-  <main class="slide theme-table">
-    <section class="table-top">
-      <p class="kicker" data-slot="label">Top 15 Overall</p>
-      <h1 class="slide-title table-title" data-slot="title">Voice of Customer Rankings — June, 2024</h1>
-      <p class="slide-subtitle" data-slot="subtitle">Use the same shell for rankings, simple heat maps, or advanced heat maps by swapping the column grid and cell treatments.</p>
-    </section>
-
-    <section class="table-shell rankings" style="margin-left: 0;">
-      <div class="table-header">
-        <div>Rank</div><div>Theme</div><div>Previous rank</div><div>Product area</div><div>Roadmap status</div>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="col-left">
+        <div class="rank-badge" data-slot="rank">Rank 1</div>
+        <div class="slide-label" style="color: var(--text-main);" data-slot="category">USER INTERFACE IMPROVEMENTS</div>
+        <h2 class="headline" data-slot="headline">Simplifying the user interface for new casual users</h2>
+        <p class="slide-body" data-slot="desc">Users have expressed that the current interface is not intuitive, leading to confusion and inefficiencies.</p>
       </div>
-      <div class="table-row"><div><span class="table-rank" data-slot="metric">Rank 1</span></div><div class="theme-block"><strong data-slot="label">Improved User Interface</strong><span data-slot="body">Enhancing the visual design and usability of the user interface.</span></div><div><span class="mini-pill gray" data-slot="metric">Rank 5</span></div><div data-slot="label">Product A</div><div><span class="mini-pill green" data-slot="label">NEW</span></div></div>
-      <div class="table-row"><div><span class="table-rank" data-slot="metric">Rank 2</span></div><div class="theme-block"><strong data-slot="label">Faster Load Times</strong><span data-slot="body">Optimizing performance to reduce loading times.</span></div><div><span class="mini-pill gray" data-slot="metric">Rank 3</span></div><div data-slot="label">Product A</div><div><span class="mini-pill gray" data-slot="label">Backlog</span></div></div>
-      <div class="table-row"><div><span class="table-rank" data-slot="metric">Rank 3</span></div><div class="theme-block"><strong data-slot="label">Enhanced Collaboration Tools</strong><span data-slot="body">Improving collaboration features for real-time teamwork.</span></div><div><span class="mini-pill gray" data-slot="metric">Rank 1</span></div><div data-slot="label">Product B</div><div><span class="mini-pill gray" data-slot="label">Launched</span></div></div>
-      <div class="table-row"><div><span class="table-rank" data-slot="metric">Rank 4</span></div><div class="theme-block"><strong data-slot="label">More Templates</strong><span data-slot="body">Expanding the template library for broader starting points.</span></div><div><span class="mini-pill gray" data-slot="metric">Rank 4</span></div><div data-slot="label">Product B</div><div><span class="mini-pill green" data-slot="label">NEW</span></div></div>
-      <div class="table-row"><div><span class="table-rank" data-slot="metric">Rank 5</span></div><div class="theme-block"><strong data-slot="label">Dark Mode</strong><span data-slot="body">A darker visual mode for comfort and preference.</span></div><div><span class="mini-pill gray" data-slot="metric">Rank 7</span></div><div data-slot="label">Product A</div><div><span class="mini-pill green" data-slot="label">NEW</span></div></div>
-      <div class="table-row"><div><span class="table-rank" data-slot="metric">Rank 6</span></div><div class="theme-block"><strong data-slot="label">Mobile App Enhancements</strong><span data-slot="body">Feature and performance improvements for mobile workflows.</span></div><div><span class="mini-pill gray" data-slot="metric">Rank 8</span></div><div data-slot="label">Product B</div><div><span class="mini-pill green" data-slot="label">NEW</span></div></div>
-    </section>
-
-    <section class="table-shell heat" style="margin-top: 14pt; display:none;">
-      <div class="table-header"><div>Rank</div><div>Theme</div><div>Theme Description</div><div>Sales</div><div>Support</div><div>Community</div><div>Avg. Rank</div></div>
-      <div class="table-row"><div>1</div><div data-slot="label">Improved User Interface</div><div data-slot="body">Enhancing the visual design and usability of the user interface.</div><div class="heat-cell sales">1</div><div class="heat-cell support">3</div><div class="heat-cell community">1</div><div>2.00</div></div>
-      <div class="table-row"><div>2</div><div data-slot="label">Faster Load Times</div><div data-slot="body">Optimizing performance to significantly reduce loading times.</div><div class="heat-cell sales">2</div><div class="heat-cell support">1</div><div class="heat-cell community">3</div><div>2.00</div></div>
-      <div class="table-row"><div>3</div><div data-slot="label">Enhanced Collaboration Tools</div><div data-slot="body">Introducing and improving collaboration tools.</div><div class="heat-cell sales">3</div><div class="heat-cell support">4</div><div class="heat-cell community">4</div><div>3.67</div></div>
-    </section>
-
-    <section class="table-shell heat heat-advanced" style="margin-top: 14pt; display:none;">
-      <div class="table-header"><div>Rank</div><div>Theme</div><div>Theme Description</div><div>Sales</div><div>Support</div><div>Community</div><div>Avg. Rank</div></div>
-      <div class="table-row"><div>1</div><div data-slot="label">Improved User Interface</div><div data-slot="body">Enhancing the visual design and usability of the user interface.</div><div class="heat-cell sales alt">1</div><div class="heat-cell support">3</div><div class="heat-cell community">5</div><div>5.33</div></div>
-      <div class="table-row"><div>2</div><div data-slot="label">Faster Load Times</div><div data-slot="body">Optimizing performance to significantly reduce loading times.</div><div class="heat-cell sales">7</div><div class="heat-cell support">10</div><div class="heat-cell community alt">1</div><div>5.33</div></div>
-      <div class="table-row"><div>3</div><div data-slot="label">Enhanced Collaboration Tools</div><div data-slot="body">Introducing and improving collaboration tools.</div><div class="heat-cell sales alt">1</div><div class="heat-cell support">3</div><div class="heat-cell community">5</div><div>5.33</div></div>
-    </section>
-
-    <div class="table-rail" data-slot="label">Table template</div>
-  </main>
+      <div class="col-right">
+        <div class="slide-label">VOLUME BY CHANNEL</div>
+        <div class="chart-container">
+          <div class="bar-row">
+            <div class="bar-label" data-slot="ch-1">Reddit</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 100%;" data-slot="fill-1"></div></div>
+            <div class="bar-value" data-slot="val-1">100</div>
+          </div>
+          <div class="bar-row" style="margin-top: 16px;">
+            <div class="bar-label" data-slot="ch-2">Twitter</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 75%;" data-slot="fill-2"></div></div>
+            <div class="bar-value" data-slot="val-2">75</div>
+          </div>
+          <div class="bar-row" style="margin-top: 16px;">
+            <div class="bar-label" data-slot="ch-3">Support</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 50%;" data-slot="fill-3"></div></div>
+            <div class="bar-value" data-slot="val-3">50</div>
+          </div>
+          <div class="bar-row" style="margin-top: 16px;">
+            <div class="bar-label" data-slot="ch-4">Forum</div>
+            <div class="bar-track"><div class="bar-fill" style="width: 45%;" data-slot="fill-4"></div></div>
+            <div class="bar-value" data-slot="val-4">45</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

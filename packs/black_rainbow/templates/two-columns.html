@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .slide-layout { display: flex; height: 100%; gap: 40px; }
+    .col-left { flex: 0.5; display: flex; flex-direction: column; gap: 16px; }
+    .col-right { flex: 0.5; display: flex; flex-direction: column; gap: 24px; justify-content: center; }
+
+    .rank-badge { color: #86efac; font-weight: 700; font-size: 14px; margin-bottom: -8px; }
+    .headline { font-size: 24px; font-weight: 600; line-height: 1.2; color: var(--text-main); }
+
+    .metrics-row { display: flex; gap: 16px; }
+    .metric-box { flex: 1; border-left: 2px solid #c084fc; padding-left: 12px; }
+    .metric-value { font-size: 24px; font-weight: 700; color: var(--text-main); }
+    .metric-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; }
+
+    .quote-box { background: var(--bg-surface); padding: 16px; border-radius: 8px; border: 1px solid var(--border-subtle); }
+    .quote-text { font-size: 12px; font-style: italic; margin-bottom: 8px; color: var(--text-main); }
+    .quote-author { font-size: 10px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="col-left">
+        <div class="rank-badge" data-slot="rank">Rank 1</div>
+        <div class="slide-label" style="color: var(--text-main);" data-slot="category">USER INTERFACE IMPROVEMENTS</div>
+        <h2 class="headline" data-slot="headline">Simplifying the user interface for new casual users

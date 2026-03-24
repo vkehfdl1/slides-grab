@@ -1,32 +1,59 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>team</title>
-  <link rel="stylesheet" href="theme.css" />
-  <link rel="stylesheet" href="base.css" />
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
   <style>
-    .team-title { font-size: 32pt; line-height: .98; margin-bottom: 26pt; }
-    .profile-grid { display:grid; grid-template-columns: repeat(6, 1fr); gap: 12pt; align-items:start; }
-    .profile { text-align:center; }
-    .profile .media-slot { width: 82pt; height: 108pt; margin: 0 auto 12pt; border-radius: 999pt; }
-    .profile strong { display:block; font-size: 11pt; }
-    .profile span { display:block; margin-top: 5pt; font-size: 8.2pt; letter-spacing:.08em; text-transform:uppercase; color: var(--text-muted); }
+    .slide-layout { display: flex; flex-direction: column; height: 100%; justify-content: center; }
+    .header-area { margin-bottom: 40px; text-align: center; }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 16px;
+      padding: 0 16px;
+    }
+    .member {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background-image: repeating-conic-gradient(#111 0% 25%, #222 0% 50%);
+      background-size: 16px 16px;
+      border: 2px solid var(--border-subtle);
+      margin-bottom: 12px;
+    }
+    .member-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-main); }
+    .member-title { font-size: 8px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
   </style>
 </head>
 <body>
-  <main class="slide theme-table">
-    <h1 class="slide-title team-title" data-slot="title">The producers of this report</h1>
-    <section class="profile-grid">
-      <article class="profile"><div class="media-slot" data-slot="image" data-label="photo"></div><strong data-slot="author">Name</strong><span data-slot="caption">Title, Team Name</span></article>
-      <article class="profile"><div class="media-slot" data-slot="image" data-label="photo"></div><strong data-slot="author">Name</strong><span data-slot="caption">Title, Team Name</span></article>
-      <article class="profile"><div class="media-slot" data-slot="image" data-label="photo"></div><strong data-slot="author">Name</strong><span data-slot="caption">Title, Team Name</span></article>
-      <article class="profile"><div class="media-slot" data-slot="image" data-label="photo"></div><strong data-slot="author">Name</strong><span data-slot="caption">Title, Team Name</span></article>
-      <article class="profile"><div class="media-slot" data-slot="image" data-label="photo"></div><strong data-slot="author">Name</strong><span data-slot="caption">Title, Team Name</span></article>
-      <article class="profile"><div class="media-slot" data-slot="image" data-label="photo"></div><strong data-slot="author">Name</strong><span data-slot="caption">Title, Team Name</span></article>
-    </section>
-    <div class="footer-band"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
-  </main>
-</body>
-</html>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="header-area">
+        <h2 class="slide-title" data-slot="title">The producers of this report</h2>
+      </div>
+      <div class="team-grid">
+        <div class="member">
+          <div class="avatar" data-slot="img-1"></div>
+          <div class="member-name" data-slot="name-1">Name</div>
+          <div class="member-title" data-slot="title-1">TITLE, TEAM NAME</div>
+        </div>
+        <div class="member">
+          <div class="avatar" data-slot="img-2"></div>
+          <div class="member-name" data-slot="name-2">Name</div>
+          <div class="member-title" data-slot="title-2">TITLE, TEAM NAME</div>
+        </div>
+        <div class="member">
+          <div class="avatar" data-slot="img-3"></div>
+          <div class="member-name" data-slot="name-3">Name</div>
+          <div class="member-title" data-slot="title-3">TITLE, TEAM NAME</div>
+        </div>
+        <div class="member">
+          <div class="avatar" data-slot="

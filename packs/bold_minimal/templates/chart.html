@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .slide-layout { display: flex; flex-direction: column; height: 100%; }
+    .header-area { margin-bottom: 24px; max-width: 60%; }
+    .chart-area {
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      padding-bottom: 40px; /* Space for X-axis labels */
+      border-bottom: 2px solid var(--border-color);
+      position: relative;
+    }
+    .bar-group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      position: relative;
+    }
+    .bar {
+      width: 100%;
+      background-color: var(--border-light);
+      display: flex;
+      justify-content: center;
+      padding-top: 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .bar.highlight {
+      background-color: var(--bg-accent);
+    }
+    .x-label {
+      position: absolute;
+      bottom: -24px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="header-area">
+        <div class="slide-label" data-slot="label">MARKET OVERVIEW</div>
+        <h2 class="slide-title" data-slot="title">The market for our product is large and growing fast.</h2>
+      </div>
+      <div class="chart-area">
+        <div class="bar-group"><div class="bar" style="height: 20%;" data-slot="val-1">$XXMM</div><div class="x-label" data-slot="year-1">20XX</div></div>
+        <div class="bar-group"><div class="bar" style="height: 35%;" data-slot="val-2">$XXMM</div><div class="x-label" data-slot="year-2">20XX</div></div>
+        <div class="bar-group"><div class="bar" style="height: 50%;" data-slot="val-3">$XXMM</div><div class="x-label" data-slot="year-3">20XX</div></div>
+        <div class="bar-group"><div class="bar" style="height: 65%;" data-slot="val-4">$XXMM</div><div class="x-label" data-slot="year-4">20XX</div></div>
+        <div class="bar-group"><div class="bar" style="height: 80%;" data-slot="val-5">$XXMM</div><div class="x-label" data-slot="year-5">20XX</div></div>
+        <div class="bar-group"><div class="bar highlight" style="height: 100%;" data-slot="val-6">$XXMM</div><div class="x-label" data-slot="year-6">20XX</div></div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

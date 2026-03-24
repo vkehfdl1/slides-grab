@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .slide-layout { display: flex; flex-direction: column; height: 100%; }
+    .header-area { margin-bottom: 32px; text-align: center; }
+    .logo-container {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      grid-template-rows: repeat(2, 60px);
+      gap: 24px 16px;
+      align-content: center;
+      margin-bottom: 40px;
+    }
+    .logo-box {
+      border: 1px solid var(--border-color);
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--border-light);
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="header-area">
+        <div class="slide-label" data-slot="label">OUR CUSTOMERS</div>
+      </div>
+      <div class="logo-container">
+        <div class="logo-box" data-slot="logo-1">LOGO</div>
+        <div class="logo-box" data-slot="logo-2">LOGO</div>
+        <div class="logo-box" data-slot="logo-3">LOGO</div>
+        <div class="logo-box" data-slot="logo-4">LOGO</div>
+        <div class="logo-box" data-slot="logo-5">LOGO</div>
+        <div class="logo-box" data-slot="logo-6">LOGO</div>
+        <div class="logo-box" data-slot="logo-7">LOGO</div>
+        <div class="logo-box" data-slot="logo-8">LOGO</div>
+        <div class="logo-box" data-slot="logo-9">LOGO</div>
+        <div class="logo-box" data-slot="logo-10">LOGO</div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>

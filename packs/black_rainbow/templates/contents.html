@@ -1,54 +1,65 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>contents</title>
-  <link rel="stylesheet" href="theme.css" />
-  <link rel="stylesheet" href="base.css" />
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
   <style>
-    .contents-layout { display:grid; grid-template-columns: 1.1fr .9fr; gap: 24pt; height:100%; }
-    .contents-lead { display:flex; flex-direction:column; gap:12pt; padding-top: 2pt; }
-    .contents-title { font-size: 28pt; line-height: 1.02; max-width: 280pt; }
-    .preface-card { margin-top:auto; padding: 14pt 16pt; background: var(--surface-soft); border:1px solid var(--border); border-radius: 14pt; }
-    .preface-card h3 { margin:0 0 7pt; font-size: 12pt; }
-    .agenda-list { list-style:none; margin: 8pt 0 0; padding:0; display:flex; flex-direction:column; gap: 8pt; }
-    .agenda-item { display:grid; grid-template-columns: 26pt 1fr; gap:10pt; padding: 8pt 0; border-bottom:1px solid var(--border); }
-    .agenda-item:last-child { border-bottom:0; }
-    .agenda-no { font-size: 10pt; color: var(--accent); letter-spacing:.08em; }
-    .agenda-text { font-size: 11pt; line-height:1.3; }
+    .contents-wrapper {
+      display: flex;
+      height: 100%;
+      gap: 48px;
+    }
+    .intro-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .intro-title { margin-bottom: 24px; font-size: 28px; }
+    .intro-desc { font-size: 14px; margin-bottom: 32px; color: var(--text-main); line-height: 1.5; }
+    .preface-box {
+      background: var(--bg-surface);
+      padding: 16px;
+      border-radius: 8px;
+      border-left: 2px solid #86efac;
+    }
+
+    .list-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      justify-content: center;
+    }
+    .list-item {
+      display: flex;
+      gap: 16px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 8px;
+    }
+    .item-num { color: var(--text-muted); font-variant-numeric: tabular-nums; }
   </style>
 </head>
 <body>
-  <main class="slide theme-section">
-    <div class="contents-layout">
-      <section class="contents-lead">
-        <div>
-          <p class="kicker" data-slot="label">Report Contents</p>
-          <h1 class="slide-title contents-title" data-slot="title">The goal of this report is to provide a unified list of the top customer opportunities.</h1>
+  <div class="slide">
+    <div class="contents-wrapper">
+      <div class="intro-col">
+        <h2 class="intro-title" data-slot="title">Report Contents</h2>
+        <p class="intro-desc" data-slot="description">The goal of this report is to provide a unified list of the top customer opportunities to help inform the next product planning process.</p>
+        <div class="preface-box">
+          <div class="slide-label">Preface</div>
+          <p class="slide-body" data-slot="preface">This is a note from the report producer to provide context, background or notable changes...</p>
         </div>
-        <p class="slide-subtitle" data-slot="body">Use this slide for agenda, framing notes, and producer context. The left side carries the narrative setup, while the right side stays structured for fast AI edits.</p>
-        <div class="preface-card">
-          <p class="kicker" style="margin-bottom:6pt" data-slot="label">Preface</p>
-          <p class="slide-body" data-slot="body">This is a note from the report producer to provide context, background, or notable changes from the previous edition.</p>
-          <div class="meta-row" style="margin-top:12pt">
-            <span class="note" data-slot="author">Name Report Producer</span>
-            <span class="note" data-slot="subtitle">Date</span>
-          </div>
-        </div>
-      </section>
-      <section>
-        <ol class="agenda-list">
-          <li class="agenda-item"><span class="agenda-no" data-slot="label">01</span><span class="agenda-text" data-slot="body">Goal of VoC</span></li>
-          <li class="agenda-item"><span class="agenda-no" data-slot="label">02</span><span class="agenda-text" data-slot="body">Process Overview</span></li>
-          <li class="agenda-item"><span class="agenda-no" data-slot="label">03</span><span class="agenda-text" data-slot="body">Overview of top ranked themes</span></li>
-          <li class="agenda-item"><span class="agenda-no" data-slot="label">04</span><span class="agenda-text" data-slot="body">Report data sources</span></li>
-          <li class="agenda-item"><span class="agenda-no" data-slot="label">05</span><span class="agenda-text" data-slot="body">Theme deep-dives</span></li>
-          <li class="agenda-item"><span class="agenda-no" data-slot="label">06</span><span class="agenda-text" data-slot="body">Stats</span></li>
-          <li class="agenda-item"><span class="agenda-no" data-slot="label">07</span><span class="agenda-text" data-slot="body">Credits — Report contributors</span></li>
-        </ol>
-      </section>
+      </div>
+      <div class="list-col">
+        <div class="list-item"><span class="item-num">01</span><span data-slot="item-1">Goal of VoC</span></div>
+        <div class="list-item"><span class="item-num">02</span><span data-slot="item-2">Process Overview</span></div>
+        <div class="list-item"><span class="item-num">03</span><span data-slot="item-3">Overview of top ranked themes</span></div>
+        <div class="list-item"><span class="item-num">04</span><span data-slot="item-4">Report data sources</span></div>
+        <div class="list-item"><span class="item-num">05</span><span data-slot="item-5">Theme deep-dives</span></div>
+      </div>
     </div>
-  </main>
+  </div>
 </body>
 </html>

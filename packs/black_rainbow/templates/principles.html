@@ -1,34 +1,39 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>principles</title>
-  <link rel="stylesheet" href="theme.css" />
-  <link rel="stylesheet" href="base.css" />
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
   <style>
-    .principles-head { max-width: 500pt; margin-bottom: 18pt; }
-    .principles-title { font-size: 26pt; line-height: 1.02; margin-bottom:10pt; }
-    .principles-grid { grid-template-columns: repeat(4, 1fr); }
-    .principle-card { padding: 14pt 12pt 13pt; min-height: 126pt; }
-    .principle-index { font-size: 20pt; line-height:1; color: var(--accent); margin-bottom: 18pt; }
-    .principle-card h3 { margin:0 0 7pt; font-size: 13pt; }
-    .principle-card p { margin:0; font-size: 9.6pt; line-height:1.45; color: var(--text-secondary); }
+    .slide-layout { display: flex; height: 100%; gap: 40px; }
+    .title-col { flex: 0.35; display: flex; flex-direction: column; justify-content: flex-start; }
+
+    .grid-col {
+      flex: 0.65;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-gap: 32px 24px;
+      align-content: center;
+    }
+    .step-item { display: flex; flex-direction: column; gap: 8px; }
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background-color: #ff7171; /* 네온 핑크/레드 포인트 */
+      color: var(--bg-base);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .step-title { font-size: 16px; font-weight: 700; color: var(--text-main); }
+    .step-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
   </style>
 </head>
 <body>
-  <main class="slide theme-section">
-    <section class="principles-head">
-      <p class="kicker" data-slot="label">Voice of Customer Process</p>
-      <h1 class="slide-title principles-title" data-slot="title">A four-step loop from listening to action</h1>
-      <p class="slide-subtitle" data-slot="subtitle">Designed for process overviews, methodologies, and operating models with four evenly weighted stages.</p>
-    </section>
-    <section class="card-grid principles-grid">
-      <article class="card principle-card"><div class="principle-index">1</div><h3 data-slot="label">Listen</h3><p data-slot="body">Collect customer feedback from interactions, surveys, tickets, social channels, and field notes.</p></article>
-      <article class="card principle-card"><div class="principle-index">2</div><h3 data-slot="label">Understand</h3><p data-slot="body">Analyze patterns to identify pain points, demand clusters, and emerging opportunities.</p></article>
-      <article class="card principle-card"><div class="principle-index">3</div><h3 data-slot="label">Act</h3><p data-slot="body">Prioritize what matters most and connect those insights to product and service improvements.</p></article>
-      <article class="card principle-card"><div class="principle-index">4</div><h3 data-slot="label">Respond</h3><p data-slot="body">Update customers and internal teams on what changed, why it changed, and what comes next.</p></article>
-    </section>
-  </main>
-</body>
-</html>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="title-col

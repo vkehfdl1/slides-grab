@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .slide-layout { display: flex; height: 100%; gap: 40px; }
+    .col-left { flex: 0.35; display: flex; flex-direction: column; justify-content: center; }
+    .col-right {
+      flex: 0.65;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 24px;
+      align-content: center;
+    }
+
+    .matrix-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .box-title { font-size: 14px; font-weight: 600; color: #60a5fa; } /* 네온 블루 포인트 */
+    .box-desc { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="slide-layout">
+      <div class="col-left">
+        <div class="slide-label" data-slot="label">REPORT DATA SOURCES</div>
+        <h2 class="slide-title" style="font-size: 32px;" data-slot="title">Aggregated data for a holistic view</h2>
+      </div>
+      <div class="col-right">
+        <div class="matrix-box">
+          <div class="box-title" data-slot="title-1">Support Insights</div>
+          <div class="box-desc" data-slot="desc-1">We analyze support tickets from [Insert Platform] and our community forum over the last [Time Period].</div>
+        </div>
+        <div class="matrix-box">
+          <div class="box-title" style="color: #86efac;" data-slot="title-2">Sales Insights</div>
+          <div class="box-desc" data-slot="desc-2">We analyzed deal blockers, win/loss reports, and strategic account feedback over the last [Time Period].</div>
+        </div>
+        <div class="matrix-box">
+          <div class="box-title" style="color: #ffb86c;" data-slot="title-3">Community Insights</div>
+          <div class="box-desc" data-slot="desc-3">We aggregated feedback from [Social Media Channels] and our community forum for the last [Time Period].</div>
+        </div>
+        <div class="matrix-box">
+          <div class="box-title" style="color: #ff7171;" data-slot="title-4">Business Insights</div>
+          <div class="box-desc" data-slot="desc-4">We reviewed churn survey data for the last [Time Period].</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

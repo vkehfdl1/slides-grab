@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .header-area { margin-bottom: 20px; }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .data-table th {
+      text-align: left;
+      padding: 8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-subtle);
+      font-weight: 500;
+    }
+    .data-table td {
+      padding: 10px 8px;
+      border-bottom: 1px solid #1a1a1a;
+      vertical-align: top;
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+
+    .rank-num { font-weight: 700; color: #ffb86c; } /* 강조색 */
+    .theme-title { font-weight: 600; font-size: 12px; margin-bottom: 2px; color: var(--text-main); }
+    .theme-desc { color: var(--text-muted); font-size: 10px; line-height: 1.3; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      font-size: 9px;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="header-area">
+      <h2 class="slide-title" style="font-size: 24px; margin-bottom: 4px;" data-slot="title">Voice of Customer Rankings</h2>
+      <p class="slide-body" style="font-size: 11px;" data-slot="subtitle">These are the top voted customer opportunities for this period.</p>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th width="8%">Rank</th>
+          <th width="45%">Theme & Description</th>
+          <th width="15%">Prev. Rank</th>
+          <th width="15%">Product Area</th>
+          <th width="17%">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="rank-num">1</td>
+          <td>
+            <div class="theme-title" data-slot="t1-title">Improved User Interface</div>
+            <div class="theme-desc" data-slot="t1-desc">Enhancing the visual design and usability of the user interface to make it more intuitive.</div>
+          </td>
+          <td data-slot="t1-prev">Rank 5</td>
+          <td data-slot="t1-area">Product A</td>
+          <td><span class="status-badge" data-slot="t1-status">NEW</span></td>
+        </tr>
+        <tr>
+          <td class="rank-num">2</td>
+          <td>
+            <div class="theme-title" data-slot="t2-title">Faster Load Times</div>
+            <div class="theme-desc" data-slot="t2-desc">Optimizing the application's performance to significantly reduce loading times.</div>
+          </td>
+          <td data-slot="t2-prev">Rank 3</td>
+          <td data-slot="t2-area">Product A</td>
+          <td><span class="status-badge" data-slot="t2-status">BACKLOG</span></td>
+        </tr>
+        <tr>
+          <td class="rank-num">3</td>
+          <td>
+            <div class="theme-title" data-slot="t3-title">Enhanced Collaboration Tools</div>
+            <div class="theme-desc" data-slot="t3-desc">Introducing new features and improving existing tools to facilitate better collaboration.</div>
+          </td>
+          <td data-slot="t3-prev">Rank 1</td>
+          <td data-slot="t3-area">Product B</td>
+          <td><span class="status-badge" data-slot="t3-status" style="border-color: #86efac; color: #86efac;">LAUNCHED</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>

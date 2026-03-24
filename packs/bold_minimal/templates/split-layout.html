@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="theme.css">
+  <link rel="stylesheet" href="base.css">
+  <style>
+    .split-container {
+      display: flex;
+      flex: 1;
+      gap: 32px;
+      align-items: center;
+      margin-top: 16px;
+      margin-bottom: 24px;
+    }
+    .split-text {
+      flex: 1;
+    }
+    .split-visual {
+      flex: 1;
+      display: flex;
+      justify-content: flex-end;
+      height: 100%;
+    }
+    .phone-mockup {
+      width: 160px;
+      height: 280px;
+      border: 6px solid var(--border-color);
+      border-radius: 24px;
+      background-color: var(--bg-secondary);
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .phone-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 12px;
+      background-color: var(--border-color);
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      z-index: 2;
+    }
+    .mockup-inner {
+      width: 100%;
+      height: 100%;
+      background-image: repeating-conic-gradient(#f3f4f6 0% 25%, #e5e7eb 0% 50%);
+      background-size: 20px 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="slide-label" data-slot="label">OUR PRODUCT</div>
+    <div class="split-container">
+      <div class="split-text">
+        <h2 class="slide-title" data-slot="title">Here's a preview of our product</h2>
+        <p class="slide-body" data-slot="body">Support your visuals with a bit of context, then link away to relevant Figma files, product docs, etc. Better yet, paste in a Figma prototype for that wow factor.</p>
+      </div>
+      <div class="split-visual">
+        <div class="phone-mockup">
+          <div class="phone-notch"></div>
+          <div class="mockup-inner" data-slot="image"></div>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer">
+      <div class="badge dark" data-slot="company">COMPANY NAME</div>
+      <div class="badge" data-slot="footer-tag">CONFIDENTIAL</div>
+    </div>
+  </div>
+</body>
+</html>
