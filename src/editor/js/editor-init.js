@@ -351,19 +351,45 @@ const rethemeSaveAs = document.getElementById('retheme-save-as');
 const rethemeCancel = document.getElementById('retheme-cancel');
 const rethemeConfirm = document.getElementById('retheme-confirm');
 
+const rethemeBackupsSection = document.getElementById('retheme-backups-section');
+const rethemeBackupSelect = document.getElementById('retheme-backup-select');
+const rethemeRestoreBtn = document.getElementById('retheme-restore-btn');
+
 if (rethemeBtn && rethemeModal) {
   rethemeBtn.addEventListener('click', async () => {
-    // Populate pack options
-    try {
-      const res = await fetch('/api/packs');
-      if (res.ok) {
-        const packs = await res.json();
-        rethemePackSelect.innerHTML = packs
-          .map(p => `<option value="${p.id}">${p.name} (${p.templates?.length || 0} templates)</option>`)
-          .join('');
-      }
-    } catch { /* keep empty */ }
     rethemeSaveAs.value = '';
+
+    // Fetch packs and backups in parallel
+    const [packsRes, backupsRes] = await Promise.all([
+      fetch('/api/packs').catch(() => null),
+      rethemeBackupsSection ? fetch('/api/backups').catch(() => null) : null,
+    ]);
+
+    // Populate pack options
+    if (packsRes?.ok) {
+      const packs = await packsRes.json();
+      rethemePackSelect.innerHTML = packs
+        .map(p => `<option value="${p.id}">${p.name} (${p.templates?.length || 0} templates)</option>`)
+        .join('');
+    }
+
+    // Load backups for "Previous versions"
+    if (rethemeBackupsSection) {
+      if (backupsRes?.ok) {
+        const backups = await backupsRes.json();
+        if (backups.length > 0) {
+          rethemeBackupSelect.innerHTML = backups
+            .map(b => `<option value="${b.timestamp}">${b.label} (${b.slideCount} slides)</option>`)
+            .join('');
+          rethemeBackupsSection.hidden = false;
+        } else {
+          rethemeBackupsSection.hidden = true;
+        }
+      } else {
+        rethemeBackupsSection.hidden = true;
+      }
+    }
+
     rethemeModal.hidden = false;
   });
 
@@ -420,6 +446,52 @@ if (rethemeBtn && rethemeModal) {
       setStatus(`Retheme 실패: ${err.message}`);
     }
   });
+
+  // Restore from backup
+  if (rethemeRestoreBtn) {
+    rethemeRestoreBtn.addEventListener('click', async () => {
+      const timestamp = rethemeBackupSelect?.value;
+      if (!timestamp) return;
+
+      let deckName = '';
+      try {
+        const cfgRes = await fetch('/api/editor-config');
+        if (cfgRes.ok) {
+          const cfg = await cfgRes.json();
+          deckName = cfg.deckName;
+        }
+      } catch { /* */ }
+
+      if (!deckName) {
+        setStatus('덱 이름을 확인할 수 없습니다.');
+        return;
+      }
+
+      rethemeModal.hidden = true;
+      setStatus(`복원 중: ${timestamp}...`);
+
+      try {
+        const res = await fetch('/api/restore', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deckName, timestamp }),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+          setStatus(`복원 실패: ${err.error}`);
+          return;
+        }
+
+        const data = await res.json();
+        setStatus(`복원 완료: ${data.restored}개 슬라이드 (${timestamp})`);
+        // Reload slides
+        window.location.reload();
+      } catch (err) {
+        setStatus(`복원 실패: ${err.message}`);
+      }
+    });
+  }
 }
 
 // ── Review panel ──

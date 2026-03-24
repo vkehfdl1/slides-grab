@@ -4414,6 +4414,16 @@
         <button class="shortcuts-close" id="retheme-cancel">Cancel</button>
         <button class="shortcuts-close" id="retheme-confirm" style="background: var(--accent); color: #fff; border-color: var(--accent);">Retheme</button>
       </div>
+      <!-- Previous versions (backup restore) -->
+      <div id="retheme-backups-section" hidden style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+          <span style="font-size: 12px; color: var(--text-2);">Previous versions</span>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <select id="retheme-backup-select" style="flex: 1; padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-0); font-size: 13px;"></select>
+          <button class="shortcuts-close" id="retheme-restore-btn" style="white-space: nowrap;">Restore</button>
+        </div>
+      </div>
     </div>
   </div>
 

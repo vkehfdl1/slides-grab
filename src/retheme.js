@@ -7,8 +7,7 @@
  *   3. AI regenerates slides with the target pack's templates + theme.css
  */
 
-import { readFile, readdir, writeFile, mkdir, copyFile, stat } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { readFile, readdir, writeFile, mkdir, copyFile, stat, unlink } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 import { getPackInfo, listPackTemplates, resolvePackTheme, getCommonTypes } from './resolve.js';
 
@@ -225,4 +224,123 @@ export async function prepareRetheme({ deckDir, targetPackId }) {
   });
 
   return { prompt, deckName, outline };
+}
+
+/**
+ * Back up existing slide HTML files into a timestamped subdirectory.
+ * e.g. decks/my-deck/backup/2026-03-20_143052/slide-01.html ...
+ * Returns the backup directory path, or null if there was nothing to back up.
+ * @param {string} deckDir - Absolute path to deck directory
+ * @param {{ deleteOriginals?: boolean }} [opts]
+ * @returns {Promise<string|null>}
+ */
+export async function backupDeck(deckDir, { deleteOriginals = false } = {}) {
+  const slideFiles = await listSlideFiles(deckDir);
+  if (slideFiles.length === 0) return null;
+
+  const now = new Date();
+  const pad = (n, len = 2) => String(n).padStart(len, '0');
+  const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
+  const backupDir = join(deckDir, 'backup', ts);
+  await mkdir(backupDir, { recursive: true });
+
+  await Promise.all(
+    slideFiles.map((f) => copyFile(join(deckDir, f), join(backupDir, f))),
+  );
+
+  if (deleteOriginals) {
+    await Promise.all(
+      slideFiles.map((f) => unlink(join(deckDir, f))),
+    );
+  }
+
+  console.log(`Backed up ${slideFiles.length} slides → ${backupDir}${deleteOriginals ? ' (originals removed)' : ''}`);
+  return backupDir;
+}
+
+/**
+ * List available backups for a deck, sorted newest-first.
+ * @param {string} deckDir - Absolute path to deck directory
+ * @returns {Promise<{ timestamp: string, label: string, path: string }[]>}
+ */
+export async function listBackups(deckDir) {
+  const backupRoot = join(deckDir, 'backup');
+
+  let entries;
+  try {
+    entries = await readdir(backupRoot);
+  } catch (err) {
+    if (err.code === 'ENOENT') return [];
+    throw err;
+  }
+
+  // Parallel stat to find directories
+  const stats = await Promise.all(
+    entries.map(e => stat(join(backupRoot, e)).catch(() => null)),
+  );
+  const dirs = entries.filter((_, i) => stats[i]?.isDirectory());
+
+  // Parallel readdir to count slides in each backup
+  const fileLists = await Promise.all(
+    dirs.map(d => readdir(join(backupRoot, d))),
+  );
+
+  const results = [];
+  for (let i = 0; i < dirs.length; i++) {
+    const slideCount = fileLists[i].filter(f => /^slide-\d+.*\.html$/i.test(f)).length;
+    if (slideCount === 0) continue;
+
+    const entry = dirs[i];
+    // Parse timestamp for display: 2026-03-20_143052 → 2026-03-20 14:30:52
+    const label = entry.replace(/_(\d{2})(\d{2})(\d{2})$/, ' $1:$2:$3');
+    results.push({ timestamp: entry, label, path: join(backupRoot, entry), slideCount });
+  }
+
+  // Sort newest first
+  results.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  return results;
+}
+
+/**
+ * Restore a backup — copy backup slides to deck root, replacing current slides.
+ * @param {string} deckDir - Absolute path to deck directory
+ * @param {string} timestamp - Backup timestamp folder name
+ * @returns {Promise<{ restored: number }>}
+ */
+export async function restoreBackup(deckDir, timestamp) {
+  // Validate timestamp format to prevent path traversal
+  if (!/^\d{4}-\d{2}-\d{2}_\d{6}$/.test(timestamp)) {
+    throw new Error(`Invalid backup timestamp format: ${timestamp}`);
+  }
+
+  const backupDir = join(deckDir, 'backup', timestamp);
+
+  // Read backup files and current slides in parallel
+  let backupFiles;
+  try {
+    backupFiles = await readdir(backupDir);
+  } catch (err) {
+    if (err.code === 'ENOENT') throw new Error(`Backup not found: ${timestamp}`);
+    throw err;
+  }
+
+  const slideFiles = backupFiles.filter(f => /^slide-\d+.*\.html$/i.test(f));
+  if (slideFiles.length === 0) {
+    throw new Error(`No slide files in backup: ${timestamp}`);
+  }
+
+  // Remove current slides
+  const currentSlides = await listSlideFiles(deckDir);
+  await Promise.all(
+    currentSlides.map((f) => unlink(join(deckDir, f)).catch(() => {})),
+  );
+
+  // Copy backup slides to deck root
+  await Promise.all(
+    slideFiles.map((f) => copyFile(join(backupDir, f), join(deckDir, f))),
+  );
+
+  console.log(`Restored ${slideFiles.length} slides from backup ${timestamp}`);
+  return { restored: slideFiles.length };
 }

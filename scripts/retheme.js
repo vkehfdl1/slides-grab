@@ -9,7 +9,7 @@ import { resolve, basename, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
-import { prepareRetheme } from '../src/retheme.js';
+import { prepareRetheme, backupDeck } from '../src/retheme.js';
 
 const CLAUDE_BIN = process.env.PPT_AGENT_CLAUDE_BIN || 'claude';
 
@@ -77,6 +77,15 @@ if (targetDeckName !== opts.deck) {
 console.log('  ─────────────────────────────────────\n');
 
 try {
+  // Back up existing slides before retheme (only when overwriting)
+  if (targetDeckName === opts.deck) {
+    console.log('[0/3] Backing up existing slides...');
+    const backupPath = await backupDeck(deckDir);
+    if (backupPath) {
+      console.log(`      Backup saved: ${backupPath}`);
+    }
+  }
+
   console.log('[1/3] Preparing retheme data...');
   const { prompt, outline } = await prepareRetheme({
     deckDir,

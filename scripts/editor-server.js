@@ -23,7 +23,7 @@ import {
 
 import { listTemplates, listPacks, resolvePack, resolveTemplate, listPackTemplates, normalizePackId, getPackInfo, getCommonTypes } from '../src/resolve.js';
 import { parseSource, detectSourceType } from '../src/parsers.js';
-import { prepareRetheme } from '../src/retheme.js';
+import { prepareRetheme, backupDeck, listBackups, restoreBackup } from '../src/retheme.js';
 import { analyzeDeck } from '../src/review.js';
 
 import { mergePdfBuffers } from './html2pdf.js';
@@ -304,33 +304,9 @@ function normalizeSlideFilename(rawSlide, source = '`slide`') {
   return slide;
 }
 
-/**
- * Back up existing slide HTML files into a timestamped subdirectory.
- * e.g. decks/my-deck/backup/2026-03-20_143052/slide-01.html ...
- * Returns the backup directory path, or null if there was nothing to back up.
- */
+// backupSlides — thin wrapper over shared backupDeck() with deleteOriginals
 async function backupSlides(deckDir) {
-  const slideFiles = await listSlideFiles(deckDir);
-  if (slideFiles.length === 0) return null;
-
-  const now = new Date();
-  const pad = (n, len = 2) => String(n).padStart(len, '0');
-  const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-
-  const backupDir = join(deckDir, 'backup', ts);
-  await mkdir(backupDir, { recursive: true });
-
-  await Promise.all(
-    slideFiles.map((f) => copyFile(join(deckDir, f), join(backupDir, f))),
-  );
-
-  // Remove originals so Claude generates all slides fresh
-  await Promise.all(
-    slideFiles.map((f) => unlink(join(deckDir, f))),
-  );
-
-  console.log(`Backed up ${slideFiles.length} slides → ${backupDir} (originals removed)`);
-  return backupDir;
+  return backupDeck(deckDir, { deleteOriginals: true });
 }
 
 function normalizeSlideHtml(rawHtml) {
@@ -1833,6 +1809,19 @@ async function startServer(opts) {
       try {
         broadcastSSE('progress', { runId, phase: 'retheme', step: 'Preparing retheme data' });
 
+        // Back up existing slides before overwrite
+        let backupPath = null;
+        if (targetDeckName === deckName) {
+          try {
+            backupPath = await backupDeck(deckDir);
+            if (backupPath) {
+              broadcastSSE('progress', { runId, phase: 'retheme', step: 'Backed up existing slides' });
+            }
+          } catch (err) {
+            console.error('Retheme backup failed:', err);
+          }
+        }
+
         const { prompt, outline } = await prepareRetheme({
           deckDir,
           targetPackId: targetPack,
@@ -1887,6 +1876,55 @@ async function startServer(opts) {
         activeGenerate = false;
       }
     })();
+  });
+
+  // ── GET /api/backups — List backups for current deck ─────────────
+  app.get('/api/backups', async (req, res) => {
+    const deckName = (typeof req.query.deck === 'string' ? req.query.deck.trim() : '') || (slidesDirectory ? basename(slidesDirectory) : '');
+    if (!deckName) {
+      return res.status(400).json({ error: 'No deck loaded.' });
+    }
+
+    const deckDir = resolve(process.cwd(), 'decks', deckName);
+    if (!existsSync(deckDir)) {
+      return res.status(404).json({ error: `Deck not found: ${deckName}` });
+    }
+
+    try {
+      const backups = await listBackups(deckDir);
+      res.json(backups);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ── POST /api/restore — Restore a backup ───────────────────────
+  app.post('/api/restore', async (req, res) => {
+    const { deckName, timestamp } = req.body ?? {};
+
+    const name = deckName || (slidesDirectory ? basename(slidesDirectory) : '');
+    if (!name) {
+      return res.status(400).json({ error: 'deckName required.' });
+    }
+    if (!timestamp || typeof timestamp !== 'string') {
+      return res.status(400).json({ error: 'timestamp required.' });
+    }
+
+    const deckDir = resolve(process.cwd(), 'decks', name);
+    if (!existsSync(deckDir)) {
+      return res.status(404).json({ error: `Deck not found: ${name}` });
+    }
+
+    try {
+      const result = await restoreBackup(deckDir, timestamp);
+      // Refresh the file watcher so editor picks up restored slides
+      if (slidesDirectory && resolve(slidesDirectory) === resolve(deckDir)) {
+        setupFileWatcher(slidesDirectory);
+      }
+      res.json({ success: true, restored: result.restored, timestamp });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   });
 
   // ── POST /api/review — Analyze deck quality ──────────────────────
