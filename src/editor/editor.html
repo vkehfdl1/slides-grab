@@ -2412,40 +2412,77 @@
       border-color: var(--accent);
     }
 
-    /* ── Pack Gallery ── */
-    .pack-gallery {
-      margin: 12px 0 8px;
+    /* ── Pack Collapsible ── */
+    .pack-collapsible {
+      margin-top: 4px;
     }
-    .pack-label {
+    .pack-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all var(--transition);
+      list-style: none;
+      font-family: var(--sans);
+    }
+    .pack-toggle::-webkit-details-marker { display: none; }
+    .pack-toggle:hover {
+      border-color: var(--border-hover);
+      background: var(--surface-hover);
+    }
+    .pack-toggle-icon {
+      color: var(--text-2);
+      flex-shrink: 0;
+    }
+    .pack-toggle-label {
       font-size: 11px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-2);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 8px;
-      display: block;
+    }
+    .pack-toggle-current {
+      font-size: 12px;
+      color: var(--text-0);
+      font-weight: 500;
+      margin-left: 2px;
+    }
+    .pack-toggle-chevron {
+      margin-left: auto;
+      color: var(--text-2);
+      transition: transform var(--transition);
+      flex-shrink: 0;
+    }
+    .pack-collapsible[open] .pack-toggle-chevron {
+      transform: rotate(180deg);
+    }
+    .pack-collapsible[open] .pack-toggle {
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      border-bottom-color: var(--border-subtle);
+    }
+
+    /* ── Pack Gallery (inside collapsible) ── */
+    .pack-gallery {
+      padding: 14px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
     }
     .pack-grid {
-      display: flex;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
       gap: 10px;
-      overflow-x: auto;
-      padding-bottom: 4px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
     }
-    .pack-grid::-webkit-scrollbar {
-      height: 4px;
-    }
-    .pack-grid::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .pack-grid::-webkit-scrollbar-thumb {
-      background: var(--border);
-      border-radius: 2px;
+    @media (max-width: 520px) {
+      .pack-grid { grid-template-columns: repeat(2, 1fr); }
     }
     .pack-card {
-      flex-shrink: 0;
-      width: 120px;
       background: var(--surface-2);
       border: 1.5px solid var(--border-subtle);
       border-radius: var(--radius);
@@ -2455,55 +2492,189 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      text-align: left;
     }
     .pack-card:hover {
       border-color: var(--border-hover);
       background: var(--surface-hover);
     }
+    .pack-card:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
     .pack-card.selected {
       border-color: var(--accent);
-      box-shadow: 0 0 0 1px var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 0 12px rgba(59, 130, 246, 0.15);
     }
+    /* Color swatch bar at top of card */
+    .pack-swatches {
+      display: flex;
+      height: 5px;
+      flex-shrink: 0;
+    }
+    .pack-swatches > div { flex: 1; min-width: 0; }
+    /* Stylized mini-slide preview */
     .pack-preview {
       width: 100%;
       aspect-ratio: 16/9;
       overflow: hidden;
-      background: var(--surface-3);
-    }
-    .pack-preview img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-    .pack-preview-fallback {
-      width: 100%;
-      height: 100%;
+      position: relative;
       display: flex;
       flex-direction: column;
       justify-content: center;
-      padding: 10px;
-      position: relative;
+      padding: 12px 16px;
     }
-    .pack-preview-accent {
-      width: 50%;
-      height: 4px;
+    .pack-slide-title {
+      width: 55%;
+      height: 5px;
       border-radius: 2px;
       margin-bottom: 6px;
+      opacity: 0.85;
     }
-    .pack-preview-lines {
+    .pack-slide-accent {
+      width: 35%;
+      height: 3px;
+      border-radius: 1.5px;
+      margin-bottom: 10px;
+      opacity: 0.9;
+    }
+    .pack-slide-body {
+      width: 70%;
+      height: 3px;
+      border-radius: 1.5px;
+      opacity: 0.3;
+      margin-bottom: 4px;
+    }
+    .pack-slide-body-sm {
+      width: 50%;
+      height: 2px;
+      border-radius: 1px;
+      opacity: 0.2;
+    }
+    /* Pack info section */
+    .pack-info {
+      padding: 8px 10px 10px;
       display: flex;
       flex-direction: column;
+      gap: 2px;
+      border-top: 1px solid var(--border-subtle);
+    }
+    .pack-info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
     }
     .pack-name {
-      display: block;
-      padding: 6px 8px;
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-1);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-0);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+    .pack-template-count {
+      font-size: 10px;
+      color: var(--text-2);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .pack-desc {
+      font-size: 10px;
+      color: var(--text-2);
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* ── Pack Detail Panel (below grid) ── */
+    .pack-detail {
+      margin-top: 12px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      overflow: hidden;
+      transition: opacity 200ms ease;
+    }
+    .pack-detail[hidden] { display: none; }
+    .pack-detail-header {
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .pack-detail-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-0);
+    }
+    .pack-detail-label {
+      font-size: 10px;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .pack-detail-types {
+      padding: 10px 14px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .template-chip {
+      font-size: 10px;
+      font-family: var(--sans);
+      padding: 3px 10px;
+      border-radius: var(--radius-pill);
+      background: var(--surface-3);
+      color: var(--text-1);
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .template-chip:hover {
+      border-color: var(--border-hover);
+      color: var(--text-0);
+      background: var(--surface-hover);
+    }
+    .template-chip.active {
+      border-color: var(--accent);
+      color: var(--accent-2);
+      background: rgba(59, 130, 246, 0.08);
+    }
+    .pack-detail-preview {
+      padding: 0 14px 14px;
+    }
+    .pack-preview-iframe-wrapper {
+      width: 100%;
+      aspect-ratio: 16/9;
+      overflow: hidden;
+      border-radius: var(--radius-sm);
+      position: relative;
+      background: var(--surface-3);
+      border: 1px solid var(--border-subtle);
+    }
+    .pack-preview-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 960px;
+      height: 540px;
+      border: none;
+      transform-origin: top left;
+      pointer-events: none;
+      transition: opacity 200ms ease;
+    }
+    .pack-preview-skeleton {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-2);
+      font-size: 11px;
     }
 
     /* ── Import Dropzone ── */
@@ -2672,10 +2843,20 @@
     .creation-actions {
       display: flex;
       gap: 10px;
-      align-items: center;
+      align-items: flex-end;
       justify-content: flex-end;
       flex-wrap: wrap;
-      margin-top: 2px;
+      margin-top: 4px;
+    }
+    .creation-actions-field {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .creation-actions-field > label {
+      font-size: 10px;
+      color: var(--text-2);
+      font-weight: 500;
     }
 
     .creation-actions select {
@@ -3529,22 +3710,23 @@
                 <button class="creation-tab" id="tab-import" data-tab="import" role="tab" aria-selected="false" aria-controls="creation-tab-import">Import MD</button>
               </div>
             </div>
-            <!-- Pack gallery (shared between tabs) -->
-            <div class="pack-gallery" id="pack-gallery">
-              <label class="creation-label pack-label">Template</label>
-              <div class="pack-grid" id="pack-grid"></div>
-            </div>
-            <!-- Topic tab (default) -->
+            <!-- Topic tab (default) — primary input, shown first -->
             <div class="creation-input-area" id="creation-tab-topic" role="tabpanel" aria-labelledby="tab-topic">
               <textarea id="creation-topic" placeholder="어떤 주제의 프레젠테이션인가요?" rows="3"></textarea>
               <textarea id="creation-requirements" placeholder="추가 요구사항: 스타일, 언어, 제약조건 등 (선택)" rows="2"></textarea>
               <div class="creation-actions">
-                <select id="creation-slide-count">
-                  <option value="4~8">4 ~ 8</option>
-                  <option value="8~12" selected>8 ~ 12</option>
-                  <option value="12~16">12 ~ 16</option>
-                </select>
-                <select id="creation-model"></select>
+                <div class="creation-actions-field">
+                  <label for="creation-slide-count">Slides</label>
+                  <select id="creation-slide-count">
+                    <option value="4~8">4 ~ 8</option>
+                    <option value="8~12" selected>8 ~ 12</option>
+                    <option value="12~16">12 ~ 16</option>
+                  </select>
+                </div>
+                <div class="creation-actions-field">
+                  <label for="creation-model">Model</label>
+                  <select id="creation-model"></select>
+                </div>
                 <button id="creation-generate">Plan Outline</button>
               </div>
             </div>
@@ -3563,22 +3745,56 @@
                 <button class="import-file-clear" id="import-file-clear">&times;</button>
               </div>
               <div class="creation-actions">
-                <select id="import-slide-count">
-                  <option value="">Auto</option>
-                  <option value="4~8">4 ~ 8</option>
-                  <option value="8~12">8 ~ 12</option>
-                  <option value="12~16">12 ~ 16</option>
-                  <option value="16~20">16 ~ 20</option>
-                  <option value="20~30">20 ~ 30</option>
-                </select>
-                <select id="import-research-mode">
-                  <option value="none">No extra research</option>
-                  <option value="research">Add research</option>
-                </select>
-                <select id="import-model"></select>
+                <div class="creation-actions-field">
+                  <label for="import-slide-count">Slides</label>
+                  <select id="import-slide-count">
+                    <option value="">Auto</option>
+                    <option value="4~8">4 ~ 8</option>
+                    <option value="8~12">8 ~ 12</option>
+                    <option value="12~16">12 ~ 16</option>
+                    <option value="16~20">16 ~ 20</option>
+                    <option value="20~30">20 ~ 30</option>
+                  </select>
+                </div>
+                <div class="creation-actions-field">
+                  <label for="import-research-mode">Research</label>
+                  <select id="import-research-mode">
+                    <option value="none">No extra research</option>
+                    <option value="research">Add research</option>
+                  </select>
+                </div>
+                <div class="creation-actions-field">
+                  <label for="import-model">Model</label>
+                  <select id="import-model"></select>
+                </div>
                 <button id="import-submit">Import &amp; Plan</button>
               </div>
             </div>
+            <!-- Design Theme — collapsible, defaults applied -->
+            <details class="pack-collapsible" id="pack-collapsible">
+              <summary class="pack-toggle">
+                <svg class="pack-toggle-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                <span class="pack-toggle-label">Design Theme</span>
+                <span class="pack-toggle-current" id="pack-toggle-current">Simple Light</span>
+                <svg class="pack-toggle-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+              </summary>
+              <div class="pack-gallery" id="pack-gallery">
+                <div class="pack-grid" id="pack-grid"></div>
+                <div class="pack-detail" id="pack-detail" hidden>
+                  <div class="pack-detail-header">
+                    <span class="pack-detail-name" id="pack-detail-name"></span>
+                    <span class="pack-detail-label">Available Templates</span>
+                  </div>
+                  <div class="pack-detail-types" id="pack-detail-types"></div>
+                  <div class="pack-detail-preview">
+                    <div class="pack-preview-iframe-wrapper" id="pack-preview-wrapper">
+                      <div class="pack-preview-skeleton" id="pack-preview-skeleton">Loading preview...</div>
+                      <iframe class="pack-preview-iframe" id="pack-preview-iframe" loading="lazy"></iframe>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
           </div>
           <div id="creation-phase-outline" hidden>
             <div class="outline-review">

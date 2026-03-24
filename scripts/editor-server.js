@@ -21,7 +21,7 @@ import {
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
 
-import { listTemplates, listPacks, resolvePack, listPackTemplates, normalizePackId, getPackInfo, getCommonTypes } from '../src/resolve.js';
+import { listTemplates, listPacks, resolvePack, resolveTemplate, listPackTemplates, normalizePackId, getPackInfo, getCommonTypes } from '../src/resolve.js';
 
 import { mergePdfBuffers } from './html2pdf.js';
 import { PDFDocument } from 'pdf-lib';
@@ -724,6 +724,13 @@ async function startServer(opts) {
   }));
   app.use('/asset', express.static(join(PACKAGE_ROOT, 'asset')));
 
+  // Serve pack files (templates, theme.css) for iframe preview
+  const localPacksDir = join(process.cwd(), 'packs');
+  if (existsSync(localPacksDir)) {
+    app.use('/packs-preview', express.static(localPacksDir));
+  }
+  app.use('/packs-preview', express.static(join(PACKAGE_ROOT, 'packs')));
+
   const editorHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'editor.html');
   const browserHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'browser.html');
 
@@ -1328,6 +1335,13 @@ async function startServer(opts) {
     });
   });
 
+  // ── GET /api/packs/:id/templates/:name — Template HTML for preview ──
+  app.get('/api/packs/:id/templates/:name', (req, res) => {
+    const resolved = resolveTemplate(req.params.name, req.params.id);
+    if (!resolved) return res.status(404).send('Template not found');
+    res.sendFile(resolved.path);
+  });
+
   // ── GET /api/outline — Load existing outline ───────────────────────
   app.get('/api/outline', async (_req, res) => {
     if (!slidesDirectory) {
@@ -1870,7 +1884,7 @@ async function startServer(opts) {
             promptLines.push('각 슬라이드 생성 시:');
             promptLines.push(`- 팩에 있는 type → slides-grab show-template <type> --pack ${genPackId} 로 템플릿 기반 생성`);
             promptLines.push(`- 팩에 없는 type → slides-grab show-theme ${genPackId} 로 색상 확인 후, 720pt×405pt 크기로 직접 HTML 디자인`);
-            promptLines.push('  (figma-default 템플릿을 복사하지 말고, 팩의 색상/분위기로 새로 만드세요)');
+            promptLines.push('  (simple_light 템플릿을 복사하지 말고, 팩의 색상/분위기로 새로 만드세요)');
             promptLines.push('');
           }
 
@@ -1924,7 +1938,7 @@ async function startServer(opts) {
             promptLines.push('각 슬라이드 생성 시:');
             promptLines.push(`- 팩에 있는 type → slides-grab show-template <type> --pack ${genPackId2} 로 템플릿 기반 생성`);
             promptLines.push(`- 팩에 없는 type → slides-grab show-theme ${genPackId2} 로 색상 확인 후, 720pt×405pt 크기로 직접 HTML 디자인`);
-            promptLines.push('  (figma-default 템플릿을 복사하지 말고, 팩의 색상/분위기로 새로 만드세요)');
+            promptLines.push('  (simple_light 템플릿을 복사하지 말고, 팩의 색상/분위기로 새로 만드세요)');
           }
 
           promptLines.push(
