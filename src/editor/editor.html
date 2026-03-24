@@ -15,7 +15,7 @@
       --border-soft: #172033;
       --text-0: #f8fafc;
       --text-1: #94a3b8;
-      --text-2: #64748b;
+      --text-2: #728496;
       --accent: #3b82f6;
       --accent-2: #60a5fa;
       --danger: #ef4444;
@@ -46,6 +46,40 @@
       --text-bright: #f5f7fb;
       --surface-hover: #141821;
       --surface-btn: #171b22;
+    }
+
+    /* ── Light Theme ── */
+    [data-theme="light"] {
+      --bg-0: #f8fafc;
+      --bg-1: #f1f5f9;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --border: #e2e8f0;
+      --border-soft: #f1f5f9;
+      --text-0: #0f172a;
+      --text-1: #475569;
+      --text-2: #64748b;
+      --accent: #3b82f6;
+      --accent-2: #60a5fa;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warn: #d97706;
+      --ring: hsla(213, 93%, 67%, 0.2);
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+      --surface-0: #ffffff;
+      --surface-1: #f8fafc;
+      --surface-2: #f1f5f9;
+      --surface-3: #e2e8f0;
+      --text-muted: #64748b;
+      --border-subtle: #f1f5f9;
+      --border-medium: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --border-hover: #94a3b8;
+      --border-input: #cbd5e1;
+      --border-btn: #cbd5e1;
+      --text-bright: #0f172a;
+      --surface-hover: #e2e8f0;
+      --surface-btn: #e2e8f0;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -3655,7 +3689,165 @@
     .outline-card-title-input:focus {
       border-bottom-style: solid;
     }
+
+    /* ── Theme Toggle Button ── */
+    .theme-toggle {
+      width: 28px;
+      height: 28px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { color: var(--text-0); border-color: var(--border-hover); background: var(--surface-hover); }
+    .theme-icon { width: 14px; height: 14px; display: block; }
+    .theme-icon-sun { display: none; }
+    [data-theme="light"] .theme-icon-moon { display: none; }
+    [data-theme="light"] .theme-icon-sun { display: block; }
+
+    /* ── Light Theme Component Overrides ── */
+    [data-theme="light"] .slide-status-chip.running {
+      color: #b45309;
+      background: hsl(40 90% 94%);
+      border-color: hsl(40 70% 80%);
+    }
+    [data-theme="light"] .slide-status-chip.success {
+      color: #15803d;
+      background: hsl(150 50% 94%);
+      border-color: hsl(150 40% 78%);
+    }
+    [data-theme="light"] .slide-status-chip.failed {
+      color: #dc2626;
+      background: hsl(0 60% 96%);
+      border-color: hsl(0 50% 85%);
+    }
+    [data-theme="light"] .message.user {
+      border-color: hsl(217 60% 85%);
+      background: hsl(217 85% 96%);
+    }
+    [data-theme="light"] .message.system {
+      border-color: hsl(150 35% 82%);
+      background: hsl(150 40% 96%);
+    }
+    [data-theme="light"] .message.error {
+      border-color: hsl(0 50% 85%);
+      background: hsl(0 60% 97%);
+    }
+    [data-theme="light"] .context-chip.pending {
+      border-color: hsl(0 50% 85%);
+      background: hsl(0 60% 97%);
+      color: #991b1b;
+    }
+    [data-theme="light"] .context-chip.review {
+      border-color: hsl(150 35% 78%);
+      background: hsl(150 40% 96%);
+      color: #166534;
+    }
+    [data-theme="light"] .clear-overlay-btn {
+      background: rgba(255, 255, 255, 0.88);
+      border-color: var(--border-strong);
+    }
+    [data-theme="light"] .clear-overlay-btn:hover {
+      background: rgba(255, 255, 255, 0.95);
+    }
+    [data-theme="light"] .plan-loading {
+      background: rgba(248, 250, 252, 0.88);
+    }
+    [data-theme="light"] .slide-running-overlay {
+      background: rgba(248, 250, 252, 0.55);
+      backdrop-filter: blur(2px);
+    }
+    [data-theme="light"] .slide-running-indicator {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(59, 130, 246, 0.2);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+    [data-theme="light"] .slide-running-text {
+      color: var(--accent);
+    }
+    [data-theme="light"] .shortcuts-overlay,
+    [data-theme="light"] .svg-export-overlay,
+    [data-theme="light"] .figma-confirm-overlay {
+      background: rgba(0, 0, 0, 0.2);
+    }
+    [data-theme="light"] .shortcuts-modal,
+    [data-theme="light"] .svg-export-modal,
+    [data-theme="light"] .figma-confirm-modal,
+    [data-theme="light"] .figma-toast {
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    [data-theme="light"] .outline-run-track {
+      background:
+        linear-gradient(90deg, transparent 0%, rgba(59,130,246,0.05) 50%, transparent 100%),
+        linear-gradient(180deg, rgba(241,245,249,0.8) 0%, rgba(248,250,252,0.95) 100%);
+      border-color: var(--border);
+    }
+    [data-theme="light"] .plan-loading-bunny,
+    [data-theme="light"] .outline-bunny-runner {
+      filter:
+        drop-shadow(0 0 12px rgba(59,130,246,0.25))
+        drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+    }
+    [data-theme="light"] .nav-bar-btn.figma-btn {
+      background: var(--surface-2);
+      border-color: var(--border-strong);
+    }
+    [data-theme="light"] .nav-bar-btn.figma-btn:hover {
+      background: var(--surface-3);
+    }
+    [data-theme="light"] .nav-bar-btn.ghost.nav-emphasis {
+      background: rgba(59, 130, 246, 0.06);
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+    [data-theme="light"] .nav-bar-btn.ghost.nav-emphasis:hover {
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.35);
+      color: var(--accent);
+    }
+    [data-theme="light"] .bbox-empty-guide-text {
+      background: rgba(255, 255, 255, 0.85);
+      color: var(--text-1);
+    }
+    [data-theme="light"] .tool-separator,
+    [data-theme="light"] .toolbar-divider {
+      background: linear-gradient(180deg, rgba(148, 163, 184, 0.1) 0%, rgba(148, 163, 184, 0.5) 48%, rgba(148, 163, 184, 0.1) 100%);
+    }
+    [data-theme="light"] .outline-card.editing {
+      background: rgba(59, 130, 246, 0.03);
+    }
+    [data-theme="light"] .creation-log {
+      color: var(--text-1);
+    }
+
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .plan-loading-bunny,
+      .outline-bunny-runner {
+        animation: none !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+      }
+      .slide-running-spinner,
+      .btn-send-spinner,
+      .loading-spinner {
+        animation: none !important;
+        border-top-color: var(--accent);
+        opacity: 0.6;
+      }
+    }
   </style>
+  <script>(function(){var t=localStorage.getItem('sg-theme');if(t)document.documentElement.setAttribute('data-theme',t);else if(window.matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.setAttribute('data-theme','light')})();</script>
 </head>
 <body>
   <a class="skip-link" href="#slide-stage">Skip to slide</a>
@@ -3682,6 +3874,10 @@
           </button>
         </div>
       </div>
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle light/dark mode">
+        <svg class="theme-icon theme-icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-icon theme-icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
       <button class="nav-bar-btn ghost" id="btn-shortcuts" title="Keyboard shortcuts (?)" aria-label="Keyboard shortcuts">?</button>
       <span class="slide-status-chip idle" id="slide-status-chip" aria-label="Slide status">idle</span>
     </div>

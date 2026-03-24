@@ -12,6 +12,7 @@ import {
   slideStrip, btnExportToggle, exportDropdown, btnReviewOutline,
   slideSkeleton, bboxEmptyGuide, shortcutsModal, shortcutsClose, btnShortcuts,
   sidebarToggle, editorSidebar, btnSendLabel,
+  themeToggle,
 } from './editor-dom.js';
 import {
   currentSlideFile, getSlideState, normalizeModelName, setStatus,
@@ -327,6 +328,20 @@ if (sidebarToggle && editorSidebar) {
     editorSidebar.addEventListener('transitionend', scaleSlide, { once: true });
   });
 }
+
+// Theme toggle
+if (themeToggle) {
+  themeToggle.addEventListener('click', () => {
+    const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('sg-theme', next);
+  });
+}
+window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+  if (!localStorage.getItem('sg-theme')) {
+    document.documentElement.setAttribute('data-theme', e.matches ? 'light' : 'dark');
+  }
+});
 
 // Prompt textarea auto-grow
 if (promptInput) {

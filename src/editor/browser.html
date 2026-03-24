@@ -15,7 +15,7 @@
       --border-soft: #172033;
       --text-0: #f8fafc;
       --text-1: #94a3b8;
-      --text-2: #64748b;
+      --text-2: #728496;
       --accent: #3b82f6;
       --accent-2: #60a5fa;
       --danger: #ef4444;
@@ -39,6 +39,36 @@
       --border-strong: #1b1f27;
       --border-hover: #252b35;
       --surface-hover: #141821;
+    }
+
+    /* ── Light Theme ── */
+    [data-theme="light"] {
+      --bg-0: #f8fafc;
+      --bg-1: #f1f5f9;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --border: #e2e8f0;
+      --border-soft: #f1f5f9;
+      --text-0: #0f172a;
+      --text-1: #475569;
+      --text-2: #64748b;
+      --accent: #3b82f6;
+      --accent-2: #60a5fa;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warn: #d97706;
+      --ring: hsla(213, 93%, 67%, 0.2);
+      --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+      --surface-0: #ffffff;
+      --surface-1: #f8fafc;
+      --surface-2: #f1f5f9;
+      --surface-3: #e2e8f0;
+      --text-muted: #64748b;
+      --border-subtle: #f1f5f9;
+      --border-medium: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --border-hover: #94a3b8;
+      --surface-hover: #e2e8f0;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -129,7 +159,7 @@
     }
 
     .search-input::placeholder { color: var(--text-2); }
-    .search-input:focus { border-color: var(--accent); }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
 
     /* ── Deck grid ── */
     .deck-grid {
@@ -257,9 +287,22 @@
     }
 
     .empty-state-icon {
-      font-size: 48px;
       margin-bottom: 16px;
       opacity: 0.4;
+      color: var(--text-2);
+    }
+
+    /* ── sr-only ── */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0,0,0,0);
+      white-space: nowrap;
+      border: 0;
     }
 
     .empty-state-title {
@@ -309,6 +352,57 @@
       margin: 0 auto 12px;
     }
 
+    /* ── Reduced motion ── */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* ── Theme Toggle Button ── */
+    .theme-toggle {
+      width: 32px;
+      height: 32px;
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text-1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      flex-shrink: 0;
+    }
+    .theme-toggle:hover { color: var(--text-0); border-color: var(--border-hover); background: var(--surface-hover); }
+    .theme-icon { width: 16px; height: 16px; display: block; }
+    .theme-icon-sun { display: none; }
+    [data-theme="light"] .theme-icon-moon { display: none; }
+    [data-theme="light"] .theme-icon-sun { display: block; }
+
+    /* ── Light Theme Component Overrides ── */
+    [data-theme="light"] .deck-kebab-btn {
+      background: rgba(255,255,255,0.8);
+      border-color: var(--border-strong);
+    }
+    [data-theme="light"] .deck-kebab-btn:hover {
+      background: var(--surface-2);
+    }
+    [data-theme="light"] .deck-action-menu {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+    [data-theme="light"] .deck-modal-overlay {
+      background: rgba(0,0,0,0.25);
+    }
+    [data-theme="light"] .deck-modal {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    [data-theme="light"] .deck-card:hover {
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1), 0 0 0 1px var(--accent);
+    }
+
     /* ── Deck card actions (kebab menu) ── */
     .deck-card { position: relative; }
 
@@ -323,8 +417,8 @@
     .deck-card:hover .deck-card-actions { opacity: 1; }
 
     .deck-kebab-btn {
-      width: 28px;
-      height: 28px;
+      width: 36px;
+      height: 36px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -477,17 +571,23 @@
     }
     .btn-modal-danger:hover { filter: brightness(1.15); }
   </style>
+  <script>(function(){var t=localStorage.getItem('sg-theme');if(t)document.documentElement.setAttribute('data-theme',t);else if(window.matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.setAttribute('data-theme','light')})();</script>
 </head>
 <body>
   <div class="browser-container">
     <div class="nav-bar">
       <div class="nav-brand">slides<span>-grab</span></div>
       <div class="nav-spacer"></div>
+      <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle light/dark mode">
+        <svg class="theme-icon theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="theme-icon theme-icon-sun" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      </button>
       <button class="btn-new-deck" id="btn-new-deck">+ New Deck</button>
     </div>
 
     <div class="main-content" id="main-content">
       <div class="search-bar">
+        <label for="search-input" class="sr-only">Search decks</label>
         <input class="search-input" id="search-input" type="text" placeholder="Search decks..." autocomplete="off">
       </div>
       <div id="deck-container">
@@ -556,7 +656,9 @@
       if (decks.length === 0 && allDecks.length === 0) {
         deckContainer.innerHTML = `
           <div class="empty-state">
-            <div class="empty-state-icon">&#128196;</div>
+            <div class="empty-state-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg>
+            </div>
             <div class="empty-state-title">No decks yet</div>
             <div class="empty-state-desc">Create your first presentation to get started.</div>
             <button class="btn-new-deck" onclick="navigateCreate()">+ New Deck</button>
@@ -809,6 +911,18 @@
     }
 
     loadDecks();
+
+    // ── Theme toggle ──
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const next = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('sg-theme', next);
+    });
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+      if (!localStorage.getItem('sg-theme')) {
+        document.documentElement.setAttribute('data-theme', e.matches ? 'light' : 'dark');
+      }
+    });
   </script>
 </body>
 </html>
