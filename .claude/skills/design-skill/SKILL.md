@@ -16,10 +16,9 @@ Delivers minimal, refined design based on existing templates and theme system.
 - **Slide Size**: 720pt x 405pt (16:9, fixed)
 - **Style**: Determined by the selected template pack
 
-### Default Style (figma-default pack)
-- **Background**: White (`#ffffff`)
-- **Text**: Black (`#000000`), secondary `#6b6b6b`
-- **Accent**: `#FC5E20`
+### Default Style
+- Default pack: `simple_light`
+- Run `slides-grab show-theme simple_light` to see current colors
 
 ### Pretendard Webfont CDN
 ```html
@@ -45,7 +44,7 @@ All packs share a common set of template type names defined in `packs/common-typ
 
 1. **Pack has the template** → use it directly via `show-template <type> --pack <pack-id>`
 2. **Pack doesn't have the template** → design from scratch using the pack's `theme.css` colors
-   - Do NOT fall back to figma-default HTML structure
+   - Do NOT fall back to simple_light HTML structure
    - Use `slides-grab show-theme <pack-id>` to get CSS variables
    - Create a layout that fits the pack's visual language
 
@@ -59,14 +58,14 @@ All packs share a common set of template type names defined in `packs/common-typ
 - Get colors via `slides-grab show-theme <pack-id>`
 - Use the pack's typography scale, spacing, and visual style
 - Match the look of other slides in the same pack
-- Do NOT copy figma-default templates — they have a different design language
+- Do NOT copy simple_light templates — they have a different design language
 
 ### How to use templates
 
 1. **Check pack's templates**: `slides-grab show-pack <pack-id>` to see owned types
 2. **View template**: `slides-grab show-template <type> --pack <pack-id>`
 3. **Follow the template**: Copy HTML structure, adapt content from `slide-outline.md`
-4. **When no pack is specified**: Default to `figma-default` pack
+4. **When no pack is specified**: Default to `simple_light` pack
 
 ### Theme CSS Variables
 

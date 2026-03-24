@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(__dirname, '..');
 
-const DEFAULT_PACK = 'figma-default';
+const DEFAULT_PACK = 'simple_light';
 
 /**
  * Get the package root directory (where slides-grab is installed).
@@ -60,7 +60,7 @@ function parseThemeColors(css) {
 
 /**
  * Derive a display name from a pack ID.
- * "figma-default" → "Figma Default", "mobile_strategy" → "Mobile Strategy"
+ * "simple_light" → "Simple Light", "mobile_strategy" → "Mobile Strategy"
  */
 function packIdToName(id) {
   return id.replace(/(^|[-_])([a-z])/g, (_, sep, ch) => (sep ? ' ' : '') + ch.toUpperCase());
@@ -168,7 +168,7 @@ export function listPacks() {
     }
   }
 
-  // Put figma-default first, then sort rest alphabetically
+  // Put simple_light first, then sort rest alphabetically
   const result = Array.from(seen.values());
   result.sort((a, b) => {
     if (a.id === DEFAULT_PACK) return -1;
@@ -180,10 +180,10 @@ export function listPacks() {
 
 /**
  * Resolve a template file with pack support.
- * Resolution: pack → figma-default fallback → local CWD fallback
+ * Resolution: pack → simple_light fallback → local CWD fallback
  *
  * @param {string} name — template name without extension (e.g. "cover")
- * @param {string} [packId] — pack ID (defaults to figma-default)
+ * @param {string} [packId] — pack ID (defaults to simple_light)
  * @returns {{ path: string, source: 'local' | 'package', pack: string } | null}
  */
 export function resolveTemplate(name, packId) {
@@ -199,7 +199,7 @@ export function resolveTemplate(name, packId) {
     }
   }
 
-  // 2. Fallback to figma-default (if not already)
+  // 2. Fallback to simple_light (if not already)
   if (effectivePackId !== DEFAULT_PACK) {
     const defaultPack = resolvePack(DEFAULT_PACK);
     if (defaultPack) {
@@ -234,7 +234,7 @@ export function resolvePackTheme(packId) {
     }
   }
 
-  // Fallback to figma-default pack's theme
+  // Fallback to simple_light pack's theme
   if (effectivePackId !== DEFAULT_PACK) {
     const defaultPack = resolvePack(DEFAULT_PACK);
     if (defaultPack) {
@@ -250,7 +250,7 @@ export function resolvePackTheme(packId) {
 
 /**
  * Resolve a theme file. Checks pack theme.css first, then legacy themes/ dir.
- * @param {string} name — theme/pack name without extension (e.g. "midnight", "figma-default")
+ * @param {string} name — theme/pack name without extension (e.g. "midnight", "simple_light")
  * @returns {{ path: string, source: 'local' | 'package' } | null}
  */
 export function resolveTheme(name) {
@@ -276,7 +276,7 @@ export function resolveTheme(name) {
 
 /**
  * List all available templates (local + package, deduplicated).
- * Uses figma-default pack as the primary source.
+ * Uses simple_light pack as the primary source.
  * @returns {Array<{ name: string, source: 'local' | 'package' }>}
  */
 export function listTemplates() {
@@ -303,7 +303,7 @@ export function listTemplates() {
     }
   }
 
-  // Package templates from figma-default pack
+  // Package templates from simple_light pack
   const defaultPack = resolvePack(DEFAULT_PACK);
   if (defaultPack) {
     const pkgDir = join(defaultPack.path, 'templates');

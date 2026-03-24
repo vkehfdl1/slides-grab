@@ -24,13 +24,10 @@ These are the packaged design rules for installable `slides-grab` skills.
 
 Templates are organized into **packs** in `packs/`. Each pack provides a different visual design.
 
-### Available packs
-| Pack | Concept |
-|------|---------|
-| `figma-default` | White + black + orange (default) |
-| `midnight` | Deep navy + gold, premium dark |
-| `corporate` | White + navy/blue, business |
-| `creative` | Gradient + pink/indigo, creative |
+### Discovering packs
+
+Run `slides-grab list-packs` to see all available packs with colors and template counts.
+Default pack is `simple_light`.
 
 ### Pack CLI commands
 ```bash
@@ -41,7 +38,7 @@ slides-grab show-template <name> --pack <pack-id>   # View a template from a spe
 
 ### Pack resolution
 1. `packs/<packId>/templates/<name>.html` — pack-owned template
-2. Falls back to `packs/figma-default/templates/<name>.html`
+2. Falls back to `packs/simple_light/templates/<name>.html`
 3. When using a fallback template, adapt colors/style to match the selected pack
 
 ### Theme CSS variables

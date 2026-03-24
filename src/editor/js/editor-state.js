@@ -41,5 +41,5 @@ export const creationState = {
   active: false,
   generating: false,
   runId: null,
-  packId: 'figma-default',
+  packId: 'simple_light',
 };

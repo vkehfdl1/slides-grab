@@ -353,10 +353,10 @@ program
 program
   .command('show-theme')
   .description('Print the theme CSS for a pack or legacy theme')
-  .argument('[name]', 'Pack ID or legacy theme name (default: figma-default)')
+  .argument('[name]', 'Pack ID or legacy theme name (default: simple_light)')
   .option('--pack <id>', 'Pack ID (alias for argument)')
   .action(async (name, options) => {
-    const packId = options.pack || name || 'figma-default';
+    const packId = options.pack || name || 'simple_light';
     const { resolvePackTheme, resolveTheme } = await import('../src/resolve.js');
 
     // Try pack theme first

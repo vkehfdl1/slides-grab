@@ -92,7 +92,7 @@ export function showOutlinePhase(outline, { isExistingDeck = false } = {}) {
   }
   if (outlineCount) {
     const packLabel = outline.pack || getSelectedPack() || '';
-    const packBadge = packLabel && packLabel !== 'figma-default'
+    const packBadge = packLabel && packLabel !== 'simple_light'
       ? ` <span class="outline-pack-badge">${packLabel}</span>`
       : '';
     outlineCount.innerHTML = `${outline.slides?.length || 0} slides${packBadge}`;

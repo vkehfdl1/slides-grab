@@ -130,17 +130,10 @@ slides-grab browse --port 4000
 
 ### Template Packs
 
-Packs provide different visual themes for your slides. 4 built-in packs are available:
-
-| Pack | Concept |
-|------|---------|
-| `figma-default` | White + black + orange (default) |
-| `midnight` | Deep navy + gold, premium dark |
-| `corporate` | White + navy/blue, business |
-| `creative` | Gradient + pink/indigo, creative |
+Packs provide different visual themes for your slides. Default pack is `simple_light`.
 
 ```bash
-slides-grab list-packs              # List all packs
+slides-grab list-packs              # List all packs with colors and template counts
 slides-grab show-pack midnight      # Show pack details and templates
 slides-grab show-template cover --pack midnight  # View a template from a specific pack
 ```
@@ -221,7 +214,7 @@ This npm-install path is enough for normal usage. Clone the repo only when you w
 bin/              CLI entry point
 src/editor/       Visual editor (HTML + JS client modules)
 scripts/          Build, validate, convert, editor server
-packs/            Template packs (figma-default, midnight, corporate, creative)
+packs/            Template packs (simple_light, midnight, corporate, creative)
 decks/            Your presentation decks (one folder per deck)
 skills/           Shared agent skills + references
 .claude/skills/   Claude Code skill definitions
