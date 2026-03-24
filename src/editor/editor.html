@@ -2411,6 +2411,7 @@
       gap: 14px;
       align-self: start;
     }
+    .creation-content > #creation-phase-input[hidden] { display: none; }
     .creation-content > .pack-section {
       display: flex;
       flex-direction: column;
@@ -2418,6 +2419,8 @@
       align-self: start;
       max-height: 70vh;
     }
+    .creation-content > .pack-section[hidden] { display: none; }
+    .creation-content > .creation-header[hidden] { display: none; }
     .creation-content > #creation-phase-outline {
       grid-column: 1 / -1;
     }
