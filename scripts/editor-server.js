@@ -752,6 +752,19 @@ async function startServer(opts) {
   }
   app.use('/packs-preview', express.static(join(PACKAGE_ROOT, 'packs')));
 
+  // Fallback: templates reference base.css/theme.css with relative paths,
+  // but those files live in the pack root, not inside templates/
+  app.get('/packs-preview/:packId/templates/:file', (req, res, next) => {
+    const { packId, file } = req.params;
+    if (!file.endsWith('.css')) return next();
+    const dirs = [localPacksDir, join(PACKAGE_ROOT, 'packs')];
+    for (const dir of dirs) {
+      const filePath = join(dir, packId, file);
+      if (existsSync(filePath)) return res.sendFile(filePath);
+    }
+    next();
+  });
+
   const editorHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'editor.html');
   const browserHtmlPath = join(PACKAGE_ROOT, 'src', 'editor', 'browser.html');
 

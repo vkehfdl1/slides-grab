@@ -7,7 +7,6 @@
 
 body {
   font-family: var(--font-sans);
-  /* 시연용 캔버스 배경이나 flex 정렬 제거 */
 }
 
 .slide {
