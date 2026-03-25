@@ -5,6 +5,7 @@ import os from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { getAvailablePort } from './test-server-helpers.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -126,7 +127,7 @@ test('allows concurrent runs on different slides and blocks second run on same s
   const mockCodex = await writeMockCli(workspace, 'mock-codex.js', 'mock codex run');
   await writeSlides(workspace);
 
-  const port = 3651;
+  const port = await getAvailablePort();
   const { server } = await startEditorServer({
     workspace,
     port,
@@ -200,7 +201,7 @@ test('times out stuck codex bbox edit subprocesses and clears the active run loc
   const mockCodex = await writeMockCli(workspace, 'mock-codex.js', 'mock codex run');
   await writeSlides(workspace);
 
-  const port = 3652;
+  const port = await getAvailablePort();
   const { server } = await startEditorServer({
     workspace,
     port,
@@ -247,7 +248,7 @@ test('times out stuck claude bbox edit subprocesses and clears the active run lo
   const mockClaude = await writeMockCli(workspace, 'mock-claude.js', 'mock claude run');
   await writeSlides(workspace);
 
-  const port = 3653;
+  const port = await getAvailablePort();
   const { server } = await startEditorServer({
     workspace,
     port,

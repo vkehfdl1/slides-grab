@@ -5,6 +5,7 @@ import os from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { getAvailablePort } from './test-server-helpers.js';
 import { chromium } from 'playwright';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
@@ -64,7 +65,7 @@ test('supports multi-bbox selection and delete in the persistent inspector bbox 
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-e2e-'));
   await writeSlides(workspace);
 
-  const port = 3652;
+  const port = await getAvailablePort();
   const serverOutput = { value: '' };
   const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
   const server = spawn(process.execPath, [serverScriptPath, '--port', String(port)], {
@@ -202,7 +203,7 @@ test('keeps bbox prompt draft and model state per slide session', { concurrency:
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-session-e2e-'));
   await writeSlides(workspace);
 
-  const port = 3653;
+  const port = await getAvailablePort();
   const serverOutput = { value: '' };
   const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
   const server = spawn(process.execPath, [serverScriptPath, '--port', String(port)], {
@@ -280,7 +281,7 @@ test('supports direct object selection through the persistent inspector and swit
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-direct-edit-e2e-'));
   await writeSlides(workspace);
 
-  const port = 3654;
+  const port = await getAvailablePort();
   const serverOutput = { value: '' };
   const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
   const server = spawn(process.execPath, [serverScriptPath, '--port', String(port)], {
@@ -458,7 +459,7 @@ test('suppresses slide arrow navigation while focus is inside editor form contro
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-keyboard-nav-e2e-'));
   await writeSlides(workspace);
 
-  const port = 3655;
+  const port = await getAvailablePort();
   const serverOutput = { value: '' };
   const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
   const server = spawn(process.execPath, [serverScriptPath, '--port', String(port)], {
@@ -557,7 +558,7 @@ test('keeps the persistent inspector beside the slide in a 16:9 viewport', { con
   const workspace = await mkdtemp(join(os.tmpdir(), 'editor-ui-toolbox-layout-e2e-'));
   await writeSlides(workspace);
 
-  const port = 3655;
+  const port = await getAvailablePort();
   const serverOutput = { value: '' };
   const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
   const server = spawn(process.execPath, [serverScriptPath, '--port', String(port)], {
