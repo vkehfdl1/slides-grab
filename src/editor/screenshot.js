@@ -32,6 +32,7 @@ export async function createScreenshotPage(browser) {
  * @param {string} slidesDir               – directory containing the slide files
  * @param {object} [options]
  * @param {boolean} [options.useHttp]       – if true, slidesDir is treated as a base URL
+ * @param {boolean} [options.elementOnly]   – if true, capture just the .slide element (for thumbnails)
  */
 export async function captureSlideScreenshot(page, slideFile, screenshotPath, slidesDir, options = {}) {
   const slideUrl = options.useHttp
@@ -45,6 +46,14 @@ export async function captureSlideScreenshot(page, slideFile, screenshotPath, sl
     }
   });
 
+  if (options.elementOnly) {
+    // Thumbnail mode: capture just the slide element at its native size
+    const handle = await page.$('.slide') || await page.$('body');
+    await handle.screenshot({ path: screenshotPath });
+    return;
+  }
+
+  // Annotation mode: scale slide to fill the full viewport
   await page.evaluate(({ width, height }) => {
     const htmlStyle = document.documentElement.style;
     const bodyStyle = document.body.style;
@@ -56,14 +65,23 @@ export async function captureSlideScreenshot(page, slideFile, screenshotPath, sl
 
     bodyStyle.margin = '0';
     bodyStyle.padding = '0';
-    bodyStyle.transformOrigin = 'top left';
+    bodyStyle.transformOrigin = '0 0';
 
-    const rect = document.body.getBoundingClientRect();
-    const sourceWidth = rect.width > 0 ? rect.width : width;
-    const sourceHeight = rect.height > 0 ? rect.height : height;
-    const scale = Math.min(width / sourceWidth, height / sourceHeight);
+    const slideEl = document.querySelector('.slide');
+    const target = slideEl || document.body;
+    const rect = target.getBoundingClientRect();
+    const sourceW = rect.width > 0 ? rect.width : width;
+    const sourceH = rect.height > 0 ? rect.height : height;
 
-    bodyStyle.transform = `scale(${scale})`;
+    if (slideEl) {
+      bodyStyle.background = 'transparent';
+    }
+
+    const scale = Math.min(width / sourceW, height / sourceH);
+    const tx = (width - sourceW * scale) / 2 - rect.left * scale;
+    const ty = (height - sourceH * scale) / 2 - rect.top * scale;
+
+    bodyStyle.transform = `translate(${tx}px, ${ty}px) scale(${scale})`;
   }, SCREENSHOT_SIZE);
 
   await page.screenshot({

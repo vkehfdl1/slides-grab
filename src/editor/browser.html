@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Deck Browser - slides-grab</title>
+  <title>Deck Browser - slides-grab-studio</title>
+  <link rel="icon" type="image/png" href="/asset/buddy_logo_round.png">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
   <style>
     :root {
@@ -16,13 +17,13 @@
       --text-0: #f8fafc;
       --text-1: #94a3b8;
       --text-2: #728496;
-      --accent: #3b82f6;
-      --accent-2: #60a5fa;
+      --accent: #FC5E20;
+      --accent-2: #FD7E4A;
       --danger: #ef4444;
       --success: #22c55e;
       --warn: #f59e0b;
       --sans: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      --ring: hsla(213, 27%, 84%, 0.15);
+      --ring: hsla(17, 27%, 84%, 0.15);
       --radius: 8px;
       --radius-sm: 6px;
       --radius-lg: 12px;
@@ -52,12 +53,12 @@
       --text-0: #0f172a;
       --text-1: #475569;
       --text-2: #64748b;
-      --accent: #3b82f6;
-      --accent-2: #60a5fa;
+      --accent: #FC5E20;
+      --accent-2: #FD7E4A;
       --danger: #dc2626;
       --success: #16a34a;
       --warn: #d97706;
-      --ring: hsla(213, 93%, 67%, 0.2);
+      --ring: hsla(17, 93%, 56%, 0.2);
       --shadow-card: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
       --surface-0: #ffffff;
       --surface-1: #f8fafc;
@@ -107,9 +108,22 @@
       font-weight: 700;
       color: var(--text-0);
       letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
-    .nav-brand span {
+    .nav-brand img {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+    }
+
+    .nav-brand .logo-light { display: none; }
+    [data-theme="light"] .nav-brand .logo-dark { display: none; }
+    [data-theme="light"] .nav-brand .logo-light { display: block; }
+
+    .nav-brand-text span {
       color: var(--accent);
     }
 
@@ -159,7 +173,7 @@
     }
 
     .search-input::placeholder { color: var(--text-2); }
-    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+    .search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(252, 94, 32, 0.15); }
 
     /* ── Deck grid ── */
     .deck-grid {
@@ -196,7 +210,7 @@
 
     .deck-card.new-deck-card:hover {
       border-color: var(--accent);
-      background: rgba(59, 130, 246, 0.04);
+      background: rgba(252, 94, 32, 0.04);
     }
 
     .new-deck-inner {
@@ -273,7 +287,7 @@
       font-weight: 700;
       padding: 2px 6px;
       border-radius: var(--radius-pill);
-      background: rgba(59, 130, 246, 0.12);
+      background: rgba(252, 94, 32, 0.12);
       color: var(--accent-2);
       text-transform: uppercase;
       letter-spacing: 0.3px;
@@ -576,7 +590,7 @@
 <body>
   <div class="browser-container">
     <div class="nav-bar">
-      <div class="nav-brand">slides<span>-grab</span></div>
+      <div class="nav-brand"><img class="logo-dark" src="/asset/buddy_logo_round(dark).png" alt=""><img class="logo-light" src="/asset/buddy_logo_round(light).png" alt=""><span class="nav-brand-text">slides-grab<span>-studio</span></span></div>
       <div class="nav-spacer"></div>
       <button class="theme-toggle" id="theme-toggle" title="Toggle theme" aria-label="Toggle light/dark mode">
         <svg class="theme-icon theme-icon-moon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>

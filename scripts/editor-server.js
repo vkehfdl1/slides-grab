@@ -948,7 +948,7 @@ async function startServer(opts) {
 
       await withScreenshotPage(async (page) => {
         await screenshotMod.captureSlideScreenshot(
-          page, firstSlide, screenshotPath, deckPath, { useHttp: false },
+          page, firstSlide, screenshotPath, deckPath, { useHttp: false, elementOnly: true },
         );
       });
 
