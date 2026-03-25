@@ -3,7 +3,6 @@
 import { readdir, readFile, writeFile, mkdtemp, rm, mkdir } from 'node:fs/promises';
 import { watch as fsWatch } from 'node:fs';
 import { basename, dirname, join, resolve, relative, sep } from 'node:path';
-import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { tmpdir } from 'node:os';
 
@@ -18,6 +17,10 @@ import {
   scaleSelectionToScreenshot,
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
+import {
+  parseEditTimeoutMs,
+  runEditSubprocess,
+} from '../src/editor/edit-subprocess.js';
 import { buildSlideRuntimeHtml } from '../src/image-contract.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -45,6 +48,7 @@ const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;
 
 const MAX_RUNS = 200;
 const MAX_LOG_CHARS = 800_000;
+const EDIT_TIMEOUT_MS = parseEditTimeoutMs();
 
 function printUsage() {
   process.stdout.write(`Usage: slides-grab edit [options]\n\n`);
@@ -233,37 +237,24 @@ function randomRunId() {
   return `run-${ts}-${rand}`;
 }
 
+function mirrorRunLog(onLog) {
+  return (stream, chunk) => {
+    onLog(stream, chunk);
+    process[stream].write(chunk);
+  };
+}
+
 function spawnCodexEdit({ prompt, imagePath, model, cwd, onLog }) {
   const codexBin = process.env.PPT_AGENT_CODEX_BIN || 'codex';
   const args = buildCodexExecArgs({ prompt, imagePath, model });
-
-  return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn(codexBin, args, { cwd, stdio: 'pipe' });
-
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (chunk) => {
-      const text = chunk.toString();
-      stdout += text;
-      onLog('stdout', text);
-      process.stdout.write(text);
-    });
-
-    child.stderr.on('data', (chunk) => {
-      const text = chunk.toString();
-      stderr += text;
-      onLog('stderr', text);
-      process.stderr.write(text);
-    });
-
-    child.on('close', (code) => {
-      resolvePromise({ code: code ?? 1, stdout, stderr });
-    });
-
-    child.on('error', (error) => {
-      rejectPromise(error);
-    });
+  return runEditSubprocess({
+    bin: codexBin,
+    args,
+    cwd,
+    stdio: 'pipe',
+    timeoutMs: EDIT_TIMEOUT_MS,
+    engineLabel: 'Codex',
+    onLog: mirrorRunLog(onLog),
   });
 }
 
@@ -275,37 +266,15 @@ function spawnClaudeEdit({ prompt, imagePath, model, cwd, onLog }) {
   const env = { ...process.env };
   delete env.CLAUDECODE;
 
-  return new Promise((resolvePromise, rejectPromise) => {
-    const child = spawn(claudeBin, args, {
-      cwd,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      env,
-    });
-
-    let stdout = '';
-    let stderr = '';
-
-    child.stdout.on('data', (chunk) => {
-      const text = chunk.toString();
-      stdout += text;
-      onLog('stdout', text);
-      process.stdout.write(text);
-    });
-
-    child.stderr.on('data', (chunk) => {
-      const text = chunk.toString();
-      stderr += text;
-      onLog('stderr', text);
-      process.stderr.write(text);
-    });
-
-    child.on('close', (code) => {
-      resolvePromise({ code: code ?? 1, stdout, stderr });
-    });
-
-    child.on('error', (error) => {
-      rejectPromise(error);
-    });
+  return runEditSubprocess({
+    bin: claudeBin,
+    args,
+    cwd,
+    env,
+    stdio: ['ignore', 'pipe', 'pipe'],
+    timeoutMs: EDIT_TIMEOUT_MS,
+    engineLabel: 'Claude',
+    onLog: mirrorRunLog(onLog),
   });
 }
 
@@ -674,7 +643,7 @@ async function startServer(opts) {
       const success = result.code === 0;
       const message = success
         ? `${engineLabel} edit completed.`
-        : `${engineLabel} exited with code ${result.code}.`;
+        : (result.timeoutMessage || `${engineLabel} exited with code ${result.code}.`);
 
       runStore.finishRun(runId, {
         status: success ? 'success' : 'failed',

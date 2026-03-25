@@ -5,6 +5,7 @@ import os from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn } from 'node:child_process';
+import { getAvailablePort } from './test-server-helpers.js';
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 
@@ -39,13 +40,13 @@ async function writeSlides(workspace) {
   await writeFile(join(slidesDir, 'slide-02.html'), html, 'utf8');
 }
 
-async function writeMockCodex(workspace) {
-  const mockPath = join(workspace, 'mock-codex.js');
+async function writeMockCli(workspace, fileName, outputLabel) {
+  const mockPath = join(workspace, fileName);
   const script = `#!/usr/bin/env node
-const delay = Number(process.env.MOCK_CODEX_SLEEP_MS || 1200);
-const code = Number(process.env.MOCK_CODEX_EXIT_CODE || 0);
+const delay = Number(process.env.MOCK_EDIT_SLEEP_MS || 1200);
+const code = Number(process.env.MOCK_EDIT_EXIT_CODE || 0);
 setTimeout(() => {
-  process.stdout.write('mock codex run\\n');
+  process.stdout.write('${outputLabel}\\n');
   process.exit(code);
 }, delay);
 `;
@@ -74,7 +75,7 @@ async function waitForServerReady(port, child, outputRef) {
   throw new Error(`server did not become ready\n${outputRef.value}`);
 }
 
-function createApplyBody(slide) {
+function createApplyBody(slide, overrides = {}) {
   return JSON.stringify({
     slide,
     prompt: `Edit ${slide}`,
@@ -93,15 +94,11 @@ function createApplyBody(slide) {
         ],
       },
     ],
+    ...overrides,
   });
 }
 
-test('allows concurrent runs on different slides and blocks second run on same slide', async () => {
-  const workspace = await mkdtemp(join(os.tmpdir(), 'editor-concurrency-e2e-'));
-  const mockCodex = await writeMockCodex(workspace);
-  await writeSlides(workspace);
-
-  const port = 3651;
+async function startEditorServer({ workspace, port, env }) {
   const serverOutput = { value: '' };
   const serverScriptPath = join(REPO_ROOT, 'scripts', 'editor-server.js');
   const server = spawn(process.execPath, [serverScriptPath, '--port', String(port)], {
@@ -109,8 +106,7 @@ test('allows concurrent runs on different slides and blocks second run on same s
     env: {
       ...process.env,
       PPT_AGENT_PACKAGE_ROOT: REPO_ROOT,
-      PPT_AGENT_CODEX_BIN: mockCodex,
-      MOCK_CODEX_SLEEP_MS: '1400',
+      ...env,
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -122,9 +118,26 @@ test('allows concurrent runs on different slides and blocks second run on same s
     serverOutput.value += chunk.toString();
   });
 
-  try {
-    await waitForServerReady(port, server, serverOutput);
+  await waitForServerReady(port, server, serverOutput);
+  return { server, serverOutput };
+}
 
+test('allows concurrent runs on different slides and blocks second run on same slide', async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'editor-concurrency-e2e-'));
+  const mockCodex = await writeMockCli(workspace, 'mock-codex.js', 'mock codex run');
+  await writeSlides(workspace);
+
+  const port = await getAvailablePort();
+  const { server } = await startEditorServer({
+    workspace,
+    port,
+    env: {
+      PPT_AGENT_CODEX_BIN: mockCodex,
+      MOCK_EDIT_SLEEP_MS: '1400',
+    },
+  });
+
+  try {
     const t0 = Date.now();
     const req1 = fetch(`http://localhost:${port}/api/apply`, {
       method: 'POST',
@@ -176,6 +189,100 @@ test('allows concurrent runs on different slides and blocks second run on same s
     assert.equal(firstRes.status, 200);
     const firstBody = await firstRes.json();
     assert.equal(firstBody.success, true);
+  } finally {
+    server.kill('SIGTERM');
+    await sleep(400);
+    await rm(workspace, { recursive: true, force: true }).catch(() => {});
+  }
+});
+
+test('times out stuck codex bbox edit subprocesses and clears the active run lock', async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'editor-timeout-codex-e2e-'));
+  const mockCodex = await writeMockCli(workspace, 'mock-codex.js', 'mock codex run');
+  await writeSlides(workspace);
+
+  const port = await getAvailablePort();
+  const { server } = await startEditorServer({
+    workspace,
+    port,
+    env: {
+      PPT_AGENT_CODEX_BIN: mockCodex,
+      PPT_AGENT_EDIT_TIMEOUT_MS: '200',
+      MOCK_EDIT_SLEEP_MS: '5000',
+    },
+  });
+
+  try {
+    const firstRes = await fetch(`http://localhost:${port}/api/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: createApplyBody('slide-01.html'),
+    });
+
+    const firstBody = await firstRes.json();
+    assert.equal(firstRes.status, 200);
+    assert.equal(firstBody.success, false);
+    assert.equal(firstBody.code, 124);
+    assert.match(firstBody.message || '', /timed out/i);
+
+    const secondRes = await fetch(`http://localhost:${port}/api/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: createApplyBody('slide-01.html'),
+    });
+
+    const secondBody = await secondRes.json();
+    assert.equal(secondRes.status, 200, `second run should not stay locked: ${JSON.stringify(secondBody)}`);
+    assert.equal(secondBody.success, false);
+    assert.equal(secondBody.code, 124);
+    assert.match(secondBody.message || '', /timed out/i);
+  } finally {
+    server.kill('SIGTERM');
+    await sleep(400);
+    await rm(workspace, { recursive: true, force: true }).catch(() => {});
+  }
+});
+
+test('times out stuck claude bbox edit subprocesses and clears the active run lock', async () => {
+  const workspace = await mkdtemp(join(os.tmpdir(), 'editor-timeout-claude-e2e-'));
+  const mockClaude = await writeMockCli(workspace, 'mock-claude.js', 'mock claude run');
+  await writeSlides(workspace);
+
+  const port = await getAvailablePort();
+  const { server } = await startEditorServer({
+    workspace,
+    port,
+    env: {
+      PPT_AGENT_CLAUDE_BIN: mockClaude,
+      PPT_AGENT_EDIT_TIMEOUT_MS: '200',
+      MOCK_EDIT_SLEEP_MS: '5000',
+    },
+  });
+
+  try {
+    const firstRes = await fetch(`http://localhost:${port}/api/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: createApplyBody('slide-01.html', { model: 'claude-sonnet-4-6' }),
+    });
+
+    const firstBody = await firstRes.json();
+    assert.equal(firstRes.status, 200);
+    assert.equal(firstBody.success, false);
+    assert.equal(firstBody.code, 124);
+    assert.match(firstBody.message || '', /timed out/i);
+
+    const secondRes = await fetch(`http://localhost:${port}/api/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: createApplyBody('slide-01.html', { model: 'claude-sonnet-4-6' }),
+    });
+
+    const secondBody = await secondRes.json();
+    assert.equal(secondRes.status, 200, `second run should not stay locked: ${JSON.stringify(secondBody)}`);
+    assert.equal(secondBody.success, false);
+    assert.equal(secondBody.code, 124);
+    assert.match(secondBody.message || '', /timed out/i);
   } finally {
     server.kill('SIGTERM');
     await sleep(400);

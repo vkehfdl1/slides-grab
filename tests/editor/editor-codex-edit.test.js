@@ -9,6 +9,11 @@ import {
   normalizeSelection,
   scaleSelectionToScreenshot,
 } from '../../src/editor/codex-edit.js';
+import {
+  buildEditTimeoutMessage,
+  DEFAULT_EDIT_TIMEOUT_MS,
+  parseEditTimeoutMs,
+} from '../../src/editor/edit-subprocess.js';
 
 test('normalizeSelection rounds values and clamps to slide bounds', () => {
   const selection = normalizeSelection(
@@ -133,4 +138,20 @@ test('getDetailedDesignSkillPrompt loads only relevant detailed design sections'
   assert.match(detailedPrompt, /## Important Notes/);
   assert.doesNotMatch(detailedPrompt, /## Core Design Philosophy/);
   assert.doesNotMatch(detailedPrompt, /### 1\. Chart\.js/);
+});
+
+test('parseEditTimeoutMs falls back to the 10-minute default for invalid values', () => {
+  assert.equal(DEFAULT_EDIT_TIMEOUT_MS, 600000);
+  assert.equal(parseEditTimeoutMs(undefined), DEFAULT_EDIT_TIMEOUT_MS);
+  assert.equal(parseEditTimeoutMs(''), DEFAULT_EDIT_TIMEOUT_MS);
+  assert.equal(parseEditTimeoutMs('0'), DEFAULT_EDIT_TIMEOUT_MS);
+  assert.equal(parseEditTimeoutMs('-10'), DEFAULT_EDIT_TIMEOUT_MS);
+  assert.equal(parseEditTimeoutMs('abc'), DEFAULT_EDIT_TIMEOUT_MS);
+});
+
+test('buildEditTimeoutMessage describes terminated editor runs', () => {
+  assert.equal(
+    buildEditTimeoutMessage({ engineLabel: 'Codex', timeoutMs: 200 }),
+    'Codex edit timed out after 200ms and was terminated.',
+  );
 });
