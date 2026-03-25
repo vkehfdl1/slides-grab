@@ -403,7 +403,6 @@ export async function normalizeBodyToSlideFrame(page, slideFrame) {
     const documentElement = document.documentElement;
 
     body.style.margin = '0';
-    body.style.padding = '0';
     body.style.width = `${width}px`;
     body.style.height = `${height}px`;
     body.style.minWidth = `${width}px`;
