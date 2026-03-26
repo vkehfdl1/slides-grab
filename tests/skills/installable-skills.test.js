@@ -56,4 +56,5 @@ test('slides-grab design skill points at the bundled art-direction reference', (
   assert.match(text, /references\/beautiful-slide-defaults\.md/);
   assert.match(text, /visual thesis/i);
   assert.match(text, /content plan/i);
+  assert.match(text, /slide litmus check/i);
 });

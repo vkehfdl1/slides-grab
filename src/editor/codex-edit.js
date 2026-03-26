@@ -10,6 +10,10 @@ export const SLIDE_SIZE = { width: 960, height: 540 };
 const PPT_DESIGN_SKILL_PATH = join(getPackageRoot(), 'skills', 'slides-grab-design', 'SKILL.md');
 const DETAILED_DESIGN_SKILL_PATH = join(getPackageRoot(), 'skills', 'slides-grab-design', 'references', 'detailed-design-rules.md');
 const BEAUTIFUL_SLIDE_DEFAULTS_PATH = join(getPackageRoot(), 'skills', 'slides-grab-design', 'references', 'beautiful-slide-defaults.md');
+const EDITOR_PPT_DESIGN_SECTION_HEADINGS = [
+  '## Workflow',
+  '## Rules',
+];
 const DETAILED_DESIGN_SECTION_HEADINGS = [
   '## Base Settings',
   '## Text Usage Rules',
@@ -22,6 +26,34 @@ const BEAUTIFUL_SLIDE_DEFAULTS_SECTION_HEADINGS = [
   '## Narrative Sequence for Decks',
   '## Review Litmus',
 ];
+const EDITOR_PPT_DESIGN_DUPLICATE_PATTERNS = [
+  /visual thesis/i,
+  /content plan/i,
+  /slide litmus check/i,
+  /dominant visual anchor/i,
+  /opening slides and section dividers like posters/i,
+  /references\/beautiful-slide-defaults\.md/i,
+];
+const EDITOR_PPT_DESIGN_SKILL_FALLBACK = [
+  '## Workflow',
+  '1. Read approved `slide-outline.md` or the existing slide before editing.',
+  '2. Run `slides-grab validate --slides-dir <path>` after generation or edits.',
+  '3. If validation fails, automatically fix the source slide HTML/CSS and re-run validation until it passes.',
+  '4. Run `slides-grab build-viewer --slides-dir <path>` only after validation passes.',
+  '5. Iterate on user feedback by editing only requested slide files, then re-run validation and rebuild the viewer.',
+  '6. Keep revising until user approves conversion stage.',
+  '',
+  '## Rules',
+  '- Keep slide size 720pt x 405pt.',
+  '- Keep semantic text tags (`p`, `h1-h6`, `ul`, `ol`, `li`).',
+  '- Put local images under `<slides-dir>/assets/` and reference them as `./assets/<file>`.',
+  '- Allow `data:` URLs when the slide must be fully self-contained.',
+  '- Treat remote `https://` images as best-effort only, and never use absolute filesystem paths.',
+  '- Prefer `<img>` for slide imagery and `data-image-placeholder` when no final asset exists.',
+  '- Do not present slides for review until `slides-grab validate --slides-dir <path>` passes.',
+  '- Do not start conversion before approval.',
+  '- Use the packaged CLI and bundled references only; do not depend on unpublished agent-specific files.',
+].join('\n');
 const DETAILED_DESIGN_SKILL_FALLBACK = [
   '## Base Settings',
   '',
@@ -86,6 +118,7 @@ const BEAUTIFUL_SLIDE_DEFAULTS_FALLBACK = [
 ].join('\n');
 
 let cachedPptDesignSkillPrompt = null;
+let cachedEditorPptDesignSkillPrompt = null;
 let cachedStructuralDesignSkillPrompt = null;
 let cachedSlideArtDirectionPrompt = null;
 
@@ -176,6 +209,25 @@ export function getPptDesignSkillPrompt() {
   return cachedPptDesignSkillPrompt;
 }
 
+function getEditorPptDesignSkillPrompt() {
+  if (cachedEditorPptDesignSkillPrompt !== null) {
+    return cachedEditorPptDesignSkillPrompt;
+  }
+
+  const prompt = loadMarkdownSections(
+    PPT_DESIGN_SKILL_PATH,
+    EDITOR_PPT_DESIGN_SECTION_HEADINGS,
+    EDITOR_PPT_DESIGN_SKILL_FALLBACK,
+  );
+
+  cachedEditorPptDesignSkillPrompt = pruneDuplicateLines(
+    prompt,
+    EDITOR_PPT_DESIGN_DUPLICATE_PATTERNS,
+  );
+
+  return cachedEditorPptDesignSkillPrompt;
+}
+
 function extractMarkdownSection(markdown, heading) {
   const lines = markdown.split('\n');
   const startIndex = lines.findIndex((line) => line.trim() === heading.trim());
@@ -200,6 +252,26 @@ function extractMarkdownSection(markdown, heading) {
   }
 
   return extracted.join('\n').trim();
+}
+
+function pruneDuplicateLines(markdown, patterns) {
+  const lines = markdown.split('\n');
+  const filtered = [];
+
+  for (const line of lines) {
+    if (patterns.some((pattern) => pattern.test(line))) {
+      continue;
+    }
+
+    const previousLine = filtered.at(-1) ?? '';
+    if (line.trim() === '' && previousLine.trim() === '') {
+      continue;
+    }
+
+    filtered.push(line);
+  }
+
+  return filtered.join('\n').trim();
 }
 
 function loadMarkdownSections(markdownPath, headings, fallback) {
@@ -278,7 +350,7 @@ export function buildCodexEditPrompt({ slideFile, slidePath, userPrompt, selecti
     ];
   });
 
-  const pptDesignSkillPrompt = getPptDesignSkillPrompt();
+  const pptDesignSkillPrompt = getEditorPptDesignSkillPrompt();
   const skillLines = pptDesignSkillPrompt
     ? [
         'Project skill guidance (follow strictly):',

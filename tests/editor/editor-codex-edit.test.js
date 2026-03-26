@@ -94,6 +94,18 @@ test('buildCodexEditPrompt includes user prompt, bbox, and XPath targets', () =>
   assert.match(prompt, /Do not persist runtime-only editor\/viewer injections/);
 });
 
+test('buildCodexEditPrompt keeps art-direction defaults without duplicating them', () => {
+  const prompt = buildCodexEditPrompt({
+    slideFile: 'slide-02.html',
+    userPrompt: 'Refine the hero composition.',
+    selections: [{ bbox: { x: 24, y: 32, width: 540, height: 220 }, targets: [] }],
+  });
+
+  assert.equal((prompt.match(/visual thesis/gi) || []).length, 1);
+  assert.equal((prompt.match(/content plan/gi) || []).length, 1);
+  assert.match(prompt, /Slide art direction defaults \(packaged guidance for beautiful HTML slides\):/);
+});
+
 test('buildCodexEditPrompt uses explicit slide path when provided', () => {
   const prompt = buildCodexEditPrompt({
     slideFile: 'slide-01.html',
