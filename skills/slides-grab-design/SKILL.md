@@ -25,12 +25,13 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 1. Read approved `slide-outline.md`.
 2. Before generating slides, write a quick **visual thesis** (mood/material/energy), a **content plan** (opener → support/proof → detail/story → close/CTA), and the core design tokens (background, surface, text, muted, accent + display/headline/body/caption roles).
 3. Generate slide HTML files with 2-digit numbering in selected `--slides-dir`.
-4. Run `slides-grab validate --slides-dir <path>` after generation or edits.
-5. If validation fails, automatically fix the source slide HTML/CSS and re-run validation until it passes.
-6. Run `slides-grab build-viewer --slides-dir <path>` only after validation passes.
-7. Run the slide litmus check from `references/beautiful-slide-defaults.md` before presenting the deck for review.
-8. Iterate on user feedback by editing only requested slide files, then re-run validation and rebuild the viewer.
-9. Keep revising until user approves conversion stage.
+4. If the deck needs a complex diagram (architecture, workflows, relationship maps, multi-node concepts), create the diagram in `tldraw`, export it with `slides-grab tldraw`, and treat the result as a local slide asset under `<slides-dir>/assets/`.
+5. Run `slides-grab validate --slides-dir <path>` after generation or edits.
+6. If validation fails, automatically fix the source slide HTML/CSS and re-run validation until it passes.
+7. Run `slides-grab build-viewer --slides-dir <path>` only after validation passes.
+8. Run the slide litmus check from `references/beautiful-slide-defaults.md` before presenting the deck for review.
+9. Iterate on user feedback by editing only requested slide files, then re-run validation and rebuild the viewer.
+10. Keep revising until user approves conversion stage.
 
 ## Rules
 - Keep slide size 720pt x 405pt.
@@ -43,6 +44,8 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 - Treat opening slides and section dividers like posters, not dashboards.
 - Default to cardless layouts; only add a card when it improves structure or comprehension.
 - Use whitespace, alignment, scale, cropping, and contrast before adding decorative chrome.
+- Prefer `tldraw` for complex diagrams instead of recreating dense node/edge diagrams directly in HTML/CSS.
+- Use `slides-grab tldraw` plus `templates/diagram-tldraw.html` when that gives a cleaner, more export-friendly result.
 - Do not present slides for review until `slides-grab validate --slides-dir <path>` passes.
 - Do not start conversion before approval.
 - Use the packaged CLI and bundled references only; do not depend on unpublished agent-specific files.

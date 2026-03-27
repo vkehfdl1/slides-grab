@@ -155,6 +155,28 @@ program
   });
 
 program
+  .command('tldraw')
+  .description('Render a current-format .tldr or store-snapshot JSON file to an exact-size SVG asset for slides')
+  .option('--input <path>', 'Input current-format .tldr or snapshot JSON file')
+  .option('--output <path>', 'Output SVG asset path')
+  .option('--width <number>', 'Exact output width in CSS pixels')
+  .option('--height <number>', 'Exact output height in CSS pixels')
+  .option('--padding <number>', 'Inner fit padding in CSS pixels')
+  .option('--background <css>', 'Optional wrapper background fill')
+  .option('--page-id <id>', 'Optional tldraw page id to export')
+  .action(async (options = {}) => {
+    const args = [];
+    if (options.input) args.push('--input', String(options.input));
+    if (options.output) args.push('--output', String(options.output));
+    if (options.width) args.push('--width', String(options.width));
+    if (options.height) args.push('--height', String(options.height));
+    if (options.padding) args.push('--padding', String(options.padding));
+    if (options.background) args.push('--background', String(options.background));
+    if (options.pageId) args.push('--page-id', String(options.pageId));
+    await runCommand('scripts/render-tldraw.js', args);
+  });
+
+program
   .command('edit')
   .description('Start interactive slide editor with Codex image-based edit flow')
   .option('--port <number>', 'Server port')

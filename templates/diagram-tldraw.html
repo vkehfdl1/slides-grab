@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #ffffff;
+      color: #111827;
+      padding: 34pt 40pt 28pt;
+      display: flex;
+      flex-direction: column;
+      gap: 12pt;
+    }
+    .diagram-frame {
+      flex: 1;
+      min-height: 0;
+      border: 1pt solid #e5e7eb;
+      border-radius: 14pt;
+      background: #f8fafc;
+      padding: 12pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .diagram-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+  <div style="display: flex; justify-content: space-between; align-items: baseline;">
+    <h2 style="font-size: 28pt; font-weight: 700; letter-spacing: -0.01em;">System Diagram</h2>
+    <p style="font-size: 10pt; color: #6b7280;">DIAGRAM / TLDRAW</p>
+  </div>
+
+  <p style="font-size: 12pt; color: #4b5563;">
+    Render a current-format local .tldr file with slides-grab tldraw, then reference the generated SVG asset below.
+  </p>
+
+  <div class="diagram-frame">
+    <img src="./assets/diagram.svg" alt="System architecture diagram" />
+  </div>
+
+  <p style="font-size: 9pt; color: #9ca3af;">
+    Example asset path: ./assets/diagram.svg
+  </p>
+</body>
+</html>

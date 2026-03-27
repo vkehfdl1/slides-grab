@@ -9,6 +9,7 @@
 - Always include alt on img tags.
 - Use `./assets/<file>` as the default image contract for slide HTML.
 - Keep slide assets in `<slides-dir>/assets/`.
+- Use `tldraw`-generated assets for complex diagrams whenever possible.
 - `data:` URLs are allowed for fully self-contained slides.
 - Remote `https://` URLs are allowed but non-deterministic and fallback only.
 - Do not use absolute filesystem paths in slide HTML.
@@ -23,6 +24,7 @@
 - After slide generation or edits, run `slides-grab validate --slides-dir <path>`.
 - After validation passes, run `slides-grab build-viewer --slides-dir <path>`.
 - Edit only the relevant HTML file during revision loops.
+- Prefer `slides-grab tldraw` + local exported assets for architecture, workflow, relationship, and other complex diagrams.
 - Never start PPTX conversion without explicit approval.
 - Never forget to build the viewer after slide changes.
 - Do not persist runtime-only editor/viewer injections in saved slide HTML.

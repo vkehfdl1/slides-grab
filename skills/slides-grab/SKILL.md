@@ -33,9 +33,10 @@ Use the installed **slides-grab-design** skill.
 3. Run validation: `slides-grab validate --slides-dir <path>`
 4. If validation fails, automatically fix the slide HTML/CSS until validation passes.
 5. Build the viewer: `slides-grab build-viewer --slides-dir <path>`
-6. Present viewer to user for review.
-7. Revise individual slides based on feedback, then re-run validation and rebuild the viewer.
-8. Optionally launch the visual editor: `slides-grab edit --slides-dir <path>`
+6. For complex diagrams (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw` over hand-built HTML/CSS diagrams. Render the asset with `slides-grab tldraw`, store it under `<slides-dir>/assets/`, and place it in the slide with a normal `<img>`.
+7. Present viewer to user for review.
+8. Revise individual slides based on feedback, then re-run validation and rebuild the viewer.
+9. Optionally launch the visual editor: `slides-grab edit --slides-dir <path>`
 
 **Do not proceed to Stage 3 without approval.**
 
@@ -58,6 +59,7 @@ Use the installed **slides-grab-export** skill.
 4. **Use `decks/<deck-name>/`** as the slides workspace for multi-deck projects.
 5. **Call out export risk clearly**: PPTX and Figma export are experimental / unstable and must be described as best-effort output.
 6. Use the stage skills as the source of truth for plan, design, and export rules.
+7. When a slide needs a complex diagram, default to a `tldraw`-generated asset unless the user explicitly asks for a different approach.
 
 ## Reference
 - `references/presentation-workflow-reference.md` — archived end-to-end workflow guidance from the legacy skill set

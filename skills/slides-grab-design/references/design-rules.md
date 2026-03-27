@@ -6,6 +6,7 @@ These are the packaged design rules for installable `slides-grab` skills.
 - Validate slides: `slides-grab validate --slides-dir <path>`
 - Build review viewer: `slides-grab build-viewer --slides-dir <path>`
 - Launch editor: `slides-grab edit --slides-dir <path>`
+- Render `tldraw` diagrams: `slides-grab tldraw --input <path> --output <path>`
 
 ## Slide spec
 - Slide size: `720pt x 405pt` (16:9)
@@ -17,6 +18,7 @@ These are the packaged design rules for installable `slides-grab` skills.
 ## Asset rules
 - Store deck-local assets in `<slides-dir>/assets/`
 - Reference deck-local assets as `./assets/<file>`
+- Use `tldraw`-generated local assets for complex diagrams when possible
 - Allow `data:` URLs only when the slide must be fully self-contained
 - Never use absolute filesystem paths
 
@@ -40,10 +42,12 @@ These are the packaged design rules for installable `slides-grab` skills.
 - `templates/closing.html`
 - `templates/chart.html`
 - `templates/diagram.html`
+- `templates/diagram-tldraw.html`
 - `templates/custom/`
 
 ## Review loop
 - Generate or edit only the needed slide files.
+- Prefer `tldraw` for complex diagrams instead of hand-building dense diagram geometry in HTML/CSS.
 - Re-run validation after every generation/edit pass.
 - Rebuild the viewer only after validation passes.
 - Do not move to export until the user approves the reviewed deck.

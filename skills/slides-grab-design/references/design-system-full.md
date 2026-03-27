@@ -282,6 +282,10 @@ grid-template-columns: 1fr 2.3fr;
 ### 12. Diagram Slide
 - Template file: `templates/diagram.html`
 
+### 13. Tldraw Diagram Slide
+- Template file: `templates/diagram-tldraw.html`
+- Use this when the slide needs a complex diagram that will be easier to author in `tldraw` and safer to export as a local image asset.
+
 ### Custom Templates
 - Custom template directory: `templates/custom/`
 - Users can add template files as drop-in for reuse.
@@ -536,28 +540,30 @@ This skill is **Stage 2**. It works from the `slide-outline.md` approved by the 
 ### Steps
 
 1. **Analyze + Design**: Read `slide-outline.md`, decide theme/layout, generate HTML slides
-2. **Validate slides**: After slide generation or edits, automatically run:
+2. **Diagram choice**: If a slide needs a complex diagram (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw`. Export the diagram with `slides-grab tldraw` and reference the generated local asset from the slide HTML.
+3. **Validate slides**: After slide generation or edits, automatically run:
    ```bash
    slides-grab validate --slides-dir <path>
    ```
-3. **Auto-fix validation issues**: If validation fails, fix the source HTML/CSS and re-run validation until it passes
-4. **Auto-build viewer**: After validation passes, automatically run:
+4. **Auto-fix validation issues**: If validation fails, fix the source HTML/CSS and re-run validation until it passes
+5. **Auto-build viewer**: After validation passes, automatically run:
    ```bash
    node scripts/build-viewer.js --slides-dir <path>
    ```
-5. **Guide user to review**: Tell the user to check slides in the browser:
+6. **Guide user to review**: Tell the user to check slides in the browser:
    ```
    open <slides-dir>/viewer.html
    ```
-6. **Revision loop**: When the user requests changes to specific slides:
+7. **Revision loop**: When the user requests changes to specific slides:
    - Edit only the relevant HTML file
    - Re-run `slides-grab validate --slides-dir <path>` and fix any failures
    - Re-run `node scripts/build-viewer.js --slides-dir <path>` to rebuild the viewer
    - Guide user to review again
-7. **Completion**: Repeat the revision loop until the user signals approval for PPTX conversion
+8. **Completion**: Repeat the revision loop until the user signals approval for PPTX conversion
 
 ### Absolute Rules
 - **Never start PPTX conversion without approval** — PPTX conversion is the responsibility of `pptx-skill` and requires explicit user approval.
+- **Prefer tldraw for complex diagrams** — Use `slides-grab tldraw` when the slide needs a non-trivial diagram instead of forcing dense diagram geometry into HTML/CSS.
 - **Never skip validation** — Run `slides-grab validate --slides-dir <path>` after generation or edits and fix failures before review.
 - **Never forget to build the viewer** — Run `node scripts/build-viewer.js --slides-dir <path>` every time slides are generated or modified.
 
