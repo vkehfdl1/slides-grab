@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 
 const INSTALLABLE_SKILLS = [
@@ -42,6 +44,52 @@ test('npm pack includes bundled skill references for installable skills', () => 
   assert.ok(filePaths.has('src/pptx-raster-export.cjs'));
   assert.ok(filePaths.has('src/nano-banana.js'));
   assert.ok(!filePaths.has('scripts/install-codex-skills.js'));
+});
+
+test('packed npm install exposes the packaged image CLI command', () => {
+  const packRoot = mkdtempSync(join(tmpdir(), 'slides-grab-image-pack-root-'));
+  const installRoot = mkdtempSync(join(tmpdir(), 'slides-grab-image-pack-install-'));
+
+  try {
+    const output = execFileSync('npm', ['pack', '--json'], {
+      cwd: process.cwd(),
+      encoding: 'utf-8',
+    });
+    const [packInfo] = JSON.parse(output);
+    const tarballName = packInfo.filename;
+    const tarballPath = join(process.cwd(), tarballName);
+    const storedTarballPath = join(packRoot, tarballName);
+
+    mkdirSync(packRoot, { recursive: true });
+    mkdirSync(installRoot, { recursive: true });
+    writeFileSync(
+      join(installRoot, 'package.json'),
+      JSON.stringify({ name: 'slides-grab-image-pack-smoke', private: true }, null, 2),
+      'utf-8',
+    );
+
+    renameSync(tarballPath, storedTarballPath);
+
+    execFileSync('npm', ['install', '--no-package-lock', storedTarballPath], {
+      cwd: installRoot,
+      encoding: 'utf-8',
+    });
+
+    const cliPath = join(installRoot, 'node_modules', '.bin', 'slides-grab');
+    const helpOutput = execFileSync(cliPath, ['image', '--help'], {
+      cwd: installRoot,
+      encoding: 'utf-8',
+    });
+
+    assert.match(helpOutput, /slides-grab image/);
+    assert.match(helpOutput, /Nano Banana Pro/);
+    assert.match(helpOutput, /--prompt <text>/);
+    assert.doesNotMatch(helpOutput, /Cannot find module/);
+  } finally {
+    rmSync(packRoot, { recursive: true, force: true });
+    rmSync(installRoot, { recursive: true, force: true });
+    rmSync(join(process.cwd(), 'slides-grab-1.0.0.tgz'), { force: true });
+  }
 });
 
 test('slides-grab help no longer exposes the legacy custom skill installer', () => {
