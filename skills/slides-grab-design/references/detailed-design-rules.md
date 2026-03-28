@@ -13,7 +13,7 @@
 - Use `slides-grab image --prompt "<prompt>" --slides-dir <path>` with Nano Banana Pro when a slide needs bespoke generated imagery.
 - `data:` URLs are allowed for fully self-contained slides.
 - Do not leave remote `http(s)://` image URLs in saved slide HTML; download source images into `<slides-dir>/assets/` and reference them as `./assets/<file>`.
-- If `GOOGLE_API_KEY` or `GEMINI_API_KEY` is unavailable, ask the user for a Google API key or fall back to web search + download into `<slides-dir>/assets/`.
+- If `GOOGLE_API_KEY` or `GEMINI_API_KEY` is unavailable, or the Nano Banana API fails, ask the user for a Google API key or fall back to web search + download into `<slides-dir>/assets/`.
 - Do not use absolute filesystem paths in slide HTML.
 - Do not use non-body `background-image` for content imagery; use `<img>` instead.
 - Use `data-image-placeholder` to reserve space when no image is available yet.

@@ -124,5 +124,6 @@ test('slides-grab workflow reference keeps packaged stage commands and image fal
   assert.match(text, /slides-grab image/i);
   assert.match(text, /Nano Banana Pro/i);
   assert.match(text, /GOOGLE_API_KEY|GEMINI_API_KEY/);
+  assert.match(text, /Nano Banana API fails|Nano Banana is down/i);
   assert.match(text, /web search/i);
 });
