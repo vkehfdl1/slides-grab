@@ -3,8 +3,9 @@ import { resolve } from 'node:path';
 
 import PptxGenJS from 'pptxgenjs';
 
+import { SLIDE_PX, SLIDE_IN, SCREENSHOT_SCALE } from '../../../src/slide-dimensions.js';
 import { broadcastSSE } from '../sse.js';
-import { listSlideFiles, withScreenshotPage } from '../helpers.js';
+import { listSlideFiles, getScreenshotBrowser } from '../helpers.js';
 
 const require = createRequire(import.meta.url);
 const html2pptx = require('../../../src/html2pptx.cjs');
@@ -28,26 +29,30 @@ export function createPptxExportRouter(ctx) {
 
   async function exportAsImage(slideFiles, slidesDirectory, exportId) {
     const pres = new PptxGenJS();
-    // Slide size: 10" × 5.625" (16:9, matches 960×540 at 96dpi)
-    pres.defineLayout({ name: 'SLIDE', width: 10, height: 5.625 });
+    pres.defineLayout({ name: 'SLIDE', width: SLIDE_IN.width, height: SLIDE_IN.height });
     pres.layout = 'SLIDE';
 
     for (let i = 0; i < slideFiles.length; i++) {
       const slideFile = slideFiles[i];
       try {
-        const pngBuffer = await withScreenshotPage(ctx, async (page) => {
-          // Match viewport to the slide's actual CSS size (960×540 for 720pt×405pt)
-          await page.setViewportSize({ width: 960, height: 540 });
+        const { browser } = await getScreenshotBrowser(ctx);
+        const context = await browser.newContext({
+          viewport: { width: SLIDE_PX.width, height: SLIDE_PX.height },
+          deviceScaleFactor: SCREENSHOT_SCALE,
+        });
+        let pngBuffer;
+        try {
+          const page = await context.newPage();
           const url = `http://localhost:${opts.port}/slides/${slideFile}`;
           await page.goto(url, { waitUntil: 'networkidle' });
 
-          // Capture just the .slide element if present, otherwise full page
           const slideEl = await page.$('.slide');
-          if (slideEl) {
-            return slideEl.screenshot({ type: 'png' });
-          }
-          return page.screenshot({ type: 'png', fullPage: false });
-        });
+          pngBuffer = slideEl
+            ? await slideEl.screenshot({ type: 'png' })
+            : await page.screenshot({ type: 'png', fullPage: false });
+        } finally {
+          await context.close().catch(() => {});
+        }
 
         const base64 = Buffer.from(pngBuffer).toString('base64');
         const slide = pres.addSlide();

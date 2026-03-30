@@ -9,6 +9,7 @@ import { PDFDocument } from 'pdf-lib';
 import sharp from 'sharp';
 
 import { ensureSlidesPassValidation } from './validate-slides.js';
+import { SLIDE_PX } from '../src/slide-dimensions.js';
 
 const require = createRequire(import.meta.url);
 const {
@@ -23,7 +24,7 @@ const DEFAULT_MODE = 'capture';
 const DEFAULT_CAPTURE_RESOLUTION = '2160p';
 const PDF_MODES = new Set(['capture', 'print']);
 const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;
-const FALLBACK_SLIDE_SIZE = { width: 960, height: 540 };
+const FALLBACK_SLIDE_SIZE = SLIDE_PX;
 const DEFAULT_CAPTURE_DEVICE_SCALE_FACTOR = 2;
 const TARGET_ASPECT_RATIO = 16 / 9;
 const RENDER_SETTLE_MS = 120;

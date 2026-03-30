@@ -1,6 +1,6 @@
 // editor-present.js — Fullscreen presentation mode with fade transitions
 
-import { state } from './editor-state.js';
+import { state, SLIDE_W, SLIDE_H } from './editor-state.js';
 import { currentSlideFile } from './editor-utils.js';
 import { getCurrentNotesText, loadNotes } from './editor-notes.js';
 
@@ -203,8 +203,8 @@ function fitIframe() {
   const availH = window.innerHeight - notesHeight;
 
   // Detect slide dimensions from iframe content
-  let slideW = 960;
-  let slideH = 540;
+  let slideW = SLIDE_W;
+  let slideH = SLIDE_H;
   try {
     const doc = iframe.contentDocument;
     if (doc) {

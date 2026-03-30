@@ -8,12 +8,13 @@ import { pathToFileURL } from 'node:url';
 import { buildSync } from 'esbuild';
 import { chromium } from 'playwright';
 import { findSlideFiles } from './html2pdf.js';
+import { SLIDE_PX } from '../src/slide-dimensions.js';
 
 const DEFAULT_OUTPUT_DIR = 'output';
 const DEFAULT_SLIDES_DIR = 'slides';
 const DEFAULT_FORMAT = 'svg';
 const SUPPORTED_FORMATS = ['svg', 'png'];
-const FALLBACK_SLIDE_SIZE = { width: 960, height: 540 };
+const FALLBACK_SLIDE_SIZE = SLIDE_PX;
 
 const DEFAULT_SCALE = 2;
 

@@ -2,7 +2,13 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 
-export const SCREENSHOT_SIZE = { width: 1600, height: 900 };
+import { SLIDE_PX, SCREENSHOT_SCALE } from '../slide-dimensions.js';
+
+/** Viewport used for annotation screenshots (scaled up for resolution) */
+export const SCREENSHOT_SIZE = {
+  width: SLIDE_PX.width * SCREENSHOT_SCALE,
+  height: SLIDE_PX.height * SCREENSHOT_SCALE,
+};
 
 /**
  * Launch a reusable headless Chromium browser.

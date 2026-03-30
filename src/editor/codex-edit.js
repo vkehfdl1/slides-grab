@@ -2,7 +2,9 @@ import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import sharp from 'sharp';
 
-export const SLIDE_SIZE = { width: 960, height: 540 };
+import { SLIDE_PX } from '../slide-dimensions.js';
+
+export const SLIDE_SIZE = SLIDE_PX;
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
