@@ -53,7 +53,7 @@
     "build-viewer": "node scripts/build-viewer.js",
     "validate": "node scripts/validate-slides.js",
     "convert": "node convert.cjs",
-    "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/svg/html2svg.test.js",
+    "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/svg/html2svg.test.js tests/pack/pack-init.test.js",
     "test:e2e": "node --test tests/editor/editor-ui.e2e.test.js tests/editor/editor-concurrency.e2e.test.js",
     "edit": "node bin/ppt-agent.js edit",
     "create": "node bin/ppt-agent.js create",

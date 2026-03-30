@@ -428,4 +428,58 @@ program
     console.log(content);
   });
 
+// --- Pack management commands ---
+
+const packCmd = program
+  .command('pack')
+  .description('Manage template packs');
+
+packCmd
+  .command('init <name>')
+  .description('Scaffold a new custom template pack in packs/<name>/')
+  .action(async (name) => {
+    const { createPack, validatePackName } = await import('../src/pack-init.js');
+    const { join: joinPath } = await import('node:path');
+
+    const validation = validatePackName(name);
+    if (!validation.valid) {
+      console.error(`[slides-grab] ${validation.error}`);
+      process.exitCode = 1;
+      return;
+    }
+
+    const packsDir = joinPath(process.cwd(), 'packs');
+    try {
+      const { packDir, themePath, templatesDir } = createPack(name, packsDir);
+      console.log(`Pack "${name}" created successfully:`);
+      console.log(`  ${packDir}/`);
+      console.log(`  ${themePath}`);
+      console.log(`  ${templatesDir}/`);
+      console.log(`\nEdit theme.css to customize colors, then add templates in templates/.`);
+    } catch (error) {
+      console.error(`[slides-grab] ${error.message}`);
+      process.exitCode = 1;
+    }
+  });
+
+packCmd
+  .command('list')
+  .description('List all available template packs (alias for list-packs)')
+  .action(async () => {
+    const { listPacks } = await import('../src/resolve.js');
+    const packs = listPacks();
+    if (packs.length === 0) {
+      console.log('No packs found.');
+      return;
+    }
+    console.log('Available template packs:\n');
+    for (const p of packs) {
+      const accent = p.colors.accent || '';
+      const bg = p.colors['bg-primary'] || '';
+      console.log(`  ${p.id.padEnd(18)} ${p.name.padEnd(16)} ${p.templates.length} templates  (bg: ${bg}, accent: ${accent})`);
+    }
+    console.log(`Total: ${packs.length} packs`);
+  });
+
 await program.parseAsync(process.argv);
+
