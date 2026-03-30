@@ -4150,6 +4150,7 @@
         <button class="nav-bar-btn ghost" id="btn-export-toggle" title="Export options" aria-haspopup="true" aria-expanded="false">Export</button>
         <div class="export-dropdown" id="export-dropdown" role="menu">
           <button class="export-dropdown-item" id="btn-pdf-export" role="menuitem">PDF Export</button>
+          <button class="export-dropdown-item" id="btn-pptx-export" role="menuitem">PPTX Export</button>
           <button class="export-dropdown-item" id="btn-svg-export" role="menuitem">SVG / PNG Export</button>
           <button class="export-dropdown-item" id="btn-figma-export" role="menuitem" disabled>
             <span class="figma-conn-dot" id="figma-conn-dot"></span>
@@ -4571,6 +4572,25 @@
       <div class="svg-export-actions">
         <button class="svg-export-btn-cancel" id="pdf-export-cancel" type="button">Close</button>
         <button class="svg-export-btn-start" id="pdf-export-start" type="button">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="svg-export-overlay" id="pptx-export-modal" hidden>
+    <div class="svg-export-modal">
+      <h3>PPTX Export</h3>
+      <p style="margin:0 0 12px;opacity:0.7;font-size:13px;">Export all slides to a PowerPoint file.</p>
+
+      <div class="svg-export-progress" id="pptx-export-progress">
+        <div class="svg-export-progress-bar">
+          <div class="svg-export-progress-fill" id="pptx-export-progress-fill"></div>
+        </div>
+        <span class="svg-export-progress-text" id="pptx-export-progress-text"></span>
+      </div>
+
+      <div class="svg-export-actions">
+        <button class="svg-export-btn-cancel" id="pptx-export-cancel" type="button">Close</button>
+        <button class="svg-export-btn-start" id="pptx-export-start" type="button">Export</button>
       </div>
     </div>
   </div>

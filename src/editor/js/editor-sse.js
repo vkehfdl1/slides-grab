@@ -8,6 +8,7 @@ import { renderBboxes } from './editor-bbox.js';
 import { updateSendState } from './editor-send.js';
 import { onSvgExportProgress, onSvgExportFinished } from './editor-svg-export.js';
 import { onPdfExportProgress, onPdfExportFinished } from './editor-pdf-export.js';
+import { onPptxExportProgress, onPptxExportFinished } from './editor-pptx-export.js';
 import {
   onFigmaConnected, onFigmaDisconnected,
   onFigmaExportProgress, onFigmaExportFinished,
@@ -236,6 +237,22 @@ export function connectSSE() {
       onPdfExportFinished(JSON.parse(event.data));
     } catch (error) {
       console.error('pdfExportFinished parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('pptxExportProgress', (event) => {
+    try {
+      onPptxExportProgress(JSON.parse(event.data));
+    } catch (error) {
+      console.error('pptxExportProgress parse error:', error);
+    }
+  });
+
+  evtSource.addEventListener('pptxExportFinished', (event) => {
+    try {
+      onPptxExportFinished(JSON.parse(event.data));
+    } catch (error) {
+      console.error('pptxExportFinished parse error:', error);
     }
   });
 

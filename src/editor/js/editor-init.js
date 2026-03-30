@@ -40,6 +40,7 @@ import { goToSlide } from './editor-navigation.js';
 import { connectSSE, loadRunsInitial } from './editor-sse.js';
 import { openExportModal } from './editor-svg-export.js';
 import { openPdfExportModal } from './editor-pdf-export.js';
+import { openPptxExportModal } from './editor-pptx-export.js';
 import './editor-figma-export.js';
 import { showCreationMode, hideCreationMode, loadCreationModelOptions, checkCreateMode, loadImportModelOptions, switchToImportTab, submitImport, submitDocImport } from './editor-create.js';
 import { showOutlinePhase } from './editor-outline.js';
@@ -147,6 +148,10 @@ btnPdfExport.addEventListener('click', openPdfExportModal);
 
 // SVG Export
 btnSvgExport.addEventListener('click', openExportModal);
+
+// PPTX Export
+const btnPptxExport = document.querySelector('#btn-pptx-export');
+if (btnPptxExport) btnPptxExport.addEventListener('click', openPptxExportModal);
 
 // Presentation mode
 if (btnPresent) {

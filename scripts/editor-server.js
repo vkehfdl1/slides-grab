@@ -18,6 +18,7 @@ import { createImportRouter } from './server/routes/import.js';
 import { createGenerateRouter } from './server/routes/generate.js';
 import { createExportRouter } from './server/routes/export.js';
 import { createPdfFigmaRouter, setupFigmaWebSocket } from './server/routes/pdf-figma.js';
+import { createPptxExportRouter } from './server/routes/pptx-export.js';
 import { createRethemeRouter } from './server/routes/retheme.js';
 import { createEventsRouter } from './server/routes/events.js';
 
@@ -244,6 +245,7 @@ async function startServer(opts) {
   app.use(createGenerateRouter(ctx));
   app.use(createExportRouter(ctx));
   app.use(createPdfFigmaRouter(ctx));
+  app.use(createPptxExportRouter(ctx));
   app.use(createRethemeRouter(ctx));
 
   const slidesDirectory = ctx.getSlidesDir();
