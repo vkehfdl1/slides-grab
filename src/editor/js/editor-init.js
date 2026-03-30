@@ -13,6 +13,8 @@ import {
   slideSkeleton, bboxEmptyGuide, shortcutsModal, shortcutsClose, btnShortcuts,
   sidebarToggle, editorSidebar, btnSendLabel,
   themeToggle,
+  btnDuplicateSlide, btnDeleteSlide,
+  deleteSlideModal, deleteSlideName, deleteSlideCancel, deleteSlideConfirm,
   btnPresent,
 } from './editor-dom.js';
 import {
