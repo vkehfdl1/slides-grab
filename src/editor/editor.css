@@ -1684,6 +1684,9 @@
     }
 
     .slide-thumb-preview {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 960px;
       height: 540px;
       transform: scale(0.13333);
@@ -1990,16 +1993,23 @@
     .editor-sidebar.collapsed {
       width: 0;
       min-width: 0;
-      overflow: visible;
+      overflow: hidden;
       border-left: none;
-    }
-
-    .editor-sidebar.collapsed > *:not(.sidebar-toggle) {
-      display: none;
+      opacity: 0;
+      pointer-events: none;
     }
 
     .editor-sidebar.collapsed .sidebar-toggle {
-      left: -14px;
+      /* Keep toggle visible even when sidebar is collapsed */
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      left: auto;
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 100;
+      border-radius: var(--radius-xs) 0 0 var(--radius-xs);
     }
 
     /* ── Outline card type border colors ── */
