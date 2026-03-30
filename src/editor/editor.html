@@ -1653,7 +1653,7 @@
 
     /* ── Slide Thumbnail Strip ── */
     .slide-strip {
-      height: 86px;
+      height: 52px;
       background: var(--surface-0);
       border-bottom: 1px solid var(--border-medium);
       display: flex;
@@ -1672,19 +1672,23 @@
 
     .slide-thumb {
       flex: 0 0 auto;
-      width: 128px;
-      height: 72px;
+      width: 72px;
+      height: 42px;
       border-radius: var(--radius-xs);
       border: 1.5px solid var(--border);
       background: var(--panel-2);
       cursor: pointer;
-      transition: border-color var(--transition), box-shadow var(--transition), opacity 0.15s;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       position: relative;
       overflow: hidden;
     }
 
     .slide-thumb:hover {
       border-color: var(--border-hover);
+      background: var(--panel);
     }
 
     .slide-thumb.active {
@@ -1692,47 +1696,17 @@
       box-shadow: 0 0 0 2px rgba(252, 94, 32, 0.25);
     }
 
-    .slide-thumb-preview {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 960px;
-      height: 540px;
-      transform: scale(0.13333);
-      transform-origin: top left;
-      pointer-events: none;
-      border: none;
-      display: block;
-    }
-
     .slide-thumb-num {
-      position: absolute;
-      bottom: 2px;
-      right: 4px;
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 700;
       font-family: var(--mono);
-      background: rgba(0, 0, 0, 0.6);
-      color: #fff;
-      padding: 1px 4px;
-      border-radius: 2px;
+      color: var(--text-2);
       pointer-events: none;
       z-index: 1;
     }
 
     .slide-thumb.active .slide-thumb-num {
-      background: var(--accent);
-      color: #fff;
-    }
-
-    /* Drag-and-drop feedback */
-    .slide-thumb.dragging {
-      opacity: 0.4;
-    }
-
-    .slide-thumb.drag-over {
-      border: 2px solid var(--accent);
-      box-shadow: 0 0 0 2px rgba(252, 94, 32, 0.35);
+      color: var(--accent-2);
     }
 
     /* ── Export Dropdown ── */
@@ -2009,16 +1983,9 @@
     }
 
     .editor-sidebar.collapsed .sidebar-toggle {
-      /* Keep toggle visible even when sidebar is collapsed */
-      position: fixed;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      left: auto;
+      left: -14px;
       opacity: 1;
       pointer-events: auto;
-      z-index: 100;
-      border-radius: var(--radius-xs) 0 0 var(--radius-xs);
     }
 
     /* ── Outline card type border colors ── */
@@ -2695,16 +2662,6 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .pack-browse-all {
-      display: block;
-      text-align: center;
-      font-size: 12px;
-      color: var(--accent);
-      text-decoration: none;
-      padding: 8px 0 4px;
-      transition: opacity var(--transition);
-    }
-    .pack-browse-all:hover { opacity: 0.8; }
 
     /* ── Pack Preview Modal ── */
     .pack-modal-backdrop {
@@ -3996,130 +3953,6 @@
       color: var(--text-1);
     }
 
-    /* ── Presenter Notes Panel ── */
-    .notes-section {
-      border-top: 1px solid var(--border);
-      padding: 0;
-      flex-shrink: 0;
-    }
-
-    .notes-toggle {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 14px;
-      background: var(--surface-0);
-      border: none;
-      color: var(--text-1);
-      font-size: 11px;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      transition: color var(--transition), background var(--transition);
-      text-align: left;
-      letter-spacing: 0.03em;
-      text-transform: uppercase;
-    }
-    .notes-toggle:hover { color: var(--text-0); background: var(--surface-1); }
-
-    .notes-toggle-icon {
-      transition: transform var(--transition);
-      flex-shrink: 0;
-    }
-    .notes-section.expanded .notes-toggle-icon {
-      transform: rotate(90deg);
-    }
-
-    .notes-textarea {
-      display: none;
-      width: 100%;
-      box-sizing: border-box;
-      min-height: 80px;
-      max-height: 200px;
-      padding: 10px 14px;
-      background: var(--surface-1);
-      border: none;
-      border-top: 1px solid var(--border-subtle);
-      color: var(--text-0);
-      font-size: 13px;
-      font-family: inherit;
-      line-height: 1.6;
-      resize: vertical;
-    }
-    .notes-textarea::placeholder { color: var(--text-2); font-style: italic; }
-    .notes-textarea:focus { outline: none; background: var(--surface-2); }
-
-    .notes-section.expanded .notes-textarea {
-      display: block;
-    }
-
-    /* ── Presentation Mode Overlay ── */
-    .present-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9999;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .present-slide-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .present-slide-iframe {
-      border: none;
-      background: #fff;
-      transition: opacity 0.3s ease;
-    }
-    .present-slide-iframe.fade-out {
-      opacity: 0;
-    }
-
-    .present-counter {
-      position: fixed;
-      bottom: 16px;
-      right: 24px;
-      color: rgba(255, 255, 255, 0.5);
-      font-size: 14px;
-      font-weight: 600;
-      font-family: var(--mono);
-      pointer-events: none;
-      z-index: 10001;
-    }
-
-    .present-notes-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      max-height: 30vh;
-      overflow-y: auto;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(12px);
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 16px 32px;
-      z-index: 10000;
-    }
-
-    .present-notes-text {
-      color: rgba(255, 255, 255, 0.85);
-      font-size: 16px;
-      line-height: 1.7;
-      max-width: 800px;
-      margin: 0 auto;
-      white-space: pre-wrap;
-    }
-
     /* ── Reduced motion ── */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -4141,6 +3974,158 @@
         opacity: 0.6;
       }
     }
+
+    /* ── Visual Thumbnail Previews ── */
+    .slide-thumb {
+      position: relative;
+      overflow: hidden;
+      width: 128px;
+      height: 72px;
+    }
+    .slide-thumb-preview {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 960px;
+      height: 540px;
+      transform: scale(0.13333);
+      transform-origin: top left;
+      pointer-events: none;
+      border: none;
+      display: block;
+    }
+    .slide-thumb-num {
+      position: absolute;
+      bottom: 2px;
+      right: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--mono);
+      background: rgba(0, 0, 0, 0.6);
+      color: #fff;
+      padding: 1px 4px;
+      border-radius: 2px;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .slide-thumb.active .slide-thumb-num {
+      background: var(--accent);
+    }
+    .slide-thumb.dragging { opacity: 0.4; }
+    .slide-thumb.drag-over { border: 2px solid var(--accent); box-shadow: 0 0 0 2px rgba(252, 94, 32, 0.35); }
+    .slide-strip { height: 86px; }
+
+    /* ── Presenter Notes ── */
+    .notes-section {
+      border-top: 1px solid var(--border);
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .notes-toggle {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--surface-0);
+      border: none;
+      color: var(--text-1);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      text-align: left;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .notes-toggle:hover { color: var(--text-0); background: var(--surface-1); }
+    .notes-toggle-icon { transition: transform var(--transition); flex-shrink: 0; }
+    .notes-section.expanded .notes-toggle-icon { transform: rotate(90deg); }
+    .notes-textarea {
+      display: none;
+      width: 100%;
+      box-sizing: border-box;
+      min-height: 80px;
+      max-height: 200px;
+      padding: 10px 14px;
+      background: var(--surface-1);
+      border: none;
+      border-top: 1px solid var(--border-subtle, var(--border));
+      color: var(--text-0);
+      font-size: 13px;
+      font-family: inherit;
+      line-height: 1.6;
+      resize: vertical;
+    }
+    .notes-textarea::placeholder { color: var(--text-2); font-style: italic; }
+    .notes-textarea:focus { outline: none; background: var(--surface-2); }
+    .notes-section.expanded .notes-textarea { display: block; }
+
+    /* ── Presentation Mode Overlay ── */
+    .present-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: #000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .present-slide-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      overflow: hidden;
+      position: relative;
+    }
+    .present-slide-iframe {
+      border: none;
+      background: #fff;
+      transition: opacity 0.3s ease;
+    }
+    .present-slide-iframe.fade-out { opacity: 0; }
+    .present-counter {
+      position: fixed;
+      bottom: 16px;
+      right: 24px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+      font-weight: 600;
+      font-family: var(--mono);
+      pointer-events: none;
+      z-index: 10001;
+    }
+    .present-notes-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-height: 30vh;
+      overflow-y: auto;
+      background: rgba(0, 0, 0, 0.85);
+      color: #e2e8f0;
+      padding: 16px 32px;
+      font-size: 16px;
+      line-height: 1.6;
+      z-index: 10000;
+      backdrop-filter: blur(8px);
+    }
+
+    /* ── Sidebar collapsed fix ── */
+    .editor-sidebar.collapsed .sidebar-toggle {
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      left: auto;
+      opacity: 1;
+      pointer-events: auto;
+      z-index: 100;
+      border-radius: var(--radius-xs) 0 0 var(--radius-xs);
+    }
   </style>
   <script>(function(){var t=localStorage.getItem('sg-theme');if(t)document.documentElement.setAttribute('data-theme',t);else if(window.matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.setAttribute('data-theme','light')})();</script>
 </head>
@@ -4155,9 +4140,6 @@
         <button id="btn-prev" title="Previous slide (Left arrow)" aria-label="Previous slide">&#9664; Prev</button>
         <span class="slide-counter" id="slide-counter" aria-live="polite">-- / --</span>
         <button id="btn-next" title="Next slide (Right arrow)" aria-label="Next slide">Next &#9654;</button>
-        <span class="nav-controls-sep"></span>
-        <button class="nav-bar-btn ghost slide-action-btn" id="btn-duplicate-slide" title="Duplicate current slide (Ctrl+Shift+D)" aria-label="Duplicate slide">&#x2398; Dup</button>
-        <button class="nav-bar-btn ghost slide-action-btn danger" id="btn-delete-slide" title="Delete current slide" aria-label="Delete slide">&#x2715; Del</button>
       </div>
       <div class="nav-spacer"></div>
       <button class="nav-bar-btn btn-new-deck" id="btn-new-deck" title="New Presentation">+ New</button>
@@ -4482,17 +4464,17 @@
           </div>
         </div>
 
+        <div class="sidebar-hint" id="editor-hint">
+          Drag on the slide to add red bboxes. Enter to run.
+        </div>
+
         <!-- Presenter Notes -->
-        <div class="notes-section" id="notes-section">
-          <button class="notes-toggle" id="notes-toggle" type="button" aria-expanded="false" aria-controls="notes-textarea">
+        <div class="notes-section expanded" id="notes-section">
+          <button class="notes-toggle" id="notes-toggle" type="button" aria-expanded="true" aria-controls="notes-textarea">
             <svg class="notes-toggle-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
             Presenter Notes
           </button>
           <textarea id="notes-textarea" class="notes-textarea" placeholder="Add notes for this slide..." rows="4"></textarea>
-        </div>
-
-        <div class="sidebar-hint" id="editor-hint">
-          Drag on the slide to add red bboxes. Enter to run.
         </div>
       </aside>
     </div>
@@ -4616,11 +4598,11 @@
       <h3>Keyboard Shortcuts</h3>
       <div class="shortcut-row">
         <span class="shortcut-desc">Previous slide</span>
-        <div class="shortcut-keys"><span class="shortcut-key">PgUp</span> / <span class="shortcut-key">←</span></div>
+        <div class="shortcut-keys"><span class="shortcut-key">PgUp</span></div>
       </div>
       <div class="shortcut-row">
         <span class="shortcut-desc">Next slide</span>
-        <div class="shortcut-keys"><span class="shortcut-key">PgDn</span> / <span class="shortcut-key">→</span></div>
+        <div class="shortcut-keys"><span class="shortcut-key">PgDn</span></div>
       </div>
       <div class="shortcut-row">
         <span class="shortcut-desc">First slide</span>
@@ -4635,22 +4617,6 @@
         <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">Enter</span></div>
       </div>
       <div class="shortcut-row">
-        <span class="shortcut-desc">Undo</span>
-        <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">Z</span></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Redo</span>
-        <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">Shift</span><span class="shortcut-key">Z</span> / <span class="shortcut-key">Ctrl</span><span class="shortcut-key">Y</span></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Draw mode</span>
-        <div class="shortcut-keys"><span class="shortcut-key">D</span></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Select mode</span>
-        <div class="shortcut-keys"><span class="shortcut-key">S</span></div>
-      </div>
-      <div class="shortcut-row">
         <span class="shortcut-desc">Bold</span>
         <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">B</span></div>
       </div>
@@ -4663,42 +4629,14 @@
         <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">U</span></div>
       </div>
       <div class="shortcut-row">
-        <span class="shortcut-desc">Duplicate slide</span>
-        <div class="shortcut-keys"><span class="shortcut-key">Ctrl</span><span class="shortcut-key">Shift</span><span class="shortcut-key">D</span></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Delete slide</span>
-        <div class="shortcut-keys"><span class="shortcut-key">Backspace</span> / <span class="shortcut-key">Delete</span></div>
-      </div>
-      <div class="shortcut-row">
         <span class="shortcut-desc">Shortcuts help</span>
         <div class="shortcut-keys"><span class="shortcut-key">?</span></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Presentation mode</span>
-        <div class="shortcut-keys"><span class="shortcut-key">F5</span></div>
-      </div>
-      <div class="shortcut-row">
-        <span class="shortcut-desc">Toggle notes (in present)</span>
-        <div class="shortcut-keys"><span class="shortcut-key">N</span></div>
       </div>
       <div class="shortcut-row">
         <span class="shortcut-desc">Close / Blur</span>
         <div class="shortcut-keys"><span class="shortcut-key">Esc</span></div>
       </div>
       <button class="shortcuts-close" id="shortcuts-close">Close</button>
-    </div>
-  </div>
-
-  <!-- Delete Slide Confirmation Modal -->
-  <div class="shortcuts-overlay" id="delete-slide-modal" hidden>
-    <div class="shortcuts-modal" role="dialog" aria-label="Delete slide confirmation" style="max-width: 380px;">
-      <h3>Delete Slide</h3>
-      <p style="font-size: 13px; color: var(--text-1); margin-bottom: 16px;">Are you sure you want to delete <strong id="delete-slide-name"></strong>? This cannot be undone.</p>
-      <div style="display: flex; gap: 8px; justify-content: flex-end;">
-        <button class="nav-bar-btn ghost" id="delete-slide-cancel">Cancel</button>
-        <button class="nav-bar-btn" id="delete-slide-confirm" style="background: var(--danger); color: #fff; border-color: var(--danger);">Delete</button>
-      </div>
     </div>
   </div>
 
