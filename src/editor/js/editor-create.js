@@ -11,6 +11,7 @@ import {
   importDropzone, importFileInput, importBrowse, importFileInfo,
   importFileName, importFileClear, importSlideCount, importResearchMode,
   importModel, importSubmit, importUrlInput, importUrlGo,
+  btnPresent,
 } from './editor-dom.js';
 import { getSelectedPack } from './editor-pack.js';
 import { setStatus, loadModelOptions } from './editor-utils.js';
@@ -138,6 +139,7 @@ export function hideCreationMode() {
   if (btnReviewOutline) btnReviewOutline.disabled = false;
   if (btnExportToggle) btnExportToggle.disabled = false;
   if (btnReviewDeck) btnReviewDeck.style.display = '';
+  if (btnPresent) btnPresent.style.display = '';
   // Editor-mode button states (same logic in editor-init.js init)
   if (btnNewDeck) btnNewDeck.disabled = true;
   if (btnReviewOutline) btnReviewOutline.classList.add('nav-emphasis');
