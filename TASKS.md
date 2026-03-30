@@ -38,13 +38,13 @@ Phase 1과 병렬로 진행하되, 별도 브랜치에서 신중하게 작업.
 Phase 2 머지 후 진행. 새 라우트 모듈에 엔드포인트 추가.
 
 ### 3A. Core Slide Operations
-- [ ] 1.3 슬라이드 복제/삭제 (UI + API)
-- [ ] 1.2 슬라이드 순서 변경 — Drag & Drop (UI + API)
+- [x] 1.3 슬라이드 복제/삭제 (API: duplicate/delete + 자동 리넘버링)
+- [ ] 1.2 슬라이드 순서 변경 — Drag & Drop (UI + API)  ← current
 - [ ] 2.1 비주얼 썸네일 프리뷰 (스크린샷 기반)
 
 ### 3B. Presenter & Presentation
-- [ ] 1.4 Presenter Notes 지원 (저장 형식 + UI + 내보내기 연동)
-- [ ] NEW: 프레젠테이션 모드 (전체화면 + fade 전환 + 노트 뷰)
+- [x] 1.4 Presenter Notes 지원 (notes.md 파일 + API + 자동저장)
+- [x] NEW: 프레젠테이션 모드 (F5, fade 전환, N키 노트 토글)
 
 ### 3C. DX
 - [x] 7.1 에디터 Hot Reload (fsWatch → SSE devReload 이벤트)
