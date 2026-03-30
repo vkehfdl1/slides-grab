@@ -21,17 +21,25 @@
   --slide-h: 405pt;
   --pad-x: 44pt;
   --pad-y: 34pt;
-  --title-xl: 38pt;
-  --title-lg: 28pt;
+  --title-xl: 64pt;
+  --title-lg: 32pt;
   --title-md: 20pt;
   --title-sm: 16pt;
-  --body-lg: 15pt;
-  --body-md: 11.5pt;
-  --body-sm: 9pt;
-  --caption: 8pt;
-  --leading-tight: 1.05;
-  --leading-title: 1.1;
-  --leading-body: 1.42;
+  --body-lg: 16pt;
+  --body-md: 15pt;
+  --body-sm: 11pt;
+  --caption: 10pt;
+  --leading-tight: 1.0;
+  --leading-title: 1.2;
+  --leading-body: 1.6;
+  /* Typography scale aliases */
+  --title-hero: var(--title-xl);
+  --title-section: 44pt;
+  --title-slide: var(--title-lg);
+  --text-subtitle: var(--title-md);
+  --text-body: var(--body-md);
+  --text-caption: var(--body-sm);
+  --text-label: var(--caption);
 }
 
 :root[data-theme="light"] {

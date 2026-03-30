@@ -6,4 +6,13 @@
   --text-secondary: #6b6b6b;  /* 보조 텍스트 */
   --accent: #FC5E20;          /* 강조색 (오렌지) */
   --border: #e0e0e0;          /* 테두리 */
+
+  /* Typography scale */
+  --title-hero: 64pt;
+  --title-section: 44pt;
+  --title-slide: 32pt;
+  --text-subtitle: 20pt;
+  --text-body: 16pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
 }

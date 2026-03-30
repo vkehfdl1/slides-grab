@@ -25,15 +25,15 @@ Pack: `packs/<PACK_ID>/`
 
 All pack templates must conform to these size ranges:
 
-| Role | Size | Weight | Usage |
-|------|------|--------|-------|
-| Hero Title | 56-72pt | 700-800 | Cover slide main title |
-| Section Title | 40-48pt | 700 | Section divider heading |
-| Slide Title | 28-36pt | 600-700 | General slide heading (h1/h2) |
-| Subtitle | 18-22pt | 500 | Subtitle, description |
-| Body | 14-18pt | 400 | Body text |
-| Caption | 10-12pt | 400 | Caption, source |
-| Label | 9-11pt | 500-600 | Badge, tag, number |
+| Role          | Size    | Weight  | Usage                         |
+| ------------- | ------- | ------- | ----------------------------- |
+| Hero Title    | 56-72pt | 700-800 | Cover slide main title        |
+| Section Title | 40-48pt | 700     | Section divider heading       |
+| Slide Title   | 28-36pt | 600-700 | General slide heading (h1/h2) |
+| Subtitle      | 18-22pt | 500     | Subtitle, description         |
+| Body          | 14-18pt | 400     | Body text                     |
+| Caption       | 10-12pt | 400     | Caption, source               |
+| Label         | 9-11pt  | 500-600 | Badge, tag, number            |
 
 ### letter-spacing
 - Large titles (Hero, Section): -0.02em
