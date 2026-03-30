@@ -33,11 +33,5 @@ export const SLIDE_IN = Object.freeze({
   height: SLIDE_PX.height / PX_PER_IN, // 5.625
 });
 
-/** Recommended screenshot viewport — matches SLIDE_PX for pixel-perfect capture */
-export const SCREENSHOT_VIEWPORT = Object.freeze({
-  width: SLIDE_PX.width,   // 960
-  height: SLIDE_PX.height, // 540
-});
-
 /** Device scale factor for high-DPI screenshots (2× = 1920×1080 actual pixels) */
 export const SCREENSHOT_SCALE = 2;
