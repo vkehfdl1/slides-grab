@@ -1976,16 +1976,21 @@
     .editor-sidebar.collapsed {
       width: 0;
       min-width: 0;
-      overflow: hidden;
+      overflow: visible;
       border-left: none;
+    }
+
+    .editor-sidebar.collapsed > *:not(.sidebar-toggle) {
       opacity: 0;
       pointer-events: none;
+      height: 0;
+      overflow: hidden;
     }
 
     .editor-sidebar.collapsed .sidebar-toggle {
-      left: -14px;
-      opacity: 1;
-      pointer-events: auto;
+      left: -22px;
+      width: 22px;
+      height: 56px;
     }
 
     /* ── Outline card type border colors ── */
@@ -4115,18 +4120,6 @@
       backdrop-filter: blur(8px);
     }
 
-    /* ── Sidebar collapsed fix ── */
-    .editor-sidebar.collapsed .sidebar-toggle {
-      position: fixed;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      left: auto;
-      opacity: 1;
-      pointer-events: auto;
-      z-index: 100;
-      border-radius: var(--radius-xs) 0 0 var(--radius-xs);
-    }
   </style>
   <script>(function(){var t=localStorage.getItem('sg-theme');if(t)document.documentElement.setAttribute('data-theme',t);else if(window.matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.setAttribute('data-theme','light')})();</script>
 </head>
