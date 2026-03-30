@@ -74,4 +74,15 @@ if (result.strengths.length > 0) {
   }
 }
 
+// Consistency summary
+if (result.consistency) {
+  const cs = result.consistency.summary;
+  console.log('\n  ─── Consistency ───\n');
+  if (cs.consistent) {
+    console.log('  ✅ All slides are visually consistent.');
+  } else {
+    console.log(`  ${cs.issueCount} consistency issue(s) detected (included in issues above).`);
+  }
+}
+
 console.log('');

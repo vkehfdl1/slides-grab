@@ -8,6 +8,8 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { join, basename } from 'node:path';
 
+import { checkConsistency } from './consistency.js';
+
 // ── Helpers ─────────────────────────────────────────────────────────
 
 /**
@@ -223,14 +225,37 @@ export async function analyzeDeck(deckDir, context = {}) {
     scores[key] = Math.max(0, Math.min(100, scores[key]));
   }
 
-  const overall = Math.round(
+  // ── Consistency Analysis ──
+
+  let consistency = null;
+  try {
+    consistency = await checkConsistency(deckDir);
+    for (const ci of consistency.issues) {
+      issues.push({
+        severity: ci.severity,
+        slide: null,
+        message: ci.message,
+        category: 'visual',
+      });
+      if (ci.severity === 'warn') scores.visual -= 5;
+    }
+    if (consistency.summary.consistent) {
+      strengths.push('Cross-slide style consistency is maintained.');
+    }
+  } catch { /* consistency check is non-blocking */ }
+
+  // Reclamp visual score after consistency penalties
+  scores.visual = Math.max(0, Math.min(100, scores.visual));
+
+  // Recalculate overall score after consistency adjustments
+  const overallFinal = Math.round(
     scores.structure * 0.25 +
     scores.content * 0.30 +
     scores.visual * 0.20 +
     scores.impact * 0.25
   );
 
-  const grade = overall >= 90 ? 'A' : overall >= 80 ? 'B+' : overall >= 70 ? 'B' : overall >= 60 ? 'C' : overall >= 50 ? 'D' : 'F';
+  const gradeFinal = overallFinal >= 90 ? 'A' : overallFinal >= 80 ? 'B+' : overallFinal >= 70 ? 'B' : overallFinal >= 60 ? 'C' : overallFinal >= 50 ? 'D' : 'F';
 
   // Sort issues: error > warn > info
   const severityOrder = { error: 0, warn: 1, info: 2 };
@@ -238,8 +263,8 @@ export async function analyzeDeck(deckDir, context = {}) {
 
   return {
     deckName: basename(deckDir),
-    score: overall,
-    grade,
+    score: overallFinal,
+    grade: gradeFinal,
     categories: {
       structure: { score: scores.structure, label: 'Structure' },
       content: { score: scores.content, label: 'Content' },
@@ -250,6 +275,7 @@ export async function analyzeDeck(deckDir, context = {}) {
     strengths,
     slideCount: slides.length,
     typeCounts,
+    consistency,
   };
 }
 
