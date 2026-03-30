@@ -39,8 +39,8 @@ Phase 2 머지 후 진행. 새 라우트 모듈에 엔드포인트 추가.
 
 ### 3A. Core Slide Operations
 - [x] 1.3 슬라이드 복제/삭제 (API: duplicate/delete + 자동 리넘버링)
-- [ ] 1.2 슬라이드 순서 변경 — Drag & Drop (UI + API)  ← current
-- [ ] 2.1 비주얼 썸네일 프리뷰 (스크린샷 기반)
+- [x] 1.2 슬라이드 순서 변경 — Drag & Drop (UI + API)
+- [x] 2.1 비주얼 썸네일 프리뷰 (scaled iframe 기반)
 
 ### 3B. Presenter & Presentation
 - [x] 1.4 Presenter Notes 지원 (notes.md 파일 + API + 자동저장)
