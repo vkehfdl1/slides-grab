@@ -32,9 +32,9 @@ export function initNotesPanel() {
 
   if (!notesTextarea || !notesSection) return;
 
-  // Restore collapsed/expanded state from localStorage
+  // Restore collapsed/expanded state from localStorage (default: expanded)
   const savedState = localStorage.getItem('sg-notes-expanded');
-  expanded = savedState === 'true';
+  expanded = savedState !== 'false';
   applyExpandedState();
 
   if (notesToggleBtn) {

@@ -1684,9 +1684,9 @@
     }
 
     .slide-thumb-preview {
-      width: 1280px;
-      height: 720px;
-      transform: scale(0.1);
+      width: 960px;
+      height: 540px;
+      transform: scale(0.13333);
       transform-origin: top left;
       pointer-events: none;
       border: none;
@@ -1990,16 +1990,16 @@
     .editor-sidebar.collapsed {
       width: 0;
       min-width: 0;
-      overflow: hidden;
+      overflow: visible;
       border-left: none;
-      opacity: 0;
-      pointer-events: none;
+    }
+
+    .editor-sidebar.collapsed > *:not(.sidebar-toggle) {
+      display: none;
     }
 
     .editor-sidebar.collapsed .sidebar-toggle {
       left: -14px;
-      opacity: 1;
-      pointer-events: auto;
     }
 
     /* ── Outline card type border colors ── */
@@ -3989,18 +3989,20 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 10px 14px;
-      background: transparent;
+      padding: 8px 14px;
+      background: var(--surface-0);
       border: none;
-      color: var(--text-2);
-      font-size: 12px;
+      color: var(--text-1);
+      font-size: 11px;
       font-weight: 600;
       font-family: inherit;
       cursor: pointer;
-      transition: color var(--transition);
+      transition: color var(--transition), background var(--transition);
       text-align: left;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
-    .notes-toggle:hover { color: var(--text-0); }
+    .notes-toggle:hover { color: var(--text-0); background: var(--surface-1); }
 
     .notes-toggle-icon {
       transition: transform var(--transition);
@@ -4013,19 +4015,20 @@
     .notes-textarea {
       display: none;
       width: 100%;
-      min-height: 60px;
-      max-height: 160px;
-      padding: 8px 14px 12px;
+      box-sizing: border-box;
+      min-height: 80px;
+      max-height: 200px;
+      padding: 10px 14px;
       background: var(--surface-1);
       border: none;
       border-top: 1px solid var(--border-subtle);
       color: var(--text-0);
-      font-size: 12px;
+      font-size: 13px;
       font-family: inherit;
       line-height: 1.6;
       resize: vertical;
     }
-    .notes-textarea::placeholder { color: var(--text-2); }
+    .notes-textarea::placeholder { color: var(--text-2); font-style: italic; }
     .notes-textarea:focus { outline: none; background: var(--surface-2); }
 
     .notes-section.expanded .notes-textarea {
