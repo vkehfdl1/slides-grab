@@ -57,7 +57,7 @@ Phase 2 머지 후 진행. 새 라우트 모듈에 엔드포인트 추가.
 
 ### 4A. PPTX Quality
 - [ ] 3.1 벡터 기반 PPTX 개선 (opentype.js 폰트 메트릭)
-- [ ] 3.2 CSS 그래디언트 자동 래스터화
+- [x] 3.2 CSS 그래디언트 자동 래스터화
 
 ### 4B. Pack System
 - [ ] 4.1 Pack 갤러리/프리뷰 페이지
