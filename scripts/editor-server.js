@@ -745,6 +745,11 @@ async function startServer(opts) {
   }));
   app.use('/asset', express.static(join(PACKAGE_ROOT, 'asset')));
 
+  // Serve extracted CSS files for editor and browser UIs
+  const editorDir = join(PACKAGE_ROOT, 'src', 'editor');
+  app.get('/editor.css', (_req, res) => { res.type('text/css').sendFile(join(editorDir, 'editor.css')); });
+  app.get('/browser.css', (_req, res) => { res.type('text/css').sendFile(join(editorDir, 'browser.css')); });
+
   // Serve pack files (templates, theme.css) for iframe preview
   const localPacksDir = join(process.cwd(), 'packs');
   if (existsSync(localPacksDir)) {
