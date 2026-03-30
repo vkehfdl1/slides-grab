@@ -26,14 +26,10 @@
 
 Phase 1과 병렬로 진행하되, 별도 브랜치에서 신중하게 작업.
 
-- [ ] 6.1 `editor-server.js` (3,046줄) → Express Router 모듈 분리
-  - [ ] routes/slides.js (슬라이드 CRUD)
-  - [ ] routes/decks.js (덱 관리)
-  - [ ] routes/export.js (PDF/SVG/Figma 내보내기)
-  - [ ] routes/plan.js (플랜/생성/아웃라인)
-  - [ ] routes/events.js (SSE 이벤트)
-  - [ ] middleware/ (공통 미들웨어)
-  - [ ] 기존 기능 회귀 테스트 통과 확인
+- [x] 6.1 `editor-server.js` (3,051줄 → 297줄) Express Router 모듈 분리
+  - [x] 13개 라우트 모듈 + 5개 공유 모듈로 분리
+  - [x] 모든 모듈 300줄 이하
+  - [x] 기존 기능 회귀 테스트 통과 확인 (46/46)
 
 ---
 
