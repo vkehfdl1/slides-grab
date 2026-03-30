@@ -9,12 +9,12 @@
 서버 코드를 건드리지 않는 독립 모듈. 전부 병렬 진행 가능.
 
 ### 1A. Architecture
-- [ ] 6.4 `editor.html` CSS 외부 분리 → `editor.css`
-- [ ] 7.2 PPTX 변환 테스트 추가 (`html2pptx.cjs` 스냅샷 테스트)
+- [x] 6.4 `editor.html` CSS 외부 분리 → `editor.css`
+- [x] 7.2 PPTX 변환 테스트 추가 (`html2pptx.cjs` 스냅샷 테스트)
 
 ### 1B. Features (Editor JS Only)
-- [ ] 1.1 Undo/Redo 히스토리 스택 (per-slide HTML 스냅샷)
-- [ ] 2.5 키보드 단축키 확장 (D=Draw, S=Select, Delete, Duplicate 등)
+- [x] 1.1 Undo/Redo 히스토리 스택 (per-slide HTML 스냅샷)
+- [x] 2.5 키보드 단축키 확장 (D=Draw, S=Select, Arrow, Undo/Redo)
 
 ### 1C. Validation & CLI
 - [x] 5.1 접근성 검증 (contrast ratio, alt text)
