@@ -47,17 +47,24 @@ function buildThemeCss(name) {
   /* === Text === */
   --text-primary: #1a1a2e;
   --text-secondary: #6c757d;
-  --text-on-accent: #ffffff;
 
   /* === Accent === */
   --accent: #4361ee;
-  --accent-light: #e8ecff;
 
   /* === Border === */
   --border: #dee2e6;
 
   /* === Font === */
-  --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+
+  /* === Typography scale (adjust values to match your pack's personality) === */
+  --title-hero: 64pt;
+  --title-section: 44pt;
+  --title-slide: 32pt;
+  --text-subtitle: 20pt;
+  --text-body: 16pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
 }
 `;
 }

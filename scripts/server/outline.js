@@ -35,7 +35,7 @@ export function appendOutlinePrompt(promptLines, packId, { includePresenterNote 
 
   const allTypeNames = Object.keys(getCommonTypes());
   if (packId) {
-    const packTemplates = listPackTemplates(packId);
+    const packTemplates = listPackTemplates(packId, { includeFallback: true });
     promptLines.push(`사용할 팩: ${packId}`);
     promptLines.push(`이 팩이 보유한 type: ${packTemplates.join(', ')}`);
     promptLines.push(`전체 공통 type: ${allTypeNames.join(', ')}`);

@@ -197,7 +197,7 @@ export async function prepareRetheme({ deckDir, targetPackId }) {
   }
 
   // Get pack templates
-  const packTemplates = listPackTemplates(targetPackId);
+  const packTemplates = listPackTemplates(targetPackId, { includeFallback: true });
   const allTypes = Object.keys(getCommonTypes());
 
   // Get or reconstruct outline
