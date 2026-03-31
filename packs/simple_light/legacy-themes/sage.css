@@ -1,9 +1,0 @@
-:root {
-  --bg-primary: #b8c4b8;      /* 세이지 그린 배경 */
-  --bg-secondary: #a3b0a3;    /* 짙은 세이지 */
-  --bg-light: #f8faf8;        /* 밝은 배경 */
-  --text-primary: #1a1a1a;    /* 메인 텍스트 */
-  --text-secondary: #3d3d3d;  /* 보조 텍스트 */
-  --accent: #2d2d2d;          /* 강조 */
-  --border: #9aa89a;          /* 테두리 */
-}
