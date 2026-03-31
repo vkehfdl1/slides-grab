@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PACKAGE_ROOT = resolve(__dirname, '..');
 
-const DEFAULT_PACK = 'simple_light';
+export const DEFAULT_PACK = 'simple_light';
 
 /**
  * Get the package root directory (where slides-grab is installed).
@@ -124,19 +124,24 @@ export function getPackInfo(packId) {
 /**
  * List templates owned by a specific pack.
  * @param {string} packId
+ * @param {{ includeFallback?: boolean }} [opts]
  * @returns {string[]} template names (without .html)
  */
-export function listPackTemplates(packId) {
+export function listPackTemplates(packId, opts = {}) {
   const pack = resolvePack(packId);
   if (!pack) return [];
 
   const templatesDir = join(pack.path, 'templates');
-  if (!existsSync(templatesDir)) return [];
+  const own = existsSync(templatesDir)
+    ? readdirSync(templatesDir).filter(f => f.endsWith('.html')).map(f => f.replace('.html', ''))
+    : [];
 
-  return readdirSync(templatesDir)
-    .filter(f => f.endsWith('.html'))
-    .map(f => f.replace('.html', ''))
-    .sort();
+  if (!opts.includeFallback || packId === DEFAULT_PACK) return own.sort();
+
+  // Merge with simple_light fallback templates
+  const fallback = listPackTemplates(DEFAULT_PACK);
+  const merged = new Set([...own, ...fallback]);
+  return Array.from(merged).sort();
 }
 
 /**
@@ -147,6 +152,7 @@ export function listPacks() {
   // Auto-discover packs: scan both local and package packs dirs
   // for subdirectories containing theme.css
   const seen = new Map(); // id → pack entry (local wins over package)
+  const fallbackTemplates = listPackTemplates(DEFAULT_PACK); // cache once
 
   for (const baseDir of [join(getCwd(), 'packs'), join(PACKAGE_ROOT, 'packs')]) {
     if (!existsSync(baseDir)) continue;
@@ -157,10 +163,10 @@ export function listPacks() {
       if (!existsSync(join(packDir, 'theme.css'))) continue;
 
       const info = getPackInfo(entry.name);
-      const templatesDir = join(packDir, 'templates');
-      const templates = existsSync(templatesDir)
-        ? readdirSync(templatesDir).filter(f => f.endsWith('.html')).map(f => f.replace('.html', '')).sort()
-        : [];
+      const own = listPackTemplates(entry.name);
+      const templates = entry.name === DEFAULT_PACK
+        ? own
+        : Array.from(new Set([...own, ...fallbackTemplates])).sort();
       seen.set(entry.name, {
         id: entry.name,
         name: info?.name || entry.name,
