@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .intro {
+      position: absolute;
+      left: 32pt;
+      top: 24pt;
+      width: 290pt;
+    }
+    .intro h2 {
+      margin: 0 0 10pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      white-space: pre-line;
+    }
+    .intro p {
+      margin: 0;
+      font-size: 16.8pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      white-space: pre-line;
+    }
+    .visual-grid {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 112pt;
+      bottom: 42pt;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8pt;
+    }
+    .visual-grid div {
+      background: var(--placeholder);
+      border-radius: 8pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <section class="intro">
+      <h2 data-slot="title">Single-sign on integration</h2>
+      <p data-slot="body">We'll support social logins for easier account management.</p>
+    </section>
+    <section class="visual-grid">
+      <div data-image-placeholder data-slot="image-1"></div>
+      <div data-image-placeholder data-slot="image-2"></div>
+      <div data-image-placeholder data-slot="image-3"></div>
+    </section>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Concept 1</p>
+      </div>
+      <p class="page-number" data-slot="page">14</p>
+    </div>
+  </div>
+</body>
+</html>

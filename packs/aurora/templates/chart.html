@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: grid;
+      grid-template-columns: 0.72fr 1.28fr;
+      gap: 26pt;
+      align-items: start;
+    }
+    .copy {
+      padding-top: 12pt;
+    }
+    .copy h2 {
+      margin: 0 0 12pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      max-width: 220pt;
+      white-space: pre-line;
+    }
+    .copy p {
+      margin: 0;
+      font-size: 17pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      max-width: 220pt;
+      white-space: pre-line;
+    }
+    .chart-area {
+      height: 272pt;
+      background: var(--placeholder);
+      border-radius: 8pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="layout">
+      <section class="copy">
+        <h2 data-slot="title">Monthly active users over time</h2>
+        <p data-slot="body">Steady growth across all segments since the redesign launched in January.</p>
+      </section>
+      <section>
+        <div class="chart-area" data-image-placeholder data-slot="chart"></div>
+      </section>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Chart</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .team-layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .team-layout h2 {
+      margin: 0 0 24pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      text-align: center;
+    }
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 9pt;
+    }
+    .team-member {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 6pt;
+    }
+    .team-avatar {
+      width: 38pt;
+      height: 38pt;
+      border-radius: 50%;
+      background: var(--placeholder);
+      flex-shrink: 0;
+    }
+    .team-name {
+      margin: 0;
+      font-size: 10pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-primary);
+    }
+    .team-role {
+      margin: 0;
+      font-size: 9pt;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      color: #4f4f4d;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="team-layout">
+      <h2 data-slot="title">Meet the team</h2>
+      <div class="team-grid">
+        <div class="team-member">
+          <div class="team-avatar" data-image-placeholder data-slot="avatar-1"></div>
+          <p class="team-name" data-slot="name-1">Jane Doe</p>
+          <p class="team-role" data-slot="role-1">Product Lead</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar" data-image-placeholder data-slot="avatar-2"></div>
+          <p class="team-name" data-slot="name-2">Alex Kim</p>
+          <p class="team-role" data-slot="role-2">Engineering</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar" data-image-placeholder data-slot="avatar-3"></div>
+          <p class="team-name" data-slot="name-3">Sara Chen</p>
+          <p class="team-role" data-slot="role-3">Design</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar" data-image-placeholder data-slot="avatar-4"></div>
+          <p class="team-name" data-slot="name-4">Mike Park</p>
+          <p class="team-role" data-slot="role-4">Data Science</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar" data-image-placeholder data-slot="avatar-5"></div>
+          <p class="team-name" data-slot="name-5">Lina Yoo</p>
+          <p class="team-role" data-slot="role-5">QA</p>
+        </div>
+        <div class="team-member">
+          <div class="team-avatar" data-image-placeholder data-slot="avatar-6"></div>
+          <p class="team-name" data-slot="name-6">Tom Lee</p>
+          <p class="team-role" data-slot="role-6">Operations</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Team</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

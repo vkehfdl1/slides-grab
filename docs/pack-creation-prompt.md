@@ -13,7 +13,7 @@ Create a new template pack for the slides-grab project.
 ## Project Context
 
 - Project: /Users/usuhwa/_workspace/bootstrap/slides-grab
-- Read CLAUDE.md first
+- Read CLAUDE.md first  
 - Design spec: skills/slides-grab-design/references/design-system-full.md
 - Art direction: skills/slides-grab-design/references/beautiful-slide-defaults.md
 - Charts/Icons: skills/slides-grab-design/references/charts-icons-library.md
@@ -65,24 +65,21 @@ Define the pack's colors and typography:
 }
 ```
 
-### Step 3: Create template HTML files
+### Step 3: Create override templates (only when needed)
 
-From the 26 types in `packs/common-types.json`, create at minimum the core templates:
+`simple_light` serves as the base — all 25 common types are covered by fallback.
+Only create a template override when the base layout does NOT work with your pack's theme.css.
 
-**Required (8):**
-1. `cover.html` — title slide
-2. `contents.html` — table of contents
-3. `section-divider.html` — section break
-4. `content.html` — general content
-5. `split-layout.html` — image + text split
-6. `statistics.html` — stats / data
-7. `quote.html` — quotation
-8. `closing.html` — closing slide
+**When to create an override:**
+- The pack needs a unique HTML structure (e.g. glow effects, device mockups, glass cards)
+- The base layout breaks visually with the pack's colors/fonts
+- The pack has a distinctive visual language that CSS variables alone can't express
 
-**Recommended extras (optional):**
-- `timeline.html`, `team.html`, `chart.html`, `diagram.html`
-- `comparison.html`, `funnel.html`, `matrix.html`
-- `logo-grid.html`, `table.html`, `process.html`
+**When NOT to create an override:**
+- The base template + your theme.css looks fine
+- You only need different font sizes or colors (use theme.css variables)
+
+**Common overrides:** `cover.html`, `section-divider.html` (these tend to be most pack-specific)
 
 ### Step 4: Validate
 
@@ -207,11 +204,12 @@ Reference existing pack structure, but create a unique design language for the n
 
 ## Done Criteria
 
-- [ ] theme.css defines color + typography variables
-- [ ] At least 8 required templates created
-- [ ] All text inside semantic tags
-- [ ] Typography scale is consistent across templates
+- [ ] theme.css defines all standard variables (colors + --font-sans + typography scale)
+- [ ] Override templates created only where base layout is insufficient
+- [ ] All text inside semantic tags (in override templates)
+- [ ] Typography scale values suit the pack's character
 - [ ] `slides-grab show-pack <PACK_ID>` shows correct info
+- [ ] Base template fallback works: `slides-grab show-template content --pack <PACK_ID>` loads simple_light version
 - [ ] Validation passes
 ```
 

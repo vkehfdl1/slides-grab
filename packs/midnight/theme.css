@@ -1,9 +1,0 @@
-:root {
-  --bg-primary: #0a1628;        /* 딥 네이비 배경 */
-  --bg-secondary: #0f1f38;      /* 카드/영역 배경 */
-  --bg-elevated: #152240;       /* 강조 영역 */
-  --text-primary: #e8edf5;      /* 메인 텍스트 */
-  --text-secondary: #8899b0;    /* 보조 텍스트 */
-  --accent: #c9a96e;            /* 강조색 (골드) */
-  --border: rgba(136, 153, 176, 0.12); /* 테두리 */
-}

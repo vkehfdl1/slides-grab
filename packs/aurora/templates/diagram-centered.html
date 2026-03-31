@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .layout {
+      position: absolute;
+      left: 30pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 34pt;
+      display: grid;
+      grid-template-columns: 0.78fr 0.84fr 0.76fr;
+      gap: 22pt;
+      align-items: start;
+    }
+    .intro {
+      padding-top: 10pt;
+    }
+    .intro h2 {
+      margin: 0 0 6pt 0;
+      font-size: 18pt;
+      font-weight: 650;
+      letter-spacing: -0.045em;
+      line-height: 1;
+      color: var(--text-primary);
+      white-space: pre-line;
+    }
+    .intro p {
+      margin: 0;
+      font-size: 16.5pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.08;
+      color: var(--text-secondary);
+      white-space: pre-line;
+    }
+    .stage {
+      display: flex;
+      justify-content: center;
+      padding-top: 6pt;
+    }
+    .feature-stack {
+      padding-top: 42pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="layout">
+      <section class="intro">
+        <h2 data-slot="title">Social logins</h2>
+        <p data-slot="subtitle">Concept A</p>
+      </section>
+      <section class="stage">
+        <div class="device-frame">
+          <div class="device-screen" data-image-placeholder data-slot="image"></div>
+        </div>
+      </section>
+      <section class="feature-stack">
+        <div class="feature">
+          <h3 data-slot="label-1">Feature 1</h3>
+          <p data-slot="body-1">Describe feature</p>
+        </div>
+        <div class="feature">
+          <h3 data-slot="label-2">Feature 2</h3>
+          <p data-slot="body-2">Describe feature</p>
+        </div>
+        <div class="feature">
+          <h3 data-slot="label-3">Feature 3</h3>
+          <p data-slot="body-3">Describe feature</p>
+        </div>
+      </section>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Concept 1</p>
+      </div>
+      <p class="page-number" data-slot="page">15</p>
+    </div>
+  </div>
+</body>
+</html>

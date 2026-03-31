@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: grid;
+      grid-template-columns: 0.68fr 1.32fr;
+      gap: 28pt;
+      align-items: start;
+    }
+    .copy {
+      padding-top: 12pt;
+    }
+    .copy h2 {
+      margin: 0 0 12pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      max-width: 200pt;
+      white-space: pre-line;
+    }
+    .copy p {
+      margin: 0;
+      font-size: 17pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      max-width: 200pt;
+      white-space: pre-line;
+    }
+    .funnel-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6pt;
+      padding-top: 18pt;
+    }
+    .funnel-step {
+      height: 46pt;
+      border-radius: 6pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .funnel-step p {
+      margin: 0;
+      font-size: 10pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-primary);
+    }
+    .funnel-step-1 { width: 100%; background: rgba(17, 17, 17, 0.10); }
+    .funnel-step-2 { width: 84%;  background: rgba(17, 17, 17, 0.08); }
+    .funnel-step-3 { width: 68%;  background: rgba(17, 17, 17, 0.065); }
+    .funnel-step-4 { width: 52%;  background: rgba(17, 17, 17, 0.05); }
+    .funnel-step-5 { width: 36%;  background: rgba(17, 17, 17, 0.04); }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="layout">
+      <section class="copy">
+        <h2 data-slot="title">Conversion funnel</h2>
+        <p data-slot="body">Drop-off analysis across the core signup flow.</p>
+      </section>
+      <section class="funnel-area">
+        <div class="funnel-step funnel-step-1">
+          <p data-slot="step-1">Awareness — 100%</p>
+        </div>
+        <div class="funnel-step funnel-step-2">
+          <p data-slot="step-2">Interest — 72%</p>
+        </div>
+        <div class="funnel-step funnel-step-3">
+          <p data-slot="step-3">Consideration — 48%</p>
+        </div>
+        <div class="funnel-step funnel-step-4">
+          <p data-slot="step-4">Intent — 31%</p>
+        </div>
+        <div class="funnel-step funnel-step-5">
+          <p data-slot="step-5">Conversion — 18%</p>
+        </div>
+      </section>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Funnel</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

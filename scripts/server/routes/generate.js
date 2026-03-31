@@ -175,7 +175,7 @@ async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPac
 
   const outlinePackMatch = outlineContent.match(/^-\s*pack:\s*(.+)/im);
   const genPackId = normalizePackId(reqGenPackId) || normalizePackId(outlinePackMatch?.[1]);
-  const packTemplateList = genPackId ? listPackTemplates(genPackId) : [];
+  const packTemplateList = genPackId ? listPackTemplates(genPackId, { includeFallback: true }) : [];
 
   const promptLines = [
     `작업 디렉토리: ${slidesDir}`,
@@ -197,7 +197,7 @@ async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPac
 function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId) {
   const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim() ? slideCountRange.trim() : '8~12';
   const genPackId = normalizePackId(reqGenPackId);
-  const packTemplateList = genPackId ? listPackTemplates(genPackId) : [];
+  const packTemplateList = genPackId ? listPackTemplates(genPackId, { includeFallback: true }) : [];
   const hasDeckDir = !!slidesDir;
 
   const promptLines = [`주제: ${(topic || '').trim()}`];

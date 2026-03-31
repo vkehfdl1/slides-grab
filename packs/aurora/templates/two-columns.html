@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .two-col-layout {
+      position: absolute;
+      left: 32pt;
+      right: 36pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .two-col-layout h2 {
+      margin: 0 0 20pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      white-space: pre-line;
+    }
+    .two-col-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      column-gap: 28pt;
+      row-gap: 18pt;
+    }
+    .col-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4pt;
+      padding-bottom: 14pt;
+      border-bottom: 0.8pt solid var(--light-line);
+    }
+    .col-item-label {
+      margin: 0;
+      font-size: 10pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-primary);
+    }
+    .col-item-body {
+      margin: 0;
+      font-size: 11pt;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: #4f4f4d;
+      max-width: 280pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="two-col-layout">
+      <h2 data-slot="title">Strategic priorities</h2>
+      <div class="two-col-grid">
+        <div class="col-item">
+          <p class="col-item-label" data-slot="label-1">User acquisition</p>
+          <p class="col-item-body" data-slot="body-1">Expand organic channels and optimize referral program to lower CAC by 20%.</p>
+        </div>
+        <div class="col-item">
+          <p class="col-item-label" data-slot="label-2">Product quality</p>
+          <p class="col-item-body" data-slot="body-2">Reduce crash rate below 0.1% and achieve 99.9% uptime across all services.</p>
+        </div>
+        <div class="col-item">
+          <p class="col-item-label" data-slot="label-3">Engagement</p>
+          <p class="col-item-body" data-slot="body-3">Increase DAU/MAU ratio to 45% through personalized content and notifications.</p>
+        </div>
+        <div class="col-item">
+          <p class="col-item-label" data-slot="label-4">Monetization</p>
+          <p class="col-item-body" data-slot="body-4">Launch premium tier and in-app purchases targeting 8% conversion rate.</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Priorities</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: grid;
+      grid-template-columns: 0.62fr 1.38fr;
+      gap: 26pt;
+      align-items: start;
+    }
+    .copy {
+      padding-top: 12pt;
+    }
+    .copy h2 {
+      margin: 0 0 12pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      max-width: 180pt;
+      white-space: pre-line;
+    }
+    .copy p {
+      margin: 0;
+      font-size: 17pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      max-width: 180pt;
+      white-space: pre-line;
+    }
+    .matrix-area {
+      position: relative;
+      padding-left: 22pt;
+      padding-bottom: 18pt;
+      height: 280pt;
+    }
+    .matrix-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 6pt;
+      height: 100%;
+    }
+    .matrix-cell {
+      background: var(--placeholder);
+      border-radius: 8pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .matrix-cell p {
+      margin: 0;
+      font-size: 10pt;
+      font-weight: 500;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-primary);
+      text-align: center;
+    }
+    .axis-y {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%) rotate(-90deg);
+      transform-origin: center center;
+      margin: 0;
+      font-size: 9pt;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: #4f4f4d;
+      white-space: nowrap;
+    }
+    .axis-x {
+      position: absolute;
+      bottom: 0;
+      left: 22pt;
+      right: 0;
+      text-align: center;
+      margin: 0;
+      font-size: 9pt;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      color: #4f4f4d;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="layout">
+      <section class="copy">
+        <h2 data-slot="title">Priority matrix</h2>
+        <p data-slot="body">Mapping features by impact and effort to guide roadmap decisions.</p>
+      </section>
+      <section class="matrix-area">
+        <p class="axis-y" data-slot="axis-y">Impact &#8594;</p>
+        <div class="matrix-grid">
+          <div class="matrix-cell">
+            <p data-slot="cell-1">Quick wins</p>
+          </div>
+          <div class="matrix-cell">
+            <p data-slot="cell-2">Major projects</p>
+          </div>
+          <div class="matrix-cell">
+            <p data-slot="cell-3">Fill-ins</p>
+          </div>
+          <div class="matrix-cell">
+            <p data-slot="cell-4">Thankless tasks</p>
+          </div>
+        </div>
+        <p class="axis-x" data-slot="axis-x">Effort &#8594;</p>
+      </section>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Matrix</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

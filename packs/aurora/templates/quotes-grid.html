@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .quotes-layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9pt;
+      align-content: center;
+    }
+    .quote-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10pt;
+      padding: 18pt 12pt 14pt 12pt;
+      background: var(--placeholder);
+      border-radius: 8pt;
+    }
+    .quote-card-avatar {
+      width: 32pt;
+      height: 32pt;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      flex-shrink: 0;
+    }
+    .quote-card-text {
+      margin: 0;
+      font-size: 14pt;
+      font-weight: 400;
+      letter-spacing: -0.035em;
+      line-height: 1.18;
+      color: var(--text-primary);
+      white-space: pre-line;
+    }
+    .quote-card-author {
+      margin: 0;
+      font-size: 11pt;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: #4f4f4d;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="quotes-layout">
+      <article class="quote-card">
+        <div class="quote-card-avatar" data-image-placeholder data-slot="avatar-1"></div>
+        <p class="quote-card-text" data-slot="quote-1">"The new flow cut our drop-off rate in half."</p>
+        <p class="quote-card-author" data-slot="author-1">Alex Kim, Engineering</p>
+      </article>
+      <article class="quote-card">
+        <div class="quote-card-avatar" data-image-placeholder data-slot="avatar-2"></div>
+        <p class="quote-card-text" data-slot="quote-2">"Users finally understand what to do next."</p>
+        <p class="quote-card-author" data-slot="author-2">Sara Chen, Design</p>
+      </article>
+      <article class="quote-card">
+        <div class="quote-card-avatar" data-image-placeholder data-slot="avatar-3"></div>
+        <p class="quote-card-text" data-slot="quote-3">"Support tickets dropped by 40% this quarter."</p>
+        <p class="quote-card-author" data-slot="author-3">Mike Park, Support</p>
+      </article>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Quotes</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

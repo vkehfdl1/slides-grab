@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .stats-layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .stats-header {
+      margin-bottom: 28pt;
+    }
+    .stats-header h2 {
+      margin: 0 0 10pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      white-space: pre-line;
+    }
+    .stats-header p {
+      margin: 0;
+      font-size: 17pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      max-width: 420pt;
+      white-space: pre-line;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 9pt;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6pt;
+      padding: 16pt 14pt;
+      background: var(--placeholder);
+      border-radius: 8pt;
+    }
+    .stat-value {
+      margin: 0;
+      font-size: 36pt;
+      font-weight: 800;
+      letter-spacing: -0.06em;
+      line-height: 0.9;
+      color: var(--text-primary);
+    }
+    .stat-label {
+      margin: 0;
+      font-size: 10pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="stats-layout">
+      <div class="stats-header">
+        <h2 data-slot="title">Performance overview</h2>
+        <p data-slot="body">Quarter-over-quarter results across core product metrics.</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <p class="stat-value" data-slot="value-1">2.4M</p>
+          <p class="stat-label" data-slot="label-1">Monthly active users</p>
+        </div>
+        <div class="stat-item">
+          <p class="stat-value" data-slot="value-2">+38%</p>
+          <p class="stat-label" data-slot="label-2">Engagement rate</p>
+        </div>
+        <div class="stat-item">
+          <p class="stat-value" data-slot="value-3">4.8</p>
+          <p class="stat-label" data-slot="label-3">App store rating</p>
+        </div>
+        <div class="stat-item">
+          <p class="stat-value" data-slot="value-4">12s</p>
+          <p class="stat-label" data-slot="label-4">Avg. load time</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Statistics</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

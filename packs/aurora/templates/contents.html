@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .agenda-grid {
+      position: absolute;
+      left: 30pt;
+      top: 22pt;
+      right: 36pt;
+      bottom: 34pt;
+      display: grid;
+      grid-template-columns: 1.03fr 1.17fr;
+      column-gap: 28pt;
+    }
+    .agenda-title {
+      margin: 0;
+      font-size: 46pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.94;
+      color: var(--text-primary);
+    }
+    .agenda-groups {
+      display: flex;
+      flex-direction: column;
+      gap: 12pt;
+      padding-top: 4pt;
+    }
+    .agenda-group {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 7pt;
+      column-gap: 12pt;
+      padding-bottom: 10pt;
+      border-bottom: 0.8pt solid var(--light-line);
+    }
+    .agenda-group-title,
+    .agenda-group-part,
+    .agenda-item,
+    .agenda-page {
+      margin: 0;
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+    .agenda-group-title {
+      font-size: 14pt;
+      font-weight: 650;
+      color: var(--text-primary);
+    }
+    .agenda-group-part {
+      font-size: 14pt;
+      font-weight: 400;
+      color: #5d5d5a;
+      text-align: right;
+    }
+    .agenda-item {
+      font-size: 11.2pt;
+      font-weight: 400;
+      color: #595957;
+      padding-top: 3pt;
+    }
+    .agenda-page {
+      font-size: 11.2pt;
+      font-weight: 400;
+      color: #595957;
+      text-align: right;
+      padding-top: 3pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="agenda-grid">
+      <section>
+        <h1 class="agenda-title" data-slot="title">Agenda</h1>
+      </section>
+      <section class="agenda-groups">
+        <div class="agenda-group">
+          <p class="agenda-group-title" data-slot="group-title-1">Goals</p>
+          <p class="agenda-group-part" data-slot="group-part-1">Part 1</p>
+          <p class="agenda-item" data-slot="item-1">Vision for the Mobile roadmap</p>
+          <p class="agenda-page" data-slot="page-1">04</p>
+          <p class="agenda-item" data-slot="item-2">Goals for the quarter</p>
+          <p class="agenda-page" data-slot="page-2">05</p>
+        </div>
+        <div class="agenda-group">
+          <p class="agenda-group-title" data-slot="group-title-2">Mobile strategy</p>
+          <p class="agenda-group-part" data-slot="group-part-2">Part 2</p>
+          <p class="agenda-item" data-slot="item-3">Research insights</p>
+          <p class="agenda-page" data-slot="page-3">07</p>
+          <p class="agenda-item" data-slot="item-4">How we’ll win</p>
+          <p class="agenda-page" data-slot="page-4">09</p>
+        </div>
+        <div class="agenda-group">
+          <p class="agenda-group-title" data-slot="group-title-3">Design concepts</p>
+          <p class="agenda-group-part" data-slot="group-part-3">Part 3</p>
+          <p class="agenda-item" data-slot="item-5">Seamless sign up</p>
+          <p class="agenda-page" data-slot="page-5">13</p>
+          <p class="agenda-item" data-slot="item-6">Design quality</p>
+          <p class="agenda-page" data-slot="page-6">16</p>
+        </div>
+        <div class="agenda-group">
+          <p class="agenda-group-title" data-slot="group-title-4">Q&amp;A</p>
+          <p class="agenda-group-part" data-slot="group-part-4">Part 4</p>
+        </div>
+      </section>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Agenda</p>
+      </div>
+      <p class="page-number" data-slot="page-footer">2</p>
+    </div>
+  </div>
+</body>
+</html>

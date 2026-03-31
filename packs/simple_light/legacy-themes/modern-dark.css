@@ -1,9 +1,0 @@
-:root {
-  --bg-primary: #0f0f0f;      /* 순수 다크 */
-  --bg-secondary: #1a1a1a;    /* 카드 배경 */
-  --bg-elevated: #252525;     /* 강조 영역 */
-  --text-primary: #ffffff;    /* 메인 텍스트 */
-  --text-secondary: #b0b0b0;  /* 보조 텍스트 */
-  --accent: #ffffff;          /* 강조 (화이트) */
-  --border: #333333;          /* 테두리 */
-}

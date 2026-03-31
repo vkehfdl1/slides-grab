@@ -1,71 +1,21 @@
 :root {
-  --bg-primary: #020202;
-  --bg-secondary: #0a0a0a;
-  --bg-elevated: #111111;
-  --bg-card: rgba(255, 255, 255, 0.16);
-  --bg-card-soft: rgba(255, 255, 255, 0.08);
-  --bg-card-strong: rgba(255, 255, 255, 0.24);
-  --text-primary: #f5f5f5;
-  --text-secondary: rgba(255, 255, 255, 0.72);
-  --text-tertiary: rgba(255, 255, 255, 0.52);
-  --accent: #ffffff;
-  --accent-secondary: rgba(255, 255, 255, 0.28);
-  --border: rgba(255, 255, 255, 0.14);
-  --line: rgba(255, 255, 255, 0.45);
-  --shadow-soft: 0 14px 42px rgba(0, 0, 0, 0.3);
-  --shadow-device: 0 18px 48px rgba(0, 0, 0, 0.45);
-  --radius-sm: 10px;
-  --radius-md: 18px;
-  --radius-lg: 28px;
-  --slide-w: 720pt;
-  --slide-h: 405pt;
-  --pad-x: 44pt;
-  --pad-y: 34pt;
-  --title-xl: 64pt;
-  --title-lg: 32pt;
-  --title-md: 20pt;
-  --title-sm: 16pt;
-  --body-lg: 16pt;
-  --body-md: 15pt;
-  --body-sm: 11pt;
-  --caption: 10pt;
-  --leading-tight: 1.0;
-  --leading-title: 1.2;
-  --leading-body: 1.6;
-  /* Typography scale aliases */
-  --title-hero: var(--title-xl);
+  --bg-primary: #000000;      /* 순흑 배경 */
+  --bg-secondary: #111111;    /* 카드/영역 배경 */
+  --bg-elevated: #1a1a1a;     /* 강조 영역 */
+  --text-primary: #ffffff;    /* 메인 텍스트 (순수 화이트) */
+  --text-secondary: #999999;  /* 보조 텍스트 */
+  --accent: #ffffff;          /* 강조색 (화이트) */
+  --border: #333333;          /* 테두리 */
+
+  /* Font */
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+
+  /* Typography scale */
+  --title-hero: 64pt;
   --title-section: 44pt;
-  --title-slide: var(--title-lg);
-  --text-subtitle: var(--title-md);
-  --text-body: var(--body-md);
-  --text-caption: var(--body-sm);
-  --text-label: var(--caption);
-}
-
-:root[data-theme="light"] {
-  --bg-primary: #f7f7f8;
-  --bg-secondary: #ececf0;
-  --bg-elevated: #ffffff;
-  --bg-card: rgba(15, 15, 20, 0.08);
-  --bg-card-soft: rgba(15, 15, 20, 0.04);
-  --bg-card-strong: rgba(15, 15, 20, 0.12);
-  --text-primary: #121212;
-  --text-secondary: rgba(18, 18, 18, 0.76);
-  --text-tertiary: rgba(18, 18, 18, 0.54);
-  --accent: #111111;
-  --accent-secondary: rgba(15, 15, 20, 0.18);
-  --border: rgba(15, 15, 20, 0.12);
-  --line: rgba(15, 15, 20, 0.4);
-}
-
-:root[data-variation="hero"] {
-  --hero-glow-1: radial-gradient(circle at 18% 26%, rgba(255, 255, 255, 0.07), transparent 28%);
-  --hero-glow-2: radial-gradient(circle at 78% 20%, rgba(255, 255, 255, 0.04), transparent 24%);
-  --hero-glow-3: radial-gradient(circle at 48% 78%, rgba(255, 255, 255, 0.03), transparent 32%);
-}
-
-:root[data-variation="section"] {
-  --hero-glow-1: radial-gradient(circle at 50% 16%, rgba(255, 255, 255, 0.05), transparent 26%);
-  --hero-glow-2: radial-gradient(circle at 12% 80%, rgba(255, 255, 255, 0.025), transparent 22%);
-  --hero-glow-3: radial-gradient(circle at 84% 76%, rgba(255, 255, 255, 0.022), transparent 20%);
+  --title-slide: 32pt;
+  --text-subtitle: 20pt;
+  --text-body: 16pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
 }

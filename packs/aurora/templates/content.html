@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .content-layout {
+      position: absolute;
+      left: 32pt;
+      right: 36pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .content-layout h2 {
+      margin: 0 0 16pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      max-width: 480pt;
+      white-space: pre-line;
+    }
+    .content-layout p {
+      margin: 0;
+      font-size: 17pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      max-width: 520pt;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="content-layout">
+      <h2 data-slot="title">Delivering a seamless
+mobile experience</h2>
+      <p data-slot="body">Our approach focuses on reducing friction at every touchpoint. By simplifying navigation and streamlining core flows, we create an experience that feels intuitive from the first interaction.</p>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Content</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

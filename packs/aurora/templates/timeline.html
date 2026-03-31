@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .timeline-layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .timeline-layout h2 {
+      margin: 0 0 32pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      white-space: pre-line;
+    }
+    .timeline-track {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8pt;
+      padding-top: 20pt;
+    }
+    .timeline-track::before {
+      content: "";
+      position: absolute;
+      top: 6pt;
+      left: 0;
+      right: 0;
+      height: 0.8pt;
+      background: var(--light-line);
+    }
+    .timeline-milestone {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6pt;
+      position: relative;
+    }
+    .timeline-dot {
+      width: 7pt;
+      height: 7pt;
+      border-radius: 50%;
+      background: var(--text-primary);
+      position: absolute;
+      top: -17pt;
+      left: 0;
+    }
+    .timeline-date {
+      margin: 0;
+      font-size: 10pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-primary);
+    }
+    .timeline-desc {
+      margin: 0;
+      font-size: 11pt;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: #4f4f4d;
+      max-width: 110pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="timeline-layout">
+      <h2 data-slot="title">Project roadmap</h2>
+      <div class="timeline-track">
+        <div class="timeline-milestone">
+          <div class="timeline-dot"></div>
+          <p class="timeline-date" data-slot="date-1">Q1 2026</p>
+          <p class="timeline-desc" data-slot="desc-1">Research and discovery phase</p>
+        </div>
+        <div class="timeline-milestone">
+          <div class="timeline-dot"></div>
+          <p class="timeline-date" data-slot="date-2">Q2 2026</p>
+          <p class="timeline-desc" data-slot="desc-2">Design prototyping and user testing</p>
+        </div>
+        <div class="timeline-milestone">
+          <div class="timeline-dot"></div>
+          <p class="timeline-date" data-slot="date-3">Q3 2026</p>
+          <p class="timeline-desc" data-slot="desc-3">Development sprint and beta launch</p>
+        </div>
+        <div class="timeline-milestone">
+          <div class="timeline-dot"></div>
+          <p class="timeline-date" data-slot="date-4">Q4 2026</p>
+          <p class="timeline-desc" data-slot="desc-4">Public release and marketing push</p>
+        </div>
+        <div class="timeline-milestone">
+          <div class="timeline-dot"></div>
+          <p class="timeline-date" data-slot="date-5">Q1 2027</p>
+          <p class="timeline-desc" data-slot="desc-5">Iteration based on user feedback</p>
+        </div>
+      </div>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Timeline</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

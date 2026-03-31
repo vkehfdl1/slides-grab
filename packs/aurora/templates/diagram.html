@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .layout {
+      position: absolute;
+      left: 32pt;
+      right: 30pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: grid;
+      grid-template-columns: 0.74fr 1.26fr;
+      gap: 26pt;
+      align-items: start;
+    }
+    .copy {
+      padding-top: 12pt;
+    }
+    .copy h2 {
+      margin: 0 0 12pt 0;
+      font-size: 23pt;
+      font-weight: 650;
+      letter-spacing: -0.055em;
+      line-height: 0.98;
+      color: var(--text-primary);
+      max-width: 220pt;
+      white-space: pre-line;
+    }
+    .copy p {
+      margin: 0;
+      font-size: 17pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      max-width: 230pt;
+      white-space: pre-line;
+    }
+    .cluster {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(2, 1fr);
+      gap: 6pt;
+      height: 250pt;
+      margin-top: 10pt;
+    }
+    .cluster .hero-card {
+      grid-row: 1 / span 2;
+      background: var(--placeholder);
+      border-radius: 8pt;
+    }
+    .cluster .small-card {
+      background: var(--placeholder);
+      border-radius: 8pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="layout">
+      <section class="copy">
+        <h2 data-slot="title">Prioritize account sign up</h2>
+        <p data-slot="body">Gain access to personalized recommendations and a smooth browsing experience by fixing account creation issues.</p>
+      </section>
+      <section class="cluster">
+        <div class="hero-card" data-image-placeholder data-slot="image-1"></div>
+        <div class="small-card" data-image-placeholder data-slot="image-2"></div>
+        <div class="small-card" data-image-placeholder data-slot="image-3"></div>
+      </section>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">How we’ll win</p>
+      </div>
+      <p class="page-number" data-slot="page">10</p>
+    </div>
+  </div>
+</body>
+</html>

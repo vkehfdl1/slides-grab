@@ -329,6 +329,7 @@ program
       return;
     }
     const ownTemplates = listPackTemplates(id);
+    const effectiveTemplates = listPackTemplates(id, { includeFallback: true });
     const commonTypes = getCommonTypes();
     const allTypeNames = Object.keys(commonTypes);
 
@@ -337,14 +338,15 @@ program
     for (const [key, val] of Object.entries(info.colors)) {
       console.log(`  --${key}: ${val}`);
     }
-    console.log(`\nOwn templates (${ownTemplates.length}):`);
-    for (const t of ownTemplates) {
+    console.log(`\nAvailable templates (${effectiveTemplates.length}):`);
+    for (const t of effectiveTemplates) {
       const desc = commonTypes[t] || '';
-      console.log(`  ${t.padEnd(20)} ${desc ? `— ${desc}` : ''}`);
+      const source = ownTemplates.includes(t) ? '' : ' (base)';
+      console.log(`  ${t.padEnd(20)} ${desc ? `— ${desc}` : ''}${source}`);
     }
-    const missing = allTypeNames.filter(t => !ownTemplates.includes(t));
+    const missing = allTypeNames.filter(t => !effectiveTemplates.includes(t));
     if (missing.length > 0) {
-      console.log(`\nNot in pack — AI generates from theme.css (${missing.length}):`);
+      console.log(`\nNot available — AI generates from theme.css (${missing.length}):`);
       for (const t of missing) {
         console.log(`  ${t}`);
       }

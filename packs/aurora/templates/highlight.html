@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .highlight-layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .highlight-label {
+      margin: 0 0 14pt 0;
+      font-size: 10pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: var(--text-primary);
+      text-transform: uppercase;
+    }
+    .highlight-statement {
+      margin: 0;
+      font-size: 20pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.2;
+      color: var(--text-primary);
+      max-width: 480pt;
+      white-space: pre-line;
+    }
+    .highlight-support {
+      margin: 0;
+      margin-top: 14pt;
+      font-size: 11pt;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: #4f4f4d;
+      max-width: 380pt;
+      white-space: pre-line;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="highlight-layout">
+      <p class="highlight-label" data-slot="label">Key insight</p>
+      <p class="highlight-statement" data-slot="statement">Users who complete onboarding within the first session
+are 3x more likely to become weekly active users</p>
+      <p class="highlight-support" data-slot="support">Based on cohort analysis of 12,000 new users across Q2 and Q3. Early engagement is the strongest predictor of long-term retention.</p>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Highlight</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

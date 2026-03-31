@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .quote-layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .quote-avatar {
+      width: 38pt;
+      height: 38pt;
+      border-radius: 50%;
+      background: var(--placeholder);
+      margin-bottom: 16pt;
+    }
+    .quote-text {
+      margin: 0;
+      font-size: 20pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.2;
+      color: var(--text-primary);
+      max-width: 460pt;
+      white-space: pre-line;
+    }
+    .quote-author {
+      margin: 0;
+      margin-top: 16pt;
+      font-size: 11pt;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: #4f4f4d;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="quote-layout">
+      <div class="quote-avatar" data-image-placeholder data-slot="avatar"></div>
+      <p class="quote-text" data-slot="quote">"The best products don't just solve problems —
+they make people feel understood."</p>
+      <p class="quote-author" data-slot="author">Jane Doe, VP of Product</p>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Quote</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>

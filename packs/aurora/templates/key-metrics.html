@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .overview {
+      position: absolute;
+      left: 28pt;
+      right: 28pt;
+      top: 18pt;
+      bottom: 34pt;
+      display: grid;
+      grid-template-columns: 1.08fr 1.12fr;
+      gap: 9pt;
+    }
+    .left,
+    .right {
+      display: grid;
+      gap: 9pt;
+    }
+    .left {
+      grid-template-rows: 92pt 1fr;
+    }
+    .left-top {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 9pt;
+    }
+    .module-card {
+      min-height: 0;
+    }
+    .text-card {
+      background: var(--placeholder);
+      border-radius: 8pt;
+      padding: 16pt 16pt 14pt 16pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      gap: 10pt;
+    }
+    .text-card p {
+      margin: 0;
+    }
+    .text-card .text-title {
+      font-size: 10pt;
+      font-weight: 650;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      line-height: 1.02;
+    }
+    .text-card .text-body {
+      font-size: 11pt;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: #4f4f4d;
+      max-width: 240pt;
+    }
+    .right {
+      grid-template-columns: 0.84fr 0.84fr;
+      grid-template-rows: 152pt 84pt;
+    }
+    .right-large {
+      grid-row: 1 / span 1;
+    }
+    .right-stack {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 9pt;
+    }
+    .metric {
+      grid-column: 1 / span 2;
+      background: var(--placeholder);
+      border-radius: 8pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .metric p {
+      margin: 0;
+      font-size: 44pt;
+      font-weight: 700;
+      letter-spacing: -0.06em;
+      line-height: 0.9;
+      color: var(--text-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="overview">
+      <section class="left">
+        <div class="left-top">
+          <div class="module-card">
+            <p data-slot="module-title-1">Module title</p>
+          </div>
+          <div class="module-card">
+            <p data-slot="module-title-2">Module title</p>
+          </div>
+        </div>
+        <div class="text-card">
+          <p class="text-title" data-slot="title">Overview</p>
+          <p class="text-body" data-slot="body">This layout organizes content in a visually appealing and structured manner for easy information digestion. Each section focuses on specific information, ensuring clarity.</p>
+        </div>
+      </section>
+      <section class="right">
+        <div class="module-card right-large">
+          <p data-slot="module-title-3">Module title</p>
+        </div>
+        <div class="right-stack">
+          <div class="module-card">
+            <p data-slot="module-title-4">Module title</p>
+          </div>
+          <div class="module-card">
+            <p data-slot="module-title-5">Module title</p>
+          </div>
+        </div>
+        <div class="metric">
+          <p data-slot="metric">123</p>
+        </div>
+      </section>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Overview</p>
+      </div>
+      <p class="page-number" data-slot="page">19</p>
+    </div>
+  </div>
+</body>
+</html>

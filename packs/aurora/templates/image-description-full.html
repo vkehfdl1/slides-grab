@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .frame {
+      position: absolute;
+      left: 18pt;
+      right: 18pt;
+      top: 18pt;
+      bottom: 34pt;
+      border-radius: 8pt;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, rgba(0, 0, 0, 0.06) 50%, transparent 50%) 0 0 / 56pt 56pt,
+        linear-gradient(rgba(0, 0, 0, 0.06) 50%, transparent 50%) 0 0 / 56pt 56pt,
+        #efefef;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="frame" data-image-placeholder data-slot="image"></div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Concept 2</p>
+      </div>
+      <p class="page-number" data-slot="page">18</p>
+    </div>
+  </div>
+</body>
+</html>

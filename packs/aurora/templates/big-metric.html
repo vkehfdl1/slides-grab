@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+    .metric-layout {
+      position: absolute;
+      left: 32pt;
+      right: 34pt;
+      top: 24pt;
+      bottom: 38pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .metric-value {
+      margin: 0;
+      font-size: 72pt;
+      font-weight: 700;
+      letter-spacing: -0.06em;
+      line-height: 0.9;
+      color: var(--text-primary);
+    }
+    .metric-body {
+      margin: 0;
+      margin-top: 14pt;
+      font-size: 17pt;
+      font-weight: 400;
+      letter-spacing: -0.04em;
+      line-height: 1.14;
+      color: var(--text-secondary);
+      max-width: 340pt;
+      white-space: pre-line;
+    }
+    .metric-caption {
+      margin: 0;
+      margin-top: 18pt;
+      font-size: 11pt;
+      font-weight: 400;
+      letter-spacing: -0.03em;
+      line-height: 1.18;
+      color: #4f4f4d;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide light">
+    <div class="metric-layout">
+      <p class="metric-value" data-slot="metric">+84%</p>
+      <p class="metric-body" data-slot="body">Increase in monthly active users
+since the launch of the new onboarding flow</p>
+      <p class="metric-caption" data-slot="caption">Source: Internal analytics dashboard, Q3 report</p>
+    </div>
+    <div class="footer">
+      <div class="footer-mark"></div>
+      <div class="footer-meta">
+        <p data-slot="meta-1">Reviews / Mobile Strategy</p>
+        <p data-slot="meta-2">Product review — Month XX</p>
+        <p data-slot="meta-3">Key metric</p>
+      </div>
+      <p class="page-number" data-slot="page">00</p>
+    </div>
+  </div>
+</body>
+</html>
