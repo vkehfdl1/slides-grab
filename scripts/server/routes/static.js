@@ -108,6 +108,15 @@ export function createStaticRouter(ctx) {
     }
   });
 
+  // Serve deck assets (logo images, etc.) under /slides/assets/
+  router.use('/slides/assets', (req, res, next) => {
+    const slidesDirectory = ctx.getSlidesDir();
+    if (!slidesDirectory) return res.status(404).send('No slides directory');
+    const assetsDir = join(slidesDirectory, 'assets');
+    if (!existsSync(assetsDir)) return res.status(404).send('No assets directory');
+    express.static(assetsDir)(req, res, next);
+  });
+
   router.get('/slides/:file', async (req, res) => {
     let file;
     try {
@@ -119,7 +128,25 @@ export function createStaticRouter(ctx) {
     const slidesDirectory = ctx.getSlidesDir();
     const filePath = join(slidesDirectory, file);
     try {
-      const html = await readFile(filePath, 'utf-8');
+      let html = await readFile(filePath, 'utf-8');
+
+      // Inject logo overlay from deck.json (skip if ?nologo query param)
+      if (req.query.nologo == null) {
+        try {
+          const { loadDeckConfig, resolveLogoConfig, injectLogoIntoHtml, extractSlideIndex } = await import('../../../src/logo.js');
+          const deckConfig = await loadDeckConfig(slidesDirectory);
+          const logoConfig = resolveLogoConfig(deckConfig, slidesDirectory);
+          if (logoConfig) {
+            const slideIndex = extractSlideIndex(file);
+            html = injectLogoIntoHtml(html, logoConfig, slideIndex, {
+              srcOverride: `/slides/assets/${logoConfig.resolvedPath.split('/assets/').pop()}`,
+            });
+          }
+        } catch (logoErr) {
+          console.warn(`[static] Logo injection failed: ${logoErr.message}`);
+        }
+      }
+
       res.type('html').send(html);
     } catch {
       res.status(404).send(`Slide not found: ${file}`);
