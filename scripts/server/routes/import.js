@@ -1,4 +1,5 @@
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { basename, join, resolve } from 'node:path';
 
 import { CLAUDE_MODELS } from '../../../src/editor/codex-edit.js';
@@ -81,6 +82,7 @@ export function createImportRouter(ctx) {
         '3. **구성:** 섹션이 있으면 슬라이드의 시각적 내용으로 사용하세요.',
         '4. **발표 내용:** 섹션이 있으면 presenter-note로 보존하세요.',
         '5. 각 슬라이드에 가장 적합한 type을 배정하세요.',
+        '6. 구성에 시각적 스타일 힌트(배경색, 색상 지시, 레이아웃 특수 요청 등)가 있으면 `- style:` 필드로 보존하세요.',
       ],
       folderExample: '"AX 전환 발표" → ax-transformation',
     });
@@ -97,6 +99,18 @@ export function createImportRouter(ctx) {
 
     let extractedText = '';
     let sourceLabel = '';
+    let pageImages = [];
+    let visionTmpDir = '';
+
+    /** Parse a PDF result and extract vision metadata. */
+    function applyPdfVision(result, label) {
+      extractedText = result.text;
+      pageImages = result.meta.pageImages || [];
+      const renderedPages = result.meta.renderedPages || 0;
+      const totalPages = result.meta.totalPages || result.meta.pages;
+      sourceLabel = `${label} (${result.meta.pages} pages, ${renderedPages} page images)`;
+      return { renderedPages, totalPages };
+    }
 
     try {
       if (sourceType === 'pdf' || (req.is('application/pdf') && Buffer.isBuffer(req.body))) {
@@ -106,9 +120,10 @@ export function createImportRouter(ctx) {
             ? Buffer.from(req.body.pdfBase64, 'base64') : null;
         if (!buffer || buffer.length === 0) return res.status(400).json({ error: 'PDF body is empty.' });
         if (buffer.length > 10 * 1024 * 1024) return res.status(400).json({ error: 'PDF too large (max 10MB).' });
-        const result = await parseSource('upload.pdf', buffer);
-        extractedText = result.text;
-        sourceLabel = `PDF (${result.meta.pages} pages)`;
+
+        visionTmpDir = await mkdtemp(join(tmpdir(), 'slides-grab-pdf-'));
+        const result = await parseSource('upload.pdf', buffer, { vision: true, visionOutputDir: visionTmpDir });
+        applyPdfVision(result, 'PDF');
       } else if (sourceType === 'url' || sourceUrl) {
         const url = sourceUrl || (typeof req.body === 'object' ? req.body?.url : '');
         if (!url || !/^https?:\/\//i.test(url)) return res.status(400).json({ error: 'Valid URL required.' });
@@ -119,17 +134,22 @@ export function createImportRouter(ctx) {
         const filePath = typeof req.body === 'object' ? req.body?.filePath : '';
         if (!filePath) return res.status(400).json({ error: 'filePath required for pdf-path type.' });
         const absPath = resolve(process.cwd(), filePath.trim());
-        const result = await parseSource(absPath);
-        extractedText = result.text;
-        sourceLabel = `PDF file (${result.meta.pages} pages)`;
+
+        visionTmpDir = await mkdtemp(join(tmpdir(), 'slides-grab-pdf-'));
+        const result = await parseSource(absPath, null, { vision: true, visionOutputDir: visionTmpDir });
+        applyPdfVision(result, 'PDF file');
       } else {
         return res.status(400).json({ error: 'Specify sourceType (pdf, url, pdf-path) or upload a PDF.' });
       }
     } catch (err) {
+      if (visionTmpDir) await rm(visionTmpDir, { recursive: true, force: true }).catch(() => {});
       return res.status(400).json({ error: `Source parsing failed: ${err.message}` });
     }
 
-    if (!extractedText.trim()) return res.status(400).json({ error: 'Extracted text is empty — the source may not contain readable content.' });
+    if (!extractedText.trim()) {
+      if (visionTmpDir) await rm(visionTmpDir, { recursive: true, force: true }).catch(() => {});
+      return res.status(400).json({ error: 'Extracted text is empty — the source may not contain readable content.' });
+    }
     if (extractedText.length > 400_000) extractedText = extractedText.slice(0, 400_000) + '\n\n[… 원문 일부 생략됨]';
 
     const reqBody = typeof req.body === 'object' && !Buffer.isBuffer(req.body) ? req.body : {};
@@ -143,22 +163,38 @@ export function createImportRouter(ctx) {
     broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'plan', step: `Extracted text from ${sourceLabel}` });
     res.json({ runId, topic: `(Doc Import: ${sourceLabel})`, model, sourceLabel });
 
+    const preambleLines = [
+      '아래 문서 내용을 분석하여 프레젠테이션 아웃라인으로 변환하세요.',
+      '', `원본 소스: ${sourceLabel}`, '',
+    ];
+
+    if (pageImages.length > 0) {
+      preambleLines.push(
+        `이 PDF의 ${pageImages.length}개 페이지 이미지가 첨부되어 있습니다.`,
+        '이미지를 통해 차트, 다이어그램, 표, 이미지 등 시각적 요소를 파악하세요.',
+        '텍스트 추출 결과와 이미지를 함께 참고하여 가장 정확한 아웃라인을 작성하세요.',
+        '',
+      );
+    }
+
+    preambleLines.push(
+      '--- 원본 내용 ---', extractedText, '--- 원본 내용 끝 ---', '',
+      '분석 규칙:',
+      '1. 문서의 핵심 내용과 구조를 파악하세요.',
+      '2. 내용을 논리적 단위로 나누어 슬라이드를 구성하세요.',
+      '3. 숫자, 데이터, 인사이트를 우선 추출하세요.',
+      '4. 각 슬라이드에 가장 적합한 type을 배정하세요.',
+      '5. 원본의 핵심 메시지를 보존하되 발표에 적합하게 요약하세요.',
+    );
+
     runImportPlan(ctx, {
       runId, model, reqPackId: reqBody.packId,
       slideCount: typeof reqBody.slideCount === 'string' ? reqBody.slideCount.trim() : '',
       useResearch: reqBody.researchMode === 'research',
-      preambleLines: [
-        '아래 문서 내용을 분석하여 프레젠테이션 아웃라인으로 변환하세요.',
-        '', `원본 소스: ${sourceLabel}`, '',
-        '--- 원본 내용 ---', extractedText, '--- 원본 내용 끝 ---', '',
-        '분석 규칙:',
-        '1. 문서의 핵심 내용과 구조를 파악하세요.',
-        '2. 내용을 논리적 단위로 나누어 슬라이드를 구성하세요.',
-        '3. 숫자, 데이터, 인사이트를 우선 추출하세요.',
-        '4. 각 슬라이드에 가장 적합한 type을 배정하세요.',
-        '5. 원본의 핵심 메시지를 보존하되 발표에 적합하게 요약하세요.',
-      ],
+      preambleLines,
       folderExample: '"AI 도입 보고서" → ai-adoption-report',
+      imagePaths: pageImages.length > 0 ? pageImages : null,
+      visionTmpDir,
     });
   });
 
@@ -167,7 +203,7 @@ export function createImportRouter(ctx) {
 
 // ── Shared import plan runner ───────────────────────────────────────
 
-function runImportPlan(ctx, { runId, model, reqPackId, slideCount, useResearch, preambleLines, folderExample }) {
+function runImportPlan(ctx, { runId, model, reqPackId, slideCount, useResearch, preambleLines, folderExample, imagePaths, visionTmpDir }) {
   (async () => {
     try {
       const promptLines = [...preambleLines];
@@ -194,6 +230,7 @@ function runImportPlan(ctx, { runId, model, reqPackId, slideCount, useResearch, 
       const result = await spawnClaudeEdit({
         prompt: promptLines.join('\n'),
         imagePath: null,
+        imagePaths: imagePaths || null,
         model,
         cwd: process.cwd(),
         onLog: (stream, chunk) => { broadcastSSE(ctx.sseClients, 'planLog', { runId, stream, chunk }); },
@@ -233,6 +270,9 @@ function runImportPlan(ctx, { runId, model, reqPackId, slideCount, useResearch, 
       broadcastSSE(ctx.sseClients, 'planFinished', { runId, success: false, message: err instanceof Error ? err.message : String(err), outline: null });
     } finally {
       ctx.activeGenerate = false;
+      if (visionTmpDir) {
+        await rm(visionTmpDir, { recursive: true, force: true }).catch(() => {});
+      }
     }
   })();
 }

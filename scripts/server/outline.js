@@ -21,6 +21,7 @@ export function appendOutlinePrompt(promptLines, packId, { includePresenterNote 
   promptLines.push('- type: cover');
   promptLines.push('- title: 제목');
   promptLines.push('- content: 부제 또는 설명');
+  promptLines.push('- style: dark-background (시각적 힌트가 있는 경우에만)');
   if (includePresenterNote) {
     promptLines.push('- presenter-note: 발표 내용 (있는 경우)');
   }
@@ -104,6 +105,7 @@ export function parseOutline(content, deckName) {
     const cur = {
       type: '',
       title: (slideMatch?.[1] || '').trim(),
+      style: '',
       details: [],
       rawBlock,
     };
@@ -115,9 +117,11 @@ export function parseOutline(content, deckName) {
       const plain = line.replace(/\*\*(.*?)\*\*/g, '$1');
       const tm = plain.match(/^-\s*type:\s*(.+)/i);
       const tt = plain.match(/^-\s*title:\s*(.+)/i);
+      const ts = plain.match(/^-\s*style:\s*(.+)/i);
 
       if (tm) { cur.type = tm[1].trim(); }
       else if (tt) { cur.title = tt[1].trim(); }
+      else if (ts) { cur.style = ts[1].trim(); }
       else {
         const trimmed = line.trimEnd();
         if (trimmed) cur.details.push(trimmed);
