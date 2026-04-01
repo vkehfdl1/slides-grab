@@ -75,6 +75,7 @@ export function createRethemeRouter(ctx) {
         const { prompt, outline } = await prepareRetheme({
           deckDir,
           targetPackId: targetPack,
+          targetDeckName,
         });
 
         if (targetDeckName !== deckName) {

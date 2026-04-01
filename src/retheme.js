@@ -158,14 +158,23 @@ export function buildRethemePrompt({ outline, targetPackId, deckName, themeCss, 
     '```',
     '',
     '규칙:',
-    '1. 아웃라인의 각 슬라이드를 새 팩 스타일로 HTML 파일을 생성하세요.',
-    '2. 팩에 해당 type 템플릿이 있으면 그 템플릿 스타일을 따르세요.',
-    '3. 팩에 없는 type은 theme.css의 색상으로 직접 디자인하세요.',
-    '4. 컨텐츠(텍스트, 데이터)는 아웃라인의 것을 그대로 사용하세요.',
-    '5. 슬라이드 크기: 720pt × 405pt',
-    '6. 각 슬라이드를 slide-01.html, slide-02.html, ... 형식으로 생성하세요.',
-    `7. 파일 경로: decks/${deckName}/slide-01.html 등`,
-    '8. theme.css와 base.css는 link 태그로 참조하지 말고, 스타일을 인라인으로 포함하세요.',
+    '1. 아웃라인의 각 슬라이드를 새 팩의 색상 체계와 타이포그래피로 HTML 파일을 생성하세요.',
+    '2. 팩의 템플릿은 레이아웃 참고용입니다. 콘텐츠에 맞게 자유롭게 변형하세요.',
+    '3. 아웃라인에 스타일 힌트(배경색, 레이아웃 지시 등)가 있으면 팩 기본 스타일보다 우선 적용하세요.',
+    '4. accent 색상(--accent)을 적극 활용: 섹션 라벨, 핵심 수치, 강조 문구, CTA 등.',
+    '5. 슬라이드마다 콘텐츠에 최적화된 레이아웃을 선택하세요. 같은 패턴을 반복하지 마세요.',
+    '6. 컨텐츠(텍스트, 데이터)는 아웃라인의 것을 그대로 사용하세요.',
+    '7. 슬라이드 크기: 720pt × 405pt',
+    '8. 각 슬라이드를 slide-01.html, slide-02.html, ... 형식으로 생성하세요.',
+    `9. 파일 경로: decks/${deckName}/slide-01.html 등`,
+    '10. theme.css와 base.css는 link 태그로 참조하지 말고, 스타일을 인라인으로 포함하세요.',
+    '',
+    '디자인 가이드:',
+    '- 커버/오프닝에 "어둡게" 지시가 있으면 다크 배경(#1a1a1a 등) + 흰/accent 텍스트',
+    '- 섹션 디바이더에 "PART N" 등 라벨을 accent 색상으로 추가',
+    '- 큰 숫자/메트릭은 accent 색상으로 강조',
+    '- 인용구는 출처를 accent 색상으로 표시',
+    '- 요약 슬라이드는 카드보다 번호 리스트가 더 효과적일 수 있음',
     '',
     '중요: HTML 슬라이드 파일만 생성하세요. 다른 파일은 수정하지 마세요.',
   ];
@@ -178,10 +187,11 @@ export function buildRethemePrompt({ outline, targetPackId, deckName, themeCss, 
  * @param {object} opts
  * @param {string} opts.deckDir - Absolute path to deck directory
  * @param {string} opts.targetPackId - Target pack ID
+ * @param {string} [opts.targetDeckName] - Override deck name for output path (defaults to basename of deckDir)
  * @returns {Promise<{ prompt: string, deckName: string, outline: string }>}
  */
-export async function prepareRetheme({ deckDir, targetPackId }) {
-  const deckName = basename(deckDir);
+export async function prepareRetheme({ deckDir, targetPackId, targetDeckName }) {
+  const deckName = targetDeckName || basename(deckDir);
 
   // Get pack info
   const packInfo = getPackInfo(targetPackId);
