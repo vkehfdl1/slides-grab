@@ -17,6 +17,8 @@ const html2pptx = require('../../../src/html2pptx.cjs');
  * Modes:
  *   - "image" (default): screenshot each slide as PNG → embed in PPTX (pixel-perfect)
  *   - "structured": parse HTML → recreate as PPTX elements (editable text, best-effort)
+ *
+ * Logo overlay: handled by /slides/:file route (logo is already in the rendered HTML).
  */
 export function createPptxExportRouter(ctx) {
   const { express, opts } = ctx;

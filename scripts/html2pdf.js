@@ -196,6 +196,32 @@ export function parseCliArgs(args) {
       continue;
     }
 
+    if (arg === '--logo') {
+      options.logo = readOptionValue(args, i, '--logo');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-position') {
+      options.logoPosition = readOptionValue(args, i, '--logo-position');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-width') {
+      options.logoWidth = readOptionValue(args, i, '--logo-width');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-height') {
+      options.logoHeight = readOptionValue(args, i, '--logo-height');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-exclude') {
+      options.logoExclude = readOptionValue(args, i, '--logo-exclude');
+      i += 1;
+      continue;
+    }
+
     throw new Error(`Unknown option: ${arg}`);
   }
 
@@ -526,6 +552,13 @@ export async function renderSlideToPdf(page, slideFile, slidesDir, options = {})
   const captureResolution = mode === 'capture' ? normalizeResolutionPreset(options.resolution ?? '') : '';
 
   await page.goto(slideUrl, { waitUntil: 'load' });
+
+  // Inject logo into DOM if configured
+  if (options.logoConfig && options.slideIndex != null) {
+    const { injectLogoIntoPage } = await import('../src/logo.js');
+    await injectLogoIntoPage(page, options.logoConfig, options.slideIndex);
+  }
+
   await waitForSlideRenderReady(page, options);
 
   const slideFrame = await detectSlideFrame(page);
@@ -614,6 +647,23 @@ async function main() {
     throw new Error(`No slide-*.html files found in: ${slidesDir}`);
   }
 
+  // Load logo config
+  const { loadDeckConfig, resolveLogoConfig } = await import('../src/logo.js');
+  const deckConfig = await loadDeckConfig(slidesDir);
+  const cliOverrides = options.logo ? {
+    path: options.logo,
+    position: options.logoPosition,
+    width: options.logoWidth ? parseFloat(options.logoWidth) : undefined,
+    height: options.logoHeight ? parseFloat(options.logoHeight) : undefined,
+    exclude: options.logoExclude
+      ? options.logoExclude.split(',').map(Number).filter(Number.isFinite)
+      : undefined,
+  } : undefined;
+  const logoConfig = resolveLogoConfig(deckConfig, slidesDir, cliOverrides);
+  if (logoConfig) {
+    process.stdout.write(`Logo: ${logoConfig.resolvedPath} → (${logoConfig.x.toFixed(2)}", ${logoConfig.y.toFixed(2)}")\n`);
+  }
+
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage(buildPageOptions(options.mode, options.resolution));
   const diagnostics = createSlideDiagnostics();
@@ -621,12 +671,15 @@ async function main() {
   const renderedSlides = [];
 
   try {
-    for (const slideFile of slideFiles) {
+    for (let i = 0; i < slideFiles.length; i++) {
+      const slideFile = slideFiles[i];
       diagnostics.beginSlide(slideFile);
       try {
         const slideResult = await renderSlideToPdf(page, slideFile, slidesDir, {
           mode: options.mode,
           resolution: options.resolution,
+          logoConfig,
+          slideIndex: i,
         });
         renderedSlides.push(slideResult);
       } catch (error) {

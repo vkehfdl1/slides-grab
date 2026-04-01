@@ -122,6 +122,32 @@ function parseArgs(args) {
       continue;
     }
 
+    if (arg === '--logo') {
+      options.logo = readOptionValue(args, i, '--logo');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-position') {
+      options.logoPosition = readOptionValue(args, i, '--logo-position');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-width') {
+      options.logoWidth = readOptionValue(args, i, '--logo-width');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-height') {
+      options.logoHeight = readOptionValue(args, i, '--logo-height');
+      i += 1;
+      continue;
+    }
+    if (arg === '--logo-exclude') {
+      options.logoExclude = readOptionValue(args, i, '--logo-exclude');
+      i += 1;
+      continue;
+    }
+
     throw new Error(`Unknown option: ${arg}`);
   }
 
@@ -144,6 +170,12 @@ async function convertSlide(htmlFile, pres, browser, options = {}) {
 
   const page = await browser.newPage(buildPageOptions(options.resolution));
   await page.goto(`file://${filePath}`);
+
+  // Inject logo into DOM if configured
+  if (options.logoConfig && options.slideIndex != null) {
+    const { injectLogoIntoPage } = await import('./logo.js');
+    await injectLogoIntoPage(page, options.logoConfig, options.slideIndex);
+  }
 
   const bodyDimensions = await page.evaluate(() => {
     const body = document.body;
@@ -181,7 +213,7 @@ async function convertSlide(htmlFile, pres, browser, options = {}) {
     h: '100%',
   });
 
-  return tmpPath;
+  return { tmpPath, slide };
 }
 
 async function main(argv = process.argv.slice(2)) {
@@ -201,16 +233,38 @@ async function main(argv = process.argv.slice(2)) {
     .filter((fileName) => fileName.endsWith('.html'))
     .sort();
 
+  // Load logo config
+  const { loadDeckConfig, resolveLogoConfig } = await import('./logo.js');
+  const deckConfig = await loadDeckConfig(slidesDir);
+  const cliOverrides = options.logo ? {
+    path: options.logo,
+    position: options.logoPosition,
+    width: options.logoWidth ? parseFloat(options.logoWidth) : undefined,
+    height: options.logoHeight ? parseFloat(options.logoHeight) : undefined,
+    exclude: options.logoExclude
+      ? options.logoExclude.split(',').map(Number).filter(Number.isFinite)
+      : undefined,
+  } : undefined;
+  const logoConfig = resolveLogoConfig(deckConfig, slidesDir, cliOverrides);
+  if (logoConfig) {
+    console.log(`Logo: ${logoConfig.resolvedPath} → (${logoConfig.x.toFixed(2)}", ${logoConfig.y.toFixed(2)}")`);
+  }
+
   console.log(`Converting ${files.length} slides...`);
 
   const browser = await chromium.launch();
   const tmpFiles = [];
 
-  for (const file of files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
     const filePath = path.join(slidesDir, file);
     console.log(`  Processing: ${file}`);
     try {
-      const tmpPath = await convertSlide(filePath, pres, browser, { resolution: options.resolution });
+      const { tmpPath } = await convertSlide(filePath, pres, browser, {
+        resolution: options.resolution,
+        logoConfig,
+        slideIndex: i,
+      });
       tmpFiles.push(tmpPath);
       console.log(`    ✓ ${file} done`);
     } catch (error) {

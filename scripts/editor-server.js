@@ -19,6 +19,7 @@ import { createGenerateRouter } from './server/routes/generate.js';
 import { createExportRouter } from './server/routes/export.js';
 import { createPdfFigmaRouter, setupFigmaWebSocket } from './server/routes/pdf-figma.js';
 import { createPptxExportRouter } from './server/routes/pptx-export.js';
+import { createLogoRouter } from './server/routes/logo.js';
 import { createRethemeRouter } from './server/routes/retheme.js';
 import { createEventsRouter } from './server/routes/events.js';
 
@@ -230,6 +231,9 @@ async function startServer(opts) {
   }
 
   const app = express();
+
+  // Logo router MUST be mounted before express.json() — upload route needs raw body
+  app.use(createLogoRouter(ctx));
   app.use(express.json({ limit: '5mb' }));
 
   // Mount all route modules

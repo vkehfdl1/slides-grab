@@ -81,11 +81,21 @@ program
   .description('Convert slide HTML files to PPTX')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
   .option('--output <path>', 'Output PPTX file')
+  .option('--logo <path>', 'Logo image path (one-off override)')
+  .option('--logo-position <preset>', 'Logo position preset')
+  .option('--logo-width <inches>', 'Logo width in inches')
+  .option('--logo-height <inches>', 'Logo height in inches')
+  .option('--logo-exclude <slides>', 'Comma-separated slide numbers to exclude logo')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];
     if (options.output) {
       args.push('--output', String(options.output));
     }
+    if (options.logo) args.push('--logo', options.logo);
+    if (options.logoPosition) args.push('--logo-position', options.logoPosition);
+    if (options.logoWidth) args.push('--logo-width', options.logoWidth);
+    if (options.logoHeight) args.push('--logo-height', options.logoHeight);
+    if (options.logoExclude) args.push('--logo-exclude', options.logoExclude);
     await runCommand('convert.cjs', args);
   });
 
@@ -94,11 +104,21 @@ program
   .description('Convert slide HTML files to PDF')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
   .option('--output <path>', 'Output PDF file')
+  .option('--logo <path>', 'Logo image path (one-off override)')
+  .option('--logo-position <preset>', 'Logo position preset')
+  .option('--logo-width <inches>', 'Logo width in inches')
+  .option('--logo-height <inches>', 'Logo height in inches')
+  .option('--logo-exclude <slides>', 'Comma-separated slide numbers to exclude logo')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];
     if (options.output) {
       args.push('--output', String(options.output));
     }
+    if (options.logo) args.push('--logo', options.logo);
+    if (options.logoPosition) args.push('--logo-position', options.logoPosition);
+    if (options.logoWidth) args.push('--logo-width', options.logoWidth);
+    if (options.logoHeight) args.push('--logo-height', options.logoHeight);
+    if (options.logoExclude) args.push('--logo-exclude', options.logoExclude);
     await runCommand('scripts/html2pdf.js', args);
   });
 
@@ -428,6 +448,80 @@ program
     console.log(`/* Theme: ${packId} (${result.source}) */`);
     console.log(`/* Path: ${result.path} */\n`);
     console.log(content);
+  });
+
+// --- Logo management commands ---
+
+const logoCmd = program
+  .command('logo')
+  .description('Manage company logo overlay for a deck');
+
+logoCmd
+  .command('set')
+  .description('Set logo overlay for a deck (writes to deck.json)')
+  .requiredOption('--slides-dir <path>', 'Slide directory')
+  .requiredOption('--image <path>', 'Logo image path (relative to slides-dir)')
+  .option('--position <preset>', 'Position preset: top-right, top-left, bottom-right, bottom-left', 'top-right')
+  .option('--width <inches>', 'Logo width in inches', '1.1')
+  .option('--height <inches>', 'Logo height in inches', '0.5')
+  .option('--x <inches>', 'Custom x position in inches (overrides preset)')
+  .option('--y <inches>', 'Custom y position in inches (overrides preset)')
+  .option('--exclude <slides>', 'Comma-separated slide numbers to exclude (e.g. "1,15")')
+  .action(async (options = {}) => {
+    const { writeDeckConfig } = await import('../src/logo.js');
+    const { resolve: resolvePath } = await import('node:path');
+    const slidesDir = resolvePath(process.cwd(), options.slidesDir);
+    const logo = {
+      path: options.image,
+      position: options.position,
+      width: parseFloat(options.width),
+      height: parseFloat(options.height),
+    };
+    if (options.x != null) logo.x = parseFloat(options.x);
+    if (options.y != null) logo.y = parseFloat(options.y);
+    if (options.exclude) {
+      logo.exclude = options.exclude.split(',').map(Number).filter(Number.isFinite);
+    }
+    const config = await writeDeckConfig(slidesDir, { logo });
+    console.log(`Logo configured in ${slidesDir}/deck.json:`);
+    console.log(JSON.stringify(config.logo, null, 2));
+  });
+
+logoCmd
+  .command('show')
+  .description('Show current logo config for a deck')
+  .requiredOption('--slides-dir <path>', 'Slide directory')
+  .action(async (options = {}) => {
+    const { loadDeckConfig } = await import('../src/logo.js');
+    const { resolve: resolvePath } = await import('node:path');
+    const slidesDir = resolvePath(process.cwd(), options.slidesDir);
+    const config = await loadDeckConfig(slidesDir);
+    if (!config?.logo) {
+      console.log('No logo configured for this deck.');
+      return;
+    }
+    console.log(`Logo config (${slidesDir}/deck.json):`);
+    console.log(JSON.stringify(config.logo, null, 2));
+  });
+
+logoCmd
+  .command('remove')
+  .description('Remove logo config from a deck')
+  .requiredOption('--slides-dir <path>', 'Slide directory')
+  .action(async (options = {}) => {
+    const { loadDeckConfig, writeDeckConfig } = await import('../src/logo.js');
+    const { resolve: resolvePath } = await import('node:path');
+    const slidesDir = resolvePath(process.cwd(), options.slidesDir);
+    const config = await loadDeckConfig(slidesDir);
+    if (!config?.logo) {
+      console.log('No logo configured — nothing to remove.');
+      return;
+    }
+    delete config.logo;
+    const { writeFile: writeF } = await import('node:fs/promises');
+    const { join: joinPath } = await import('node:path');
+    await writeF(joinPath(slidesDir, 'deck.json'), JSON.stringify(config, null, 2) + '\n', 'utf-8');
+    console.log('Logo config removed from deck.json.');
   });
 
 // --- Pack management commands ---
