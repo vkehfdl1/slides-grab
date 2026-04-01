@@ -1,0 +1,21 @@
+:root {
+  --bg-primary: #0f0f0f;      /* 순수 다크 */
+  --bg-secondary: #1a1a1a;    /* 카드 배경 */
+  --bg-elevated: #252525;     /* 강조 영역 */
+  --text-primary: #ffffff;    /* 메인 텍스트 */
+  --text-secondary: #b0b0b0;  /* 보조 텍스트 */
+  --accent: #ffffff;          /* 강조 (화이트) */
+  --border: #333333;          /* 테두리 */
+
+  /* Font */
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+
+  /* Typography scale */
+  --title-hero: 64pt;
+  --title-section: 44pt;
+  --title-slide: 32pt;
+  --text-subtitle: 20pt;
+  --text-body: 16pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
+}

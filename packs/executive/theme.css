@@ -1,0 +1,25 @@
+:root {
+  --bg-primary: #f5f5f0;      /* 웜 화이트 */
+  --bg-secondary: #e8e8e3;    /* 서브 배경 */
+  --bg-elevated: #dcdcd7;     /* 강조 영역 */
+  --text-primary: #1a1a1a;    /* 메인 텍스트 */
+  --text-secondary: #666666;  /* 보조 텍스트 */
+  --accent: #1a1a1a;          /* 강조 (모노크롬) */
+  --border: #d4d4d0;          /* 테두리 */
+
+  /* upstream 추가 토큰 */
+  --bg-dark: #1a1a1a;         /* 다크 배경 */
+  --text-light: #999999;      /* 약한 텍스트 */
+
+  /* Font */
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+
+  /* Typography scale */
+  --title-hero: 64pt;
+  --title-section: 44pt;
+  --title-slide: 32pt;
+  --text-subtitle: 20pt;
+  --text-body: 16pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
+}

@@ -1,0 +1,21 @@
+:root {
+  --bg-primary: #ffffff;      /* 화이트 배경 */
+  --bg-secondary: #f7f9fc;    /* 밝은 블루 그레이 */
+  --bg-elevated: #edf2f7;     /* 강조 영역 */
+  --text-primary: #1e2a3a;    /* 다크 네이비 */
+  --text-secondary: #5a6b7d;  /* 블루 그레이 */
+  --accent: #2563eb;          /* 블루 강조 */
+  --border: #e2e8f0;          /* 테두리 */
+
+  /* Font */
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+
+  /* Typography scale */
+  --title-hero: 64pt;
+  --title-section: 44pt;
+  --title-slide: 32pt;
+  --text-subtitle: 20pt;
+  --text-body: 16pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
+}

@@ -1,0 +1,24 @@
+:root {
+  --bg-primary: #b8c4b8;      /* 세이지 그린 */
+  --bg-secondary: #a3b0a3;    /* 짙은 세이지 */
+  --bg-elevated: #97a697;     /* 강조 영역 */
+  --text-primary: #1a1a1a;    /* 메인 텍스트 */
+  --text-secondary: #3d3d3d;  /* 보조 텍스트 */
+  --accent: #2d2d2d;          /* 강조 */
+  --border: #9aa89a;          /* 테두리 */
+
+  /* upstream 추가 토큰 */
+  --bg-light: #f8faf8;        /* 밝은 배경 */
+
+  /* Font */
+  --font-sans: 'Pretendard', -apple-system, sans-serif;
+
+  /* Typography scale */
+  --title-hero: 64pt;
+  --title-section: 44pt;
+  --title-slide: 32pt;
+  --text-subtitle: 20pt;
+  --text-body: 16pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
+}
