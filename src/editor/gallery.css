@@ -170,15 +170,59 @@
       margin-top: 6px;
     }
 
-    /* Gallery grid */
+    /* Gallery grid (container for sections) */
     .gallery-grid {
-      padding: 32px 40px 60px;
+      padding: 24px 40px 60px;
       max-width: 1400px;
       margin: 0 auto;
       width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 40px;
+    }
+
+    /* ── Section layout ── */
+    .gallery-section-header {
+      margin-bottom: 16px;
+    }
+
+    .gallery-section-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-0);
+    }
+
+    .gallery-section-title-row h2 {
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .gallery-section-title-row svg {
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .gallery-section-header p {
+      font-size: 13px;
+      color: var(--text-2);
+      margin-top: 4px;
+      padding-left: 24px;
+    }
+
+    /* Custom templates: 2-column grid */
+    .gallery-grid-custom {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
-      gap: 28px;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 20px;
+    }
+
+    /* Skin cards: compact multi-column */
+    .gallery-grid-skins {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 12px;
     }
 
     .gallery-loading {
@@ -235,6 +279,7 @@
     .gallery-preview-wrapper {
       width: 100%;
       aspect-ratio: 16 / 9;
+      max-height: 220px;
       overflow: hidden;
       position: relative;
       background: var(--surface-2);
@@ -409,34 +454,104 @@
       letter-spacing: 0.3px;
     }
 
-    /* ── Explore CTA ── */
-    .gallery-card-cta {
+    /* ── Tier badge ── */
+    .gallery-tier-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+      letter-spacing: 0.02em;
+    }
+
+    .gallery-tier-badge.custom {
+      background: rgba(252, 94, 32, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(252, 94, 32, 0.2);
+    }
+
+    /* ── Skin cards (compact) ── */
+    .gallery-card-skin {
+      background: var(--surface-1);
+      border: 1px solid var(--border-medium);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color var(--transition), box-shadow var(--transition);
+    }
+
+    .gallery-card-skin:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-card);
+    }
+
+    .gallery-card-skin:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .skin-color-bar {
+      height: 48px;
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 14px;
-      padding: 8px 14px;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--accent);
-      background: rgba(252, 94, 32, 0.06);
-      border: 1px solid rgba(252, 94, 32, 0.15);
-      border-radius: var(--radius);
-      transition: all var(--transition);
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
     }
 
-    .gallery-card:hover .gallery-card-cta {
-      background: rgba(252, 94, 32, 0.12);
-      border-color: rgba(252, 94, 32, 0.3);
+    .skin-preview-title {
+      font-size: 18px;
+      font-weight: 700;
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
 
-    .gallery-card-cta svg {
-      flex-shrink: 0;
-      transition: transform var(--transition);
+    .skin-preview-accent {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.3);
     }
 
-    .gallery-card:hover .gallery-card-cta svg {
-      transform: translateX(3px);
+    .skin-card-info {
+      padding: 10px 12px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .skin-card-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-0);
+    }
+
+    .skin-card-desc {
+      font-size: 11px;
+      color: var(--text-2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .skin-swatches {
+      display: flex;
+      gap: 4px;
+      margin-top: 6px;
+    }
+
+    .skin-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+      border: 1px solid var(--border-medium);
     }
 
     /* ── Responsive ── */
@@ -444,8 +559,15 @@
       .gallery-header { padding: 24px 16px 0; }
       .gallery-grid {
         padding: 20px 16px 40px;
+        gap: 24px;
+      }
+      .gallery-grid-custom {
         grid-template-columns: 1fr;
         gap: 16px;
+      }
+      .gallery-grid-skins {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
       }
       .gallery-thumb-strip { display: none; }
     }

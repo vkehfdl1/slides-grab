@@ -8,14 +8,16 @@ let activePreviewType = '';
 
 /** Pack descriptions — client-side lookup */
 const PACK_DESC = {
-  'simple_light': 'Clean white + orange accent',
-  'simple_dark': 'Dark minimal monochrome',
-  'midnight': 'Deep navy + gold premium dark',
-  'corporate': 'White + navy blue business',
-  'creative': 'Gradient pink/indigo creative',
-  'grab': 'Modern business inline style',
-  'mobile_strategy': 'Dark rose + pink mobile strategy',
-  'black_rainbow': 'Black with rainbow accents',
+  'simple_light': 'Default base template',
+  'simple_dark': 'Dark monochrome',
+  'corporate': 'Navy blue business',
+  'executive': 'Refined off-white',
+  'modern-dark': 'Pure black minimal',
+  'sage': 'Calm green-gray',
+  'warm': 'Warm cream + rust',
+  'aurora': 'Soft pastel gradients',
+  'eigengrau-dark-gray': 'Cinematic dark + cyan',
+  'real-balance-hybrid': 'Bold asymmetric layouts',
 };
 
 /** Sort order: simple_light first, then alphabetical */
@@ -75,6 +77,125 @@ function updateToggleText() {
   el.textContent = pack?.name || selectedPackId;
 }
 
+/** Auto-scale an iframe to fill its wrapper. */
+function autoScaleIframe(iframe, wrapper) {
+  try {
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    let w = 0, h = 0;
+    const slide = doc.querySelector('.slide');
+    if (slide) { const r = slide.getBoundingClientRect(); w = r.width; h = r.height; }
+    if (!(w > 0 && h > 0) && doc.body) {
+      const cs = iframe.contentWindow.getComputedStyle(doc.body);
+      w = parseFloat(cs.width); h = parseFloat(cs.height);
+    }
+    if (w > 0 && h > 0) {
+      iframe.style.width = w + 'px';
+      iframe.style.height = h + 'px';
+      const ww = wrapper.clientWidth || 160;
+      iframe.style.transform = `scale(${ww / w})`;
+    }
+  } catch (_) { /* cross-origin */ }
+  iframe.style.opacity = '1';
+}
+
+/** Create a custom template card with live cover preview. */
+function createCustomCard(pack) {
+  const card = document.createElement('button');
+  card.className = 'pack-card pack-card-custom' + (pack.id === selectedPackId ? ' selected' : '');
+  card.dataset.packId = pack.id;
+  card.type = 'button';
+
+  const colors = pack.colors || {};
+  const bg = safeColor(colors['bg-primary'], '#333');
+  const templates = pack.templates || [];
+
+  // Live cover preview
+  const preview = document.createElement('div');
+  preview.className = 'pack-preview';
+  preview.style.background = bg;
+
+  if (templates.includes('cover')) {
+    const iframe = document.createElement('iframe');
+    iframe.className = 'pack-preview-iframe';
+    iframe.src = `/packs-preview/${encodeURIComponent(pack.id)}/templates/cover.html`;
+    iframe.loading = 'lazy';
+    iframe.setAttribute('sandbox', 'allow-same-origin');
+    iframe.setAttribute('tabindex', '-1');
+    iframe.setAttribute('aria-hidden', 'true');
+    iframe.addEventListener('load', () => autoScaleIframe(iframe, preview));
+    preview.appendChild(iframe);
+  }
+
+  // Info
+  const info = document.createElement('div');
+  info.className = 'pack-info';
+
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'pack-name';
+  nameSpan.textContent = pack.name || pack.id;
+
+  const badge = document.createElement('span');
+  badge.className = 'pack-tier-badge';
+  badge.textContent = `${pack.ownTemplateCount || templates.length}`;
+
+  const infoRow = document.createElement('div');
+  infoRow.className = 'pack-info-row';
+  infoRow.append(nameSpan, badge);
+
+  const descSpan = document.createElement('span');
+  descSpan.className = 'pack-desc';
+  descSpan.textContent = PACK_DESC[pack.id] || '';
+
+  info.append(infoRow);
+  if (descSpan.textContent) info.append(descSpan);
+
+  card.append(preview, info);
+  return card;
+}
+
+/** Create a compact skin card with color bar. */
+function createSkinCard(pack) {
+  const card = document.createElement('button');
+  card.className = 'pack-card pack-card-skin' + (pack.id === selectedPackId ? ' selected' : '');
+  card.dataset.packId = pack.id;
+  card.type = 'button';
+
+  const colors = pack.colors || {};
+  const bg = safeColor(colors['bg-primary'], '#333');
+  const accent = safeColor(colors.accent, '#666');
+  const textPrimary = safeColor(colors['text-primary'], '#fff');
+  const textSecondary = safeColor(colors['text-secondary'], '#aaa');
+
+  // Color bar
+  const colorBar = document.createElement('div');
+  colorBar.className = 'pack-color-bar';
+  colorBar.style.background = bg;
+
+  // Swatches inside the bar
+  const dots = document.createElement('div');
+  dots.className = 'pack-color-dots';
+  for (const c of [accent, textPrimary, textSecondary]) {
+    const dot = document.createElement('div');
+    dot.className = 'pack-color-dot';
+    dot.style.background = c;
+    dots.appendChild(dot);
+  }
+  colorBar.appendChild(dots);
+
+  // Info
+  const info = document.createElement('div');
+  info.className = 'pack-info';
+
+  const nameSpan = document.createElement('span');
+  nameSpan.className = 'pack-name';
+  nameSpan.textContent = pack.name || pack.id;
+
+  info.append(nameSpan);
+
+  card.append(colorBar, info);
+  return card;
+}
+
 function renderPackGrid() {
   const grid = document.getElementById('pack-grid');
   if (!grid) return;
@@ -85,90 +206,56 @@ function renderPackGrid() {
   const existingLink = grid.parentNode?.querySelector('.pack-browse-all');
   if (existingLink) existingLink.remove();
 
-  for (const pack of packsData) {
-    const card = document.createElement('button');
-    card.className = 'pack-card' + (pack.id === selectedPackId ? ' selected' : '');
-    card.dataset.packId = pack.id;
-    card.type = 'button';
+  const customs = packsData.filter(p => p.tier === 'custom');
+  const skins = packsData.filter(p => p.tier !== 'custom');
 
-    const colors = pack.colors || {};
-    const bg = safeColor(colors['bg-primary'], '#333');
-    const bgSec = safeColor(colors['bg-secondary'], '#444');
-    const accent = safeColor(colors.accent, '#666');
-    const textPrimary = safeColor(colors['text-primary'], '#fff');
-    const textSecondary = safeColor(colors['text-secondary'], '#aaa');
-    const templates = pack.templates || [];
+  // Custom Templates section
+  if (customs.length) {
+    const label = document.createElement('div');
+    label.className = 'pack-group-label';
+    label.textContent = 'Custom Templates';
+    grid.appendChild(label);
 
-    // Color swatch bar
-    const swatches = document.createElement('div');
-    swatches.className = 'pack-swatches';
-    for (const c of [bg, bgSec, accent, textPrimary, textSecondary]) {
-      const swatch = document.createElement('div');
-      swatch.style.background = c;
-      swatches.appendChild(swatch);
+    const customGrid = document.createElement('div');
+    customGrid.className = 'pack-grid-custom';
+    for (const pack of customs) {
+      const card = createCustomCard(pack);
+      card.addEventListener('click', () => {
+        selectedPackId = pack.id;
+        creationState.packId = pack.id;
+        updatePackSelection();
+        updateToggleText();
+        renderPackDetail();
+      });
+      customGrid.appendChild(card);
     }
-
-    // Stylized slide preview
-    const preview = document.createElement('div');
-    preview.className = 'pack-preview';
-    preview.style.background = bg;
-
-    const title = document.createElement('div');
-    title.className = 'pack-slide-title';
-    title.style.background = textPrimary;
-
-    const accentBar = document.createElement('div');
-    accentBar.className = 'pack-slide-accent';
-    accentBar.style.background = accent;
-
-    const body = document.createElement('div');
-    body.className = 'pack-slide-body';
-    body.style.background = textSecondary;
-
-    const bodySm = document.createElement('div');
-    bodySm.className = 'pack-slide-body-sm';
-    bodySm.style.background = textSecondary;
-
-    preview.append(title, accentBar, body, bodySm);
-
-    // Info section
-    const info = document.createElement('div');
-    info.className = 'pack-info';
-
-    const infoRow = document.createElement('div');
-    infoRow.className = 'pack-info-row';
-
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'pack-name';
-    nameSpan.textContent = pack.name || pack.id;
-
-    const countSpan = document.createElement('span');
-    countSpan.className = 'pack-template-count';
-    countSpan.textContent = `${templates.length}`;
-
-    infoRow.append(nameSpan, countSpan);
-
-    const descSpan = document.createElement('span');
-    descSpan.className = 'pack-desc';
-    descSpan.textContent = PACK_DESC[pack.id] || '';
-
-    info.append(infoRow);
-    if (descSpan.textContent) info.append(descSpan);
-
-    card.append(swatches, preview, info);
-
-    card.addEventListener('click', () => {
-      selectedPackId = pack.id;
-      creationState.packId = pack.id;
-      updatePackSelection();
-      updateToggleText();
-      renderPackDetail();
-    });
-
-    grid.appendChild(card);
+    grid.appendChild(customGrid);
   }
 
-  // "Browse all packs" link to full gallery
+  // Theme Skins section
+  if (skins.length) {
+    const label = document.createElement('div');
+    label.className = 'pack-group-label';
+    label.textContent = 'Theme Skins';
+    grid.appendChild(label);
+
+    const skinGrid = document.createElement('div');
+    skinGrid.className = 'pack-grid-skins';
+    for (const pack of skins) {
+      const card = createSkinCard(pack);
+      card.addEventListener('click', () => {
+        selectedPackId = pack.id;
+        creationState.packId = pack.id;
+        updatePackSelection();
+        updateToggleText();
+        renderPackDetail();
+      });
+      skinGrid.appendChild(card);
+    }
+    grid.appendChild(skinGrid);
+  }
+
+  // "Browse all packs" link
   const browseLink = document.createElement('a');
   browseLink.className = 'pack-browse-all';
   browseLink.href = '/packs-gallery';
@@ -183,7 +270,8 @@ function updatePackSelection() {
   if (!grid) return;
 
   for (const card of grid.querySelectorAll('.pack-card')) {
-    card.classList.toggle('selected', card.dataset.packId === selectedPackId);
+    const isSelected = card.dataset.packId === selectedPackId;
+    card.classList.toggle('selected', isSelected);
   }
 }
 

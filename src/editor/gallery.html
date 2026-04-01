@@ -71,16 +71,16 @@
     }
 
     const PACK_DESC = {
-      'simple_light': 'Clean white + orange accent',
+      'simple_light': 'Default base template with clean layout',
       'simple_dark': 'Dark minimal monochrome',
-      'midnight': 'Deep navy + gold premium dark',
-      'corporate': 'White + navy blue business',
-      'creative': 'Gradient pink/indigo creative',
-      'grab': 'Modern business inline style',
-      'mobile_strategy': 'Dark rose + pink mobile strategy',
-      'black_rainbow': 'Black with rainbow accents',
-      'bold_minimal': 'Bold typography minimal layout',
-      'green': 'Fresh green nature-inspired',
+      'corporate': 'Professional navy blue business',
+      'executive': 'Refined off-white with dark accents',
+      'modern-dark': 'Pure black with white typography',
+      'sage': 'Calm green-gray natural tones',
+      'warm': 'Warm cream with rust accents',
+      'aurora': 'Unique layouts with soft pastel gradients',
+      'eigengrau-dark-gray': 'Cinematic dark theme with cyan highlights',
+      'real-balance-hybrid': 'Modern asymmetric layouts with bold typography',
     };
 
     async function loadCommonTypes() {
@@ -137,134 +137,222 @@
       iframe.style.opacity = '1';
     }
 
+    function makeClickable(el, pack) {
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+      el.addEventListener('click', () => openPackModal(pack));
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPackModal(pack); }
+      });
+    }
+
+    /** Render a full-size card for custom template packs. */
+    function renderCustomCard(pack) {
+      const card = document.createElement('div');
+      card.className = 'gallery-card';
+
+      const colors = pack.colors || {};
+      const bg = safeColor(colors['bg-primary'], '#333');
+      const accent = safeColor(colors.accent, '#666');
+      const textPrimary = safeColor(colors['text-primary'], '#fff');
+      const textSecondary = safeColor(colors['text-secondary'], '#aaa');
+      const templates = pack.templates || [];
+
+      // ── Cover preview ──
+      const previewWrapper = document.createElement('div');
+      previewWrapper.className = 'gallery-preview-wrapper';
+
+      if (templates.includes('cover')) {
+        const iframe = document.createElement('iframe');
+        iframe.className = 'gallery-preview-iframe';
+        iframe.src = `/packs-preview/${encodeURIComponent(pack.id)}/templates/cover.html`;
+        iframe.loading = 'lazy';
+        iframe.setAttribute('sandbox', 'allow-same-origin');
+        iframe.setAttribute('tabindex', '-1');
+        iframe.setAttribute('aria-hidden', 'true');
+        iframe.addEventListener('load', () => autoScaleIframe(iframe, previewWrapper));
+        previewWrapper.appendChild(iframe);
+      } else {
+        const preview = document.createElement('div');
+        preview.className = 'gallery-preview-fallback';
+        preview.style.background = bg;
+        preview.innerHTML = `
+          <div class="preview-title-bar" style="background:${textPrimary}"></div>
+          <div class="preview-accent-bar" style="background:${accent}"></div>
+          <div class="preview-body-bar" style="background:${textSecondary}"></div>`;
+        previewWrapper.appendChild(preview);
+      }
+
+      const overlay = document.createElement('div');
+      overlay.className = 'gallery-preview-overlay';
+      overlay.innerHTML = '<span class="gallery-preview-overlay-text">Click to explore all templates</span>';
+      previewWrapper.appendChild(overlay);
+
+      // ── Thumbnail strip (4 featured) ──
+      const featured = FEATURED_TYPES.filter(t => t !== 'cover' && templates.includes(t)).slice(0, 4);
+      let thumbStrip = null;
+      if (featured.length > 0) {
+        thumbStrip = document.createElement('div');
+        thumbStrip.className = 'gallery-thumb-strip';
+        for (const tmpl of featured) {
+          const item = document.createElement('div');
+          item.className = 'gallery-thumb-item';
+          const label = document.createElement('span');
+          label.className = 'gallery-thumb-label';
+          label.textContent = tmpl;
+          item.appendChild(label);
+          const tIframe = document.createElement('iframe');
+          tIframe.className = 'gallery-thumb-iframe';
+          tIframe.src = `/packs-preview/${encodeURIComponent(pack.id)}/templates/${encodeURIComponent(tmpl)}.html`;
+          tIframe.loading = 'lazy';
+          tIframe.setAttribute('sandbox', 'allow-same-origin');
+          tIframe.setAttribute('tabindex', '-1');
+          tIframe.setAttribute('aria-hidden', 'true');
+          tIframe.addEventListener('load', () => autoScaleIframe(tIframe, item));
+          item.appendChild(tIframe);
+          thumbStrip.appendChild(item);
+        }
+      }
+
+      // ── Info ──
+      const info = document.createElement('div');
+      info.className = 'gallery-card-info';
+
+      const nameRow = document.createElement('div');
+      nameRow.className = 'gallery-card-name-row';
+      const name = document.createElement('h2');
+      name.className = 'gallery-card-name';
+      name.textContent = pack.name || pack.id;
+      const badge = document.createElement('span');
+      badge.className = 'gallery-tier-badge custom';
+      badge.textContent = `${pack.ownTemplateCount || templates.length} unique`;
+      nameRow.append(name, badge);
+
+      const desc = document.createElement('p');
+      desc.className = 'gallery-card-desc';
+      desc.textContent = PACK_DESC[pack.id] || '';
+
+      const swatches = document.createElement('div');
+      swatches.className = 'gallery-swatches-labeled';
+      for (const def of SWATCH_DEFS) {
+        const c = safeColor(colors[def.key], def.fallback);
+        const item = document.createElement('div');
+        item.className = 'gallery-swatch-item';
+        item.innerHTML = `<div class="gallery-swatch-color" style="background:${c}" title="${c}"></div><span class="gallery-swatch-label">${def.label}</span>`;
+        swatches.appendChild(item);
+      }
+
+      info.append(nameRow);
+      if (desc.textContent) info.appendChild(desc);
+      info.appendChild(swatches);
+
+      card.appendChild(previewWrapper);
+      if (thumbStrip) card.appendChild(thumbStrip);
+      card.appendChild(info);
+      makeClickable(card, pack);
+      return card;
+    }
+
+    /** Render a compact card for theme skin packs. */
+    function renderSkinCard(pack) {
+      const card = document.createElement('div');
+      card.className = 'gallery-card-skin';
+
+      const colors = pack.colors || {};
+      const bg = safeColor(colors['bg-primary'], '#333');
+      const accent = safeColor(colors.accent, '#666');
+      const textPrimary = safeColor(colors['text-primary'], '#fff');
+      const textSecondary = safeColor(colors['text-secondary'], '#aaa');
+
+      // Color bar — horizontal gradient showing the palette
+      const colorBar = document.createElement('div');
+      colorBar.className = 'skin-color-bar';
+      colorBar.style.background = `linear-gradient(135deg, ${bg} 0%, ${bg} 50%, ${accent} 50%, ${accent} 100%)`;
+
+      // Text previews inside color bar
+      colorBar.innerHTML = `
+        <span class="skin-preview-title" style="color:${textPrimary}">Aa</span>
+        <span class="skin-preview-accent" style="background:${accent}"></span>
+      `;
+
+      // Info
+      const info = document.createElement('div');
+      info.className = 'skin-card-info';
+
+      const name = document.createElement('span');
+      name.className = 'skin-card-name';
+      name.textContent = pack.name || pack.id;
+
+      const desc = document.createElement('span');
+      desc.className = 'skin-card-desc';
+      desc.textContent = PACK_DESC[pack.id] || '';
+
+      // Swatches row
+      const swatches = document.createElement('div');
+      swatches.className = 'skin-swatches';
+      for (const def of SWATCH_DEFS) {
+        const c = safeColor(colors[def.key], def.fallback);
+        const dot = document.createElement('div');
+        dot.className = 'skin-swatch';
+        dot.style.background = c;
+        dot.title = `${def.label}: ${c}`;
+        swatches.appendChild(dot);
+      }
+
+      info.append(name, desc, swatches);
+      card.append(colorBar, info);
+      makeClickable(card, pack);
+      return card;
+    }
+
     function renderGallery(packs) {
       grid.innerHTML = '';
 
-      for (const pack of packs) {
-        const card = document.createElement('div');
-        card.className = 'gallery-card';
+      const customs = packs.filter(p => p.tier === 'custom');
+      const skins = packs.filter(p => p.tier !== 'custom');
 
-        const colors = pack.colors || {};
-        const bg = safeColor(colors['bg-primary'], '#333');
-        const accent = safeColor(colors.accent, '#666');
-        const textPrimary = safeColor(colors['text-primary'], '#fff');
-        const textSecondary = safeColor(colors['text-secondary'], '#aaa');
-        const templates = pack.templates || [];
-        const hasCover = templates.includes('cover');
+      // ── Custom Templates Section ──
+      if (customs.length) {
+        const section = document.createElement('div');
+        section.className = 'gallery-section';
 
-        // ── Hero preview (cover) ──
-        const previewWrapper = document.createElement('div');
-        previewWrapper.className = 'gallery-preview-wrapper';
+        const header = document.createElement('div');
+        header.className = 'gallery-section-header';
+        header.innerHTML = `
+          <div class="gallery-section-title-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+            <h2>Custom Templates</h2>
+          </div>
+          <p>Unique layouts and design structures beyond the base template</p>`;
 
-        if (hasCover) {
-          const iframe = document.createElement('iframe');
-          iframe.className = 'gallery-preview-iframe';
-          iframe.src = `/packs-preview/${encodeURIComponent(pack.id)}/templates/cover.html`;
-          iframe.loading = 'lazy';
-          iframe.setAttribute('sandbox', 'allow-same-origin');
-          iframe.setAttribute('tabindex', '-1');
-          iframe.setAttribute('aria-hidden', 'true');
-          iframe.addEventListener('load', () => autoScaleIframe(iframe, previewWrapper));
-          previewWrapper.appendChild(iframe);
-        } else {
-          const preview = document.createElement('div');
-          preview.className = 'gallery-preview-fallback';
-          preview.style.background = bg;
-          preview.innerHTML = `
-            <div class="preview-title-bar" style="background:${textPrimary}"></div>
-            <div class="preview-accent-bar" style="background:${accent}"></div>
-            <div class="preview-body-bar" style="background:${textSecondary}"></div>`;
-          previewWrapper.appendChild(preview);
-        }
+        const customGrid = document.createElement('div');
+        customGrid.className = 'gallery-grid-custom';
+        for (const pack of customs) customGrid.appendChild(renderCustomCard(pack));
 
-        // Hover overlay
-        const overlay = document.createElement('div');
-        overlay.className = 'gallery-preview-overlay';
-        overlay.innerHTML = '<span class="gallery-preview-overlay-text">Click to explore all templates</span>';
-        previewWrapper.appendChild(overlay);
+        section.append(header, customGrid);
+        grid.appendChild(section);
+      }
 
-        // ── Thumbnail strip (3 featured templates) ──
-        const featured = FEATURED_TYPES.filter(t => t !== 'cover' && templates.includes(t)).slice(0, 3);
-        let thumbStrip = null;
-        if (featured.length > 0) {
-          thumbStrip = document.createElement('div');
-          thumbStrip.className = 'gallery-thumb-strip';
+      // ── Theme Skins Section ──
+      if (skins.length) {
+        const section = document.createElement('div');
+        section.className = 'gallery-section';
 
-          for (const tmpl of featured) {
-            const item = document.createElement('div');
-            item.className = 'gallery-thumb-item';
+        const header = document.createElement('div');
+        header.className = 'gallery-section-header';
+        header.innerHTML = `
+          <div class="gallery-section-title-row">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 0 0 0 20 7 7 0 0 1 0-20"/><path d="M12 2a7 7 0 0 1 0 20"/></svg>
+            <h2>Theme Skins</h2>
+          </div>
+          <p>Same base layouts, different color palettes and typography</p>`;
 
-            const label = document.createElement('span');
-            label.className = 'gallery-thumb-label';
-            label.textContent = tmpl;
-            item.appendChild(label);
+        const skinGrid = document.createElement('div');
+        skinGrid.className = 'gallery-grid-skins';
+        for (const pack of skins) skinGrid.appendChild(renderSkinCard(pack));
 
-            const tIframe = document.createElement('iframe');
-            tIframe.className = 'gallery-thumb-iframe';
-            tIframe.src = `/packs-preview/${encodeURIComponent(pack.id)}/templates/${encodeURIComponent(tmpl)}.html`;
-            tIframe.loading = 'lazy';
-            tIframe.setAttribute('sandbox', 'allow-same-origin');
-            tIframe.setAttribute('tabindex', '-1');
-            tIframe.setAttribute('aria-hidden', 'true');
-            tIframe.addEventListener('load', () => autoScaleIframe(tIframe, item));
-            item.appendChild(tIframe);
-
-            thumbStrip.appendChild(item);
-          }
-        }
-
-        // ── Info section ──
-        const info = document.createElement('div');
-        info.className = 'gallery-card-info';
-
-        // Name row
-        const nameRow = document.createElement('div');
-        nameRow.className = 'gallery-card-name-row';
-        const name = document.createElement('h2');
-        name.className = 'gallery-card-name';
-        name.textContent = pack.name || pack.id;
-        const count = document.createElement('span');
-        count.className = 'gallery-card-count';
-        count.textContent = `${templates.length} templates`;
-        nameRow.append(name, count);
-
-        const desc = document.createElement('p');
-        desc.className = 'gallery-card-desc';
-        desc.textContent = PACK_DESC[pack.id] || '';
-
-        // Labeled swatches
-        const swatches = document.createElement('div');
-        swatches.className = 'gallery-swatches-labeled';
-        for (const def of SWATCH_DEFS) {
-          const c = safeColor(colors[def.key], def.fallback);
-          const item = document.createElement('div');
-          item.className = 'gallery-swatch-item';
-          item.innerHTML = `<div class="gallery-swatch-color" style="background:${c}" title="${c}"></div><span class="gallery-swatch-label">${def.label}</span>`;
-          swatches.appendChild(item);
-        }
-
-        // CTA
-        const cta = document.createElement('div');
-        cta.className = 'gallery-card-cta';
-        cta.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-          <span>Explore all ${templates.length} templates</span>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:auto"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`;
-
-        info.append(nameRow);
-        if (desc.textContent) info.appendChild(desc);
-        info.appendChild(swatches);
-        info.appendChild(cta);
-
-        card.appendChild(previewWrapper);
-        if (thumbStrip) card.appendChild(thumbStrip);
-        card.appendChild(info);
-        card.setAttribute('role', 'button');
-        card.setAttribute('tabindex', '0');
-        card.addEventListener('click', () => openPackModal(pack));
-        card.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPackModal(pack); }
-        });
-        grid.appendChild(card);
+        section.append(header, skinGrid);
+        grid.appendChild(section);
       }
     }
 

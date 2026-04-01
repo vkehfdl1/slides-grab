@@ -167,11 +167,14 @@ export function listPacks() {
       const templates = entry.name === DEFAULT_PACK
         ? own
         : Array.from(new Set([...own, ...fallbackTemplates])).sort();
+      const ownCount = own.length;
       seen.set(entry.name, {
         id: entry.name,
         name: info?.name || entry.name,
         colors: info?.colors || {},
         templates,
+        tier: ownCount > 0 ? 'custom' : 'skin',
+        ownTemplateCount: ownCount,
       });
     }
   }
