@@ -119,22 +119,23 @@ Rules:
 - Use HEX values with `#` prefix for `stroke`/`fill` colors.
 - Place text outside SVG using `<p>`, `<h1>`-`<h6>` tags.
 
-### Emoji vs SVG Icon 선택 기준
+### Emoji vs SVG Icon Selection
 
-SVG 내보내기 시 이모지/특수문자는 자동으로 래스터 PNG로 변환된다. 벡터 품질을 유지하려면 인라인 SVG 아이콘을 우선 사용한다.
+Emoji and special characters are auto-rasterized to PNG during SVG export — quality is perfectly fine for slides. **Use emoji freely** — they add vibrancy and visual variety to slides.
 
-| 상황 | 권장 | 이유 |
-|------|------|------|
-| 불릿 마커, 상태 아이콘, 장식 요소 | **인라인 SVG** | 벡터 유지, 크기·색상 자유 제어 |
-| 큰 사이즈(20pt+) 단독 아이콘 | **인라인 SVG** | 래스터 변환 시 픽셀 열화 방지 |
-| 본문 텍스트 속 감정/톤 전달 | **이모지 허용** | 자연스러운 표현, 자동 래스터 처리됨 |
-| 제목·슬로건의 포인트 장식 | **이모지 허용** | 시각적 임팩트, 작은 사이즈면 품질 충분 |
+| Use case | Recommended | Reason |
+|----------|-------------|--------|
+| Bullet markers, decorations, emphasis | **Emoji preferred** | Intuitive, colorful, auto-rasterized |
+| Title/slogan accent points | **Emoji preferred** | Visual impact, adds slide energy |
+| Tone/sentiment in body text | **Emoji preferred** | Natural expression, improves readability |
+| Status icons (check, cross, etc.) | **Emoji or SVG** | Prefer emoji; use SVG only when custom color needed |
+| Large standalone hero icons (24pt+) | **Inline SVG** | Possible pixel degradation when rasterized |
 
-**핵심 원칙**: 슬라이드의 구조적 시각 요소는 SVG, 분위기·톤 보조는 이모지. 이모지를 쓸 때는 본문 폰트 사이즈(14pt 이하) 수준에서 사용하면 래스터 품질이 충분하다.
+**Core principle**: Use emoji generously to make slides rich and lively. Reserve inline SVG only for large hero icons or cases requiring precise color control.
 
-### SVG 아이콘 스니펫 라이브러리
+### SVG Icon Snippet Library
 
-이모지 대신 사용할 수 있는 인라인 SVG 모음. `stroke`/`fill` 색상과 `width`/`height` 크기를 변경하여 테마에 맞춘다.
+Inline SVG collection for large hero icons or precise color control. Adjust `stroke`/`fill` colors and `width`/`height` to match the theme. **Prefer emoji for general use.**
 
 **체크 / 상태**
 ```html
