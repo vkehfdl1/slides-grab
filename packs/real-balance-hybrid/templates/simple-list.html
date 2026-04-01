@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+
+    .slide {
+      display: grid;
+      grid-template-columns: 240pt 1fr;
+      gap: 36pt;
+      align-items: center;
+      padding-top: 32pt;
+    }
+    .intro {
+      padding-left: 4pt;
+    }
+    .intro .eyebrow {
+      margin-bottom: 16pt;
+    }
+    .intro .title {
+      max-width: 200pt;
+      font-size: 32pt;
+      line-height: 1.04;
+      margin-bottom: 14pt;
+    }
+    .intro .body {
+      max-width: 184pt;
+      font-size: 11pt;
+      line-height: 1.52;
+    }
+    .list {
+      display: flex;
+      flex-direction: column;
+      gap: 14pt;
+    }
+    .list-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 16pt;
+      padding-bottom: 14pt;
+      border-bottom: 1pt solid rgba(0,0,0,0.06);
+    }
+    .list-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .num-pill {
+      flex-shrink: 0;
+      width: 34pt;
+      height: 34pt;
+      border-radius: 12pt;
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 18pt rgba(242,208,51,0.16);
+    }
+    .num-pill p {
+      font-size: 12pt;
+      font-weight: 700;
+      color: var(--text-on-accent);
+      line-height: 1;
+    }
+    .list-item:nth-child(even) .num-pill {
+      background: var(--surface-dark);
+      box-shadow: var(--shadow-card);
+    }
+    .list-item:nth-child(even) .num-pill p {
+      color: var(--text-on-dark);
+    }
+    .item-content h3 {
+      font-size: 15pt;
+      font-weight: 560;
+      line-height: 1.1;
+      margin-bottom: 4pt;
+    }
+    .item-content p {
+      font-size: 11pt;
+      line-height: 1.48;
+      max-width: 260pt;
+    }
+
+  </style>
+</head>
+<body class="light">
+
+  <div class="slide">
+    <div class="intro">
+      <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><p data-slot="label">Overview</p></div>
+      <h1 class="title" data-slot="title">Key points to remember</h1>
+      <p class="body" data-slot="body">A quick summary of the essentials.</p>
+    </div>
+
+    <div class="list">
+      <div class="list-item">
+        <div class="num-pill"><p>01</p></div>
+        <div class="item-content">
+          <h3 data-slot="item-1-title">First thing</h3>
+          <p data-slot="item-1-body">Add a quick description of each thing, with enough context.</p>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="num-pill"><p>02</p></div>
+        <div class="item-content">
+          <h3 data-slot="item-2-title">Second thing</h3>
+          <p data-slot="item-2-body">Keep them short and sweet, so they're easy to scan.</p>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="num-pill"><p>03</p></div>
+        <div class="item-content">
+          <h3 data-slot="item-3-title">Third thing</h3>
+          <p data-slot="item-3-body">If you have more, add another row or use multiple slides.</p>
+        </div>
+      </div>
+      <div class="list-item">
+        <div class="num-pill"><p>04</p></div>
+        <div class="item-content">
+          <h3 data-slot="item-4-title">Fourth thing</h3>
+          <p data-slot="item-4-body">Wrap up with a final thought that ties it together.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="deck-footer" aria-hidden="true">
+      <div class="year-stack">
+        <p>20</p>
+        <p>25</p>
+      </div>
+      <div class="brand-copy">
+        <p class="brand-name">Real Balance Presentation</p>
+        <p class="brand-site">www.website.com</p>
+      </div>
+    </div>
+
+    <p class="page-number" data-slot="page-number">08</p>
+  </div>
+
+</body>
+</html>

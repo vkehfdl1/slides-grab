@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+
+    body::before { display: none; }
+    .slide {
+      padding: 0;
+      background:
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.52) 0 8%, rgba(255,255,255,0.20) 9% 16%, rgba(255,255,255,0) 17% 100%),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.16) 0 24%, rgba(255,255,255,0) 24.8% 100%),
+        radial-gradient(circle at 50% 44%, rgba(255,255,255,0.12) 0 32%, rgba(255,255,255,0) 32.8% 100%),
+        linear-gradient(180deg, #f9e89a 0%, #f3d64a 58%, #f1cf3a 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: 52pt;
+      font-weight: 560;
+      line-height: 0.94;
+      letter-spacing: -0.05em;
+      color: var(--text-on-accent);
+      margin-bottom: 14pt;
+    }
+    .hero .sub {
+      font-size: 14pt;
+      color: rgba(72, 63, 18, 0.72);
+      line-height: 1.4;
+      max-width: 280pt;
+    }
+    .contact {
+      position: absolute;
+      bottom: 42pt;
+      display: flex;
+      align-items: center;
+      gap: 18pt;
+    }
+    .contact .pill-dark {
+      font-size: 10pt;
+      padding: 6pt 16pt;
+    }
+    .contact .text {
+      font-size: 10pt;
+      color: rgba(72, 63, 18, 0.62);
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+  </style>
+</head>
+<body class="light">
+
+  <div class="slide">
+    <div class="hero">
+      <h1 data-slot="title">Thank you!</h1>
+      <p class="sub" data-slot="body">Any questions or feedback?</p>
+    </div>
+
+    <div class="contact">
+      <span class="pill-dark" data-slot="contact">hello@company.com</span>
+      <p class="text" data-slot="label">Get in touch</p>
+    </div>
+  </div>
+
+</body>
+</html>

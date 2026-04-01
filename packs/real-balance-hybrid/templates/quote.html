@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+
+    .slide {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 56pt 80pt;
+    }
+    .quote-wrap {
+      max-width: 460pt;
+    }
+    .avatar {
+      width: 56pt;
+      height: 56pt;
+      border-radius: 50%;
+      margin: 0 auto 24pt;
+      background: radial-gradient(circle at 42% 36%, rgba(255,255,255,0.66) 0 22%, rgba(255,255,255,0.14) 23% 48%, rgba(255,255,255,0) 49% 100%), var(--accent);
+      box-shadow: var(--shadow-glow);
+    }
+    .mark {
+      font-size: 42pt;
+      line-height: 0.6;
+      color: var(--accent);
+      margin-bottom: 14pt;
+    }
+    blockquote {
+      font-size: 19pt;
+      font-weight: 440;
+      line-height: 1.48;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      margin-bottom: 22pt;
+    }
+    .author-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12pt;
+    }
+    .author-name {
+      font-size: 11pt;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .author-role {
+      padding: 5pt 12pt;
+      border-radius: 999pt;
+      background: var(--surface-pill-dark);
+      color: var(--text-on-dark);
+      font-size: 9pt;
+      font-weight: 600;
+      line-height: 1;
+    }
+
+  </style>
+</head>
+<body class="light">
+
+  <div class="slide">
+    <div class="quote-wrap">
+      <div class="avatar" data-image-placeholder data-slot="image" aria-hidden="true"></div>
+      <p class="mark" aria-hidden="true">"</p>
+      <blockquote data-slot="quote">This is a stellar quote from a user or customer that really stands out and reinforces your message.</blockquote>
+      <div class="author-line">
+        <p class="author-name" data-slot="author">Full Name</p>
+        <span class="author-role" data-slot="role">CEO, Company</span>
+      </div>
+    </div>
+
+    <div class="deck-footer" aria-hidden="true">
+      <div class="year-stack">
+        <p>20</p>
+        <p>25</p>
+      </div>
+      <div class="brand-copy">
+        <p class="brand-name">Real Balance Presentation</p>
+        <p class="brand-site">www.website.com</p>
+      </div>
+    </div>
+
+    <p class="page-number" data-slot="page-number">06</p>
+  </div>
+
+</body>
+</html>

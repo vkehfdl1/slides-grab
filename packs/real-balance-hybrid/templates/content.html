@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+
+    .slide {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .eyebrow { margin-bottom: 18pt; }
+    .title {
+      max-width: 420pt;
+      font-size: var(--title-slide);
+      line-height: 1.08;
+      margin-bottom: 18pt;
+    }
+    .accent-line { margin-bottom: 22pt; }
+    .body {
+      max-width: 380pt;
+      font-size: var(--text-body);
+      line-height: 1.58;
+    }
+
+  </style>
+</head>
+<body class="light">
+
+  <div class="slide">
+    <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><p data-slot="label">Topic</p></div>
+    <h2 class="title" data-slot="title">Content slide with a clear headline</h2>
+    <div class="accent-line"></div>
+    <p class="body" data-slot="body">A wonderful serenity has taken possession of my entire soul, like these sweet mornings of spring which I enjoy with my whole heart. I am alone, and feel the charm of existence.</p>
+
+    <div class="deck-footer" aria-hidden="true">
+      <div class="year-stack">
+        <p>20</p>
+        <p>25</p>
+      </div>
+      <div class="brand-copy">
+        <p class="brand-name">Real Balance Presentation</p>
+        <p class="brand-site">www.website.com</p>
+      </div>
+    </div>
+
+    <p class="page-number" data-slot="page-number">04</p>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+
+    .slide {
+      display: grid;
+      grid-template-columns: 234pt 1fr;
+      gap: 32pt;
+      align-items: center;
+      padding-top: 30pt;
+    }
+    .intro {
+      padding-left: 4pt;
+    }
+    .intro .eyebrow {
+      margin-bottom: 16pt;
+    }
+    .intro .title {
+      max-width: 196pt;
+      font-size: 32pt;
+      line-height: 1.04;
+      margin-bottom: 14pt;
+    }
+    .intro .body {
+      max-width: 180pt;
+      font-size: 11pt;
+      line-height: 1.52;
+    }
+    .funnel-area {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18pt 28pt 18pt 12pt;
+    }
+    .funnel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6pt;
+      width: 100%;
+    }
+    .funnel-step {
+      height: 46pt;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10pt;
+      padding: 0 22pt;
+      position: relative;
+      box-shadow: var(--shadow-card);
+    }
+    .funnel-step .label {
+      font-size: 12pt;
+      font-weight: 600;
+      color: inherit;
+      line-height: 1;
+    }
+    .funnel-step .value {
+      font-size: 11pt;
+      font-weight: 500;
+      color: inherit;
+      opacity: 0.7;
+      line-height: 1;
+    }
+    .funnel-step:nth-child(1) {
+      width: 100%;
+      border-radius: var(--radius-md) var(--radius-md) 4pt 4pt;
+      background: linear-gradient(180deg, rgba(33,33,33,0.97), rgba(26,26,26,1));
+      color: var(--text-on-dark);
+    }
+    .funnel-step:nth-child(2) {
+      width: 82%;
+      border-radius: 4pt;
+      background: rgba(60,60,60,0.94);
+      color: var(--text-on-dark);
+    }
+    .funnel-step:nth-child(3) {
+      width: 64%;
+      border-radius: 4pt;
+      background: var(--accent);
+      color: var(--text-on-accent);
+      box-shadow: var(--shadow-glow);
+    }
+    .funnel-step:nth-child(4) {
+      width: 46%;
+      border-radius: 4pt;
+      background: rgba(255,255,255,0.72);
+      color: var(--text-primary);
+    }
+    .funnel-step:nth-child(5) {
+      width: 30%;
+      border-radius: 4pt 4pt var(--radius-md) var(--radius-md);
+      background: rgba(255,255,255,0.50);
+      color: var(--text-primary);
+    }
+
+  </style>
+</head>
+<body class="light">
+
+  <div class="slide">
+    <div class="intro">
+      <div class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span><p data-slot="label">Pipeline</p></div>
+      <h1 class="title" data-slot="title">Conversion funnel</h1>
+      <p class="body" data-slot="body">Show how concepts narrow from top to bottom.</p>
+    </div>
+
+    <div class="funnel-area">
+      <div class="funnel">
+        <div class="funnel-step">
+          <p class="label" data-slot="step-1-title">Awareness</p>
+          <p class="value" data-slot="step-1-value">100%</p>
+        </div>
+        <div class="funnel-step">
+          <p class="label" data-slot="step-2-title">Interest</p>
+          <p class="value" data-slot="step-2-value">72%</p>
+        </div>
+        <div class="funnel-step">
+          <p class="label" data-slot="step-3-title">Decision</p>
+          <p class="value" data-slot="step-3-value">48%</p>
+        </div>
+        <div class="funnel-step">
+          <p class="label" data-slot="step-4-title">Action</p>
+          <p class="value" data-slot="step-4-value">28%</p>
+        </div>
+        <div class="funnel-step">
+          <p class="label" data-slot="step-5-title">Retain</p>
+          <p class="value" data-slot="step-5-value">18%</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="deck-footer" aria-hidden="true">
+      <div class="year-stack">
+        <p>20</p>
+        <p>25</p>
+      </div>
+      <div class="brand-copy">
+        <p class="brand-name">Real Balance Presentation</p>
+        <p class="brand-site">www.website.com</p>
+      </div>
+    </div>
+
+    <p class="page-number" data-slot="page-number">09</p>
+  </div>
+
+</body>
+</html>

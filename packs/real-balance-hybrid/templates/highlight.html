@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="../theme.css">
+  <style>
+
+    body::before { display: none; }
+    .slide {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 52pt 72pt;
+    }
+    .card-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 520pt;
+      padding: 48pt 52pt 42pt;
+      border-radius: var(--radius-xl);
+      background: var(--accent);
+      box-shadow: var(--shadow-glow);
+    }
+    .card-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background: radial-gradient(circle at 46% 32%, rgba(255,255,255,0.46) 0 14%, rgba(255,255,255,0) 15% 100%);
+      pointer-events: none;
+    }
+    .statement {
+      font-size: 26pt;
+      font-weight: 560;
+      line-height: 1.18;
+      color: var(--text-on-accent);
+      letter-spacing: -0.03em;
+      margin-bottom: 18pt;
+    }
+    .support {
+      font-size: 12pt;
+      line-height: 1.52;
+      color: rgba(42, 42, 42, 0.72);
+      max-width: 340pt;
+      margin: 0 auto;
+    }
+    .arrow-mark {
+      position: absolute;
+      right: 28pt;
+      top: 24pt;
+      font-size: 18pt;
+      color: var(--text-on-accent);
+      opacity: 0.5;
+    }
+
+  </style>
+</head>
+<body class="light">
+
+  <div class="slide">
+    <div class="card-wrap">
+      <p class="arrow-mark" aria-hidden="true">→</p>
+      <h2 class="statement" data-slot="title">Use this slide to highlight a key insight that your audience should remember.</h2>
+      <p class="support" data-slot="body">Brief supporting context to reinforce the main message above.</p>
+    </div>
+
+    <div class="deck-footer" aria-hidden="true">
+      <div class="year-stack">
+        <p>20</p>
+        <p>25</p>
+      </div>
+      <div class="brand-copy">
+        <p class="brand-name">Real Balance Presentation</p>
+        <p class="brand-site">www.website.com</p>
+      </div>
+    </div>
+
+    <p class="page-number" data-slot="page-number">05</p>
+  </div>
+
+</body>
+</html>
