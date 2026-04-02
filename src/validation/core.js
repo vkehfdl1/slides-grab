@@ -502,6 +502,31 @@ export async function inspectSlide(page, fileName, slidesDir) {
         return values;
       };
 
+      // Detect persisted runtime-only editor/viewer injections.
+      const baseElements = Array.from(document.querySelectorAll('head base[href]'));
+      for (const base of baseElements) {
+        critical.push({
+          code: 'persisted-editor-base-tag',
+          message: 'Slide contains a <base> tag injected by the editor runtime. Remove it so asset paths resolve correctly outside the editor.',
+          element: 'head > base',
+          detail: base.getAttribute('href'),
+        });
+      }
+
+      const editorScriptSignatures = ['[slides-grab:image]', '[slides-grab:', 'const slideFile ='];
+      const scripts = Array.from(document.querySelectorAll('head script:not([src])'));
+      for (const script of scripts) {
+        const text = script.textContent || '';
+        const matched = editorScriptSignatures.some((sig) => text.includes(sig));
+        if (matched) {
+          critical.push({
+            code: 'persisted-editor-script',
+            message: 'Slide contains a runtime-only editor script that should not be persisted. Remove the injected <script> block.',
+            element: 'head > script',
+          });
+        }
+      }
+
       const bodyRect = document.body.getBoundingClientRect();
       const frameRect = {
         left: bodyRect.left,
