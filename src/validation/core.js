@@ -513,7 +513,7 @@ export async function inspectSlide(page, fileName, slidesDir) {
         });
       }
 
-      const editorScriptSignatures = ['[slides-grab:image]', '[slides-grab:', 'const slideFile ='];
+      const editorScriptSignatures = ['[slides-grab:image]', '[slides-grab:'];
       const scripts = Array.from(document.querySelectorAll('head script:not([src])'));
       for (const script of scripts) {
         const text = script.textContent || '';
