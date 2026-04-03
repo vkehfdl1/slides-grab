@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
@@ -66,6 +66,11 @@ async function runCommand(relativePath, args = []) {
 
 function collectRepeatedOption(value, previous = []) {
   return [...previous, value];
+}
+
+function reportCliError(error) {
+  console.error(`[slides-grab] ${error.message}`);
+  process.exitCode = 1;
 }
 
 const program = new Command();
@@ -260,6 +265,95 @@ program
       console.log(`  ${t.name.padEnd(20)} ${tag}`);
     }
     console.log(`\nTotal: ${themes.length} themes`);
+  });
+
+program
+  .command('list-styles')
+  .description('List bundled design collections users can preview/select before slide generation')
+  .action(async () => {
+    try {
+      const [{ listDesignStyles }, { readSelectedStyleConfig }] = await Promise.all([
+        import('../src/design-styles.js'),
+        import('../src/style-config.js'),
+      ]);
+      const styles = listDesignStyles();
+      const selectedConfig = await readSelectedStyleConfig(process.cwd());
+      const selectedStyleId = selectedConfig?.style?.id ?? null;
+
+      if (styles.length === 0) {
+        console.log('No bundled design styles found.');
+        return;
+      }
+
+      console.log('Available design styles:\n');
+      for (const style of styles) {
+        const selectedTag = style.id === selectedStyleId ? '  [selected]' : '';
+        console.log(`  ${style.id.padEnd(22)} ${style.title}${selectedTag}`);
+        console.log(`    ${style.mood} · ${style.bestFor}`);
+      }
+
+      console.log(`\nTotal: ${styles.length} styles`);
+      if (selectedConfig?.style) {
+        console.log(`Selected style: ${selectedConfig.style.title} (${selectedConfig.style.id})`);
+      } else {
+        console.log('Selected style: none');
+      }
+    } catch (error) {
+      reportCliError(error);
+    }
+  });
+
+program
+  .command('preview-styles')
+  .description('Generate a local HTML preview for the full design catalog or one selected style')
+  .option('--style <id>', 'Focus the preview on a single style id')
+  .option('--output <path>', 'Output HTML path', 'style-preview.html')
+  .action(async (options = {}) => {
+    try {
+      const { buildStylePreviewHtml, requireDesignStyle } = await import('../src/design-styles.js');
+      const { readSelectedStyleConfig } = await import('../src/style-config.js');
+      const outputPath = resolve(process.cwd(), options.output);
+      const currentSelection = await readSelectedStyleConfig(process.cwd());
+      const selectedStyle = options.style ? requireDesignStyle(String(options.style)) : null;
+      const html = buildStylePreviewHtml({
+        styleId: selectedStyle?.id,
+        selectedStyleId: selectedStyle?.id ?? currentSelection?.selectedStyleId ?? null,
+      });
+
+      mkdirSync(dirname(outputPath), { recursive: true });
+      writeFileSync(outputPath, html, 'utf-8');
+
+      if (selectedStyle) {
+        console.log(`Wrote style preview for ${selectedStyle.title} to ${outputPath}`);
+      } else {
+        console.log(`Wrote style preview catalog to ${outputPath}`);
+      }
+    } catch (error) {
+      reportCliError(error);
+    }
+  });
+
+program
+  .command('select-style')
+  .description('Persist a selected bundled design style before slide generation')
+  .argument('<id>', 'Design style id (e.g. "glassmorphism")')
+  .action(async (styleId) => {
+    try {
+      const { requireDesignStyle } = await import('../src/design-styles.js');
+      const {
+        getStyleConfigPath,
+        writeSelectedStyleConfig,
+      } = await import('../src/style-config.js');
+      const style = requireDesignStyle(String(styleId));
+
+      await writeSelectedStyleConfig({ cwd: process.cwd(), style });
+
+      console.log(`Selected style: ${style.title} (${style.id})`);
+      console.log(`Saved selection to ${getStyleConfigPath(process.cwd())}`);
+      console.log(`Preview anytime with: slides-grab preview-styles --style ${style.id}`);
+    } catch (error) {
+      reportCliError(error);
+    }
   });
 
 program
