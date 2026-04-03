@@ -29,6 +29,7 @@ const TARGET_ASPECT_RATIO = 16 / 9;
 const RENDER_SETTLE_MS = 120;
 const CSS_PIXELS_PER_INCH = 96;
 const PDF_POINTS_PER_INCH = 72;
+const VIDEO_EXPORT_PREP_TIMEOUT_MS = 4000;
 
 function printUsage() {
   process.stdout.write(
@@ -273,6 +274,17 @@ function chooseSlideFrame(metrics) {
     }))
     .sort((left, right) => right.area - left.area);
 
+  // When the body has explicit slide dimensions (fills the viewport with no
+  // default margins), no overflow, and a good 16:9 aspect ratio, it IS the
+  // slide frame — skip the body-child heuristic entirely.
+  const bodyCandidate = candidates.find((c) => c.source === 'body');
+  const bodyMatchesViewport =
+    Math.abs(metrics.body.width - metrics.viewport.width) < 2 &&
+    Math.abs(metrics.body.height - metrics.viewport.height) < 2;
+  if (bodyMatchesViewport && !bodyHasOverflowingContent && bodyCandidate && bodyCandidate.aspectDelta < 0.12) {
+    return bodyCandidate;
+  }
+
   const preferredCandidate = candidates.find((candidate) => {
     if (candidate.source !== 'body-child') return false;
     if (candidate.coverage < 0.45) return false;
@@ -395,6 +407,114 @@ export async function detectSlideFrame(page) {
     candidateIndex: Number.isInteger(frame.candidateIndex) ? frame.candidateIndex : null,
     source: frame.source,
   };
+}
+
+export async function prepareVideosForExport(page, options = {}) {
+  const timeoutMs = normalizeDimension(options.timeoutMs ?? VIDEO_EXPORT_PREP_TIMEOUT_MS, VIDEO_EXPORT_PREP_TIMEOUT_MS);
+
+  await page.evaluate(async ({ timeoutMs: captureTimeoutMs }) => {
+    const videos = Array.from(document.querySelectorAll('video'));
+    if (videos.length === 0) {
+      return;
+    }
+
+    function waitForVideoReady(video) {
+      if (video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+        return Promise.resolve();
+      }
+
+      return new Promise((resolve) => {
+        const cleanup = () => {
+          video.removeEventListener('loadeddata', onReady);
+          video.removeEventListener('canplay', onReady);
+          video.removeEventListener('error', onReady);
+        };
+        const onReady = () => {
+          cleanup();
+          resolve();
+        };
+
+        video.addEventListener('loadeddata', onReady, { once: true });
+        video.addEventListener('canplay', onReady, { once: true });
+        video.addEventListener('error', onReady, { once: true });
+        setTimeout(onReady, captureTimeoutMs);
+      });
+    }
+
+    async function captureVideoFrame(video) {
+      await waitForVideoReady(video);
+      if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || video.videoWidth <= 0 || video.videoHeight <= 0) {
+        return '';
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext('2d');
+      if (!context) {
+        return '';
+      }
+
+      try {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/png');
+      } catch {
+        return '';
+      }
+    }
+
+    function copyComputedStyle(sourceElement, targetElement) {
+      const computed = window.getComputedStyle(sourceElement);
+      for (const propertyName of Array.from(computed)) {
+        targetElement.style.setProperty(
+          propertyName,
+          computed.getPropertyValue(propertyName),
+          computed.getPropertyPriority(propertyName),
+        );
+      }
+      return computed;
+    }
+
+    const replacementImages = [];
+
+    for (const video of videos) {
+      const rect = video.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) {
+        continue;
+      }
+
+      const thumbnail = (video.getAttribute('poster') || '').trim() || await captureVideoFrame(video);
+      if (!thumbnail) {
+        continue;
+      }
+
+      video.pause?.();
+      const replacement = document.createElement('img');
+      replacement.setAttribute('data-slides-grab-video-replacement', 'true');
+      replacement.src = thumbnail;
+      replacement.alt = video.getAttribute('aria-label') || video.getAttribute('title') || 'Video thumbnail';
+      replacement.className = video.className;
+
+      const computed = copyComputedStyle(video, replacement);
+      replacement.style.objectFit = computed.objectFit || 'contain';
+      replacement.style.objectPosition = computed.objectPosition || '50% 50%';
+      replacement.style.pointerEvents = 'none';
+      replacement.style.visibility = 'visible';
+
+      video.replaceWith(replacement);
+      replacementImages.push(replacement);
+    }
+
+    await Promise.all(
+      replacementImages.map(async (replacement) => {
+        if (typeof replacement.decode === 'function') {
+          await replacement.decode().catch(() => {});
+        }
+      }),
+    );
+
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  }, { timeoutMs });
 }
 
 export async function normalizeBodyToSlideFrame(page, slideFrame) {
@@ -538,6 +658,18 @@ export async function renderSlideToPdf(page, slideFile, slidesDir, options = {})
     };
     await page.setViewportSize(viewportSize);
     await waitForSlideRenderReady(page, { ...options, runReadySignal: false });
+    // Reset autoplay videos to show their poster instead of a mid-play frame,
+    // without replacing the <video> element (which would break slide layout).
+    await page.evaluate(() => {
+      for (const video of document.querySelectorAll('video')) {
+        video.pause();
+        video.removeAttribute('autoplay');
+        if (video.getAttribute('poster')) {
+          video.load();
+        }
+      }
+    });
+    await waitForSlideRenderReady(page, { ...options, runReadySignal: false, settleMs: 200 });
     const pngBytes = await page.screenshot({
       type: 'png',
       clip: {
@@ -555,6 +687,8 @@ export async function renderSlideToPdf(page, slideFile, slidesDir, options = {})
       pngBytes: normalizedPngBytes,
     };
   }
+
+  await prepareVideosForExport(page);
 
   return {
     mode,

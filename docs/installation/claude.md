@@ -53,6 +53,7 @@ Prerequisite: create or generate `decks/my-deck/` with `slide-*.html` first. The
 slides-grab edit --slides-dir decks/my-deck
 slides-grab build-viewer --slides-dir decks/my-deck
 slides-grab validate --slides-dir decks/my-deck
+slides-grab image --slides-dir decks/my-deck --prompt "Editorial hero image for slide 03"
 slides-grab pdf --slides-dir decks/my-deck --output decks/my-deck.pdf
 slides-grab pdf --slides-dir decks/my-deck --mode print --output decks/my-deck-searchable.pdf
 slides-grab convert --slides-dir decks/my-deck --output decks/my-deck.pptx
@@ -62,6 +63,8 @@ slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
 > `slides-grab convert` and `slides-grab figma` are **experimental / unstable**. Treat their output as best-effort and expect manual cleanup in PowerPoint or Figma.
 
 `slides-grab pdf` defaults to `--mode capture` for visual fidelity. Use `--mode print` when searchable/selectable text is more important than pixel-perfect browser parity.
+
+When a slide needs bespoke generated imagery, use `slides-grab image --prompt "..." --slides-dir <path>` with `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) set. If no key is available, ask for one or fall back to web search + local download into `assets/`.
 
 ## 5) Recommended Claude Kickoff Prompt
 

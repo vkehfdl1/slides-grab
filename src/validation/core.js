@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
 import {
   buildImageContractReport,
+  buildVideoContractReport,
   classifyImageSource,
   resolveSlideSourcePath,
 } from '../image-contract.js';
@@ -114,6 +115,18 @@ async function fileExists(filePath) {
   }
 }
 
+function shouldSkipLocalAssetExistenceCheck(classification) {
+  return (
+    classification.kind === 'empty'
+    || classification.kind === 'data-url'
+    || classification.kind === 'remote-url'
+    || classification.kind === 'remote-url-insecure'
+    || classification.kind === 'absolute-filesystem-path'
+    || classification.kind === 'root-relative-path'
+    || classification.kind === 'other-scheme'
+  );
+}
+
 async function inspectImageContract(slidesDir, fileName, inspection) {
   const critical = [];
   const warning = [];
@@ -135,15 +148,7 @@ async function inspectImageContract(slidesDir, fileName, inspection) {
       target.push(issue);
     }
 
-    if (
-      classification.kind === 'empty'
-      || classification.kind === 'data-url'
-      || classification.kind === 'remote-url'
-      || classification.kind === 'remote-url-insecure'
-      || classification.kind === 'absolute-filesystem-path'
-      || classification.kind === 'root-relative-path'
-      || classification.kind === 'other-scheme'
-    ) {
+    if (shouldSkipLocalAssetExistenceCheck(classification)) {
       continue;
     }
 
@@ -201,15 +206,7 @@ async function inspectImageContract(slidesDir, fileName, inspection) {
 
     for (const source of background.urls) {
       const classification = classifyImageSource(source);
-      if (
-        classification.kind === 'empty'
-        || classification.kind === 'data-url'
-        || classification.kind === 'remote-url'
-        || classification.kind === 'remote-url-insecure'
-        || classification.kind === 'absolute-filesystem-path'
-        || classification.kind === 'root-relative-path'
-        || classification.kind === 'other-scheme'
-      ) {
+      if (shouldSkipLocalAssetExistenceCheck(classification)) {
         continue;
       }
 
@@ -227,6 +224,94 @@ async function inspectImageContract(slidesDir, fileName, inspection) {
           },
         ));
       }
+    }
+  }
+
+  return { critical, warning };
+}
+
+async function inspectVideoContract(slidesDir, fileName, inspection) {
+  const critical = [];
+  const warning = [];
+  const slidePath = join(slidesDir, fileName);
+
+  for (const video of inspection.videos) {
+    const sources = [...new Set([
+      typeof video.src === 'string' ? video.src : '',
+      ...video.sources,
+    ].map((source) => source.trim()).filter(Boolean))];
+
+    const issues = buildVideoContractReport({
+      slideFile: fileName,
+      sources: sources.map((source) => ({
+        element: buildElementPath(video.element),
+        source,
+      })),
+    });
+
+    for (const issue of issues) {
+      const target = issue.severity === 'critical' ? critical : warning;
+      target.push(issue);
+    }
+
+    for (const source of sources) {
+      const classification = classifyImageSource(source);
+      if (shouldSkipLocalAssetExistenceCheck(classification)) {
+        continue;
+      }
+
+      const assetPath = resolveSlideSourcePath(slidePath, source);
+      if (!(await fileExists(assetPath))) {
+        critical.push(buildImageIssue(
+          'critical',
+          'missing-local-video-asset',
+          'Local video asset is missing.',
+          {
+            slide: fileName,
+            element: buildElementPath(video.element),
+            source,
+            assetPath,
+          },
+        ));
+      }
+    }
+
+    const poster = typeof video.poster === 'string' ? video.poster.trim() : '';
+    if (!poster) {
+      continue;
+    }
+
+    const posterIssues = buildImageContractReport({
+      slideFile: fileName,
+      sources: [{
+        element: buildElementPath(video.element),
+        source: poster,
+      }],
+    });
+
+    for (const issue of posterIssues) {
+      const target = issue.severity === 'critical' ? critical : warning;
+      target.push(issue);
+    }
+
+    const posterClassification = classifyImageSource(poster);
+    if (shouldSkipLocalAssetExistenceCheck(posterClassification)) {
+      continue;
+    }
+
+    const posterPath = resolveSlideSourcePath(slidePath, poster);
+    if (!(await fileExists(posterPath))) {
+      critical.push(buildImageIssue(
+        'critical',
+        'missing-local-video-poster-asset',
+        'Video poster image is missing.',
+        {
+          slide: fileName,
+          element: buildElementPath(video.element),
+          source: poster,
+          assetPath: posterPath,
+        },
+      ));
     }
   }
 
@@ -417,6 +502,31 @@ export async function inspectSlide(page, fileName, slidesDir) {
         return values;
       };
 
+      // Detect persisted runtime-only editor/viewer injections.
+      const baseElements = Array.from(document.querySelectorAll('head base[href]'));
+      for (const base of baseElements) {
+        critical.push({
+          code: 'persisted-editor-base-tag',
+          message: 'Slide contains a <base> tag injected by the editor runtime. Remove it so asset paths resolve correctly outside the editor.',
+          element: 'head > base',
+          detail: base.getAttribute('href'),
+        });
+      }
+
+      const editorScriptSignatures = ['[slides-grab:image]', '[slides-grab:'];
+      const scripts = Array.from(document.querySelectorAll('head script:not([src])'));
+      for (const script of scripts) {
+        const text = script.textContent || '';
+        const matched = editorScriptSignatures.some((sig) => text.includes(sig));
+        if (matched) {
+          critical.push({
+            code: 'persisted-editor-script',
+            message: 'Slide contains a runtime-only editor script that should not be persisted. Remove the injected <script> block.',
+            element: 'head > script',
+          });
+        }
+      }
+
       const bodyRect = document.body.getBoundingClientRect();
       const frameRect = {
         left: bodyRect.left,
@@ -519,6 +629,15 @@ export async function inspectSlide(page, fileName, slidesDir) {
         alt: (element.getAttribute('alt') || '').trim(),
       }));
 
+      const videos = Array.from(document.querySelectorAll('video')).map((element) => ({
+        element: elementPath(element),
+        src: (element.getAttribute('src') || '').trim(),
+        sources: Array.from(element.querySelectorAll('source[src]'))
+          .map((source) => (source.getAttribute('src') || '').trim())
+          .filter(Boolean),
+        poster: (element.getAttribute('poster') || '').trim(),
+      }));
+
       const backgrounds = [document.body, ...Array.from(document.body.querySelectorAll('*'))]
         .map((element) => {
           const computedBackgroundImage = window.getComputedStyle(element).backgroundImage;
@@ -539,6 +658,7 @@ export async function inspectSlide(page, fileName, slidesDir) {
         critical,
         warning,
         images,
+        videos,
         backgrounds,
       };
     },
@@ -553,9 +673,14 @@ export async function inspectSlide(page, fileName, slidesDir) {
     images: inspection.images,
     backgrounds: inspection.backgrounds,
   });
+  const videoContractIssues = await inspectVideoContract(slidesDir, fileName, {
+    videos: inspection.videos,
+  });
 
   inspection.critical.push(...imageContractIssues.critical);
   inspection.warning.push(...imageContractIssues.warning);
+  inspection.critical.push(...videoContractIssues.critical);
+  inspection.warning.push(...videoContractIssues.warning);
 
   const summary = {
     criticalCount: inspection.critical.length,
@@ -620,13 +745,21 @@ export function formatValidationFailureForExport(result, exportLabel = 'Export')
 
 const EXPORT_BLOCKING_IMAGE_CONTRACT_CODES = new Set([
   'absolute-filesystem-image-path',
+  'absolute-filesystem-video-path',
   'missing-local-asset',
   'missing-local-background-asset',
+  'missing-local-video-asset',
+  'missing-local-video-poster-asset',
   'remote-background-image-url',
   'remote-background-image-url-insecure',
   'remote-image-url',
   'remote-image-url-insecure',
+  'remote-video-url',
+  'remote-video-url-insecure',
   'root-relative-image-path',
+  'root-relative-video-path',
+  'unsupported-image-url-scheme',
+  'unsupported-video-url-scheme',
   'unsupported-background-image',
 ]);
 

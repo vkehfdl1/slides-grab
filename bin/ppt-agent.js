@@ -140,6 +140,20 @@ program
   });
 
 program
+  .command('fetch-video')
+  .description('Download a video into <slides-dir>/assets via yt-dlp and print the ./assets reference')
+  .requiredOption('--url <url>', 'Video page URL to download with yt-dlp')
+  .option('--slides-dir <path>', 'Slide directory', 'slides')
+  .option('--output-name <name>', 'Optional output stem inside <slides-dir>/assets/')
+  .action(async (options = {}) => {
+    const args = ['--url', String(options.url), '--slides-dir', options.slidesDir];
+    if (options.outputName) {
+      args.push('--output-name', String(options.outputName));
+    }
+    await runCommand('scripts/download-video.js', args);
+  });
+
+program
   .command('figma')
   .description('Export an experimental / unstable Figma Slides importable PPTX')
   .helpOption('-h, --help', 'Show this help message')
@@ -174,6 +188,27 @@ program
     if (options.background) args.push('--background', String(options.background));
     if (options.pageId) args.push('--page-id', String(options.pageId));
     await runCommand('scripts/render-tldraw.js', args);
+  });
+
+program
+  .command('image')
+  .description('Generate a local slide image asset with Nano Banana Pro')
+  .option('--prompt <text>', 'Prompt for image generation')
+  .option('--slides-dir <path>', 'Slide directory', 'slides')
+  .option('--output <path>', 'Optional output path inside <slides-dir>/assets/')
+  .option('--name <slug>', 'Optional asset basename without extension')
+  .option('--model <id>', 'Model id (default: gemini-3-pro-image-preview)')
+  .option('--aspect-ratio <ratio>', 'Aspect ratio (default: 16:9)')
+  .option('--image-size <size>', 'Image size preset: 2K or 4K (default: 4K)')
+  .action(async (options = {}) => {
+    const args = ['--slides-dir', options.slidesDir];
+    if (options.prompt) args.push('--prompt', String(options.prompt));
+    if (options.output) args.push('--output', String(options.output));
+    if (options.name) args.push('--name', String(options.name));
+    if (options.model) args.push('--model', String(options.model));
+    if (options.aspectRatio) args.push('--aspect-ratio', String(options.aspectRatio));
+    if (options.imageSize) args.push('--image-size', String(options.imageSize));
+    await runCommand('scripts/generate-image.js', args);
   });
 
 program

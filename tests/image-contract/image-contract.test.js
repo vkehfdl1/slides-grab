@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
-import { copyFile, mkdir, mkdtemp, readFile, rm, stat } from 'node:fs/promises';
+import { copyFile, mkdir, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:net';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
@@ -47,6 +47,108 @@ function runNodeScript(relativePath, args = [], cwd = REPO_ROOT, env = process.e
       resolvePromise({ code: code ?? 1, stdout, stderr });
     });
   });
+}
+
+function canEncodeVideoFixtures() {
+  const probe = spawnSync('ffmpeg', ['-version'], { encoding: 'utf8' });
+  if (probe.error?.code === 'ENOENT') {
+    return false;
+  }
+  return probe.status === 0;
+}
+
+function runFfmpeg(args) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const child = spawn('ffmpeg', args, {
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let stderr = '';
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on('error', rejectPromise);
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolvePromise();
+        return;
+      }
+      rejectPromise(new Error(`ffmpeg failed (${code})\n${stderr}`));
+    });
+  });
+}
+
+async function createVideoFixtureDeck(workspace, {
+  videoSrc = './assets/example.mp4',
+  posterSrc = './assets/poster.svg',
+  createVideoAsset = true,
+  sourceTags = [],
+} = {}) {
+  const slidesDir = path.join(workspace, 'slides');
+  const assetsDir = path.join(slidesDir, 'assets');
+  await mkdir(assetsDir, { recursive: true });
+
+  if (createVideoAsset) {
+    await runFfmpeg([
+      '-y',
+      '-f',
+      'lavfi',
+      '-i',
+      'color=c=red:s=160x90:d=1',
+      '-pix_fmt',
+      'yuv420p',
+      path.join(assetsDir, 'example.mp4'),
+    ]);
+  }
+
+  await writeFile(
+    path.join(assetsDir, 'poster.svg'),
+    [
+      '<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90" viewBox="0 0 160 90">',
+      '  <rect width="160" height="90" fill="#1D4ED8"/>',
+      '</svg>',
+    ].join('\n'),
+    'utf8',
+  );
+
+  const sourceHtml = sourceTags
+    .map((source) => `    <source src="${source}" type="video/mp4">`)
+    .join('\n');
+
+  await writeFile(
+    path.join(slidesDir, 'slide-01.html'),
+    `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #111827; }
+    body {
+      width: 960px;
+      height: 540px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    video {
+      width: 480px;
+      height: 270px;
+      display: block;
+      background: #000;
+    }
+  </style>
+</head>
+<body>
+  <video controls poster="${posterSrc}" src="${videoSrc}">
+${sourceHtml}
+  </video>
+</body>
+</html>`,
+    'utf8',
+  );
+
+  return slidesDir;
 }
 
 function findAvailablePort() {
@@ -102,6 +204,7 @@ test('image contract helpers classify supported and discouraged sources', () => 
   assert.deepEqual(classifyImageSource('../shared/logo.png'), { kind: 'noncanonical-relative-path' });
   assert.deepEqual(classifyImageSource('/Users/demo/Desktop/photo.png'), { kind: 'absolute-filesystem-path' });
   assert.deepEqual(classifyImageSource('/assets/example.svg'), { kind: 'root-relative-path' });
+  assert.deepEqual(classifyImageSource('blob:https://example.com/demo'), { kind: 'other-scheme' });
 });
 
 test('buildSlideRuntimeHtml injects base href and runtime diagnostics', () => {
@@ -171,6 +274,91 @@ test('validate reports missing local assets and discouraged path forms', async (
   assert.equal(unsupportedReport.slides[0].warning.some((issue) => issue.code === 'noncanonical-relative-image-path'), true);
   assert.equal(unsupportedReport.slides[0].critical.some((issue) => issue.code === 'remote-image-url'), true);
   assert.equal(unsupportedReport.slides[0].critical.some((issue) => issue.code === 'unsupported-background-image'), true);
+});
+
+test('validate passes for canonical local video assets under ./assets', async (t) => {
+  if (!canEncodeVideoFixtures()) {
+    return t.skip('ffmpeg is required for video fixture generation');
+  }
+
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'slides-grab-video-contract-pass-'));
+
+  try {
+    const slidesDir = await createVideoFixtureDeck(workspace);
+    const result = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', slidesDir, '--format', 'json-full']);
+    assert.equal(result.code, 0, result.stderr || result.stdout);
+
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.summary.failedSlides, 0);
+    assert.equal(report.slides[0].summary.criticalCount, 0);
+  } finally {
+    await rm(workspace, { recursive: true, force: true }).catch(() => {});
+  }
+});
+
+test('validate and html2pdf block unsupported video asset paths', async (t) => {
+  if (!canEncodeVideoFixtures()) {
+    return t.skip('ffmpeg is required for video fixture generation');
+  }
+
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'slides-grab-video-contract-fail-'));
+
+  try {
+    const missingSlidesDir = await createVideoFixtureDeck(path.join(workspace, 'missing'), {
+      createVideoAsset: false,
+    });
+    const missing = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', missingSlidesDir, '--format', 'json-full']);
+    assert.equal(missing.code, 1);
+    const missingReport = JSON.parse(missing.stdout);
+    assert.equal(missingReport.slides[0].critical.some((issue) => issue.code === 'missing-local-video-asset'), true);
+
+    const remoteSlidesDir = await createVideoFixtureDeck(path.join(workspace, 'remote'), {
+      videoSrc: 'https://example.com/demo.mp4',
+    });
+    const remote = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', remoteSlidesDir, '--format', 'json-full']);
+    assert.equal(remote.code, 1);
+    const remoteReport = JSON.parse(remote.stdout);
+    assert.equal(remoteReport.slides[0].critical.some((issue) => issue.code === 'remote-video-url'), true);
+
+    const mixedSlidesDir = await createVideoFixtureDeck(path.join(workspace, 'mixed-src-source'), {
+      videoSrc: 'https://example.com/direct.mp4',
+      sourceTags: ['./assets/example.mp4'],
+    });
+    const mixed = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', mixedSlidesDir, '--format', 'json-full']);
+    assert.equal(mixed.code, 1);
+    const mixedReport = JSON.parse(mixed.stdout);
+    assert.equal(mixedReport.slides[0].critical.some((issue) => issue.code === 'remote-video-url'), true);
+
+    const blobSlidesDir = await createVideoFixtureDeck(path.join(workspace, 'blob'), {
+      videoSrc: 'blob:https://example.com/demo',
+    });
+    const blob = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', blobSlidesDir, '--format', 'json-full']);
+    assert.equal(blob.code, 1);
+    const blobReport = JSON.parse(blob.stdout);
+    assert.equal(blobReport.slides[0].critical.some((issue) => issue.code === 'unsupported-video-url-scheme'), true);
+
+    const blocked = await runNodeScript('scripts/html2pdf.js', ['--slides-dir', remoteSlidesDir, '--output', path.join(workspace, 'blocked.pdf')]);
+    assert.equal(blocked.code, 1);
+    assert.match(blocked.stderr, /remote-video-url/);
+
+    const blockedBlob = await runNodeScript('scripts/html2pdf.js', ['--slides-dir', blobSlidesDir, '--output', path.join(workspace, 'blocked-blob.pdf')]);
+    assert.equal(blockedBlob.code, 1);
+    assert.match(blockedBlob.stderr, /unsupported-video-url-scheme/);
+
+    const blobPosterSlidesDir = await createVideoFixtureDeck(path.join(workspace, 'blob-poster'), {
+      posterSrc: 'blob:https://example.com/poster',
+    });
+    const blobPoster = await runNodeScript('scripts/validate-slides.js', ['--slides-dir', blobPosterSlidesDir, '--format', 'json-full']);
+    assert.equal(blobPoster.code, 1);
+    const blobPosterReport = JSON.parse(blobPoster.stdout);
+    assert.equal(blobPosterReport.slides[0].critical.some((issue) => issue.code === 'unsupported-image-url-scheme'), true);
+
+    const blockedBlobPoster = await runNodeScript('scripts/html2pdf.js', ['--slides-dir', blobPosterSlidesDir, '--output', path.join(workspace, 'blocked-blob-poster.pdf')]);
+    assert.equal(blockedBlobPoster.code, 1);
+    assert.match(blockedBlobPoster.stderr, /unsupported-image-url-scheme/);
+  } finally {
+    await rm(workspace, { recursive: true, force: true }).catch(() => {});
+  }
 });
 
 test('html2pdf exports the canonical ./assets fixture and blocks invalid decks in preflight', async () => {

@@ -34,7 +34,9 @@
     "bin/",
     "convert.cjs",
     "scripts/build-viewer.js",
+    "scripts/download-video.js",
     "scripts/editor-server.js",
+    "scripts/generate-image.js",
     "scripts/figma-export.js",
     "scripts/html2pdf.js",
     "scripts/html2pptx.js",
@@ -52,7 +54,7 @@
     "build-viewer": "node scripts/build-viewer.js",
     "validate": "node scripts/validate-slides.js",
     "convert": "node convert.cjs",
-    "test": "node --test tests/editor/editor-codex-edit.test.js tests/pdf/html2pdf.test.js tests/pdf/html2pdf.e2e.test.js tests/figma/figma-export.test.js tests/image-contract/image-contract.test.js tests/tldraw/render-tldraw.test.js tests/validation/validate-slides.test.js tests/skills/installable-skills.test.js",
+    "test": "node --test --test-concurrency=1 tests/editor/editor-codex-edit.test.js tests/nano-banana/nano-banana.test.js tests/pdf/html2pdf.test.js tests/pdf/html2pdf.e2e.test.js tests/figma/figma-export.test.js tests/image-contract/image-contract.test.js tests/tldraw/render-tldraw.test.js tests/validation/validate-slides.test.js tests/skills/installable-skills.test.js tests/video/download-video.test.js",
     "test:e2e": "node --test tests/editor/editor-ui.e2e.test.js tests/editor/editor-concurrency.e2e.test.js"
   },
   "dependencies": {
@@ -66,5 +68,9 @@
     "react-icons": "^5.0.0",
     "sharp": "^0.33.0",
     "tldraw": "^4.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "typescript": "^6.0.2"
   }
 }
