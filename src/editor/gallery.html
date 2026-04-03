@@ -156,7 +156,8 @@
       const accent = safeColor(colors.accent, '#666');
       const textPrimary = safeColor(colors['text-primary'], '#fff');
       const textSecondary = safeColor(colors['text-secondary'], '#aaa');
-      const templates = pack.templates || [];
+      // Show only pack's own templates for preview; fall back for skin packs
+      const templates = (pack.ownTemplates?.length ? pack.ownTemplates : pack.templates) || [];
 
       // ── Cover preview ──
       const previewWrapper = document.createElement('div');

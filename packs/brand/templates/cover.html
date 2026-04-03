@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    body {
+      margin: 0; width: 720pt; height: 405pt;
+      font-family: var(--font-sans, 'Pretendard', sans-serif);
+      background:
+        radial-gradient(ellipse at 30% 40%, rgba(252,94,32,0.08) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 80%, rgba(184,90,48,0.12) 0%, transparent 50%),
+        var(--bg-elevated, #4B4B4B);
+      color: #fff; overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      box-sizing: border-box; position: relative;
+    }
+    .deco-tl {
+      position: absolute; top: 0; left: 0;
+      width: 32pt; height: 48pt;
+      background: linear-gradient(180deg, #888, #666);
+    }
+    .body { position: absolute; top: 80pt; left: 56pt; }
+    .body .tag {
+      display: inline-block; background: var(--accent, #FC5E20);
+      color: #fff; font-size: 14pt; font-weight: 700;
+      padding: 6pt 16pt; margin-bottom: 12pt;
+    }
+    .body h2 {
+      font-size: var(--title-slide, 30pt); font-weight: 600;
+      color: #fff; letter-spacing: -0.01em;
+    }
+    .body h1 {
+      font-size: var(--title-hero, 56pt); font-weight: 800;
+      color: #fff; letter-spacing: 0.12em; margin-top: 4pt;
+    }
+    .wm {
+      position: absolute; bottom: -8pt; left: 56pt;
+      font-size: 110pt; font-weight: 900;
+      color: rgba(255,255,255,0.06);
+      letter-spacing: 0.05em; line-height: 1;
+    }
+    .deco-bar {
+      position: absolute; bottom: 56pt; right: 82pt;
+      width: 18pt; height: 36pt; background: var(--accent-dark, #B85A30);
+    }
+    .deco-shape {
+      position: absolute; bottom: 0; right: 0;
+      width: 92pt; height: 124pt; background: var(--accent, #FC5E20);
+      border-top-left-radius: 20pt;
+    }
+    .ft {
+      position: absolute; bottom: 12pt; left: 0; right: 0;
+      text-align: center; font-size: var(--text-label, 10pt);
+      color: rgba(255,255,255,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="deco-tl"></div>
+    <div class="body">
+      <p class="tag" data-slot="label">Label Text</p>
+      <h2 data-slot="subtitle">Subtitle</h2>
+      <h1 data-slot="title">Main Title</h1>
+    </div>
+    <p class="wm" data-slot="watermark">BRAND</p>
+    <div class="deco-bar"></div>
+    <div class="deco-shape"></div>
+    <p class="ft" data-slot="caption">ⓒ 2026 Company. All rights reserved.</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    body {
+      margin: 0; width: 720pt; height: 405pt;
+      font-family: var(--font-sans, 'Pretendard', sans-serif);
+      background: var(--bg-primary, #fff);
+      color: var(--text-primary, #373742);
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      box-sizing: border-box; position: relative;
+      display: flex;
+    }
+    .lp {
+      width: 250pt; background: var(--bg-secondary, #f3f3f3);
+      position: relative; padding: 48pt 24pt 48pt 36pt;
+      clip-path: polygon(0 0, 85% 0, 100% 100%, 0 100%);
+      flex-shrink: 0;
+    }
+    .lp-label {
+      position: absolute; top: 14pt; left: 36pt;
+      font-size: var(--text-label, 10pt); font-weight: 500;
+      color: var(--text-secondary, #5A5A65); letter-spacing: 0.02em;
+    }
+    .lp-bar {
+      width: 4pt; height: 50pt; background: var(--accent, #FC5E20);
+      position: absolute; left: 30pt; top: 96pt;
+    }
+    .lp h1 {
+      font-size: var(--title-section, 40pt); font-weight: 800;
+      color: var(--text-primary, #373742); margin-top: 48pt;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .rp {
+      flex: 1; padding: 48pt 24pt 32pt 20pt;
+      display: flex; flex-direction: column;
+      justify-content: center; position: relative;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20pt 16pt;
+      align-content: start;
+    }
+    .member { text-align: center; }
+    .avatar {
+      width: 40pt; height: 40pt;
+      border-radius: 50%; background: #f0f0f0;
+      margin: 0 auto 8pt;
+    }
+    .name {
+      font-size: var(--text-label, 10pt); font-weight: 600;
+      color: var(--text-primary, #373742);
+      letter-spacing: 0.02em; margin: 0 0 2pt 0;
+    }
+    .role {
+      font-size: 9pt; font-weight: 500;
+      color: #999; letter-spacing: 0.02em; margin: 0;
+    }
+    .ft {
+      position: absolute; bottom: 8pt; left: 0; right: 0;
+      text-align: center; font-size: var(--text-label, 10pt); color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="lp">
+      <p class="lp-label" data-slot="label">Section Label</p>
+      <div class="lp-bar"></div>
+      <h1 data-slot="title">Section Title</h1>
+    </div>
+    <div class="rp">
+      <div class="grid" data-slot="body">
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+        <div class="member"><div class="avatar"></div><p class="name">Full Name</p><p class="role">Role</p></div>
+      </div>
+    </div>
+    <p class="ft" data-slot="caption">ⓒ 2026 Company. All rights reserved.</p>
+  </div>
+</body>
+</html>

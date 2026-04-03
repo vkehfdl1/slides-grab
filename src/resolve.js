@@ -173,6 +173,7 @@ export function listPacks() {
         name: info?.name || entry.name,
         colors: info?.colors || {},
         templates,
+        ownTemplates: own,
         tier: ownCount > 0 ? 'custom' : 'skin',
         ownTemplateCount: ownCount,
       });

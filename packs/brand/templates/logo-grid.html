@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    
+    body {
+      margin: 0; width: 720pt; height: 405pt;
+      font-family: var(--font-sans, 'Pretendard', sans-serif);
+      background: var(--bg-primary, #fff);
+      color: var(--text-primary, #373742);
+      overflow: hidden;
+    }
+    
+    .slide {
+      width: 720pt; height: 405pt;
+      box-sizing: border-box; position: relative;
+      display: flex;
+    }
+    .lp {
+      width: 250pt; background: var(--bg-secondary, #f3f3f3);
+      position: relative; padding: 48pt 24pt 48pt 36pt;
+      clip-path: polygon(0 0, 85% 0, 100% 100%, 0 100%);
+      flex-shrink: 0;
+    }
+    .lp-label {
+      position: absolute; top: 14pt; left: 36pt;
+      font-size: var(--text-label, 10pt); font-weight: 500;
+      color: var(--text-secondary, #5A5A65); letter-spacing: 0.02em;
+    }
+    .lp-bar {
+      width: 4pt; height: 50pt; background: var(--accent, #FC5E20);
+      position: absolute; left: 30pt; top: 96pt;
+    }
+    .lp h1 {
+      font-size: var(--title-section, 40pt); font-weight: 800;
+      color: var(--text-primary, #373742); margin-top: 48pt;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .rp {
+      flex: 1; padding: 48pt 24pt 32pt 20pt;
+      display: flex; flex-direction: column;
+      align-items: center; position: relative;
+    }
+    .rp h2 {
+      font-size: 20pt; font-weight: 700;
+      color: var(--text-primary, #373742); text-align: center;
+      margin: 0 0 8pt; line-height: 1.5;
+    }
+    .rp h2 span { color: var(--accent, #FC5E20); font-size: 24pt; }
+    .tri {
+      width: 160pt; height: 28pt; margin: 0 auto 12pt;
+      background: linear-gradient(to right, var(--accent, #FC5E20), #FFB347);
+      clip-path: polygon(0 100%, 50% 0, 100% 100%);
+      opacity: 0.6;
+    }
+    .grid-area {
+      border: 1pt solid var(--border, #eee); border-radius: 8pt;
+      padding: 10pt; flex: 1; width: 100%;
+      display: flex; gap: 2pt;
+    }
+    .g-sec { flex: 1; padding: 4pt; }
+    .g-sec h6 {
+      font-size: 9pt; font-weight: 700; padding: 3pt 8pt;
+      display: inline-block; border-radius: 3pt; margin: 0 0 5pt;
+    }
+    .g-sec h6.corp { background: var(--bg-secondary, #f3f3f3); color: var(--text-primary, #373742); }
+    .g-sec h6.pub { background: var(--accent, #FC5E20); color: #fff; }
+    .g-sec p {
+      font-size: 7pt; color: var(--text-secondary, #5A5A65); line-height: 1.9; margin: 0;
+    }
+    
+    .ft {
+      position: absolute; bottom: 8pt; left: 0; right: 0;
+      text-align: center; font-size: var(--text-label, 10pt); color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    
+    <div class="lp">
+      <p class="lp-label" data-slot="label">Section Label</p>
+      <div class="lp-bar"></div>
+      <h1 data-slot="title">Section Title</h1>
+    </div>
+    <div class="rp">
+      <h2 data-slot="subtitle">We have <span>8,200+</span> domestic and<br>international references.</h2>
+      <div class="tri"></div>
+      <div class="grid-area" data-slot="body">
+        <div class="g-sec">
+          <h6 class="corp">Corporate</h6>
+          <p>Company A · Company B · Company C<br>Company D · Company E</p>
+        </div>
+        <div class="g-sec">
+          <h6 class="corp">Education</h6>
+          <p>University A · University B<br>University C · University D</p>
+        </div>
+        <div class="g-sec">
+          <h6 class="pub">Government</h6>
+          <p>Ministry A · Agency B<br>Department C · Bureau D</p>
+        </div>
+      </div>
+    </div>
+    <p class="ft" data-slot="caption">ⓒ 2026 Company. All rights reserved.</p>
+  </div>
+</body>
+</html>

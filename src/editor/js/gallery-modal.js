@@ -70,7 +70,8 @@ function renderTemplateChips(pack) {
   if (!typesEl) return;
   typesEl.innerHTML = '';
 
-  const templates = pack.templates || [];
+  // Show only pack's own templates; fall back to full list for skin packs
+  const templates = (pack.ownTemplates?.length ? pack.ownTemplates : pack.templates) || [];
   for (const tmpl of templates) {
     const chip = document.createElement('button');
     chip.type = 'button';
@@ -118,7 +119,8 @@ export function openPackModal(pack) {
   const useBtn = document.getElementById('gallery-modal-use-btn');
   if (useBtn) useBtn.href = `/?pack=${encodeURIComponent(pack.id)}`;
 
-  const templates = pack.templates || [];
+  // Show only pack's own templates; fall back to full list for skin packs
+  const templates = (pack.ownTemplates?.length ? pack.ownTemplates : pack.templates) || [];
   if (!templates.includes(activePreviewType)) {
     activePreviewType = templates.includes('cover') ? 'cover' : templates[0] || '';
   }
