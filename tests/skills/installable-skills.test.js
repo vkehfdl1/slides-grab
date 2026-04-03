@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -40,6 +40,7 @@ test('npm pack includes bundled skill references for installable skills', () => 
   assert.ok(filePaths.has('skills/slides-grab-export/references/html2pptx.md'));
   assert.ok(filePaths.has('skills/slides-grab-export/references/ooxml.md'));
   assert.ok(filePaths.has('skills/slides-grab/references/presentation-workflow-reference.md'));
+  assert.ok(filePaths.has('templates/design-styles/README.md'));
   assert.ok(filePaths.has('scripts/generate-image.js'));
   assert.ok(filePaths.has('src/pptx-raster-export.cjs'));
   assert.ok(filePaths.has('src/nano-banana.js'));
@@ -51,24 +52,21 @@ test('packed npm install exposes the packaged image CLI command', () => {
   const installRoot = mkdtempSync(join(tmpdir(), 'slides-grab-image-pack-install-'));
 
   try {
-    const output = execFileSync('npm', ['pack', '--json'], {
+    mkdirSync(packRoot, { recursive: true });
+    mkdirSync(installRoot, { recursive: true });
+
+    const output = execFileSync('npm', ['pack', '--json', '--pack-destination', packRoot], {
       cwd: process.cwd(),
       encoding: 'utf-8',
     });
     const [packInfo] = JSON.parse(output);
-    const tarballName = packInfo.filename;
-    const tarballPath = join(process.cwd(), tarballName);
-    const storedTarballPath = join(packRoot, tarballName);
+    const storedTarballPath = join(packRoot, packInfo.filename);
 
-    mkdirSync(packRoot, { recursive: true });
-    mkdirSync(installRoot, { recursive: true });
     writeFileSync(
       join(installRoot, 'package.json'),
       JSON.stringify({ name: 'slides-grab-image-pack-smoke', private: true }, null, 2),
       'utf-8',
     );
-
-    renameSync(tarballPath, storedTarballPath);
 
     execFileSync('npm', ['install', '--no-package-lock', storedTarballPath], {
       cwd: installRoot,
@@ -107,6 +105,9 @@ test('slides-grab design skill points at the bundled art-direction reference', (
   assert.match(text, /visual thesis/i);
   assert.match(text, /content plan/i);
   assert.match(text, /slide litmus check/i);
+  assert.match(text, /style-config\.json/);
+  assert.match(text, /list-styles/);
+  assert.match(text, /preview-styles/);
   assert.match(text, /slides-grab image/i);
   assert.match(text, /Nano Banana Pro/i);
   assert.match(text, /GOOGLE_API_KEY|GEMINI_API_KEY/);
@@ -142,6 +143,8 @@ test('slides-grab orchestration skill keeps image and video workflows without du
   assert.match(text, /slides-grab image/i);
   assert.match(text, /Nano Banana Pro/i);
   assert.match(text, /fetch-video|yt-dlp/i);
+  assert.match(text, /list-styles/);
+  assert.match(text, /select-style/);
   assert.match(text, /local videos/i);
   assert.equal((text.match(/When a slide needs bespoke imagery/gi) || []).length, 1);
   assert.equal((text.match(/For complex diagrams/gi) || []).length, 1);

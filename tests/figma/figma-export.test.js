@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import test from 'node:test';
@@ -172,24 +172,21 @@ test('packed npm install can execute slides-grab figma without missing runtime m
   const installRoot = mkdtempSync(join(tmpdir(), 'slides-grab-pack-install-'));
 
   try {
-    const output = execFileSync('npm', ['pack', '--json'], {
+    mkdirSync(packRoot, { recursive: true });
+    mkdirSync(installRoot, { recursive: true });
+
+    const output = execFileSync('npm', ['pack', '--json', '--pack-destination', packRoot], {
       cwd: process.cwd(),
       encoding: 'utf-8',
     });
     const [packInfo] = JSON.parse(output);
-    const tarballName = packInfo.filename;
-    const tarballPath = join(process.cwd(), tarballName);
-    const storedTarballPath = join(packRoot, tarballName);
+    const storedTarballPath = join(packRoot, packInfo.filename);
 
-    mkdirSync(packRoot, { recursive: true });
-    mkdirSync(installRoot, { recursive: true });
     writeFileSync(
       join(installRoot, 'package.json'),
       JSON.stringify({ name: 'slides-grab-pack-smoke', private: true }, null, 2),
       'utf-8',
     );
-
-    renameSync(tarballPath, storedTarballPath);
 
     execFileSync('npm', ['install', '--no-package-lock', storedTarballPath], {
       cwd: installRoot,

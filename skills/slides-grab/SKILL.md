@@ -29,16 +29,17 @@ Use the installed **slides-grab-plan** skill.
 Use the installed **slides-grab-design** skill.
 
 1. Read approved `slide-outline.md`.
-2. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
-3. Run validation: `slides-grab validate --slides-dir <path>`
-4. If validation fails, automatically fix the slide HTML/CSS until validation passes.
-5. For bespoke slide imagery, use `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Nano Banana Pro saves a local asset under `<slides-dir>/assets/`.
-6. For complex diagrams (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw` over hand-built HTML/CSS diagrams. Render the asset with `slides-grab tldraw`, store it under `<slides-dir>/assets/`, and place it in the slide with a normal `<img>`.
-7. Keep local videos under `<slides-dir>/assets/`, prefer `poster="./assets/<file>"` thumbnails, and use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly) when the source starts on a supported web page.
-8. If `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) is unavailable or Nano Banana is down, ask the user for a Google API key or fall back to web search/download into `<slides-dir>/assets/`.
-9. Launch the interactive editor for review: `slides-grab edit --slides-dir <path>`
-10. Revise slides based on user feedback via the editor, then re-run validation after each edit round.
-11. When the user confirms editing is complete, suggest next steps: build the viewer (`slides-grab build-viewer --slides-dir <path>`) for a final preview, or proceed directly to Stage 3 for PDF/PPTX export.
+2. If the design direction is still open, shortlist bundled design collections with `slides-grab list-styles`, preview one or the full catalog with `slides-grab preview-styles`, and persist the approved direction with `slides-grab select-style <id>` before generating slides. For multi-deck projects, append `--slides-dir <path>` so the deck-local `style-config.json` stays with that workspace.
+3. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
+4. Run validation: `slides-grab validate --slides-dir <path>`
+5. If validation fails, automatically fix the slide HTML/CSS until validation passes.
+6. For bespoke slide imagery, use `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Nano Banana Pro saves a local asset under `<slides-dir>/assets/`.
+7. For complex diagrams (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw` over hand-built HTML/CSS diagrams. Render the asset with `slides-grab tldraw`, store it under `<slides-dir>/assets/`, and place it in the slide with a normal `<img>`.
+8. Keep local videos under `<slides-dir>/assets/`, prefer `poster="./assets/<file>"` thumbnails, and use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly) when the source starts on a supported web page.
+9. If `GOOGLE_API_KEY` (or `GEMINI_API_KEY`) is unavailable or Nano Banana is down, ask the user for a Google API key or fall back to web search/download into `<slides-dir>/assets/`.
+10. Launch the interactive editor for review: `slides-grab edit --slides-dir <path>`
+11. Revise slides based on user feedback via the editor, then re-run validation after each edit round.
+12. When the user confirms editing is complete, suggest next steps: build the viewer (`slides-grab build-viewer --slides-dir <path>`) for a final preview, or proceed directly to Stage 3 for PDF/PPTX export.
 
 **Do not proceed to Stage 3 without approval.**
 

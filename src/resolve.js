@@ -5,7 +5,7 @@
  *   1. Local (user's CWD) — per-project overrides
  *   2. Package root — built-in defaults
  *
- * slides directory, slide-outline.md, style-config.md → always local (CWD)
+ * slides directory, slide-outline.md, style-config.json → always local (CWD)
  * templates/, themes/ → local first, package fallback
  * scripts/ → always package
  */

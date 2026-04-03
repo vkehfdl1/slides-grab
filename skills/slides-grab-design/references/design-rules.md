@@ -9,6 +9,9 @@ These are the packaged design rules for installable `slides-grab` skills.
 - Generate a bespoke image asset: `slides-grab image --prompt "<prompt>" --slides-dir <path>`
 - Download a web video into slide assets: `slides-grab fetch-video --url <youtube-url> --slides-dir <path>`
 - Render `tldraw` diagrams: `slides-grab tldraw --input <path> --output <path>`
+- List bundled design collections: `slides-grab list-styles`
+- Preview the full style catalog or one style: `slides-grab preview-styles [--style <id>]`
+- Persist the approved style direction: `slides-grab select-style <id>`
 
 ## Slide spec
 - Slide size: `720pt x 405pt` (16:9)
@@ -52,8 +55,10 @@ These are the packaged design rules for installable `slides-grab` skills.
 - `templates/diagram.html`
 - `templates/diagram-tldraw.html`
 - `templates/custom/`
+- `templates/design-styles/README.md` — bundled design collection reference derived from `corazzon/pptx-design-styles`
 
 ## Review loop
+- If the design direction is still open, shortlist bundled styles first and persist the approved direction in `style-config.json` before generating slides.
 - Generate or edit only the needed slide files.
 - Prefer `slides-grab image` before remote image sourcing when the slide needs bespoke imagery.
 - Prefer `tldraw` for complex diagrams instead of hand-building dense diagram geometry in HTML/CSS.

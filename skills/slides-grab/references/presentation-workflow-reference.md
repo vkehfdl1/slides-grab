@@ -22,17 +22,18 @@ Use the installed **slides-grab-plan** skill.
 Use the installed **slides-grab-design** skill.
 
 1. Read approved `slide-outline.md`.
-2. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
-3. Run validation: `slides-grab validate --slides-dir <path>`
-4. If validation fails, automatically fix the slide HTML/CSS until validation passes.
-5. Build the viewer: `slides-grab build-viewer --slides-dir <path>`
-6. When a slide calls for bespoke imagery, prefer `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Nano Banana Pro saves a local asset under `<slides-dir>/assets/`.
-7. For complex diagrams (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw`. Render a local diagram asset with `slides-grab tldraw`, store it under `<slides-dir>/assets/`, and place it into the slide with a normal `<img>`.
-8. Keep local videos under `<slides-dir>/assets/`, prefer `poster="./assets/<file>"` thumbnails, and use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly) when the source starts on a supported web page.
-9. If `GOOGLE_API_KEY` or `GEMINI_API_KEY` is unavailable, or the Nano Banana API fails, ask the user for a Google API key or fall back to web search + download into `<slides-dir>/assets/`.
-10. Present viewer to user for review.
-11. Revise individual slides based on feedback, then re-run validation and rebuild the viewer.
-12. Optionally launch the visual editor: `slides-grab edit --slides-dir <path>`
+2. If the user has not approved a visual direction yet, use `slides-grab list-styles` to shortlist bundled design collections, `slides-grab preview-styles` for a local HTML gallery, and `slides-grab select-style <id>` to persist the approved direction before generation. For multi-deck projects, add `--slides-dir <path>` so the deck-local `style-config.json` stays inside that workspace.
+3. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
+4. Run validation: `slides-grab validate --slides-dir <path>`
+5. If validation fails, automatically fix the slide HTML/CSS until validation passes.
+6. Build the viewer: `slides-grab build-viewer --slides-dir <path>`
+7. When a slide calls for bespoke imagery, prefer `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Nano Banana Pro saves a local asset under `<slides-dir>/assets/`.
+8. For complex diagrams (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw`. Render a local diagram asset with `slides-grab tldraw`, store it under `<slides-dir>/assets/`, and place it into the slide with a normal `<img>`.
+9. Keep local videos under `<slides-dir>/assets/`, prefer `poster="./assets/<file>"` thumbnails, and use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly) when the source starts on a supported web page.
+10. If `GOOGLE_API_KEY` or `GEMINI_API_KEY` is unavailable, or the Nano Banana API fails, ask the user for a Google API key or fall back to web search + download into `<slides-dir>/assets/`.
+11. Present viewer to user for review.
+12. Revise individual slides based on feedback, then re-run validation and rebuild the viewer.
+13. Optionally launch the visual editor: `slides-grab edit --slides-dir <path>`
 
 **Do not proceed to Stage 3 without approval.**
 
