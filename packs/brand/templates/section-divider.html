@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Section Divider</title>
+  <link rel="stylesheet" href="./theme.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg-elevated, #4B4B4B);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .slide {
+      width: 720pt;
+      height: 405pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: radial-gradient(circle at 30% 50%, rgba(0, 0, 0, 0.1), var(--bg-elevated, #4B4B4B));
+    }
+
+    .section-divider {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20pt;
+    }
+
+    .section-title {
+      font-size: 56pt;
+      font-weight: 800;
+      color: white;
+      text-align: center;
+      line-height: 1.2;
+      max-width: 600pt;
+    }
+
+    .section-subtitle {
+      font-size: 18pt;
+      color: rgba(255, 255, 255, 0.8);
+      text-align: center;
+      max-width: 600pt;
+      line-height: 1.4;
+    }
+
+    .accent-bar {
+      width: 80pt;
+      height: 4pt;
+      background-color: var(--accent, #FC5E20);
+      margin-top: 10pt;
+    }
+
+    .ft {
+      position: absolute;
+      bottom: 8pt;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: var(--text-label, 10pt);
+      color: #999;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="section-divider">
+      <h1 class="section-title" data-slot="title">Section Title</h1>
+      <div class="accent-bar"></div>
+      <p class="section-subtitle" data-slot="subtitle">Optional subtitle goes here</p>
+    </div>
+    <div class="footer">Slide footer</div>
+  </div>
+</body>
+</html>

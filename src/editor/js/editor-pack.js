@@ -107,7 +107,8 @@ function createCustomCard(pack) {
 
   const colors = pack.colors || {};
   const bg = safeColor(colors['bg-primary'], '#333');
-  const templates = pack.templates || [];
+  // Show only pack's own templates for preview; fall back for skin packs
+  const templates = (pack.ownTemplates?.length ? pack.ownTemplates : pack.templates) || [];
 
   // Live cover preview
   const preview = document.createElement('div');
@@ -288,7 +289,8 @@ function renderPackDetail() {
   const nameEl = document.getElementById('pack-detail-name');
   if (nameEl) nameEl.textContent = pack.name || pack.id;
 
-  const templates = pack.templates || [];
+  // Show only pack's own templates; fall back to full list for skin packs
+  const templates = (pack.ownTemplates?.length ? pack.ownTemplates : pack.templates) || [];
 
   // Reset preview type if current selection isn't in this pack
   if (!templates.includes(activePreviewType)) {

@@ -43,7 +43,7 @@ import { openPdfExportModal } from './editor-pdf-export.js';
 import { openPptxExportModal } from './editor-pptx-export.js';
 import { openLogoSettingsModal } from './editor-logo.js';
 import './editor-figma-export.js';
-import { showCreationMode, hideCreationMode, loadCreationModelOptions, checkCreateMode, loadImportModelOptions, switchToImportTab, submitImport, submitDocImport } from './editor-create.js';
+import { showCreationMode, hideCreationMode, loadCreationModelOptions, checkCreateMode, loadImportModelOptions, switchToImportTab, submitImport, submitDocImport, showPlanLoading } from './editor-create.js';
 import { showOutlinePhase } from './editor-outline.js';
 import { renderThumbnailStrip, updateActiveThumbnail } from './editor-thumbnails.js';
 import { loadPacks } from './editor-pack.js';
@@ -559,14 +559,30 @@ const rethemeBackupSelect = document.getElementById('retheme-backup-select');
 const rethemeRestoreBtn = document.getElementById('retheme-restore-btn');
 
 if (rethemeBtn && rethemeModal) {
+  let _rethemeDeckName = '';
+
+  const updateRethemePlaceholder = () => {
+    if (_rethemeDeckName && rethemePackSelect.value) {
+      rethemeSaveAs.placeholder = `${_rethemeDeckName}-${rethemePackSelect.value}`;
+    }
+  };
+
+  rethemePackSelect.addEventListener('change', updateRethemePlaceholder);
+
   rethemeBtn.addEventListener('click', async () => {
     rethemeSaveAs.value = '';
 
-    // Fetch packs and backups in parallel
-    const [packsRes, backupsRes] = await Promise.all([
+    // Fetch config, packs, and backups in parallel
+    const [cfgRes, packsRes, backupsRes] = await Promise.all([
+      fetch('/api/editor-config').catch(() => null),
       fetch('/api/packs').catch(() => null),
       rethemeBackupsSection ? fetch('/api/backups').catch(() => null) : null,
     ]);
+
+    if (cfgRes?.ok) {
+      const cfg = await cfgRes.json();
+      _rethemeDeckName = cfg.deckName || '';
+    }
 
     // Populate pack options
     if (packsRes?.ok) {
@@ -575,6 +591,8 @@ if (rethemeBtn && rethemeModal) {
         .map(p => `<option value="${p.id}">${p.name} (${p.templates?.length || 0} templates)</option>`)
         .join('');
     }
+
+    updateRethemePlaceholder();
 
     // Load backups for "Previous versions"
     if (rethemeBackupsSection) {
@@ -608,23 +626,13 @@ if (rethemeBtn && rethemeModal) {
     const packId = rethemePackSelect.value;
     if (!packId) return;
 
-    // Get current deck name from config
-    let deckName = '';
-    try {
-      const cfgRes = await fetch('/api/editor-config');
-      if (cfgRes.ok) {
-        const cfg = await cfgRes.json();
-        deckName = cfg.deckName;
-      }
-    } catch { /* */ }
-
+    const deckName = _rethemeDeckName;
     if (!deckName) {
       setStatus('덱 이름을 확인할 수 없습니다.');
       return;
     }
 
     rethemeModal.hidden = true;
-    setStatus(`Retheme 진행 중: ${deckName} → ${packId}...`);
 
     try {
       const res = await fetch('/api/retheme', {
@@ -644,7 +652,7 @@ if (rethemeBtn && rethemeModal) {
       }
 
       const data = await res.json();
-      setStatus(`Retheme 시작됨: ${data.targetDeckName} → ${data.targetPack}`);
+      showPlanLoading(true, `Retheme: ${data.targetDeckName} → ${data.targetPack}`);
     } catch (err) {
       setStatus(`Retheme 실패: ${err.message}`);
     }

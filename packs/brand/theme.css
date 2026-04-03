@@ -1,0 +1,27 @@
+:root {
+  /* === Colors (extracted from PPTX) === */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f3f3;
+  --bg-elevated: #4B4B4B;
+  --text-primary: #373742;
+  --text-secondary: #5A5A65;
+  --accent: #FC5E20;
+  --border: #eeeeee;
+
+  /* === Extended (pack-specific) === */
+  --accent-dark: #B85A30;
+  --text-heading: #19194E;
+
+  /* === Font === */
+  --font-sans: 'Pretendard', -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Pretendard', -apple-system, 'Segoe UI', sans-serif;
+
+  /* === Typography Scale (720pt rebalanced from PDF) === */
+  --title-hero: 56pt;
+  --title-section: 40pt;
+  --title-slide: 30pt;
+  --text-subtitle: 18pt;
+  --text-body: 15pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
+}

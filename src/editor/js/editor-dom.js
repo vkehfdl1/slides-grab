@@ -116,13 +116,14 @@ export const tabImportPanel = $('#creation-tab-import');
 export const importDropzone = $('#import-dropzone');
 export const importFileInput = $('#import-file-input');
 export const importBrowse = $('#import-browse');
-export const importFileInfo = $('#import-file-info');
-export const importFileName = $('#import-file-name');
-export const importFileClear = $('#import-file-clear');
+export const importFileList = $('#import-file-list');
+export const importFileListItems = $('#import-file-list-items');
+export const importAddMore = $('#import-add-more');
 export const importSlideCount = $('#import-slide-count');
 export const importResearchMode = $('#import-research-mode');
 export const importModel = $('#import-model');
 export const importSubmit = $('#import-submit');
+export const importPrompt = $('#import-prompt');
 export const importUrlInput = $('#import-url-input');
 export const importUrlGo = $('#import-url-go');
 

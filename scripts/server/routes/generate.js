@@ -5,7 +5,7 @@ import { CLAUDE_MODELS } from '../../../src/editor/codex-edit.js';
 import { listPackTemplates, normalizePackId } from '../../../src/resolve.js';
 
 import { broadcastSSE } from '../sse.js';
-import { randomRunId, toPosixPath, listSlideFiles, spawnClaudeEdit, setupFileWatcher, backupSlides } from '../helpers.js';
+import { randomRunId, toPosixPath, listSlideFiles, spawnClaudeEdit, setupFileWatcher, backupSlides, uniqueDeckName, listExistingDeckNames } from '../helpers.js';
 
 /** Slide generation route: POST /api/generate */
 export function createGenerateRouter(ctx) {
@@ -49,7 +49,8 @@ export function createGenerateRouter(ctx) {
     if (!slidesDirectory) {
       if (typeof deckName === 'string' && deckName.trim()) {
         const folderName = deckName.trim().replace(/[<>:"/\\|?*]/g, '-');
-        slidesDirectory = resolve(process.cwd(), 'decks', folderName);
+        const uniqueName = await uniqueDeckName(folderName);
+        slidesDirectory = resolve(process.cwd(), 'decks', uniqueName);
         ctx.setSlidesDir(slidesDirectory);
         await mkdir(slidesDirectory, { recursive: true });
         setupFileWatcher(ctx, slidesDirectory);
@@ -87,7 +88,8 @@ export function createGenerateRouter(ctx) {
         if (fromOutline && slidesDirectory) {
           fullPrompt = await buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPackId, runId);
         } else {
-          fullPrompt = buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId);
+          const existingNames = slidesDir ? [] : await listExistingDeckNames();
+          fullPrompt = buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId, existingNames);
         }
 
         broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step: 'Building slides with AI' });
@@ -194,7 +196,7 @@ async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPac
   return promptLines.join('\n');
 }
 
-function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId) {
+function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId, existingDeckNames = []) {
   const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim() ? slideCountRange.trim() : '8~12';
   const genPackId = normalizePackId(reqGenPackId);
   const packTemplateList = genPackId ? listPackTemplates(genPackId, { includeFallback: true }) : [];
@@ -216,6 +218,15 @@ function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir,
       '   예: "스타트업 투자 전략" → decks/startup-investment-strategy',
       '   mkdir -p decks/<name> 으로 폴더를 생성하세요.',
     );
+    if (existingDeckNames.length > 0) {
+      promptLines.push(
+        '',
+        '   중복 방지 규칙:',
+        `   다음 이름의 덱 폴더가 이미 존재합니다: ${existingDeckNames.join(', ')}`,
+        '   이미 존재하는 이름을 사용하지 마세요. 중복 시 이름 뒤에 -2, -3 등을 붙이세요.',
+        '   예: ai-trends가 이미 있으면 → ai-trends-2',
+      );
+    }
     stepNum += 1;
   }
   const dirRef = hasDeckDir ? slidesDir : 'decks/<name>';

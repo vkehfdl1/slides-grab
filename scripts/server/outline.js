@@ -4,7 +4,7 @@ import { getCommonTypes, listPackTemplates } from '../../src/resolve.js';
  * Append outline format example + pack/type instructions to prompt lines.
  * Shared by /api/import-md and /api/plan.
  */
-export function appendOutlinePrompt(promptLines, packId, { includePresenterNote = false } = {}) {
+export function appendOutlinePrompt(promptLines, packId, { includePresenterNote = false, existingDeckNames = [] } = {}) {
   promptLines.push('아웃라인 형식:');
   promptLines.push('```');
   promptLines.push('# 발표 제목');
@@ -23,15 +23,29 @@ export function appendOutlinePrompt(promptLines, packId, { includePresenterNote 
   promptLines.push('- content: 부제 또는 설명');
   promptLines.push('- style: dark-background (시각적 힌트가 있는 경우에만)');
   if (includePresenterNote) {
-    promptLines.push('- presenter-note: 발표 내용 (있는 경우)');
+    promptLines.push('- presenter-note: 발표 내용');
   }
   promptLines.push('');
   promptLines.push('### Slide 2');
-  promptLines.push('- type: contents');
-  promptLines.push('- title: 목차');
-  promptLines.push('- content: 목차 항목들');
+  promptLines.push('- type: split-layout');
+  promptLines.push('- title: 슬라이드 제목');
+  promptLines.push('- content:');
+  promptLines.push('  - left: 왼쪽 영역 내용');
+  promptLines.push('  - right: 오른쪽 영역 내용 (항목1, 항목2, 항목3)');
+  promptLines.push('  - bottom: 하단 핵심 메시지');
   promptLines.push('...');
   promptLines.push('```');
+  promptLines.push('');
+  promptLines.push('아웃라인 작성 규칙:');
+  promptLines.push('- content가 단순하면 한 줄: `- content: 설명 텍스트`');
+  promptLines.push('- content가 구조화되면 들여쓴 하위 bullet 사용:');
+  promptLines.push('  ```');
+  promptLines.push('  - content:');
+  promptLines.push('    - left: 왼쪽 내용');
+  promptLines.push('    - right: 오른쪽 내용');
+  promptLines.push('  ```');
+  promptLines.push('- YAML `|` 멀티라인 구문은 절대 사용하지 마세요');
+  promptLines.push('- presenter-note는 항상 한 줄로 작성하세요');
   promptLines.push('');
 
   const allTypeNames = Object.keys(getCommonTypes());
@@ -48,6 +62,14 @@ export function appendOutlinePrompt(promptLines, packId, { includePresenterNote 
   }
   promptLines.push('');
   promptLines.push('중요: slide-outline.md 파일만 생성하세요. HTML 파일은 생성하지 마세요.');
+
+  if (existingDeckNames.length > 0) {
+    promptLines.push('');
+    promptLines.push('중복 방지 규칙:');
+    promptLines.push(`다음 이름의 덱 폴더가 이미 존재합니다: ${existingDeckNames.join(', ')}`);
+    promptLines.push('이미 존재하는 이름을 사용하지 마세요. 중복 시 이름 뒤에 -2, -3 등을 붙이세요.');
+    promptLines.push('예: ai-trends가 이미 있으면 → ai-trends-2');
+  }
 }
 
 export function parseOutline(content, deckName) {

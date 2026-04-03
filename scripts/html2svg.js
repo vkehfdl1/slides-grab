@@ -707,6 +707,38 @@ export async function renderSlideToSvg(page, slideFile, slidesDir, bundlePath, o
       }
     }
 
+    // 1b. Handle .slide element (pack templates without .slide-wrapper).
+    //     Body may be flex-centered with min-height:100vh, causing dom-to-svg
+    //     to capture the full viewport instead of just the slide content.
+    if (!wrapper) {
+      const slide = document.querySelector('.slide');
+      if (slide) {
+        const cs = window.getComputedStyle(slide);
+        const slideW = cs.width;
+        const slideH = cs.height;
+        if (parseFloat(slideW) > 0 && parseFloat(slideH) > 0) {
+          document.body.style.width = slideW;
+          document.body.style.height = slideH;
+          document.body.style.minWidth = slideW;
+          document.body.style.minHeight = slideH;
+          document.body.style.maxWidth = slideW;
+          document.body.style.maxHeight = slideH;
+          document.body.style.margin = '0';
+          document.body.style.padding = '0';
+          document.body.style.overflow = 'hidden';
+          document.body.style.display = 'block';
+        }
+      }
+    }
+
+    // 1c. Move logo overlay inside the slide container so it is positioned
+    //     relative to the slide (position:relative) instead of the viewport.
+    const logoImg = document.querySelector('img[data-logo-overlay]');
+    const slideContainer = wrapper || document.querySelector('.slide');
+    if (logoImg && slideContainer && logoImg.parentElement !== slideContainer) {
+      slideContainer.appendChild(logoImg);
+    }
+
     // 2. Convert flexbox `gap` to explicit margins on children.
     //    dom-to-svg does not read the CSS gap property, so flex children
     //    appear collapsed together without this fixup.
@@ -857,6 +889,46 @@ export async function renderSlideToSvg(page, slideFile, slidesDir, bundlePath, o
     }
   });
 
+  // Resize viewport to match the (possibly adjusted) body dimensions so
+  // that CSS vh/vw units resolve correctly and dom-to-svg captures at 1:1.
+  const bodySize = await getSlideSize(page);
+  await page.setViewportSize({ width: bodySize.width, height: bodySize.height });
+  await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+
+  // Extract logo info and remove it from DOM before dom-to-svg.
+  // dom-to-svg's inlineResources reads element.href.baseVal (the SVG href
+  // attribute) while dom-to-svg itself sets xlink:href — this mismatch
+  // causes the logo image to be silently dropped.  We bypass the issue by
+  // removing the logo from the DOM and inserting it directly into the SVG.
+  const logoInfo = await page.evaluate(async () => {
+    const logo = document.querySelector('img[data-logo-overlay]');
+    if (!logo) return null;
+
+    const rect = logo.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) { logo.remove(); return null; }
+
+    // Fetch and convert to data URI
+    let dataUri = logo.src;
+    if (dataUri && !dataUri.startsWith('data:')) {
+      try {
+        const res = await fetch(dataUri);
+        if (res.ok) {
+          const blob = await res.blob();
+          dataUri = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        }
+      } catch { /* use original src */ }
+    }
+
+    const info = { x: rect.x, y: rect.y, width: rect.width, height: rect.height, src: dataUri };
+    logo.remove();
+    return info;
+  });
+
   // Inject the pre-bundled dom-to-svg IIFE
   await page.addScriptTag({ path: bundlePath });
 
@@ -865,6 +937,18 @@ export async function renderSlideToSvg(page, slideFile, slidesDir, bundlePath, o
     const { elementToSVG, inlineResources } = window.__domToSvg;
     const svgDoc = elementToSVG(document.body);
     await inlineResources(svgDoc.documentElement);
+
+    // Fix dom-to-svg stacking order bug: positive-z-index layers are
+    // appended as early children of their parent, but non-layered siblings
+    // (like background divs) are appended afterward, painting on top.
+    // Move positive-z-index layers to the end so they paint last (on top).
+    for (const layer of svgDoc.querySelectorAll(
+      '[data-stacking-layer="childStackingContextsWithPositiveStackLevels"]'
+    )) {
+      const parent = layer.parentElement;
+      if (parent) parent.appendChild(layer);
+    }
+
     return new XMLSerializer().serializeToString(svgDoc);
   });
 
@@ -877,6 +961,19 @@ export async function renderSlideToSvg(page, slideFile, slidesDir, bundlePath, o
     svgString = svgString
       .replace(/(<tspan\b[^>]*?)\s+textLength="[^"]*"/g, '$1')
       .replace(/(<tspan\b[^>]*?)\s+lengthAdjust="[^"]*"/g, '$1');
+  }
+
+  // Insert logo directly into the SVG as an <image> element
+  if (logoInfo && logoInfo.src) {
+    // Ensure xmlns:xlink is declared on the root <svg> element
+    if (!svgString.includes('xmlns:xlink')) {
+      svgString = svgString.replace(
+        /(<svg\b)/,
+        '$1 xmlns:xlink="http://www.w3.org/1999/xlink"',
+      );
+    }
+    const logoSvg = `<image xlink:href="${logoInfo.src}" x="${logoInfo.x}" y="${logoInfo.y}" width="${logoInfo.width}" height="${logoInfo.height}" preserveAspectRatio="xMidYMid meet" />`;
+    svgString = svgString.replace(/<\/svg>\s*$/, `${logoSvg}</svg>`);
   }
 
   return svgString;

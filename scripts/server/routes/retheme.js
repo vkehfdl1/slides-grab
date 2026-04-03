@@ -4,11 +4,11 @@ import { existsSync } from 'node:fs';
 
 import { CLAUDE_MODELS } from '../../../src/editor/codex-edit.js';
 import { normalizePackId } from '../../../src/resolve.js';
-import { prepareRetheme, backupDeck, listBackups, restoreBackup } from '../../../src/retheme.js';
+import { prepareRetheme, listBackups, restoreBackup } from '../../../src/retheme.js';
 import { analyzeDeck } from '../../../src/review.js';
 
 import { broadcastSSE } from '../sse.js';
-import { randomRunId, spawnClaudeEdit, setupFileWatcher } from '../helpers.js';
+import { randomRunId, spawnClaudeEdit, setupFileWatcher, uniqueDeckName } from '../helpers.js';
 
 /**
  * Retheme, review, backup, and restore routes.
@@ -47,7 +47,8 @@ export function createRethemeRouter(ctx) {
       ? reqModel.trim()
       : CLAUDE_MODELS[0];
 
-    const targetDeckName = (typeof saveAs === 'string' && saveAs.trim()) || deckName;
+    const rawTargetName = (typeof saveAs === 'string' && saveAs.trim()) || `${deckName}-${targetPack}`;
+    const targetDeckName = await uniqueDeckName(rawTargetName);
     const targetDeckDir = resolve(process.cwd(), 'decks', targetDeckName);
 
     const runId = randomRunId();
@@ -60,33 +61,14 @@ export function createRethemeRouter(ctx) {
       try {
         broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'retheme', step: 'Preparing retheme data' });
 
-        let backupPath = null;
-        if (targetDeckName === deckName) {
-          try {
-            backupPath = await backupDeck(deckDir);
-            if (backupPath) {
-              broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'retheme', step: 'Backed up existing slides' });
-            }
-          } catch (err) {
-            console.error('Retheme backup failed:', err);
-          }
-        }
-
         const { prompt, outline } = await prepareRetheme({
           deckDir,
           targetPackId: targetPack,
           targetDeckName,
         });
 
-        if (targetDeckName !== deckName) {
-          await mkdir(targetDeckDir, { recursive: true });
-          const targetOutlinePath = join(targetDeckDir, 'slide-outline.md');
-          try {
-            await writeFile(targetOutlinePath, outline, 'utf-8');
-          } catch { /* ok if outline didn't exist */ }
-        } else {
-          await writeFile(join(deckDir, 'slide-outline.md'), outline, 'utf-8');
-        }
+        await mkdir(targetDeckDir, { recursive: true });
+        await writeFile(join(targetDeckDir, 'slide-outline.md'), outline, 'utf-8');
 
         broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'retheme', step: `Regenerating slides with ${targetPack} pack` });
 
@@ -110,6 +92,7 @@ export function createRethemeRouter(ctx) {
         broadcastSSE(ctx.sseClients, 'planFinished', {
           runId,
           success,
+          phase: 'retheme',
           message: success
             ? `Retheme complete: ${targetDeckName} now uses ${targetPack} pack.`
             : `Retheme failed (exit code ${result.code}).`,

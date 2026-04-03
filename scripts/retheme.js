@@ -9,7 +9,8 @@ import { resolve, basename, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { writeFile, mkdir } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
-import { prepareRetheme, backupDeck } from '../src/retheme.js';
+import { prepareRetheme } from '../src/retheme.js';
+import { uniqueDeckName } from './server/helpers.js';
 
 const CLAUDE_BIN = process.env.PPT_AGENT_CLAUDE_BIN || 'claude';
 
@@ -67,25 +68,15 @@ if (!existsSync(deckDir)) {
   process.exit(1);
 }
 
-const targetDeckName = opts.saveAs || opts.deck;
+const rawTargetName = opts.saveAs || `${opts.deck}-${opts.pack}`;
+const targetDeckName = await uniqueDeckName(rawTargetName);
 const targetDeckDir = resolve(process.cwd(), 'decks', targetDeckName);
 
 console.log(`\n  Retheme: ${opts.deck} → ${opts.pack}`);
-if (targetDeckName !== opts.deck) {
-  console.log(`  Save as: ${targetDeckName}`);
-}
+console.log(`  Save as: ${targetDeckName}`);
 console.log('  ─────────────────────────────────────\n');
 
 try {
-  // Back up existing slides before retheme (only when overwriting)
-  if (targetDeckName === opts.deck) {
-    console.log('[0/3] Backing up existing slides...');
-    const backupPath = await backupDeck(deckDir);
-    if (backupPath) {
-      console.log(`      Backup saved: ${backupPath}`);
-    }
-  }
-
   console.log('[1/3] Preparing retheme data...');
   const { prompt, outline } = await prepareRetheme({
     deckDir,

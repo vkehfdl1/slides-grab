@@ -24,6 +24,10 @@ export function createEventsRouter(ctx) {
     res.write(`event: runsSnapshot\ndata: ${JSON.stringify(snapshotPayload)}\n\n`);
   });
 
+  router.get('/api/generate-status', (_req, res) => {
+    res.json({ active: !!ctx.activeGenerate });
+  });
+
   router.get('/api/runs', (_req, res) => {
     res.json({
       runs: ctx.runStore.listRuns(100),

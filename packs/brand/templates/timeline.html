@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    body {
+      margin: 0; width: 720pt; height: 405pt;
+      font-family: var(--font-sans, 'Pretendard', sans-serif);
+      background: var(--bg-primary, #fff);
+      color: var(--text-primary, #373742);
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      box-sizing: border-box; position: relative;
+      display: flex;
+    }
+
+    /* ── 좌측 대각선 패널 ── */
+    .lp {
+      width: 250pt; background: var(--bg-secondary, #f3f3f3);
+      position: relative; padding: 48pt 24pt 48pt 36pt;
+      clip-path: polygon(0 0, 85% 0, 100% 100%, 0 100%);
+      flex-shrink: 0;
+    }
+    .lp-label {
+      position: absolute; top: 14pt; left: 36pt;
+      font-size: var(--text-label, 10pt); font-weight: 500;
+      color: var(--text-secondary, #5A5A65); letter-spacing: 0.02em;
+    }
+    .lp-bar {
+      width: 4pt; height: 50pt; background: var(--accent, #FC5E20);
+      position: absolute; left: 30pt; top: 96pt;
+    }
+    .lp h1 {
+      font-size: var(--title-section, 40pt); font-weight: 800;
+      color: var(--text-primary, #373742); margin-top: 48pt;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+
+    /* ── 우측: 2열 타임라인 영역 ── */
+    .rp {
+      flex: 1;
+      padding: 28pt 16pt 24pt 20pt;
+      display: flex; flex-direction: row;
+      gap: 8pt; position: relative;
+    }
+
+    /* 좌측 타임라인 열 */
+    .tl {
+      flex: 1; position: relative; padding-left: 18pt;
+      display: flex; flex-direction: column; gap: 2pt;
+    }
+    .tl-line {
+      position: absolute; left: 5pt; top: 8pt; bottom: 8pt;
+      width: 2pt; background: var(--border, #eee);
+    }
+
+    /* 타임라인 엔트리 */
+    .e {
+      position: relative; padding-left: 22pt;
+      padding-top: 2pt; padding-bottom: 4pt;
+    }
+    .e::before {
+      content: ''; position: absolute; left: -1pt; top: 4pt;
+      width: 10pt; height: 10pt; border-radius: 50%;
+      background: #ccc; border: 2pt solid #fff; z-index: 2;
+    }
+    .e.hl::before { background: var(--accent, #FC5E20); }
+    .e h6 {
+      font-size: 10pt; font-weight: 700;
+      color: var(--text-primary, #373742);
+      display: inline; margin: 0;
+    }
+    .e.hl h6 { color: var(--accent, #FC5E20); }
+    .e h5 {
+      font-size: 9pt; font-weight: 700;
+      color: var(--accent, #FC5E20);
+      display: inline; margin: 0 0 0 4pt;
+    }
+    .e-plain h5 { color: var(--text-primary, #373742); }
+    .e p {
+      font-size: 7.5pt; color: var(--text-secondary, #5A5A65);
+      margin: 2pt 0 0; line-height: 1.5;
+    }
+
+    /* 우측 요약 열 */
+    .tl-r {
+      width: 210pt; padding-left: 12pt;
+      border-left: 1pt solid var(--border, #eee);
+      display: flex; flex-direction: column; gap: 4pt;
+    }
+    .re { padding-bottom: 8pt; }
+    .re h6 {
+      font-size: 10pt; font-weight: 700;
+      color: var(--accent, #FC5E20); margin: 0;
+    }
+    .re h5 {
+      font-size: 9pt; font-weight: 700;
+      color: var(--accent, #FC5E20); margin: 2pt 0 0;
+    }
+    .re p {
+      font-size: 7.5pt; color: var(--text-secondary, #5A5A65);
+      margin: 2pt 0 0; line-height: 1.5;
+    }
+    .re .badge {
+      display: inline-block;
+      background: var(--accent, #FC5E20); color: #fff;
+      font-size: 9pt; font-weight: 700;
+      padding: 3pt 10pt; border-radius: 3pt;
+      margin-top: 3pt;
+    }
+
+    .ft {
+      position: absolute; bottom: 8pt; left: 0; right: 0;
+      text-align: center; font-size: var(--text-label, 10pt); color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="lp">
+      <p class="lp-label" data-slot="label">Section Label</p>
+      <div class="lp-bar"></div>
+      <h1 data-slot="title">Timeline<br>Title</h1>
+    </div>
+    <div class="rp" data-slot="body">
+      <!-- 좌측 타임라인 -->
+      <div class="tl">
+        <div class="tl-line"></div>
+        <div class="e e-plain">
+          <h6>2002.</h6><h5>Event description</h5>
+          <p>Supporting detail text</p>
+        </div>
+        <div class="e">
+          <h6>2006.</h6><h5>Highlighted event title</h5>
+          <p>Supporting detail text</p>
+        </div>
+        <div class="e">
+          <h6>2013.</h6><h5>Another highlighted event</h5>
+          <p>Supporting detail</p>
+        </div>
+        <div class="e">
+          <h6>2017.</h6><h5>Milestone event</h5>
+        </div>
+        <div class="e hl">
+          <h6>2018.</h6><h5>Major milestone</h5>
+          <p>Key achievement details</p>
+        </div>
+        <div class="e hl">
+          <h6>2020.</h6><h5>Another major event</h5>
+        </div>
+        <div class="e e-plain">
+          <h6>2021.</h6><h5>Expansion event</h5>
+        </div>
+        <div class="e e-plain">
+          <h6>2022.</h6><h5>Platform launch</h5>
+        </div>
+      </div>
+      <!-- 우측 요약 -->
+      <div class="tl-r">
+        <div class="re">
+          <h6>2023.</h6>
+          <h5>Award &amp; recognition</h5>
+          <p>Achievement description line one<br>Achievement description line two</p>
+        </div>
+        <div class="re">
+          <h6>2024.</h6>
+          <h5>Program development</h5>
+          <p>Program detail description</p>
+        </div>
+        <div class="re">
+          <h6>2025.</h6>
+          <h5>Academy launch</h5>
+          <p>Academy operation details</p>
+        </div>
+        <div class="re">
+          <h6>2026.</h6>
+          <p class="badge">Merger &amp; Integration</p>
+        </div>
+      </div>
+    </div>
+    <p class="ft" data-slot="caption">ⓒ 2026 Company. All rights reserved.</p>
+  </div>
+</body>
+</html>

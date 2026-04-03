@@ -8,9 +8,10 @@ import {
   slidePanel, editorSidebar, slideCounter, btnNewDeck, slideStrip,
   btnPrev, btnNext, btnExportToggle, btnReviewOutline, btnReviewDeck,
   tabTopic, tabImport, tabTopicPanel, tabImportPanel,
-  importDropzone, importFileInput, importBrowse, importFileInfo,
-  importFileName, importFileClear, importSlideCount, importResearchMode,
-  importModel, importSubmit, importUrlInput, importUrlGo,
+  importDropzone, importFileInput, importBrowse,
+  importFileList, importFileListItems, importAddMore,
+  importSlideCount, importResearchMode,
+  importModel, importSubmit, importPrompt, importUrlInput, importUrlGo,
   btnPresent,
 } from './editor-dom.js';
 import { getSelectedPack } from './editor-pack.js';
@@ -386,8 +387,16 @@ var _placeholderTimer = null;
 
 // ── Import MD Tab Logic ──────────────────────────────────────────────
 
-let _importedContent = '';
-let _importedPdfFile = null;
+/** @type {Array<{file: File, name: string, type: 'text'|'pdf', content?: string}>} */
+let _importedFiles = [];
+
+const MAX_IMPORT_FILES = 5;
+const MAX_IMPORT_FILE_SIZE = 10 * 1024 * 1024; // 10MB total
+const ALLOWED_EXTENSIONS = ['md', 'markdown', 'txt', 'pdf'];
+
+function getUserPrompt() {
+  return importPrompt?.value?.trim() || '';
+}
 
 function switchTab(tab) {
   const isTopic = tab === 'topic';
@@ -414,61 +423,93 @@ if (tabImport) {
   tabImport.addEventListener('click', () => switchTab('import'));
 }
 
-function showImportedFile(name) {
-  if (importDropzone) importDropzone.hidden = true;
-  if (importFileInfo) importFileInfo.hidden = false;
-  if (importFileName) importFileName.textContent = name;
+function formatFileSize(bytes) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function clearImportedFile() {
-  _importedContent = '';
-  _importedPdfFile = null;
-  if (importDropzone) importDropzone.hidden = false;
-  if (importFileInfo) importFileInfo.hidden = true;
-  if (importFileName) importFileName.textContent = '';
+function renderFileList() {
+  if (!importFileListItems) return;
+  importFileListItems.innerHTML = '';
+
+  for (let i = 0; i < _importedFiles.length; i++) {
+    const entry = _importedFiles[i];
+    const isPdf = entry.type === 'pdf';
+    const item = document.createElement('div');
+    item.className = 'import-file-item';
+    item.innerHTML = `
+      <svg class="import-file-item-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        ${isPdf
+          ? '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M10 13h4"/><path d="M10 17h4"/>'
+          : '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/>'}
+      </svg>
+      <span class="import-file-item-name">${entry.name}</span>
+      <span class="import-file-item-size">${formatFileSize(entry.file.size)}</span>
+    `;
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'import-file-item-remove';
+    removeBtn.textContent = '\u00d7';
+    removeBtn.addEventListener('click', () => removeImportFile(i));
+    item.appendChild(removeBtn);
+    importFileListItems.appendChild(item);
+  }
+
+  const hasFiles = _importedFiles.length > 0;
+  if (importDropzone) importDropzone.hidden = hasFiles;
+  if (importFileList) importFileList.hidden = !hasFiles;
+  // Hide add-more button when at max
+  if (importAddMore) importAddMore.hidden = _importedFiles.length >= MAX_IMPORT_FILES;
+}
+
+function removeImportFile(index) {
+  _importedFiles.splice(index, 1);
+  renderFileList();
+}
+
+function clearAllImportFiles() {
+  _importedFiles = [];
   if (importFileInput) importFileInput.value = '';
+  renderFileList();
 }
 
-const MAX_IMPORT_FILE_SIZE = 10 * 1024 * 1024; // 10MB (PDF can be larger)
-const ALLOWED_EXTENSIONS = ['md', 'markdown', 'txt', 'pdf'];
+function getTotalImportSize() {
+  return _importedFiles.reduce((sum, e) => sum + e.file.size, 0);
+}
 
-function handleImportFile(file) {
-  if (!file) return;
+function handleImportFiles(fileList) {
+  if (!fileList || fileList.length === 0) return;
 
-  // File size check
-  if (file.size > MAX_IMPORT_FILE_SIZE) {
-    setStatus('파일이 너무 큽니다 (최대 5MB).');
-    return;
-  }
-
-  // Extension check (important for drag-and-drop which ignores accept attribute)
-  const ext = file.name.split('.').pop()?.toLowerCase();
-  if (!ALLOWED_EXTENSIONS.includes(ext)) {
-    setStatus('.md, .markdown, .txt, .pdf 파일만 지원합니다.');
-    return;
-  }
-
-  // PDF files are handled as binary (sent directly to server)
-  if (ext === 'pdf') {
-    _importedPdfFile = file;
-    _importedContent = '';
-    showImportedFile(file.name);
-    return;
-  }
-
-  const reader = new FileReader();
-  reader.onerror = () => setStatus('파일을 읽지 못했습니다.');
-  reader.onload = () => {
-    const text = typeof reader.result === 'string' ? reader.result.trim() : '';
-    if (!text) {
-      setStatus('파일이 비어 있습니다.');
-      return;
+  for (const file of fileList) {
+    if (_importedFiles.length >= MAX_IMPORT_FILES) {
+      setStatus(`최대 ${MAX_IMPORT_FILES}개 파일까지 추가할 수 있습니다.`);
+      break;
     }
-    _importedContent = reader.result;
-    _importedPdfFile = null;
-    showImportedFile(file.name);
-  };
-  reader.readAsText(file, 'utf-8');
+
+    // Duplicate check
+    if (_importedFiles.some((e) => e.name === file.name && e.file.size === file.size)) continue;
+
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      setStatus(`${file.name}: .md, .txt, .pdf 파일만 지원합니다.`);
+      continue;
+    }
+
+    if (getTotalImportSize() + file.size > MAX_IMPORT_FILE_SIZE) {
+      setStatus('총 파일 크기가 10MB를 초과합니다.');
+      break;
+    }
+
+    const isPdf = ext === 'pdf';
+    if (isPdf) {
+      _importedFiles.push({ file, name: file.name, type: 'pdf' });
+    } else {
+      _importedFiles.push({ file, name: file.name, type: 'text' });
+    }
+  }
+
+  renderFileList();
+  if (importFileInput) importFileInput.value = '';
 }
 
 // Browse button
@@ -480,11 +521,10 @@ if (importBrowse) {
   });
 }
 
-// File input change
+// File input change (multiple)
 if (importFileInput) {
   importFileInput.addEventListener('change', () => {
-    const file = importFileInput.files?.[0];
-    if (file) handleImportFile(file);
+    handleImportFiles(importFileInput.files);
   });
 }
 
@@ -495,7 +535,7 @@ if (importDropzone) {
     importFileInput?.click();
   });
 
-  // Drag-and-drop
+  // Drag-and-drop (multiple)
   importDropzone.addEventListener('dragover', (e) => {
     e.preventDefault();
     importDropzone.classList.add('dragover');
@@ -506,19 +546,18 @@ if (importDropzone) {
   importDropzone.addEventListener('drop', (e) => {
     e.preventDefault();
     importDropzone.classList.remove('dragover');
-    const file = e.dataTransfer?.files?.[0];
-    if (file) handleImportFile(file);
+    handleImportFiles(e.dataTransfer?.files);
   });
 }
 
-// Clear button
-if (importFileClear) {
-  importFileClear.addEventListener('click', clearImportedFile);
+// Add more button
+if (importAddMore) {
+  importAddMore.addEventListener('click', () => importFileInput?.click());
 }
 
 // Submit import
 export async function submitImport(content) {
-  const mdContent = content || _importedContent;
+  const mdContent = content;
   if (!mdContent) {
     setStatus('먼저 마크다운 파일을 선택해 주세요.');
     return;
@@ -542,10 +581,11 @@ export async function submitImport(content) {
   setStatus('마크다운을 아웃라인으로 변환 중...');
 
   try {
+    const userPrompt = getUserPrompt();
     const res = await fetch('/api/import-md', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: mdContent, model, slideCount, researchMode, packId: getSelectedPack() }),
+      body: JSON.stringify({ content: mdContent, model, slideCount, researchMode, packId: getSelectedPack(), userPrompt }),
     });
 
     if (!res.ok) {
@@ -568,10 +608,24 @@ export async function submitImport(content) {
 
 if (importSubmit) {
   importSubmit.addEventListener('click', () => {
-    if (_importedPdfFile) {
-      submitPdfUpload(_importedPdfFile);
+    if (_importedFiles.length === 0) {
+      setStatus('먼저 파일을 선택해 주세요.');
+      return;
+    }
+    if (_importedFiles.length >= 2) {
+      submitMultiFileImport();
+    } else if (_importedFiles[0].type === 'pdf') {
+      submitPdfUpload(_importedFiles[0].file);
     } else {
-      submitImport();
+      // Single text file — read and send via existing path
+      const reader = new FileReader();
+      reader.onerror = () => setStatus('파일을 읽지 못했습니다.');
+      reader.onload = () => {
+        const text = typeof reader.result === 'string' ? reader.result.trim() : '';
+        if (!text) { setStatus('파일이 비어 있습니다.'); return; }
+        submitImport(text);
+      };
+      reader.readAsText(_importedFiles[0].file, 'utf-8');
     }
   });
 }
@@ -655,11 +709,13 @@ export async function submitDocImport({ source, sourceType, model, slideCount, r
 
   try {
     const queryType = isUrl ? 'url' : 'pdf-path';
+    const userPrompt = getUserPrompt();
     const body = {
       model: selectedModel,
       slideCount: selectedSlideCount,
       researchMode: selectedResearchMode,
       packId: selectedPack,
+      userPrompt,
     };
     if (isUrl) {
       body.url = source;
@@ -719,6 +775,7 @@ export async function submitPdfUpload(file, { model, slideCount, researchMode, p
   setStatus('PDF를 아웃라인으로 변환 중...');
 
   try {
+    const userPrompt = getUserPrompt();
     const buffer = await file.arrayBuffer();
     const qs = new URLSearchParams({
       sourceType: 'pdf',
@@ -726,6 +783,7 @@ export async function submitPdfUpload(file, { model, slideCount, researchMode, p
       slideCount: selectedSlideCount,
       researchMode: selectedResearchMode,
       packId: selectedPack,
+      userPrompt,
     });
     const res = await fetch(`/api/import-doc?${qs}`, {
       method: 'POST',
@@ -749,5 +807,93 @@ export async function submitPdfUpload(file, { model, slideCount, researchMode, p
     showPlanLoading(false);
     appendCreationLog(`[Error] ${err.message}\n`);
     setStatus(`PDF 가져오기 실패: ${err.message}`);
+  }
+}
+
+// ── Multi-file import ─────────────────────────────────────────────
+
+/** Read a File as text (for MD/txt). */
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+    reader.readAsText(file, 'utf-8');
+  });
+}
+
+/** Read a File as base64 string (for PDF). */
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // dataURL format: data:application/pdf;base64,XXXXX
+      const dataUrl = reader.result;
+      const base64 = dataUrl.split(',')[1] || '';
+      resolve(base64);
+    };
+    reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitMultiFileImport() {
+  if (_importedFiles.length < 2) return;
+  if (creationState.generating) {
+    setStatus('이미 진행 중입니다.');
+    return;
+  }
+
+  const model = importModel?.value || 'claude-sonnet-4-6';
+  const slideCount = importSlideCount?.value || '';
+  const researchMode = importResearchMode?.value || 'none';
+  const userPrompt = getUserPrompt();
+
+  creationState.generating = true;
+  window.addEventListener('beforeunload', preventUnload);
+  if (importSubmit) importSubmit.disabled = true;
+  if (creationProgress) creationProgress.hidden = false;
+  if (creationLog) creationLog.textContent = '';
+  showPlanLoading(true, `${_importedFiles.length}개 파일 변환 중`);
+  setStatus(`${_importedFiles.length}개 파일을 아웃라인으로 변환 중...`);
+
+  try {
+    // Read all files
+    const files = [];
+    for (const entry of _importedFiles) {
+      if (entry.type === 'pdf') {
+        const base64 = await readFileAsBase64(entry.file);
+        files.push({ name: entry.name, type: 'pdf', base64 });
+      } else {
+        const content = await readFileAsText(entry.file);
+        files.push({ name: entry.name, type: 'text', content });
+      }
+    }
+
+    const res = await fetch('/api/import-files', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        files, model, slideCount, researchMode,
+        packId: getSelectedPack(), userPrompt,
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+
+    const data = await res.json();
+    creationState.runId = data.runId;
+    appendCreationLog(`[Multi-file Import] ${data.fileCount} files\n`);
+    appendCreationLog(`[Multi-file Import] Model: ${data.model}\n`);
+  } catch (err) {
+    creationState.generating = false;
+    window.removeEventListener('beforeunload', preventUnload);
+    if (importSubmit) importSubmit.disabled = false;
+    showPlanLoading(false);
+    appendCreationLog(`[Error] ${err.message}\n`);
+    setStatus(`가져오기 실패: ${err.message}`);
   }
 }

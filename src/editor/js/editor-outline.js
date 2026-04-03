@@ -541,6 +541,17 @@ export function onPlanFinished(payload) {
   creationState.generating = false;
   showPlanLoading(false);
 
+  // Retheme completion
+  if (payload.phase === 'retheme') {
+    if (payload.success) {
+      setStatus(`Retheme 완료: ${payload.deckName}`);
+      setTimeout(() => window.location.reload(), 1000);
+    } else {
+      setStatus(`Retheme 실패: ${payload.message}`);
+    }
+    return;
+  }
+
   if (payload.success && payload.outline) {
     resetOutlineIndicators('success');
     appendCreationLog(`\n[Done] Outline ready.\n`);

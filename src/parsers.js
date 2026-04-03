@@ -28,7 +28,7 @@ export function detectSourceType(input) {
 export async function parsePdf(source) {
   const { PDFParse } = await import('pdf-parse');
   const raw = Buffer.isBuffer(source) ? source : await readFile(source);
-  const uint8 = new Uint8Array(raw.buffer, raw.byteOffset, raw.byteLength);
+  const uint8 = new Uint8Array(raw);
   const parser = new PDFParse(uint8, {});
   try {
     await parser.load();
@@ -111,11 +111,12 @@ export async function parseText(filePath) {
  * @returns {Promise<{text: string, pages: number, pageImages: string[], totalPages: number, renderedPages: number}>}
  */
 export async function parsePdfWithVision(source, outputDir, options = {}) {
-  // Pre-read once so both parsePdf and renderPdfPages share the buffer
   const buf = Buffer.isBuffer(source) ? source : await readFile(source);
+  // Each function gets its own Buffer copy — pdfjs-dist's LoopbackPort transfers
+  // (detaches) the underlying ArrayBuffer via structuredClone, so sharing is unsafe
   const [{ text, pages }, { pageImages, totalPages, renderedPages }] = await Promise.all([
-    parsePdf(buf),
-    renderPdfPages(buf, outputDir, options),
+    parsePdf(Buffer.from(buf)),
+    renderPdfPages(Buffer.from(buf), outputDir, options),
   ]);
   return { text, pages, pageImages, totalPages, renderedPages };
 }

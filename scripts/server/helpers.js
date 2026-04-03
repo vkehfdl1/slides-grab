@@ -1,5 +1,5 @@
-import { readdir } from 'node:fs/promises';
-import { basename, join, relative, sep } from 'node:path';
+import { readdir, stat } from 'node:fs/promises';
+import { basename, join, relative, resolve, sep } from 'node:path';
 import { watch as fsWatch } from 'node:fs';
 
 import {
@@ -110,6 +110,33 @@ export function slugify(text) {
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 40) || `deck-${Date.now()}`;
+}
+
+// ── Deck name deduplication ─────────────────────────────────────────
+
+export async function listExistingDeckNames() {
+  const decksRoot = resolve(process.cwd(), 'decks');
+  try {
+    const entries = await readdir(decksRoot, { withFileTypes: true });
+    return entries
+      .filter(e => e.isDirectory() && !e.name.startsWith('.') && !e.name.startsWith('_'))
+      .map(e => e.name);
+  } catch { return []; }
+}
+
+export async function uniqueDeckName(baseName) {
+  const decksRoot = resolve(process.cwd(), 'decks');
+  let candidate = baseName;
+  let suffix = 2;
+  while (true) {
+    try {
+      await stat(join(decksRoot, candidate));
+      candidate = `${baseName}-${suffix++}`;
+    } catch (err) {
+      if (err.code === 'ENOENT') return candidate;
+      throw err;
+    }
+  }
 }
 
 // ── Screenshot browser helpers ──────────────────────────────────────

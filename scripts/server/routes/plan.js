@@ -11,6 +11,7 @@ import {
   appendOutlinePrompt,
   spawnClaudeEdit,
   setupFileWatcher,
+  listExistingDeckNames,
 } from '../helpers.js';
 
 /**
@@ -87,6 +88,7 @@ export function createPlanRouter(ctx) {
           ? slideCountRange.trim()
           : '8~12';
         const selectedPackId = normalizePackId(reqPackId);
+        const existingDeckNames = await listExistingDeckNames();
 
         const promptLines = [
           `주제: ${topic.trim()}`,
@@ -104,7 +106,7 @@ export function createPlanRouter(ctx) {
         promptLines.push('2. 해당 폴더에 slide-outline.md를 생성하세요. (HTML 슬라이드는 생성하지 마세요)');
         promptLines.push('   mkdir -p decks/<name> && 아웃라인 파일만 작성');
         promptLines.push('');
-        appendOutlinePrompt(promptLines, selectedPackId);
+        appendOutlinePrompt(promptLines, selectedPackId, { existingDeckNames });
 
         const fullPrompt = promptLines.join('\n');
 

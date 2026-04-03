@@ -34,7 +34,9 @@ export async function renderPdfPages(source, outputDir, options = {}) {
   const { createCanvas } = await import('@napi-rs/canvas');
 
   const data = Buffer.isBuffer(source) ? source : await readFile(source);
-  const uint8 = new Uint8Array(data.buffer, data.byteOffset, data.byteLength);
+  // Copy to dedicated ArrayBuffer — Node.js Buffer may share a pooled ArrayBuffer
+  // which cannot be transferred via structuredClone in pdfjs-dist LoopbackPort
+  const uint8 = new Uint8Array(data);
 
   const doc = await getDocument({ data: uint8, useSystemFonts: true, standardFontDataUrl }).promise;
   const totalPages = doc.numPages;

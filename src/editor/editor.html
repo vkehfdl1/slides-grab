@@ -3155,6 +3155,85 @@
       color: var(--text-2) !important;
       opacity: 0.7;
     }
+    /* ── Import Prompt (inherits .creation-input-area textarea base) ── */
+    .import-prompt {
+      font-size: 13px;
+      padding: 10px 14px;
+      line-height: 1.5;
+      margin-top: 10px;
+      min-height: 40px;
+      max-height: 120px;
+    }
+    .import-prompt::placeholder { color: var(--text-2); opacity: 0.7; }
+    .import-prompt:focus { box-shadow: 0 0 0 3px var(--ring); }
+
+    /* ── Import File List (multi-file) ── */
+    .import-file-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .import-file-list[hidden] { display: none; }
+    .import-file-list-items {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .import-file-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 13px;
+    }
+    .import-file-item-icon {
+      flex-shrink: 0;
+      width: 16px;
+      height: 16px;
+      opacity: 0.5;
+    }
+    .import-file-item-name {
+      flex: 1;
+      color: var(--text-0);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .import-file-item-size {
+      flex-shrink: 0;
+      font-size: 11px;
+      color: var(--text-2);
+    }
+    .import-file-item-remove {
+      background: none;
+      border: none;
+      color: var(--text-2);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 2px;
+      line-height: 1;
+    }
+    .import-file-item-remove:hover { color: var(--danger, #e53e3e); }
+    .import-add-more {
+      align-self: flex-start;
+      background: none;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      color: var(--text-2);
+      font-size: 12px;
+      font-family: var(--sans);
+      padding: 5px 12px;
+      cursor: pointer;
+      transition: all var(--transition);
+    }
+    .import-add-more:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
     .import-file-info {
       display: flex;
       align-items: center;
@@ -4452,19 +4531,20 @@
                 <button class="import-url-go" id="import-url-go">Go</button>
               </div>
               <div class="import-divider"><span>or</span></div>
-              <!-- File Dropzone (MD + PDF) -->
+              <!-- File Dropzone (MD + PDF, multiple) -->
               <div class="import-dropzone" id="import-dropzone">
-                <input type="file" id="import-file-input" accept=".md,.markdown,.txt,.pdf" hidden>
+                <input type="file" id="import-file-input" accept=".md,.markdown,.txt,.pdf" multiple hidden>
                 <div class="import-dropzone-content">
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/></svg>
                   <p><strong>.md</strong> 또는 <strong>.pdf</strong> 파일을 여기에 놓거나 <button class="import-browse-btn" id="import-browse">파일 선택</button></p>
-                  <p class="import-hint">마크다운, PDF 문서를 프레젠테이션으로 변환합니다</p>
+                  <p class="import-hint">최대 5개 파일, 혼합 가능 (MD + PDF)</p>
                 </div>
               </div>
-              <div class="import-file-info" id="import-file-info" hidden>
-                <span class="import-file-name" id="import-file-name"></span>
-                <button class="import-file-clear" id="import-file-clear">&times;</button>
+              <div class="import-file-list" id="import-file-list" hidden>
+                <div class="import-file-list-items" id="import-file-list-items"></div>
+                <button class="import-add-more" id="import-add-more">+ 파일 추가</button>
               </div>
+              <textarea class="import-prompt" id="import-prompt" placeholder="추가 지시사항 (선택) — 예: 'page 10의 점수 표를 참고하여 중요도를 반영해 주세요'" rows="2" maxlength="2000"></textarea>
               <div class="creation-actions">
                 <div class="creation-actions-field">
                   <label for="import-slide-count">Slides</label>
@@ -4994,8 +5074,8 @@
         <select id="retheme-pack-select" style="width: 100%; padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-0); font-size: 13px;"></select>
       </div>
       <div style="margin-bottom: 16px;">
-        <label for="retheme-save-as" style="display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px;">Save as (leave empty to overwrite)</label>
-        <input type="text" id="retheme-save-as" placeholder="e.g., my-deck-dark" style="width: 100%; padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-0); font-size: 13px;" autocomplete="off">
+        <label for="retheme-save-as" style="display: block; font-size: 12px; color: var(--text-2); margin-bottom: 6px;">Save as (비워두면 자동 생성)</label>
+        <input type="text" id="retheme-save-as" placeholder="" style="width: 100%; padding: 8px 12px; background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text-0); font-size: 13px;" autocomplete="off">
       </div>
       <div style="display: flex; gap: 8px; justify-content: flex-end;">
         <button class="shortcuts-close" id="retheme-cancel">Cancel</button>

@@ -1,6 +1,6 @@
 // editor-sse.js — EventSource connection, run event handling
 
-import { state, runsById, activeRunBySlide, localFileUpdateBySlide } from './editor-state.js';
+import { state, runsById, activeRunBySlide, localFileUpdateBySlide, creationState } from './editor-state.js';
 import { slideIframe, statusDot, statusConn } from './editor-dom.js';
 import { currentSlideFile, setStatus } from './editor-utils.js';
 import { addChatMessage, renderRunsList } from './editor-chat.js';
@@ -15,7 +15,7 @@ import {
 } from './editor-figma-export.js';
 import {
   isCreationMode, onGenerateStarted, onGenerateLog, onGenerateFinished,
-  refreshSlideList, updatePlanLoadingStep, feedPlanLoadingLog,
+  refreshSlideList, updatePlanLoadingStep, feedPlanLoadingLog, showPlanLoading,
 } from './editor-create.js';
 import { onPlanStarted, onPlanLog, onPlanFinished } from './editor-outline.js';
 
@@ -35,6 +35,23 @@ export function connectSSE() {
     statusDot.classList.add('connected');
     statusDot.classList.remove('disconnected');
     statusConn.textContent = 'Connected';
+
+    // Recovery: if progress was showing, verify generation is still active
+    if (creationState.generating) {
+      setTimeout(async () => {
+        if (!creationState.generating) return;
+        try {
+          const res = await fetch('/api/generate-status');
+          if (!res.ok) return;
+          const { active } = await res.json();
+          if (!active && creationState.generating) {
+            creationState.generating = false;
+            showPlanLoading(false);
+            setStatus('생성이 완료되었습니다. 새로고침하세요.');
+          }
+        } catch { /* ignore */ }
+      }, 2000);
+    }
   };
 
   evtSource.addEventListener('runsSnapshot', (event) => {

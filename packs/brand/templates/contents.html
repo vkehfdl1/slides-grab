@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="stylesheet" href="./theme.css">
+  <style>
+    body {
+      margin: 0; width: 720pt; height: 405pt;
+      font-family: var(--font-sans, 'Pretendard', sans-serif);
+      background: var(--bg-primary, #fff);
+      color: var(--text-primary, #373742);
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      box-sizing: border-box; position: relative;
+    }
+    .dark {
+      position: absolute; top: 0; left: 0; right: 0; height: 210pt;
+      background:
+        radial-gradient(ellipse at 20% 60%, rgba(252,94,32,0.06) 0%, transparent 50%),
+        var(--bg-elevated, #4B4B4B);
+    }
+    .slide h1 {
+      position: absolute; top: 115pt; left: 56pt;
+      font-size: 72pt; font-weight: 900; color: #fff;
+      letter-spacing: 0.02em; z-index: 5;
+      margin: 0; line-height: 1;
+    }
+    .toc {
+      position: absolute; top: 230pt; left: 56pt;
+      display: flex; flex-direction: column; gap: 12pt;
+    }
+    .toc-item { display: flex; align-items: baseline; gap: 24pt; }
+    .toc-num {
+      font-size: 18pt; font-weight: 800; color: var(--accent, #FC5E20);
+      min-width: 32pt; margin: 0; line-height: 1.3;
+    }
+    .toc-title {
+      font-size: var(--text-subtitle, 18pt); font-weight: 500;
+      color: var(--text-primary, #373742); margin: 0; line-height: 1.3;
+    }
+    .deco {
+      position: absolute; top: 230pt; right: 0;
+      width: 60pt; height: 170pt; background: #f0f0f0;
+      border-top-left-radius: 32pt; border-bottom-left-radius: 32pt;
+    }
+    
+    .ft {
+      position: absolute; bottom: 8pt; left: 0; right: 0;
+      text-align: center; font-size: var(--text-label, 10pt); color: #bbb;
+    }
+  </style>
+</head>
+<body>
+  <div class="slide">
+    <div class="dark"></div>
+    <h1 data-slot="title">INDEX</h1>
+    <div class="toc" data-slot="body">
+      <div class="toc-item"><p class="toc-num">01</p><p class="toc-title">First Section</p></div>
+      <div class="toc-item"><p class="toc-num">02</p><p class="toc-title">Second Section</p></div>
+      <div class="toc-item"><p class="toc-num">03</p><p class="toc-title">Third Section</p></div>
+      <div class="toc-item"><p class="toc-num">04</p><p class="toc-title">Fourth Section</p></div>
+    </div>
+    <div class="deco"></div>
+    <p class="ft" data-slot="caption">ⓒ 2026 Company. All rights reserved.</p>
+  </div>
+</body>
+</html>
