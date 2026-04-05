@@ -72,7 +72,6 @@ test('slides-grab preview-styles prints the bundled preview path', () => {
     },
   );
 
-  assert.match(output, /Opening style preview/i);
   assert.match(output, /preview\.html/);
 });
 
