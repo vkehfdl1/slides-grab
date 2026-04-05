@@ -47,6 +47,7 @@ ENV/
 # Generated slides and viewer
 slides/
 decks/
+style-preview.html
 *.pptx
 *.pdf
 *.dmg
