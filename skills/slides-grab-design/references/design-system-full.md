@@ -97,27 +97,15 @@ line-height: 1;
 
 ## Color Palette System
 
-### 1. Executive Minimal (Recommended Default)
-Refined business presentation look
-- File: `themes/executive.css`
+All color palettes are now bundled as design styles accessible via `slides-grab list-styles`. The five original palettes are styles 31–35:
 
-### 2. Sage Professional
-Calm and trustworthy tone
-- File: `themes/sage.css`
+- **executive-minimal** — Refined business (warm white + black accent)
+- **sage-professional** — Calm and trustworthy (sage green tones)
+- **modern-dark** — High-impact dark (pure dark + white text)
+- **corporate-blue** — Traditional business (white + blue accent)
+- **warm-neutral** — Warm and approachable (cream + terracotta)
 
-### 3. Modern Dark
-High-impact dark theme
-- File: `themes/modern-dark.css`
-
-### 4. Corporate Blue
-Traditional business tone
-- File: `themes/corporate.css`
-
-### 5. Warm Neutral
-Warm and approachable tone
-- File: `themes/warm.css`
-
-Theme files use shared CSS variables (`:root`). Copy a theme file to create a custom theme.
+Run `slides-grab list-styles` to browse all 35 bundled styles, or design a fully custom palette when none fit.
 
 ---
 

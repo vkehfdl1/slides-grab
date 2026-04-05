@@ -10,8 +10,7 @@ These are the packaged design rules for installable `slides-grab` skills.
 - Download a web video into slide assets: `slides-grab fetch-video --url <youtube-url> --slides-dir <path>`
 - Render `tldraw` diagrams: `slides-grab tldraw --input <path> --output <path>`
 - List bundled design collections: `slides-grab list-styles`
-- Preview the full style catalog or one style: `slides-grab preview-styles [--style <id>]`
-- Persist the approved style direction: `slides-grab select-style <id>`
+- Open the visual style gallery in browser: `slides-grab preview-styles`
 
 ## Slide spec
 - Slide size: `720pt x 405pt` (16:9)
@@ -33,13 +32,6 @@ These are the packaged design rules for installable `slides-grab` skills.
 - Do not leave remote `http(s)://` image URLs in saved slide HTML
 - Never use absolute filesystem paths
 
-## Package-published theme references
-- `themes/executive.css`
-- `themes/sage.css`
-- `themes/modern-dark.css`
-- `themes/corporate.css`
-- `themes/warm.css`
-
 ## Package-published template references
 - `templates/cover.html`
 - `templates/contents.html`
@@ -56,9 +48,11 @@ These are the packaged design rules for installable `slides-grab` skills.
 - `templates/diagram-tldraw.html`
 - `templates/custom/`
 - `templates/design-styles/README.md` — bundled design collection reference derived from `corazzon/pptx-design-styles`
+- `templates/design-styles/preview.html` — visual gallery of all 35 styles (open with `slides-grab preview-styles`)
+- `src/design-styles-data.js` — full style specs (colors, fonts, layout, signature elements, things to avoid) for all 35 bundled styles; read this after the user picks a style to ground your design tokens
 
 ## Review loop
-- If the design direction is still open, shortlist bundled styles first and persist the approved direction in `style-config.json` before generating slides.
+- The design style is chosen in Stage 1 (Plan) and recorded in `slide-outline.md`'s meta section (`style: <id>`). Do not re-open style selection in Stage 2 — read and apply the already-approved style.
 - Generate or edit only the needed slide files.
 - Prefer `slides-grab image` before remote image sourcing when the slide needs bespoke imagery.
 - Prefer `tldraw` for complex diagrams instead of hand-building dense diagram geometry in HTML/CSS.

@@ -19,17 +19,19 @@ Produce an approved `slide-outline.md` before any slide HTML generation.
 - Optional research findings
 
 ## Output
-- `slide-outline.md`
+- `slide-outline.md` (must include `style: <id>` in meta section)
 
 ## Workflow
 1. Analyze user goal and audience.
-2. Create or revise `slide-outline.md` with ordered slides and key messages.
-3. Present a concise summary to user.
-4. Repeat revisions until explicit approval.
+2. **Style selection (mandatory, before outline):** Run `slides-grab list-styles`, shortlist 2–3 styles that match the topic/tone, present the shortlist with reasons, and get explicit user approval. Optionally offer `slides-grab preview-styles` for visual preview. If no bundled style fits, propose a custom direction and get approval.
+3. Create or revise `slide-outline.md` with ordered slides and key messages. Record the approved style ID in the meta section (`style: <id>`).
+4. Present a concise summary to user.
+5. Repeat revisions until explicit approval.
 
 ## Rules
+- **Do not write the outline before the user approves a style.** Style selection comes first.
 - Do not generate slide HTML (`<slides-dir>/slide-*.html`) in this stage.
-- Keep scope to structure and narrative.
+- Keep scope to structure, narrative, and style selection.
 - Ask for approval before moving to design.
 - Assume later stages run through the packaged `slides-grab` CLI.
 - Use the packaged CLI and bundled references only; do not depend on unpublished agent-specific files.

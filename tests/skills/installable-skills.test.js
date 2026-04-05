@@ -105,7 +105,6 @@ test('slides-grab design skill points at the bundled art-direction reference', (
   assert.match(text, /visual thesis/i);
   assert.match(text, /content plan/i);
   assert.match(text, /slide litmus check/i);
-  assert.match(text, /style-config\.json/);
   assert.match(text, /list-styles/);
   assert.match(text, /preview-styles/);
   assert.match(text, /slides-grab image/i);
@@ -144,7 +143,6 @@ test('slides-grab orchestration skill keeps image and video workflows without du
   assert.match(text, /Nano Banana Pro/i);
   assert.match(text, /fetch-video|yt-dlp/i);
   assert.match(text, /list-styles/);
-  assert.match(text, /select-style/);
   assert.match(text, /local videos/i);
   assert.equal((text.match(/When a slide needs bespoke imagery/gi) || []).length, 1);
   assert.equal((text.match(/For complex diagrams/gi) || []).length, 1);

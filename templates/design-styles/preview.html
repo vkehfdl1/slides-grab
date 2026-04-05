@@ -1,0 +1,3356 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>slides-grab Design Styles — 35 Collections</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&family=Space+Mono:wght@400;700&family=Bebas+Neue&family=Playfair+Display:ital,wght@0,700;1,700&family=DM+Serif+Display:ital@0;1&family=Barlow+Condensed:wght@600;800&display=swap');
+
+    :root {
+      --bg: #0a0a0f;
+      --card-bg: #111118;
+      --accent: #e8ff3b;
+      --text: #f0f0f5;
+      --muted: #666680;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Noto Sans KR', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px 60px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    header .tag {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    header h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(48px, 8vw, 96px);
+      letter-spacing: 2px;
+      line-height: 0.9;
+      color: var(--text);
+    }
+
+    header h1 span {
+      color: var(--accent);
+    }
+
+    header p {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 300;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .card {
+      border-radius: 16px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .preview {
+      height: 220px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card-info {
+      padding: 20px;
+      background: var(--card-bg);
+      border: 1px solid #1e1e2e;
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+    }
+
+    .card-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 3px;
+      margin-bottom: 6px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-weight: 300;
+    }
+
+    .tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .tag-pill {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      border: 1px solid #2a2a3a;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    /* ══════════════════════════════════════════
+     기존 01–20 스타일
+  ══════════════════════════════════════════ */
+
+    /* 01 GLASSMORPHISM */
+    .preview-glass {
+      background: linear-gradient(135deg, #1a1a4e 0%, #6b21a8 50%, #1e3a5f 100%);
+    }
+
+    .glass-el {
+      position: absolute;
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .glass-el1 {
+      width: 160px;
+      height: 100px;
+      background: rgba(255, 255, 255, 0.08);
+      top: 30px;
+      left: 30px;
+      transform: rotate(-5deg);
+    }
+
+    .glass-el2 {
+      width: 120px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.12);
+      bottom: 30px;
+      right: 30px;
+      transform: rotate(8deg);
+    }
+
+    .glass-el3 {
+      width: 80px;
+      height: 80px;
+      background: rgba(255, 255, 255, 0.06);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+    }
+
+    /* 02 NEO-BRUTALISM */
+    .preview-brutal {
+      background: #f5f500;
+    }
+
+    .brutal-box {
+      position: absolute;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .brutal-box1 {
+      background: #fff;
+      border: 3px solid #000;
+      box-shadow: 5px 5px 0 #000;
+      padding: 12px 20px;
+      top: 40px;
+      left: 40px;
+      color: #000;
+    }
+
+    .brutal-box2 {
+      background: #ff3b30;
+      border: 3px solid #000;
+      box-shadow: 5px 5px 0 #000;
+      padding: 8px 16px;
+      bottom: 40px;
+      right: 40px;
+      color: #fff;
+    }
+
+    .brutal-line {
+      position: absolute;
+      background: #000;
+      width: 3px;
+      height: 80px;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    /* 03 BENTO GRID */
+    .preview-bento {
+      background: #f8f8f2;
+      padding: 16px;
+      display: block;
+    }
+
+    .bento-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .bento-cell {
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .bc1 {
+      background: #1a1a2e;
+      grid-column: 1/3;
+    }
+
+    .bc2 {
+      background: #e8ff3b;
+    }
+
+    .bc3 {
+      background: #ff6b6b;
+    }
+
+    .bc4 {
+      background: #4ecdc4;
+      grid-column: 2/4;
+    }
+
+    .bc5 {
+      background: #ffe66d;
+    }
+
+    /* 04 DARK ACADEMIA */
+    .preview-academia {
+      background: #1a1208;
+      overflow: hidden;
+    }
+
+    .academia-overlay {
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='%231a1208'/%3E%3Crect width='1' height='1' fill='%23332a10' opacity='0.5'/%3E%3C/svg%3E");
+    }
+
+    .academia-border {
+      position: absolute;
+      inset: 16px;
+      border: 1px solid #3d2e10;
+    }
+
+    .academia-text {
+      position: absolute;
+      text-align: center;
+    }
+
+    .at1 {
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 42px;
+      font-weight: 700;
+      color: #c9a84c;
+      top: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      letter-spacing: 6px;
+    }
+
+    .at2 {
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      color: #8a7340;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      letter-spacing: 5px;
+      white-space: nowrap;
+    }
+
+    /* 05 GRADIENT MESH */
+    .preview-mesh {
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .mesh-bg {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, #ff6ec7 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, #7b61ff 0%, transparent 45%), radial-gradient(ellipse at 60% 80%, #00d4ff 0%, transparent 40%), radial-gradient(ellipse at 40% 30%, #ffb347 0%, transparent 45%);
+    }
+
+    .mesh-text {
+      position: relative;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 32px;
+      color: white;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+      letter-spacing: 2px;
+    }
+
+    /* 06 CLAYMORPHISM */
+    .preview-clay {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+    }
+
+    .clay-el {
+      position: absolute;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+
+    .clay1 {
+      width: 90px;
+      height: 90px;
+      background: #a8edea;
+      box-shadow: 0 12px 30px rgba(168, 237, 234, 0.5), inset 0 -4px 0 rgba(0, 0, 0, 0.1);
+      top: 30px;
+      left: 50px;
+    }
+
+    .clay2 {
+      width: 70px;
+      height: 70px;
+      background: #fed6e3;
+      box-shadow: 0 10px 25px rgba(254, 214, 227, 0.5), inset 0 -3px 0 rgba(0, 0, 0, 0.08);
+      top: 50px;
+      right: 60px;
+      border-radius: 50%;
+    }
+
+    .clay3 {
+      width: 60px;
+      height: 60px;
+      background: #ffeaa7;
+      box-shadow: 0 8px 20px rgba(255, 234, 167, 0.5), inset 0 -3px 0 rgba(0, 0, 0, 0.08);
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    /* 07 SWISS/INTERNATIONAL */
+    .preview-swiss {
+      background: #ffffff;
+    }
+
+    .swiss-red {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 6px;
+      height: 100%;
+      background: #e8000d;
+    }
+
+    .swiss-title {
+      position: absolute;
+      font-family: 'Space Mono', monospace;
+      font-weight: 700;
+      font-size: 36px;
+      color: #111;
+      top: 24px;
+      left: 30px;
+      line-height: 1;
+      letter-spacing: -1px;
+    }
+
+    .swiss-sub {
+      position: absolute;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: #888;
+      bottom: 24px;
+      left: 30px;
+      letter-spacing: 3px;
+    }
+
+    .swiss-circle {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      border: 3px solid #e8000d;
+      border-radius: 50%;
+      bottom: 20px;
+      right: 30px;
+    }
+
+    .swiss-line {
+      position: absolute;
+      background: #ddd;
+      left: 30px;
+      right: 30px;
+      height: 1px;
+      top: 50%;
+    }
+
+    /* 08 AURORA/NEON GLOW */
+    .preview-aurora {
+      background: #050510;
+      overflow: hidden;
+    }
+
+    .aurora-glow {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.7;
+    }
+
+    .ag1 {
+      width: 200px;
+      height: 150px;
+      background: #00ff88;
+      top: -40px;
+      left: -40px;
+    }
+
+    .ag2 {
+      width: 180px;
+      height: 140px;
+      background: #7b00ff;
+      top: 20px;
+      right: -30px;
+    }
+
+    .ag3 {
+      width: 160px;
+      height: 100px;
+      background: #00b4ff;
+      bottom: -20px;
+      left: 30%;
+    }
+
+    .aurora-text {
+      position: relative;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px;
+      letter-spacing: 4px;
+      background: linear-gradient(90deg, #00ff88, #00b4ff, #7b00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* 09 RETRO Y2K */
+    .preview-y2k {
+      background: #000080;
+      overflow: hidden;
+    }
+
+    .y2k-stripe {
+      position: absolute;
+      height: 6px;
+      left: 0;
+      right: 0;
+    }
+
+    .ys1 {
+      top: 30px;
+      background: linear-gradient(90deg, #ff0080, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff);
+    }
+
+    .ys2 {
+      bottom: 30px;
+      background: linear-gradient(90deg, #ff00ff, #0000ff, #00ffff, #00ff00, #ffff00, #ff0080);
+    }
+
+    .y2k-text {
+      position: relative;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      color: #fff;
+      text-shadow: 0 0 20px #00ffff, 2px 2px 0 #ff00ff;
+      letter-spacing: 4px;
+    }
+
+    .y2k-star {
+      position: absolute;
+      color: #ffff00;
+      font-size: 24px;
+      animation: spin 4s linear infinite;
+    }
+
+    .yk1 {
+      top: 50px;
+      left: 20px;
+    }
+
+    .yk2 {
+      bottom: 50px;
+      right: 20px;
+      animation-direction: reverse;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* 10 NORDIC MINIMALISM */
+    .preview-nordic {
+      background: #f4f1ec;
+    }
+
+    .nordic-blob {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      background: #d9cfc4;
+      border-radius: 60% 40% 70% 30% / 50% 60% 40% 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      opacity: 0.7;
+    }
+
+    .nordic-dot {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #3d3530;
+    }
+
+    .nd1 {
+      top: 30px;
+      left: 40px;
+    }
+
+    .nd2 {
+      top: 30px;
+      left: 60px;
+      background: #8a7a6a;
+    }
+
+    .nd3 {
+      top: 30px;
+      left: 80px;
+      background: #c4b5a5;
+    }
+
+    .nordic-word {
+      position: absolute;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 5px;
+      color: #8a7a6a;
+    }
+
+    .nordic-line {
+      position: absolute;
+      bottom: 50px;
+      left: 40px;
+      right: 40px;
+      height: 1px;
+      background: #d0c8be;
+    }
+
+    /* 11 TYPOGRAPHIC BOLD */
+    .preview-typo {
+      background: #f0ede8;
+      overflow: hidden;
+    }
+
+    .typo-big {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 88px;
+      line-height: 0.85;
+      color: #1a1a1a;
+      letter-spacing: -2px;
+      position: relative;
+    }
+
+    .typo-big span {
+      color: #e63030;
+    }
+
+    .typo-small {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #aaa;
+    }
+
+    /* 12 DUOTONE / COLOR SPLIT */
+    .preview-duotone {
+      background: #111;
+      overflow: hidden;
+    }
+
+    .duo-left {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background: #ff4500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .duo-right {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 50%;
+      background: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .duo-text {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 40px;
+      letter-spacing: 2px;
+      writing-mode: vertical-lr;
+    }
+
+    .duo-left .duo-text {
+      color: #fff;
+      transform: rotate(180deg);
+    }
+
+    .duo-right .duo-text {
+      color: #ff4500;
+    }
+
+    .duo-divider {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: #fff;
+      z-index: 2;
+    }
+
+    /* 13 MONOCHROME MINIMAL */
+    .preview-mono {
+      background: #fafafa;
+    }
+
+    .mono-circle-out {
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      border: 1px solid #e0e0e0;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .mono-center {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mono-rect {
+      background: #1a1a1a;
+      width: 120px;
+      height: 4px;
+    }
+
+    .mono-rect2 {
+      width: 80px;
+      height: 4px;
+      background: #1a1a1a;
+    }
+
+    .mono-rect3 {
+      width: 40px;
+      height: 4px;
+      background: #ddd;
+    }
+
+    .mono-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 6px;
+      color: #888;
+    }
+
+    /* 14 CYBERPUNK OUTLINE */
+    .preview-cyber {
+      background: #0d0d0d;
+      overflow: hidden;
+    }
+
+    .cyber-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(0, 255, 200, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 200, 0.06) 1px, transparent 1px);
+      background-size: 30px 30px;
+    }
+
+    .cyber-title {
+      position: relative;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 44px;
+      letter-spacing: 6px;
+      color: transparent;
+      -webkit-text-stroke: 1.5px #00ffc8;
+      text-shadow: 0 0 20px rgba(0, 255, 200, 0.5);
+    }
+
+    .cyber-sub {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: #00ffc8;
+      opacity: 0.5;
+    }
+
+    .cyber-corner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: #00ffc8;
+      border-style: solid;
+      opacity: 0.6;
+    }
+
+    .cc-tl {
+      top: 12px;
+      left: 12px;
+      border-width: 2px 0 0 2px;
+    }
+
+    .cc-tr {
+      top: 12px;
+      right: 12px;
+      border-width: 2px 2px 0 0;
+    }
+
+    .cc-bl {
+      bottom: 12px;
+      left: 12px;
+      border-width: 0 0 2px 2px;
+    }
+
+    .cc-br {
+      bottom: 12px;
+      right: 12px;
+      border-width: 0 2px 2px 0;
+    }
+
+    /* 15 EDITORIAL MAGAZINE */
+    .preview-editorial {
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .edit-bg-block {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 45%;
+      height: 100%;
+      background: #1a1a1a;
+    }
+
+    .edit-title {
+      position: absolute;
+      top: 24px;
+      left: 24px;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 38px;
+      line-height: 1;
+      color: #1a1a1a;
+      letter-spacing: -1px;
+    }
+
+    .edit-rule {
+      position: absolute;
+      top: 100px;
+      left: 24px;
+      width: 60px;
+      height: 2px;
+      background: #e63030;
+    }
+
+    .edit-body {
+      position: absolute;
+      bottom: 30px;
+      left: 24px;
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: #bbb;
+      line-height: 1.8;
+    }
+
+    .edit-vol {
+      position: absolute;
+      top: 50%;
+      right: 18px;
+      transform: translateY(-50%) rotate(90deg);
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    /* 16 PASTEL SOFT UI */
+    .preview-pastel {
+      background: linear-gradient(145deg, #fce4f3 0%, #e8f4ff 50%, #f0fce4 100%);
+    }
+
+    .pastel-card {
+      position: absolute;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+    }
+
+    .pc1 {
+      width: 130px;
+      height: 80px;
+      top: 25px;
+      left: 30px;
+      box-shadow: 0 8px 24px rgba(200, 160, 220, 0.2);
+    }
+
+    .pc2 {
+      width: 100px;
+      height: 65px;
+      bottom: 25px;
+      right: 30px;
+      box-shadow: 0 8px 24px rgba(160, 200, 240, 0.2);
+    }
+
+    .pc3 {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 8px 24px rgba(160, 220, 160, 0.2);
+    }
+
+    .pastel-dot {
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .pd1 {
+      width: 40px;
+      height: 40px;
+      background: #f9c6e8;
+      top: 10px;
+      right: 20px;
+      opacity: 0.6;
+    }
+
+    .pd2 {
+      width: 30px;
+      height: 30px;
+      background: #c6e8f9;
+      bottom: 10px;
+      left: 20px;
+      opacity: 0.6;
+    }
+
+    /* 17 DARK NEON MIAMI */
+    .preview-miami {
+      background: #0a0014;
+      overflow: hidden;
+    }
+
+    .miami-horizon {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(0deg, #0a0014 0%, transparent 100%);
+    }
+
+    .miami-sun {
+      position: absolute;
+      width: 120px;
+      height: 60px;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 60px 60px 0 0;
+      background: linear-gradient(180deg, #ff6b35, #ff0080);
+    }
+
+    .miami-lines {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .miami-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+    }
+
+    .ml1 {
+      bottom: 55px;
+      background: rgba(255, 0, 128, 0.4);
+    }
+
+    .ml2 {
+      bottom: 45px;
+      background: rgba(255, 0, 128, 0.3);
+    }
+
+    .ml3 {
+      bottom: 36px;
+      background: rgba(255, 0, 128, 0.2);
+    }
+
+    .ml4 {
+      bottom: 28px;
+      background: rgba(255, 0, 128, 0.15);
+    }
+
+    .miami-title {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 8px;
+      background: linear-gradient(90deg, #ff6b35, #ff0080, #9b00ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .miami-palm {
+      position: absolute;
+      bottom: 55px;
+      font-size: 28px;
+    }
+
+    .mp1 {
+      left: 20px;
+    }
+
+    .mp2 {
+      right: 20px;
+    }
+
+    /* 18 HAND-CRAFTED / ORGANIC */
+    .preview-organic {
+      background: #fdf6ee;
+      overflow: hidden;
+    }
+
+    .organic-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid;
+    }
+
+    .oc1 {
+      width: 160px;
+      height: 160px;
+      border-color: #c8a882;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(8deg);
+      border-style: dashed;
+    }
+
+    .oc2 {
+      width: 100px;
+      height: 100px;
+      border-color: #a87850;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .organic-text {
+      position: relative;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 22px;
+      color: #6b4c2a;
+      letter-spacing: 2px;
+    }
+
+    .organic-leaf {
+      position: absolute;
+      font-size: 20px;
+    }
+
+    .ol1 {
+      top: 15px;
+      left: 20px;
+      transform: rotate(-20deg);
+    }
+
+    .ol2 {
+      bottom: 15px;
+      right: 20px;
+      transform: rotate(30deg);
+    }
+
+    .organic-line {
+      position: absolute;
+      top: 50%;
+      left: 20px;
+      right: 20px;
+      height: 1px;
+      background: repeating-linear-gradient(90deg, #c8a882 0, #c8a882 4px, transparent 4px, transparent 10px);
+    }
+
+    /* 19 ISOMETRIC / 3D FLAT */
+    .preview-iso {
+      background: #1e1e2e;
+      overflow: hidden;
+    }
+
+    .iso-wrap {
+      position: relative;
+      width: 160px;
+      height: 160px;
+    }
+
+    .iso-face {
+      position: absolute;
+    }
+
+    .iso-top {
+      width: 80px;
+      height: 46px;
+      background: #7c6fff;
+      top: 0;
+      left: 40px;
+      transform: skewX(-30deg);
+      transform-origin: bottom left;
+    }
+
+    .iso-left {
+      width: 40px;
+      height: 80px;
+      background: #4a3fcc;
+      bottom: 0;
+      left: 0;
+      transform: skewY(30deg);
+      transform-origin: top right;
+    }
+
+    .iso-right {
+      width: 40px;
+      height: 80px;
+      background: #6254e8;
+      bottom: 0;
+      right: 0;
+      transform: skewY(-30deg);
+      transform-origin: top left;
+    }
+
+    .iso-top2 {
+      width: 60px;
+      height: 34px;
+      background: #a594ff;
+      top: 20px;
+      left: 60px;
+      transform: skewX(-30deg);
+      transform-origin: bottom left;
+    }
+
+    .iso-left2 {
+      width: 30px;
+      height: 60px;
+      background: #6254e8;
+      bottom: 20px;
+      left: 20px;
+      transform: skewY(30deg);
+      transform-origin: top right;
+    }
+
+    .iso-right2 {
+      width: 30px;
+      height: 60px;
+      background: #8070ff;
+      bottom: 20px;
+      right: 20px;
+      transform: skewY(-30deg);
+      transform-origin: top left;
+    }
+
+    /* 20 VAPORWAVE */
+    .preview-vapor {
+      background: linear-gradient(180deg, #1a0533 0%, #2d0057 40%, #570038 100%);
+      overflow: hidden;
+    }
+
+    .vapor-grid {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 60%;
+    }
+
+    .vg-h {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(255, 100, 200, 0.4);
+    }
+
+    .vg1 {
+      bottom: 48px;
+    }
+
+    .vg2 {
+      bottom: 36px;
+    }
+
+    .vg3 {
+      bottom: 26px;
+    }
+
+    .vg4 {
+      bottom: 18px;
+    }
+
+    .vg5 {
+      bottom: 12px;
+    }
+
+    .vg6 {
+      bottom: 7px;
+    }
+
+    .vg7 {
+      bottom: 3px;
+    }
+
+    .vg-v {
+      position: absolute;
+      bottom: 0;
+      width: 1px;
+      height: 60%;
+      background: rgba(255, 100, 200, 0.4);
+    }
+
+    .vv1 {
+      left: 10%;
+    }
+
+    .vv2 {
+      left: 22%;
+    }
+
+    .vv3 {
+      left: 36%;
+    }
+
+    .vv4 {
+      left: 50%;
+    }
+
+    .vv5 {
+      left: 64%;
+    }
+
+    .vv6 {
+      left: 78%;
+    }
+
+    .vv7 {
+      left: 90%;
+    }
+
+    .vapor-sun {
+      position: absolute;
+      width: 100px;
+      height: 50px;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 50px 50px 0 0;
+      background: linear-gradient(180deg, #ff9f43, #ff6b9d, #c44dff);
+    }
+
+    .vapor-line1 {
+      position: absolute;
+      width: 100%;
+      height: 8px;
+      background: #1a0533;
+      top: 50px;
+    }
+
+    .vapor-line2 {
+      position: absolute;
+      width: 100%;
+      height: 5px;
+      background: #1a0533;
+      top: 62px;
+    }
+
+    .vapor-title {
+      position: absolute;
+      top: 25px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 38px;
+      letter-spacing: 6px;
+      color: rgba(255, 255, 255, 0.08);
+    }
+
+    .vapor-text {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      letter-spacing: 8px;
+      background: linear-gradient(90deg, #ff9f43, #ff6b9d, #c44dff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ══════════════════════════════════════════
+     신규 21–30 스타일
+  ══════════════════════════════════════════ */
+
+    /* 21 ART DECO LUXE */
+    .preview-artdeco {
+      background: #0e0a05;
+      overflow: hidden;
+    }
+
+    .deco-border {
+      position: absolute;
+      inset: 12px;
+      border: 1px solid #b8960c;
+    }
+
+    .deco-inner {
+      position: absolute;
+      inset: 18px;
+      border: 1px solid rgba(184, 150, 12, 0.3);
+    }
+
+    .deco-fan-l {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border: 2px solid #b8960c;
+      border-radius: 0 60px 0 0;
+      top: 50%;
+      left: 16px;
+      transform: translateY(-50%);
+    }
+
+    .deco-fan-r {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border: 2px solid #b8960c;
+      border-radius: 60px 0 0 0;
+      top: 50%;
+      right: 16px;
+      transform: translateY(-50%);
+    }
+
+    .deco-title {
+      position: relative;
+      font-family: Georgia, serif;
+      font-size: 28px;
+      letter-spacing: 8px;
+      color: #d4aa2a;
+      text-transform: uppercase;
+      text-align: center;
+      line-height: 1.1;
+    }
+
+    .deco-rule-h {
+      position: absolute;
+      left: 30px;
+      right: 30px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #b8960c, transparent);
+    }
+
+    .deco-rule-t {
+      top: 50%;
+    }
+
+    .deco-diamond {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background: #b8960c;
+      transform: rotate(45deg);
+      top: 50%;
+      left: 50%;
+      margin: -4px 0 0 -4px;
+    }
+
+    .deco-sub {
+      position: absolute;
+      bottom: 28px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 5px;
+      color: #8a7020;
+    }
+
+    /* 22 BRUTALIST NEWSPAPER */
+    .preview-news {
+      background: #f2efe8;
+      overflow: hidden;
+      font-family: Georgia, serif;
+    }
+
+    .news-masthead {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #1a1208;
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .news-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f2efe8;
+      letter-spacing: 1px;
+    }
+
+    .news-date {
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: #8a7a60;
+    }
+
+    .news-rule1 {
+      position: absolute;
+      top: 36px;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #1a1208;
+    }
+
+    .news-rule2 {
+      position: absolute;
+      top: 41px;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #1a1208;
+    }
+
+    .news-col1 {
+      position: absolute;
+      top: 52px;
+      left: 12px;
+      width: 40%;
+    }
+
+    .news-headline {
+      font-family: Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.1;
+      color: #1a1208;
+      margin-bottom: 6px;
+    }
+
+    .news-body {
+      font-family: Georgia, serif;
+      font-size: 9px;
+      line-height: 1.5;
+      color: #3a3020;
+    }
+
+    .news-divider {
+      position: absolute;
+      top: 52px;
+      bottom: 12px;
+      left: 53%;
+      width: 1px;
+      background: #1a1208;
+    }
+
+    .news-col2 {
+      position: absolute;
+      top: 52px;
+      right: 12px;
+      width: 40%;
+      text-align: center;
+    }
+
+    .news-photo {
+      width: 100%;
+      height: 70px;
+      background: #ccc5b0;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .news-caption {
+      font-family: 'Space Mono', monospace;
+      font-size: 7px;
+      color: #6a6050;
+      letter-spacing: 1px;
+    }
+
+    /* 23 STAINED GLASS / MOSAIC */
+    .preview-mosaic {
+      background: #0a0a12;
+      overflow: hidden;
+    }
+
+    .mosaic-grid {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(4, 1fr);
+      gap: 2px;
+      padding: 2px;
+    }
+
+    .mosaic-cell {
+      border-radius: 2px;
+      opacity: 0.85;
+    }
+
+    .mc1 {
+      background: #1a3a6e;
+    }
+
+    .mc2 {
+      background: #e63030;
+    }
+
+    .mc3 {
+      background: #f5d020;
+    }
+
+    .mc4 {
+      background: #2a6e1a;
+    }
+
+    .mc5 {
+      background: #6e1a4e;
+    }
+
+    .mc6 {
+      background: #f5d020;
+    }
+
+    .mc7 {
+      background: #2a4e8a;
+    }
+
+    .mc8 {
+      background: #8a2a1a;
+    }
+
+    .mc9 {
+      background: #1a6e4e;
+    }
+
+    .mc10 {
+      background: #e63030;
+    }
+
+    .mc11 {
+      background: #6e4e1a;
+    }
+
+    .mc12 {
+      background: #4e1a6e;
+    }
+
+    .mc13 {
+      background: #1a6e2a;
+    }
+
+    .mc14 {
+      background: #d4820a;
+    }
+
+    .mc15 {
+      background: #2a2a8a;
+    }
+
+    .mc16 {
+      background: #8a1a3a;
+    }
+
+    .mc17 {
+      background: #1a4e1a;
+    }
+
+    .mc18 {
+      background: #6e6e1a;
+    }
+
+    .mc19 {
+      background: #1a1a6e;
+    }
+
+    .mc20 {
+      background: #8a3a1a;
+    }
+
+    .mc21 {
+      background: #4e8a1a;
+    }
+
+    .mc22 {
+      background: #8a1a6e;
+    }
+
+    .mc23 {
+      background: #1a8a6e;
+    }
+
+    .mc24 {
+      background: #e63030;
+    }
+
+    .mosaic-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .mosaic-label {
+      position: absolute;
+      bottom: 16px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: 6px;
+      text-transform: uppercase;
+    }
+
+    /* 24 LIQUID / BLOB MORPHING */
+    .preview-liquid {
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      overflow: hidden;
+    }
+
+    .liquid-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(25px);
+      animation: blobmove 6s ease-in-out infinite alternate;
+    }
+
+    .lb1 {
+      width: 180px;
+      height: 160px;
+      background: rgba(0, 210, 190, 0.35);
+      top: -30px;
+      left: -20px;
+    }
+
+    .lb2 {
+      width: 160px;
+      height: 180px;
+      background: rgba(0, 120, 255, 0.3);
+      bottom: -40px;
+      right: -20px;
+      animation-delay: -2s;
+    }
+
+    .lb3 {
+      width: 120px;
+      height: 120px;
+      background: rgba(120, 0, 255, 0.25);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      animation-delay: -4s;
+    }
+
+    @keyframes blobmove {
+      0% {
+        border-radius: 60% 40% 50% 60%/60% 50% 40% 50%;
+      }
+
+      100% {
+        border-radius: 40% 60% 60% 40%/40% 60% 50% 60%;
+      }
+    }
+
+    .liquid-text {
+      position: relative;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 6px;
+      color: rgba(255, 255, 255, 0.9);
+      text-shadow: 0 0 30px rgba(0, 210, 190, 0.8);
+      z-index: 2;
+    }
+
+    /* 25 MEMPHIS / POP PATTERN */
+    .preview-memphis {
+      background: #fff5e0;
+      overflow: hidden;
+    }
+
+    .memphis-bg {
+      position: absolute;
+      inset: 0;
+    }
+
+    /* pattern elements drawn with pseudo-shapes */
+    .mem-tri {
+      position: absolute;
+      width: 0;
+      height: 0;
+    }
+
+    .mt1 {
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-bottom: 28px solid #e8344a;
+      top: 20px;
+      left: 30px;
+    }
+
+    .mt2 {
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-bottom: 20px solid #1e90ff;
+      bottom: 40px;
+      right: 50px;
+    }
+
+    .mt3 {
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 18px solid #ffd700;
+      top: 70px;
+      right: 80px;
+    }
+
+    .mem-circle {
+      position: absolute;
+      border-radius: 50%;
+      border: 3px solid;
+    }
+
+    .mci1 {
+      width: 40px;
+      height: 40px;
+      border-color: #e8344a;
+      top: 50px;
+      right: 30px;
+    }
+
+    .mci2 {
+      width: 28px;
+      height: 28px;
+      border-color: #1e90ff;
+      bottom: 30px;
+      left: 50px;
+    }
+
+    .mem-zigzag {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 8px;
+      top: 45%;
+      background: linear-gradient(135deg, #e8344a 25%, transparent 25%) -10px 0, linear-gradient(225deg, #e8344a 25%, transparent 25%) -10px 0, linear-gradient(315deg, #e8344a 25%, transparent 25%), linear-gradient(45deg, #e8344a 25%, transparent 25%);
+      background-size: 20px 8px;
+    }
+
+    .mem-dot {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #22bb88;
+    }
+
+    .md1 {
+      top: 30px;
+      left: 80px;
+    }
+
+    .md2 {
+      bottom: 50px;
+      right: 80px;
+    }
+
+    .md3 {
+      top: 120px;
+      left: 130px;
+    }
+
+    .memphis-title {
+      position: relative;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 34px;
+      letter-spacing: 3px;
+      color: #1a1a1a;
+      text-align: center;
+      z-index: 2;
+    }
+
+    /* 26 DARK FOREST / NATURE */
+    .preview-forest {
+      background: radial-gradient(ellipse at 50% 0%, #0d2b14 0%, #060e08 80%);
+      overflow: hidden;
+    }
+
+    .forest-mist {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50%;
+      background: linear-gradient(0deg, rgba(180, 255, 200, 0.04) 0%, transparent 100%);
+    }
+
+    .forest-tree {
+      position: absolute;
+      bottom: 0;
+    }
+
+    .ftree1 {
+      left: 10px;
+      width: 0;
+      height: 0;
+      border-left: 20px solid transparent;
+      border-right: 20px solid transparent;
+      border-bottom: 90px solid #0a3d1a;
+      opacity: 0.9;
+    }
+
+    .ftree2 {
+      right: 20px;
+      width: 0;
+      height: 0;
+      border-left: 28px solid transparent;
+      border-right: 28px solid transparent;
+      border-bottom: 120px solid #0d4d20;
+      opacity: 0.8;
+    }
+
+    .ftree3 {
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 16px solid transparent;
+      border-right: 16px solid transparent;
+      border-bottom: 70px solid #0a3010;
+      opacity: 0.7;
+    }
+
+    .forest-moon {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 40% 40%, #e8f4d0, #b8cc80);
+      top: 20px;
+      right: 40px;
+      box-shadow: 0 0 30px rgba(200, 255, 150, 0.3);
+    }
+
+    .forest-star {
+      position: absolute;
+      background: #d4f0b0;
+      border-radius: 50%;
+    }
+
+    .fs1 {
+      width: 3px;
+      height: 3px;
+      top: 30px;
+      left: 40px;
+    }
+
+    .fs2 {
+      width: 2px;
+      height: 2px;
+      top: 50px;
+      left: 100px;
+      opacity: 0.7;
+    }
+
+    .fs3 {
+      width: 3px;
+      height: 3px;
+      top: 25px;
+      right: 100px;
+    }
+
+    .forest-text {
+      position: absolute;
+      bottom: 35px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 22px;
+      color: rgba(200, 255, 180, 0.85);
+      letter-spacing: 4px;
+    }
+
+    .forest-line {
+      position: absolute;
+      bottom: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 1px;
+      background: rgba(180, 255, 160, 0.3);
+    }
+
+    /* 27 ARCHITECTURAL BLUEPRINT */
+    .preview-blueprint {
+      background: #0d2240;
+      overflow: hidden;
+    }
+
+    .bp-grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(100, 180, 255, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(100, 180, 255, 0.12) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    .bp-major {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(rgba(100, 180, 255, 0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(100, 180, 255, 0.22) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    .bp-shape {
+      position: absolute;
+      border: 1.5px solid rgba(100, 200, 255, 0.6);
+    }
+
+    .bps1 {
+      top: 30px;
+      left: 30px;
+      width: 80px;
+      height: 50px;
+    }
+
+    .bps2 {
+      top: 30px;
+      left: 30px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      transform: translate(80px, 10px);
+    }
+
+    .bp-dim {
+      position: absolute;
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: rgba(100, 200, 255, 0.6);
+      letter-spacing: 1px;
+    }
+
+    .bd1 {
+      top: 22px;
+      left: 32px;
+    }
+
+    .bd2 {
+      top: 22px;
+      left: 90px;
+    }
+
+    .bd3 {
+      bottom: 65px;
+      left: 32px;
+    }
+
+    .bp-arrow {
+      position: absolute;
+      left: 30px;
+      top: 18px;
+      width: 100px;
+      height: 1px;
+      background: rgba(100, 200, 255, 0.4);
+    }
+
+    .bp-title {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: rgba(150, 220, 255, 0.8);
+    }
+
+    .bp-stamp {
+      position: absolute;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      width: 60px;
+      height: 60px;
+      border: 2px solid rgba(100, 200, 255, 0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 8px;
+      color: rgba(100, 200, 255, 0.5);
+      text-align: center;
+      line-height: 1.3;
+      letter-spacing: 1px;
+    }
+
+    /* 28 MAXIMALIST COLLAGE */
+    .preview-collage {
+      background: #e8ddd0;
+      overflow: hidden;
+    }
+
+    .col-stripe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100%;
+      background: repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(0, 0, 0, 0.03) 8px, rgba(0, 0, 0, 0.03) 9px);
+    }
+
+    .col-block {
+      position: absolute;
+    }
+
+    .cb1 {
+      width: 90px;
+      height: 60px;
+      background: #e83030;
+      top: 20px;
+      left: 20px;
+      transform: rotate(-3deg);
+    }
+
+    .cb2 {
+      width: 70px;
+      height: 90px;
+      background: #1a1a1a;
+      top: 15px;
+      right: 25px;
+      transform: rotate(4deg);
+    }
+
+    .cb3 {
+      width: 80px;
+      height: 50px;
+      background: #f5d020;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) rotate(-2deg);
+    }
+
+    .col-text1 {
+      position: absolute;
+      top: 30px;
+      left: 28px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 26px;
+      color: #fff;
+      letter-spacing: 2px;
+      line-height: 1;
+    }
+
+    .col-text2 {
+      position: absolute;
+      top: 28px;
+      right: 30px;
+      font-family: Georgia, serif;
+      font-style: italic;
+      font-size: 18px;
+      color: #fff;
+      writing-mode: vertical-rl;
+      letter-spacing: 2px;
+    }
+
+    .col-circle {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      border: 3px solid #e83030;
+      bottom: 30px;
+      left: 20px;
+    }
+
+    .col-num {
+      position: absolute;
+      bottom: 22px;
+      right: 20px;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 64px;
+      color: rgba(0, 0, 0, 0.08);
+      line-height: 1;
+    }
+
+    /* 29 SCIFI DATA / HOLOGRAPHIC */
+    .preview-holo {
+      background: #03050d;
+      overflow: hidden;
+    }
+
+    .holo-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+    }
+
+    .hr1 {
+      width: 180px;
+      height: 180px;
+      border-color: rgba(0, 200, 255, 0.25);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .hr2 {
+      width: 130px;
+      height: 130px;
+      border-color: rgba(0, 200, 255, 0.4);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(30deg);
+    }
+
+    .hr3 {
+      width: 80px;
+      height: 80px;
+      border-color: rgba(0, 200, 255, 0.6);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .holo-scan {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: rgba(0, 200, 255, 0.5);
+      animation: holoscroll 3s linear infinite;
+    }
+
+    @keyframes holoscroll {
+      0% {
+        top: 20%;
+        opacity: 1;
+      }
+
+      80% {
+        opacity: 0.5;
+      }
+
+      100% {
+        top: 80%;
+        opacity: 0;
+      }
+    }
+
+    .holo-dot {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: #00c8ff;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .holo-text {
+      position: absolute;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: rgba(0, 200, 255, 0.7);
+      letter-spacing: 3px;
+    }
+
+    .ht1 {
+      top: 15px;
+      left: 20px;
+    }
+
+    .ht2 {
+      bottom: 20px;
+      right: 20px;
+    }
+
+    .holo-bar {
+      position: absolute;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00c8ff, transparent);
+    }
+
+    .hb1 {
+      bottom: 40px;
+      left: 20px;
+      right: 20px;
+      opacity: 0.4;
+    }
+
+    .hb2 {
+      top: 40px;
+      left: 40px;
+      right: 40px;
+      opacity: 0.3;
+    }
+
+    /* 30 RISOGRAPH / PRINT ERROR */
+    .preview-riso {
+      background: #f7f2e8;
+      overflow: hidden;
+    }
+
+    .riso-layer1 {
+      position: absolute;
+      inset: 0;
+    }
+
+    .riso-circle-1 {
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: #e8344a;
+      top: 50%;
+      left: 30%;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: multiply;
+      opacity: 0.85;
+    }
+
+    .riso-circle-2 {
+      position: absolute;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: #0d5c9e;
+      top: 50%;
+      left: 60%;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: multiply;
+      opacity: 0.85;
+    }
+
+    .riso-circle-3 {
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: #f5d020;
+      top: 55%;
+      left: 46%;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: multiply;
+      opacity: 0.75;
+    }
+
+    .riso-offset {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 4px;
+      color: rgba(232, 52, 74, 0.25);
+      transform: translate(3px, 3px);
+    }
+
+    .riso-text {
+      position: absolute;
+      top: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 36px;
+      letter-spacing: 4px;
+      color: #1a1a1a;
+    }
+
+    .riso-label {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      letter-spacing: 4px;
+      color: #6a5a40;
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 60px;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+    }
+
+    /* ══════════════════════════════════════════
+     slides-grab originals 31–35
+  ══════════════════════════════════════════ */
+
+    /* 31 EXECUTIVE MINIMAL */
+    .preview-executive {
+      background: #f5f5f0;
+    }
+
+    .exec-block {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      width: 120px;
+      height: 80px;
+      background: #1a1a1a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .exec-block-text {
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: 2px;
+    }
+
+    .exec-title {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: #1a1a1a;
+      line-height: 1.2;
+    }
+
+    .exec-sub {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: #999;
+      letter-spacing: 3px;
+    }
+
+    .exec-line {
+      position: absolute;
+      bottom: 50px;
+      left: 30px;
+      width: 60px;
+      height: 1px;
+      background: #d4d4d0;
+    }
+
+    /* 32 SAGE PROFESSIONAL */
+    .preview-sage {
+      background: #b8c4b8;
+    }
+
+    .sage-card {
+      position: absolute;
+      background: #f8faf8;
+      border-radius: 8px;
+    }
+
+    .sage-c1 {
+      width: 140px;
+      height: 90px;
+      top: 30px;
+      left: 30px;
+    }
+
+    .sage-c2 {
+      width: 100px;
+      height: 60px;
+      bottom: 30px;
+      right: 30px;
+    }
+
+    .sage-title {
+      position: absolute;
+      top: 44px;
+      left: 46px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .sage-sub {
+      position: absolute;
+      top: 68px;
+      left: 46px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: #3d3d3d;
+      letter-spacing: 1px;
+    }
+
+    .sage-dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2d2d2d;
+      bottom: 45px;
+      right: 45px;
+    }
+
+    /* 33 MODERN DARK */
+    .preview-modern-dark {
+      background: #0f0f0f;
+    }
+
+    .md-surface {
+      position: absolute;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+    }
+
+    .md-s1 {
+      width: 140px;
+      height: 80px;
+      top: 30px;
+      left: 30px;
+    }
+
+    .md-s2 {
+      width: 100px;
+      height: 65px;
+      bottom: 30px;
+      right: 30px;
+      background: #252525;
+    }
+
+    .md-title {
+      position: absolute;
+      top: 46px;
+      left: 46px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .md-sub {
+      position: absolute;
+      top: 70px;
+      left: 46px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: #b0b0b0;
+      letter-spacing: 2px;
+    }
+
+    .md-accent {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      width: 3px;
+      height: 40px;
+      background: #fff;
+    }
+
+    /* 34 CORPORATE BLUE */
+    .preview-corporate {
+      background: #fff;
+    }
+
+    .corp-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: #2563eb;
+    }
+
+    .corp-title {
+      position: absolute;
+      top: 30px;
+      left: 30px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1e2a3a;
+    }
+
+    .corp-sub {
+      position: absolute;
+      top: 62px;
+      left: 30px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 12px;
+      color: #5a6b7d;
+    }
+
+    .corp-block {
+      position: absolute;
+      bottom: 24px;
+      left: 30px;
+      right: 30px;
+      height: 60px;
+      background: #f7f9fc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding-left: 16px;
+    }
+
+    .corp-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #2563eb;
+      margin-right: 10px;
+    }
+
+    .corp-line {
+      height: 3px;
+      border-radius: 2px;
+      background: #e2e8f0;
+    }
+
+    .corp-l1 {
+      width: 80px;
+    }
+
+    .corp-l2 {
+      width: 50px;
+      margin-top: 6px;
+    }
+
+    /* 35 WARM NEUTRAL */
+    .preview-warm {
+      background: #faf8f5;
+    }
+
+    .warm-panel {
+      position: absolute;
+      background: #f0ebe3;
+      border-radius: 10px;
+    }
+
+    .warm-p1 {
+      width: 130px;
+      height: 80px;
+      top: 30px;
+      left: 30px;
+    }
+
+    .warm-p2 {
+      width: 90px;
+      height: 55px;
+      bottom: 30px;
+      right: 30px;
+    }
+
+    .warm-title {
+      position: absolute;
+      top: 46px;
+      left: 46px;
+      font-family: 'Noto Sans KR', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #2d2a26;
+    }
+
+    .warm-accent {
+      position: absolute;
+      top: 72px;
+      left: 46px;
+      width: 24px;
+      height: 3px;
+      background: #c45a3b;
+      border-radius: 2px;
+    }
+
+    .warm-sub {
+      position: absolute;
+      bottom: 30px;
+      left: 30px;
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: #6b6560;
+      letter-spacing: 2px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <span class="tag">slides-grab Design Styles</span>
+    <h1>Design <span>Styles</span><br>Collection 35</h1>
+    <p>35 bundled design styles for slides-grab. 30 derived from <a href="https://github.com/corazzon/pptx-design-styles" target="_blank" style="color: var(--accent); text-decoration: none;">corazzon/pptx-design-styles</a> (MIT), 5 slides-grab originals.</p>
+  </header>
+
+  <div class="grid">
+
+    <!-- 01 Glassmorphism -->
+    <div class="card">
+      <div class="preview preview-glass">
+        <div class="glass-el glass-el1"></div>
+        <div class="glass-el glass-el2"></div>
+        <div class="glass-el glass-el3"></div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">01 — GLASSMORPHISM</div>
+        <div class="card-title">Glassmorphism</div>
+        <div class="card-desc">Frosted glass cards with blur effects on dark gradients. Premium, layered depth.</div>
+        <div class="tags"><span class="tag-pill">backdrop-filter</span><span class="tag-pill">dark bg</span><span
+            class="tag-pill">premium</span></div>
+      </div>
+    </div>
+
+    <!-- 02 Neo-Brutalism -->
+    <div class="card">
+      <div class="preview preview-brutal">
+        <div class="brutal-box brutal-box1">BOLD IDEA</div>
+        <div class="brutal-line"></div>
+        <div class="brutal-box brutal-box2">ACTION</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">02 — NEO-BRUTALISM</div>
+        <div class="card-title">Neo-Brutalism</div>
+        <div class="card-desc">Thick borders, hard shadows, raw layouts on high-saturation backgrounds. Bold and memorable.</div>
+        <div class="tags"><span class="tag-pill">bold border</span><span class="tag-pill">hard shadow</span><span
+            class="tag-pill">high contrast</span></div>
+      </div>
+    </div>
+
+    <!-- 03 Bento Grid -->
+    <div class="card">
+      <div class="preview preview-bento">
+        <div class="bento-grid">
+          <div class="bento-cell bc1"></div>
+          <div class="bento-cell bc2"></div>
+          <div class="bento-cell bc3"></div>
+          <div class="bento-cell bc5"></div>
+          <div class="bento-cell bc4"></div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">03 — BENTO GRID</div>
+        <div class="card-title">Bento Grid</div>
+        <div class="card-desc">Modular grid layout with mixed-size cards. Present multiple points elegantly in one slide.</div>
+        <div class="tags"><span class="tag-pill">modular</span><span class="tag-pill">multi-info</span><span
+            class="tag-pill">apple style</span></div>
+      </div>
+    </div>
+
+    <!-- 04 Dark Academia -->
+    <div class="card">
+      <div class="preview preview-academia">
+        <div class="academia-overlay"></div>
+        <div class="academia-border"></div>
+        <div class="academia-text at1">VERITAS</div>
+        <div class="academia-text at2">EST · MMX · MMXXV</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">04 — DARK ACADEMIA</div>
+        <div class="card-title">Dark Academia</div>
+        <div class="card-desc">Deep brown-gold palette, serif fonts, ornate borders. Scholarly and refined.</div>
+        <div class="tags"><span class="tag-pill">serif font</span><span class="tag-pill">dark warm</span><span
+            class="tag-pill">editorial</span></div>
+      </div>
+    </div>
+
+    <!-- 05 Gradient Mesh -->
+    <div class="card">
+      <div class="preview preview-mesh">
+        <div class="mesh-bg"></div>
+        <div class="mesh-text">GRADIENT MESH</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">05 — GRADIENT MESH</div>
+        <div class="card-title">Gradient Mesh</div>
+        <div class="card-desc">Multi-color mesh gradient backgrounds. Vibrant and artistic with white text overlay.</div>
+        <div class="tags"><span class="tag-pill">vibrant</span><span class="tag-pill">artistic</span><span
+            class="tag-pill">brand</span></div>
+      </div>
+    </div>
+
+    <!-- 06 Claymorphism -->
+    <div class="card">
+      <div class="preview preview-clay">
+        <div class="clay-el clay1">🎯</div>
+        <div class="clay-el clay2">✦</div>
+        <div class="clay-el clay3">💡</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">06 — CLAYMORPHISM</div>
+        <div class="card-title">Claymorphism</div>
+        <div class="card-desc">3D rounded shapes with colored soft shadows. Friendly and playful.</div>
+        <div class="tags"><span class="tag-pill">3d effect</span><span class="tag-pill">friendly</span><span
+            class="tag-pill">rounded</span></div>
+      </div>
+    </div>
+
+    <!-- 07 Swiss/International -->
+    <div class="card">
+      <div class="preview preview-swiss">
+        <div class="swiss-red"></div>
+        <div class="swiss-line"></div>
+        <div class="swiss-title">GRID<br>SYSTEM</div>
+        <div class="swiss-sub">HELVETICA · GRID · ORDER</div>
+        <div class="swiss-circle"></div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">07 — SWISS STYLE</div>
+        <div class="card-title">Swiss International</div>
+        <div class="card-desc">Grid-aligned, functional layout with red vertical accent bar. Helvetica. Clean.</div>
+        <div class="tags"><span class="tag-pill">grid based</span><span class="tag-pill">typography</span><span
+            class="tag-pill">corporate</span></div>
+      </div>
+    </div>
+
+    <!-- 08 Aurora/Neon -->
+    <div class="card">
+      <div class="preview preview-aurora">
+        <div class="aurora-glow ag1"></div>
+        <div class="aurora-glow ag2"></div>
+        <div class="aurora-glow ag3"></div>
+        <div class="aurora-text">AURORA</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">08 — AURORA / NEON</div>
+        <div class="card-title">Aurora Neon Glow</div>
+        <div class="card-desc">Blurred neon glow blobs on deep-space black. Gradient text in green-cyan-violet.</div>
+        <div class="tags"><span class="tag-pill">dark</span><span class="tag-pill">glow</span><span
+            class="tag-pill">tech/AI</span></div>
+      </div>
+    </div>
+
+    <!-- 09 Retro Y2K -->
+    <div class="card">
+      <div class="preview preview-y2k">
+        <div class="y2k-stripe ys1"></div>
+        <div class="y2k-stripe ys2"></div>
+        <span class="y2k-star yk1">✦</span>
+        <span class="y2k-star yk2">★</span>
+        <div class="y2k-text">RETRO Y2K</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">09 — RETRO Y2K</div>
+        <div class="card-title">Retro Y2K</div>
+        <div class="card-desc">Rainbow stripe bars, star motifs, double text shadows. Nostalgic pop energy.
+        </div>
+        <div class="tags"><span class="tag-pill">retro</span><span class="tag-pill">pop culture</span><span
+            class="tag-pill">playful</span></div>
+      </div>
+    </div>
+
+    <!-- 10 Nordic Minimalism -->
+    <div class="card">
+      <div class="preview preview-nordic">
+        <div class="nordic-blob"></div>
+        <div class="nordic-dot nd1"></div>
+        <div class="nordic-dot nd2"></div>
+        <div class="nordic-dot nd3"></div>
+        <div class="nordic-line"></div>
+        <div class="nordic-word">SIMPLICITY · CALM · FORM</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">10 — NORDIC MINIMALISM</div>
+        <div class="card-title">Nordic Minimalism</div>
+        <div class="card-desc">Warm cream tones, organic blob shapes, generous whitespace. Calm and natural.</div>
+        <div class="tags"><span class="tag-pill">warm neutral</span><span class="tag-pill">organic</span><span
+            class="tag-pill">calm</span></div>
+      </div>
+    </div>
+
+    <!-- 11 Typographic Bold -->
+    <div class="card">
+      <div class="preview preview-typo">
+        <div class="typo-big">BIG<br><span>TYPE</span></div>
+        <div class="typo-small">TYPOGRAPHY FIRST</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">11 — TYPOGRAPHIC BOLD</div>
+        <div class="card-title">Typographic Bold</div>
+        <div class="card-desc">Oversized type fills the slide. One accent-color word breaks the monochrome.</div>
+        <div class="tags"><span class="tag-pill">type-driven</span><span class="tag-pill">editorial</span><span
+            class="tag-pill">bold</span></div>
+      </div>
+    </div>
+
+    <!-- 12 Duotone / Color Split -->
+    <div class="card">
+      <div class="preview preview-duotone">
+        <div class="duo-left">
+          <div class="duo-text">IDEA</div>
+        </div>
+        <div class="duo-right">
+          <div class="duo-text">ACTION</div>
+        </div>
+        <div class="duo-divider"></div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">12 — DUOTONE / SPLIT</div>
+        <div class="card-title">Duotone / Color Split</div>
+        <div class="card-desc">Strict 50/50 vertical split with white divider. One concept per panel.</div>
+        <div class="tags"><span class="tag-pill">contrast</span><span class="tag-pill">split layout</span><span
+            class="tag-pill">dramatic</span></div>
+      </div>
+    </div>
+
+    <!-- 13 Monochrome Minimal -->
+    <div class="card">
+      <div class="preview preview-mono">
+        <div class="mono-circle-out"></div>
+        <div class="mono-center">
+          <div class="mono-label">LESS IS MORE</div>
+          <div class="mono-rect"></div>
+          <div class="mono-rect2"></div>
+          <div class="mono-rect3"></div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">13 — MONOCHROME MINIMAL</div>
+        <div class="card-title">Monochrome Minimal</div>
+        <div class="card-desc">Black, white, and grey only. Thin circles, width-varying bars, extreme negative space.</div>
+        <div class="tags"><span class="tag-pill">black &amp; white</span><span class="tag-pill">restrained</span><span
+            class="tag-pill">luxury</span></div>
+      </div>
+    </div>
+
+    <!-- 14 Cyberpunk Outline -->
+    <div class="card">
+      <div class="preview preview-cyber">
+        <div class="cyber-grid"></div>
+        <div class="cyber-corner cc-tl"></div>
+        <div class="cyber-corner cc-tr"></div>
+        <div class="cyber-corner cc-bl"></div>
+        <div class="cyber-corner cc-br"></div>
+        <div class="cyber-title">CYBERPUNK</div>
+        <div class="cyber-sub">SYSTEM · ONLINE · 2025</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">14 — CYBERPUNK OUTLINE</div>
+        <div class="card-title">Cyberpunk Outline</div>
+        <div class="card-desc">Grid overlay on dark background, outlined neon text. HUD aesthetic.
+        </div>
+        <div class="tags"><span class="tag-pill">HUD style</span><span class="tag-pill">outline text</span><span
+            class="tag-pill">sci-fi</span></div>
+      </div>
+    </div>
+
+    <!-- 15 Editorial Magazine -->
+    <div class="card">
+      <div class="preview preview-editorial">
+        <div class="edit-bg-block"></div>
+        <div class="edit-title">THE<br>BRIEF</div>
+        <div class="edit-rule"></div>
+        <div class="edit-body">VOL.12 · SPRING 2025<br>DESIGN · STRATEGY</div>
+        <div class="edit-vol">EDITORIAL — LAYOUT — MAGAZINE</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">15 — EDITORIAL MAGAZINE</div>
+        <div class="card-title">Editorial Magazine</div>
+        <div class="card-desc">Serif title, red accent rule, two-column layout. Magazine page feel.
+        </div>
+        <div class="tags"><span class="tag-pill">asymmetric</span><span class="tag-pill">serif</span><span
+            class="tag-pill">storytelling</span></div>
+      </div>
+    </div>
+
+    <!-- 16 Pastel Soft UI -->
+    <div class="card">
+      <div class="preview preview-pastel">
+        <div class="pastel-dot pd1"></div>
+        <div class="pastel-dot pd2"></div>
+        <div class="pastel-card pc1"></div>
+        <div class="pastel-card pc3"></div>
+        <div class="pastel-card pc2"></div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">16 — PASTEL SOFT UI</div>
+        <div class="card-title">Pastel Soft UI</div>
+        <div class="card-desc">Soft pastel gradients with frosted glass cards. Light, airy, app-like.</div>
+        <div class="tags"><span class="tag-pill">pastel</span><span class="tag-pill">soft</span><span
+            class="tag-pill">app UI</span></div>
+      </div>
+    </div>
+
+    <!-- 17 Dark Neon Miami -->
+    <div class="card">
+      <div class="preview preview-miami">
+        <div class="miami-sun"></div>
+        <div class="miami-lines">
+          <div class="miami-line ml1"></div>
+          <div class="miami-line ml2"></div>
+          <div class="miami-line ml3"></div>
+          <div class="miami-line ml4"></div>
+        </div>
+        <span class="miami-palm mp1">🌴</span>
+        <span class="miami-palm mp2">🌴</span>
+        <div class="miami-title">MIAMI</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">17 — DARK NEON MIAMI</div>
+        <div class="card-title">Dark Neon Miami</div>
+        <div class="card-desc">Synthwave sunset palette with horizon lines. 80s retro-future energy.
+        </div>
+        <div class="tags"><span class="tag-pill">synthwave</span><span class="tag-pill">80s retro</span><span
+            class="tag-pill">neon</span></div>
+      </div>
+    </div>
+
+    <!-- 18 Hand-crafted Organic -->
+    <div class="card">
+      <div class="preview preview-organic">
+        <div class="organic-line"></div>
+        <div class="organic-circle oc1"></div>
+        <div class="organic-circle oc2"></div>
+        <span class="organic-leaf ol1">🌿</span>
+        <span class="organic-leaf ol2">🌾</span>
+        <div class="organic-text">Handmade</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">18 — HAND-CRAFTED ORGANIC</div>
+        <div class="card-title">Hand-crafted Organic</div>
+        <div class="card-desc">Natural textures, dashed circles, serif italic text. Earthy and artisanal.</div>
+        <div class="tags"><span class="tag-pill">craft</span><span class="tag-pill">natural</span><span
+            class="tag-pill">eco</span></div>
+      </div>
+    </div>
+
+    <!-- 19 Isometric 3D Flat -->
+    <div class="card">
+      <div class="preview preview-iso">
+        <div class="iso-wrap">
+          <div class="iso-face iso-top"></div>
+          <div class="iso-face iso-left"></div>
+          <div class="iso-face iso-right"></div>
+          <div class="iso-face iso-top2"></div>
+          <div class="iso-face iso-left2"></div>
+          <div class="iso-face iso-right2"></div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">19 — ISOMETRIC 3D FLAT</div>
+        <div class="card-title">Isometric 3D Flat</div>
+        <div class="card-desc">Skewed geometric blocks creating 3D illusion on dark purple.
+        </div>
+        <div class="tags"><span class="tag-pill">3D flat</span><span class="tag-pill">isometric</span><span
+            class="tag-pill">tech</span></div>
+      </div>
+    </div>
+
+    <!-- 20 Vaporwave -->
+    <div class="card">
+      <div class="preview preview-vapor">
+        <div class="vapor-sun"></div>
+        <div class="vapor-line1"></div>
+        <div class="vapor-line2"></div>
+        <div class="vapor-grid">
+          <div class="vg-h vg1"></div>
+          <div class="vg-h vg2"></div>
+          <div class="vg-h vg3"></div>
+          <div class="vg-h vg4"></div>
+          <div class="vg-h vg5"></div>
+          <div class="vg-h vg6"></div>
+          <div class="vg-h vg7"></div>
+          <div class="vg-v vv1"></div>
+          <div class="vg-v vv2"></div>
+          <div class="vg-v vv3"></div>
+          <div class="vg-v vv4"></div>
+          <div class="vg-v vv5"></div>
+          <div class="vg-v vv6"></div>
+          <div class="vg-v vv7"></div>
+        </div>
+        <div class="vapor-title">ÆSTHETICS</div>
+        <div class="vapor-text">VAPORWAVE</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">20 — VAPORWAVE</div>
+        <div class="card-title">Vaporwave</div>
+        <div class="card-desc">Purple gradient with perspective grid, striped sunset circle. Dreamy subculture aesthetic.
+        </div>
+        <div class="tags"><span class="tag-pill">aesthetic</span><span class="tag-pill">dreamy</span><span
+            class="tag-pill">subculture</span></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ 신규 10가지 ══════════════ -->
+
+    <!-- 21 Art Deco Luxe -->
+    <div class="card">
+      <div class="preview preview-artdeco">
+        <div class="deco-border"></div>
+        <div class="deco-inner"></div>
+        <div class="deco-fan-l"></div>
+        <div class="deco-fan-r"></div>
+        <div class="deco-rule-h deco-rule-t"></div>
+        <div class="deco-diamond"></div>
+        <div class="deco-title">LUXE<br>DECO</div>
+        <div class="deco-sub">EST. MCMXXV · PRESTIGE</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">21 — ART DECO LUXE</div>
+        <div class="card-title">Art Deco Luxe</div>
+        <div class="card-desc">Gold borders, geometric fan motifs on near-black. Gatsby-era opulence.
+          분위기.</div>
+        <div class="tags"><span class="tag-pill">gold</span><span class="tag-pill">geometric</span><span
+            class="tag-pill">luxury</span></div>
+      </div>
+    </div>
+
+    <!-- 22 Brutalist Newspaper -->
+    <div class="card">
+      <div class="preview preview-news">
+        <div class="news-masthead">
+          <span class="news-title">THE DAILY</span>
+          <span class="news-date">2025.06.01 · VOL.XII</span>
+        </div>
+        <div class="news-rule1"></div>
+        <div class="news-rule2"></div>
+        <div class="news-col1">
+          <div class="news-headline">BREAKING DESIGN</div>
+          <div class="news-body">Typography as the primary visual language. Columns, rules and hierarchy.</div>
+        </div>
+        <div class="news-divider"></div>
+        <div class="news-col2">
+          <div class="news-photo">📰</div>
+          <div class="news-caption">PHOTO · EDITORIAL</div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">22 — BRUTALIST NEWSPAPER</div>
+        <div class="card-title">Brutalist Newspaper</div>
+        <div class="card-desc">Newspaper masthead, columns, and serif headlines. Raw editorial layout.
+          아이덴티티.</div>
+        <div class="tags"><span class="tag-pill">editorial</span><span class="tag-pill">newspaper</span><span
+            class="tag-pill">brutalist</span></div>
+      </div>
+    </div>
+
+    <!-- 23 Stained Glass / Mosaic -->
+    <div class="card">
+      <div class="preview preview-mosaic">
+        <div class="mosaic-grid">
+          <div class="mosaic-cell mc1"></div>
+          <div class="mosaic-cell mc2"></div>
+          <div class="mosaic-cell mc3"></div>
+          <div class="mosaic-cell mc4"></div>
+          <div class="mosaic-cell mc5"></div>
+          <div class="mosaic-cell mc6"></div>
+          <div class="mosaic-cell mc7"></div>
+          <div class="mosaic-cell mc8"></div>
+          <div class="mosaic-cell mc9"></div>
+          <div class="mosaic-cell mc10"></div>
+          <div class="mosaic-cell mc11"></div>
+          <div class="mosaic-cell mc12"></div>
+          <div class="mosaic-cell mc13"></div>
+          <div class="mosaic-cell mc14"></div>
+          <div class="mosaic-cell mc15"></div>
+          <div class="mosaic-cell mc16"></div>
+          <div class="mosaic-cell mc17"></div>
+          <div class="mosaic-cell mc18"></div>
+          <div class="mosaic-cell mc19"></div>
+          <div class="mosaic-cell mc20"></div>
+          <div class="mosaic-cell mc21"></div>
+          <div class="mosaic-cell mc22"></div>
+          <div class="mosaic-cell mc23"></div>
+          <div class="mosaic-cell mc24"></div>
+        </div>
+        <div class="mosaic-overlay"></div>
+        <div class="mosaic-label">MOSAIC</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">23 — STAINED GLASS / MOSAIC</div>
+        <div class="card-title">Stained Glass Mosaic</div>
+        <div class="card-desc">Colorful cell grid with dark overlay. Cathedral window abstraction.</div>
+        <div class="tags"><span class="tag-pill">colorful</span><span class="tag-pill">mosaic</span><span
+            class="tag-pill">art</span></div>
+      </div>
+    </div>
+
+    <!-- 24 Liquid / Blob Morphing -->
+    <div class="card">
+      <div class="preview preview-liquid">
+        <div class="liquid-blob lb1"></div>
+        <div class="liquid-blob lb2"></div>
+        <div class="liquid-blob lb3"></div>
+        <div class="liquid-text">LIQUID</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">24 — LIQUID / BLOB MORPHING</div>
+        <div class="card-title">Liquid Blob Morphing</div>
+        <div class="card-desc">Blurred organic blobs on dark gradient. Fluid, biotech feel with animated shapes.
+          비주얼.</div>
+        <div class="tags"><span class="tag-pill">blob</span><span class="tag-pill">fluid</span><span
+            class="tag-pill">organic tech</span></div>
+      </div>
+    </div>
+
+    <!-- 25 Memphis / Pop Pattern -->
+    <div class="card">
+      <div class="preview preview-memphis">
+        <div class="mem-tri mt1"></div>
+        <div class="mem-tri mt2"></div>
+        <div class="mem-tri mt3"></div>
+        <div class="mem-circle mci1"></div>
+        <div class="mem-circle mci2"></div>
+        <div class="mem-zigzag"></div>
+        <div class="mem-dot md1"></div>
+        <div class="mem-dot md2"></div>
+        <div class="mem-dot md3"></div>
+        <div class="memphis-title">MEMPHIS</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">25 — MEMPHIS POP PATTERN</div>
+        <div class="card-title">Memphis Pop Pattern</div>
+        <div class="card-desc">Triangles, circles, zigzags on warm cream. 80s geometric playfulness.
+        </div>
+        <div class="tags"><span class="tag-pill">80s design</span><span class="tag-pill">geometric</span><span
+            class="tag-pill">playful</span></div>
+      </div>
+    </div>
+
+    <!-- 26 Dark Forest / Nature -->
+    <div class="card">
+      <div class="preview preview-forest">
+        <div class="forest-mist"></div>
+        <div class="forest-tree ftree2"></div>
+        <div class="forest-tree ftree1"></div>
+        <div class="forest-tree ftree3"></div>
+        <div class="forest-moon"></div>
+        <div class="forest-star fs1"></div>
+        <div class="forest-star fs2"></div>
+        <div class="forest-star fs3"></div>
+        <div class="forest-line"></div>
+        <div class="forest-text">Into the Wild</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">26 — DARK FOREST NATURE</div>
+        <div class="card-title">Dark Forest Nature</div>
+        <div class="card-desc">Deep forest green gradient with tree silhouettes. Atmospheric and mysterious.
+        </div>
+        <div class="tags"><span class="tag-pill">dark nature</span><span class="tag-pill">atmosphere</span><span
+            class="tag-pill">eco premium</span></div>
+      </div>
+    </div>
+
+    <!-- 27 Architectural Blueprint -->
+    <div class="card">
+      <div class="preview preview-blueprint">
+        <div class="bp-grid"></div>
+        <div class="bp-major"></div>
+        <div class="bp-shape bps1"></div>
+        <div class="bp-shape bps2"></div>
+        <div class="bp-arrow"></div>
+        <div class="bp-dim bd1">12.0</div>
+        <div class="bp-dim bd2">8.5</div>
+        <div class="bp-dim bd3">PLAN A</div>
+        <div class="bp-stamp">ARCH<br>PLAN<br>2025</div>
+        <div class="bp-title">BLUEPRINT · SECTION A</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">27 — ARCHITECTURAL BLUEPRINT</div>
+        <div class="card-title">Architectural Blueprint</div>
+        <div class="card-desc">Blueprint grid on deep blue with white technical drawings. Precise, technical.
+        </div>
+        <div class="tags"><span class="tag-pill">technical</span><span class="tag-pill">blueprint</span><span
+            class="tag-pill">architecture</span></div>
+      </div>
+    </div>
+
+    <!-- 28 Maximalist Collage -->
+    <div class="card">
+      <div class="preview preview-collage">
+        <div class="col-stripe"></div>
+        <div class="col-block cb1"></div>
+        <div class="col-block cb2"></div>
+        <div class="col-block cb3"></div>
+        <div class="col-text1">BOLD<br>NOW</div>
+        <div class="col-text2">VISION</div>
+        <div class="col-circle"></div>
+        <div class="col-num">08</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">28 — MAXIMALIST COLLAGE</div>
+        <div class="card-title">Maximalist Collage</div>
+        <div class="card-desc">Overlapping rotated color blocks and mixed typography. Bold layered energy.
+        </div>
+        <div class="tags"><span class="tag-pill">maximalist</span><span class="tag-pill">collage</span><span
+            class="tag-pill">bold layering</span></div>
+      </div>
+    </div>
+
+    <!-- 29 SciFi Holographic -->
+    <div class="card">
+      <div class="preview preview-holo">
+        <div class="holo-ring hr1"></div>
+        <div class="holo-ring hr2"></div>
+        <div class="holo-ring hr3"></div>
+        <div class="holo-scan"></div>
+        <div class="holo-bar hb1"></div>
+        <div class="holo-bar hb2"></div>
+        <div class="holo-dot"></div>
+        <div class="holo-text ht1">SYS::ACTIVE</div>
+        <div class="holo-text ht2">SCAN · 0.002ms</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">29 — SCIFI HOLOGRAPHIC</div>
+        <div class="card-title">SciFi Holographic Data</div>
+        <div class="card-desc">Concentric rings and scan lines. Hologram HUD interface. Cyan on black.</div>
+        <div class="tags"><span class="tag-pill">hologram</span><span class="tag-pill">HUD</span><span
+            class="tag-pill">sci-fi data</span></div>
+      </div>
+    </div>
+
+    <!-- 30 Risograph / Print Error -->
+    <div class="card">
+      <div class="preview preview-riso">
+        <div class="riso-circle-1"></div>
+        <div class="riso-circle-2"></div>
+        <div class="riso-circle-3"></div>
+        <div class="riso-offset">RISO</div>
+        <div class="riso-text">RISO</div>
+        <div class="riso-label">CMYK · OFFSET · PRINT</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">30 — RISOGRAPH / PRINT ERROR</div>
+        <div class="card-title">Risograph Print</div>
+        <div class="card-desc">CMYK color overlap with offset ghost text. Analog print aesthetic.
+          독특한 개성.</div>
+        <div class="tags"><span class="tag-pill">riso print</span><span class="tag-pill">CMYK</span><span
+            class="tag-pill">indie art</span></div>
+      </div>
+    </div>
+
+    <!-- 31 Executive Minimal -->
+    <div class="card">
+      <div class="preview preview-executive">
+        <div class="exec-block"><span class="exec-block-text">KEYNOTE</span></div>
+        <div class="exec-title">Executive<br>Minimal</div>
+        <div class="exec-line"></div>
+        <div class="exec-sub">REFINED · BUSINESS</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">31 — EXECUTIVE MINIMAL</div>
+        <div class="card-title">Executive Minimal</div>
+        <div class="card-desc">Warm white background with black accent blocks. Content-first business style.</div>
+        <div class="tags"><span class="tag-pill">business</span><span class="tag-pill">warm white</span><span class="tag-pill">black accent</span></div>
+      </div>
+    </div>
+
+    <!-- 32 Sage Professional -->
+    <div class="card">
+      <div class="preview preview-sage">
+        <div class="sage-card sage-c1"></div>
+        <div class="sage-card sage-c2"></div>
+        <div class="sage-title">Sage</div>
+        <div class="sage-sub">CALM · TRUST</div>
+        <div class="sage-dot"></div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">32 — SAGE PROFESSIONAL</div>
+        <div class="card-title">Sage Professional</div>
+        <div class="card-desc">Sage green palette with light cards layered for calm, trustworthy presence.</div>
+        <div class="tags"><span class="tag-pill">sage green</span><span class="tag-pill">calm</span><span class="tag-pill">layered</span></div>
+      </div>
+    </div>
+
+    <!-- 33 Modern Dark -->
+    <div class="card">
+      <div class="preview preview-modern-dark">
+        <div class="md-surface md-s1"></div>
+        <div class="md-surface md-s2"></div>
+        <div class="md-title">DARK</div>
+        <div class="md-sub">PURE · MONO</div>
+        <div class="md-accent"></div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">33 — MODERN DARK</div>
+        <div class="card-title">Modern Dark</div>
+        <div class="card-desc">Pure dark background with subtle surface layering. Monochrome, zero color accents.</div>
+        <div class="tags"><span class="tag-pill">pure dark</span><span class="tag-pill">monochrome</span><span class="tag-pill">tech</span></div>
+      </div>
+    </div>
+
+    <!-- 34 Corporate Blue -->
+    <div class="card">
+      <div class="preview preview-corporate">
+        <div class="corp-bar"></div>
+        <div class="corp-title">Corporate</div>
+        <div class="corp-sub">Traditional business presentation</div>
+        <div class="corp-block">
+          <div class="corp-dot"></div>
+          <div>
+            <div class="corp-line corp-l1"></div>
+            <div class="corp-line corp-l2"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">34 — CORPORATE BLUE</div>
+        <div class="card-title">Corporate Blue</div>
+        <div class="card-desc">White base with blue accent. Navy text, structured grid. Classic enterprise identity.</div>
+        <div class="tags"><span class="tag-pill">blue accent</span><span class="tag-pill">enterprise</span><span class="tag-pill">classic</span></div>
+      </div>
+    </div>
+
+    <!-- 35 Warm Neutral -->
+    <div class="card">
+      <div class="preview preview-warm">
+        <div class="warm-panel warm-p1"></div>
+        <div class="warm-panel warm-p2"></div>
+        <div class="warm-title">Warm</div>
+        <div class="warm-accent"></div>
+        <div class="warm-sub">CREAM · TERRA</div>
+      </div>
+      <div class="card-info">
+        <div class="card-num">35 — WARM NEUTRAL</div>
+        <div class="card-title">Warm Neutral</div>
+        <div class="card-desc">Cream white with terracotta accent. Dark brown text. Warm and approachable.</div>
+        <div class="tags"><span class="tag-pill">cream</span><span class="tag-pill">terracotta</span><span class="tag-pill">approachable</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Styles 01–30 derived from <a href="https://github.com/corazzon/pptx-design-styles" target="_blank" style="color: var(--accent); text-decoration: none;">corazzon/pptx-design-styles</a> (MIT). Styles 31–35 are slides-grab originals.</p>
+  </footer>
+
+</body>
+
+</html>

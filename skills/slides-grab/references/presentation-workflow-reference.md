@@ -22,7 +22,7 @@ Use the installed **slides-grab-plan** skill.
 Use the installed **slides-grab-design** skill.
 
 1. Read approved `slide-outline.md`.
-2. If the user has not approved a visual direction yet, use `slides-grab list-styles` to shortlist bundled design collections, `slides-grab preview-styles` for a local HTML gallery, and `slides-grab select-style <id>` to persist the approved direction before generation. For multi-deck projects, add `--slides-dir <path>` so the deck-local `style-config.json` stays inside that workspace.
+2. If the user has not approved a visual direction yet, use `slides-grab list-styles` to shortlist bundled styles, optionally `slides-grab preview-styles` to open the visual gallery in browser, and agree on a direction with the user. If none of the 35 bundled styles fit, design a fully custom visual direction.
 3. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
 4. Run validation: `slides-grab validate --slides-dir <path>`
 5. If validation fails, automatically fix the slide HTML/CSS until validation passes.

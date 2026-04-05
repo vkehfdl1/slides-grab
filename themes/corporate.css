@@ -1,8 +1,0 @@
-:root {
-  --bg-primary: #ffffff;      /* 화이트 배경 */
-  --bg-secondary: #f7f9fc;    /* 밝은 블루 그레이 */
-  --text-primary: #1e2a3a;    /* 다크 네이비 */
-  --text-secondary: #5a6b7d;  /* 블루 그레이 */
-  --accent: #2563eb;          /* 블루 강조 */
-  --border: #e2e8f0;          /* 테두리 */
-}

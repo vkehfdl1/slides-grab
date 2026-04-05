@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import { spawn } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, isAbsolute, resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Command } from 'commander';
 import {
@@ -27,7 +27,7 @@ const figmaHelpText = [
 
 /**
  * Run a Node.js script from the package, with CWD set to the user's directory.
- * Scripts resolve slide paths via --slides-dir and templates/themes via src/resolve.js.
+ * Scripts resolve slide paths via --slides-dir and templates via src/resolve.js.
  */
 function runNodeScript(relativePath, args = []) {
   return new Promise((resolvePromise, rejectPromise) => {
@@ -73,41 +73,6 @@ function reportCliError(error) {
   process.exitCode = 1;
 }
 
-function resolveWorkspaceDir(slidesDir) {
-  if (!slidesDir) {
-    return process.cwd();
-  }
-  return resolve(process.cwd(), String(slidesDir));
-}
-
-function quoteShellArg(value) {
-  const stringValue = String(value);
-  if (!/[\s"'\\$`!()[\]{}<>|&;*?]/.test(stringValue)) {
-    return stringValue;
-  }
-  return `'${stringValue.replaceAll('\'', `'\\''`)}'`;
-}
-
-function buildSlidesDirSuffix(slidesDir) {
-  return slidesDir ? ` --slides-dir ${quoteShellArg(slidesDir)}` : '';
-}
-
-function resolvePreviewOutputPath(output, workspaceDir, explicitOutput) {
-  if (isAbsolute(output)) {
-    return output;
-  }
-  if (!explicitOutput && output === 'style-preview.html') {
-    return resolve(workspaceDir, output);
-  }
-  return resolve(process.cwd(), output);
-}
-
-function formatInvalidStyleSelectionMessage(config) {
-  if (!config?.invalidSelectedStyleId) {
-    return null;
-  }
-  return `Ignoring saved style selection "${config.invalidSelectedStyleId}" from ${config.path}.`;
-}
 
 const program = new Command();
 
@@ -265,7 +230,7 @@ program
     await runCommand('scripts/editor-server.js', args);
   });
 
-// --- Template/theme discovery commands ---
+// --- Template/style discovery commands ---
 
 program
   .command('list-templates')
@@ -286,37 +251,12 @@ program
   });
 
 program
-  .command('list-themes')
-  .description('List all available color themes (local overrides + package built-ins)')
-  .action(async () => {
-    const { listThemes } = await import('../src/resolve.js');
-    const themes = listThemes();
-    if (themes.length === 0) {
-      console.log('No themes found.');
-      return;
-    }
-    console.log('Available themes:\n');
-    for (const t of themes) {
-      const tag = t.source === 'local' ? '(local)' : '(built-in)';
-      console.log(`  ${t.name.padEnd(20)} ${tag}`);
-    }
-    console.log(`\nTotal: ${themes.length} themes`);
-  });
-
-program
   .command('list-styles')
-  .description('List bundled design collections users can preview/select before slide generation')
-  .option('--slides-dir <path>', 'Optional slides workspace used for style-config.json')
-  .action(async (options = {}) => {
+  .description('List bundled design styles agents and users can reference during slide generation')
+  .action(async () => {
     try {
-      const [{ listDesignStyles }, { readSelectedStyleConfig }] = await Promise.all([
-        import('../src/design-styles.js'),
-        import('../src/style-config.js'),
-      ]);
-      const workspaceDir = resolveWorkspaceDir(options.slidesDir);
+      const { listDesignStyles } = await import('../src/design-styles.js');
       const styles = listDesignStyles();
-      const selectedConfig = await readSelectedStyleConfig(workspaceDir, { allowInvalidSelection: true });
-      const selectedStyleId = selectedConfig?.style?.id ?? null;
 
       if (styles.length === 0) {
         console.log('No bundled design styles found.');
@@ -325,23 +265,12 @@ program
 
       console.log('Available design styles:\n');
       for (const style of styles) {
-        const selectedTag = style.id === selectedStyleId ? '  [selected]' : '';
-        console.log(`  ${style.id.padEnd(22)} ${style.title}${selectedTag}`);
+        console.log(`  ${style.id.padEnd(22)} ${style.title}`);
         console.log(`    ${style.mood} · ${style.bestFor}`);
       }
 
       console.log(`\nTotal: ${styles.length} styles`);
-      if (selectedConfig?.style) {
-        console.log(`Selected style: ${selectedConfig.style.title} (${selectedConfig.style.id})`);
-      } else if (selectedConfig?.invalidSelectedStyleId) {
-        console.log(`Selected style: none (saved value "${selectedConfig.invalidSelectedStyleId}" is no longer bundled)`);
-      } else {
-        console.log('Selected style: none');
-      }
-      const invalidSelectionMessage = formatInvalidStyleSelectionMessage(selectedConfig);
-      if (invalidSelectionMessage) {
-        console.log(`${invalidSelectionMessage} Run "slides-grab select-style <id>${buildSlidesDirSuffix(options.slidesDir)}" to update it.`);
-      }
+      console.log('Preview: slides-grab preview-styles [--style <id>]');
     } catch (error) {
       reportCliError(error);
     }
@@ -349,61 +278,15 @@ program
 
 program
   .command('preview-styles')
-  .description('Generate a local HTML preview for the full design catalog or one selected style')
-  .option('--slides-dir <path>', 'Optional slides workspace used for style-config.json and default preview output')
-  .option('--style <id>', 'Focus the preview on a single style id')
-  .option('--output <path>', 'Output HTML path', 'style-preview.html')
-  .action(async (options = {}, command) => {
+  .description('Open the bundled 35-style visual preview gallery in the default browser')
+  .action(async () => {
     try {
-      const { buildStylePreviewHtml, requireDesignStyle } = await import('../src/design-styles.js');
-      const { readSelectedStyleConfig } = await import('../src/style-config.js');
-      const workspaceDir = resolveWorkspaceDir(options.slidesDir);
-      const explicitOutput = command?.getOptionValueSource('output') === 'cli';
-      const outputPath = resolvePreviewOutputPath(String(options.output), workspaceDir, explicitOutput);
-      const currentSelection = await readSelectedStyleConfig(workspaceDir, { allowInvalidSelection: true });
-      const selectedStyle = options.style ? requireDesignStyle(String(options.style)) : null;
-      const html = buildStylePreviewHtml({
-        styleId: selectedStyle?.id,
-        selectedStyleId: selectedStyle?.id ?? currentSelection?.style?.id ?? null,
-      });
-
-      mkdirSync(dirname(outputPath), { recursive: true });
-      writeFileSync(outputPath, html, 'utf-8');
-
-      if (selectedStyle) {
-        console.log(`Wrote style preview for ${selectedStyle.title} to ${outputPath}`);
-      } else {
-        console.log(`Wrote style preview catalog to ${outputPath}`);
-      }
-      const invalidSelectionMessage = !selectedStyle ? formatInvalidStyleSelectionMessage(currentSelection) : null;
-      if (invalidSelectionMessage) {
-        console.log(invalidSelectionMessage);
-      }
-    } catch (error) {
-      reportCliError(error);
-    }
-  });
-
-program
-  .command('select-style')
-  .description('Persist a selected bundled design style before slide generation')
-  .argument('<id>', 'Design style id (e.g. "glassmorphism")')
-  .option('--slides-dir <path>', 'Optional slides workspace used for style-config.json')
-  .action(async (styleId, options = {}) => {
-    try {
-      const { requireDesignStyle } = await import('../src/design-styles.js');
-      const {
-        getStyleConfigPath,
-        writeSelectedStyleConfig,
-      } = await import('../src/style-config.js');
-      const workspaceDir = resolveWorkspaceDir(options.slidesDir);
-      const style = requireDesignStyle(String(styleId));
-
-      await writeSelectedStyleConfig({ cwd: workspaceDir, style });
-
-      console.log(`Selected style: ${style.title} (${style.id})`);
-      console.log(`Saved selection to ${getStyleConfigPath(workspaceDir)}`);
-      console.log(`Preview anytime with: slides-grab preview-styles --style ${style.id}${buildSlidesDirSuffix(options.slidesDir)}`);
+      const { getPreviewHtmlPath } = await import('../src/design-styles.js');
+      const previewPath = getPreviewHtmlPath();
+      const { exec } = await import('node:child_process');
+      const cmd = process.platform === 'darwin' ? 'open' : process.platform === 'win32' ? 'start' : 'xdg-open';
+      exec(`${cmd} "${previewPath}"`);
+      console.log(`Opening style preview: ${previewPath}`);
     } catch (error) {
       reportCliError(error);
     }
@@ -427,22 +310,5 @@ program
     console.log(content);
   });
 
-program
-  .command('show-theme')
-  .description('Print the contents of a theme file')
-  .argument('<name>', 'Theme name (e.g. "modern-dark", "executive")')
-  .action(async (name) => {
-    const { resolveTheme } = await import('../src/resolve.js');
-    const result = resolveTheme(name);
-    if (!result) {
-      console.error(`Theme "${name}" not found.`);
-      process.exitCode = 1;
-      return;
-    }
-    const content = readFileSync(result.path, 'utf-8');
-    console.log(`/* Theme: ${name} (${result.source}) */`);
-    console.log(`/* Path: ${result.path} */\n`);
-    console.log(content);
-  });
 
 await program.parseAsync(process.argv);

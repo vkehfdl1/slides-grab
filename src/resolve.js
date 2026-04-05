@@ -5,8 +5,8 @@
  *   1. Local (user's CWD) — per-project overrides
  *   2. Package root — built-in defaults
  *
- * slides directory, slide-outline.md, style-config.json → always local (CWD)
- * templates/, themes/ → local first, package fallback
+ * slides directory, slide-outline.md → always local (CWD)
+ * templates/ → local first, package fallback
  * scripts/ → always package
  */
 
@@ -61,27 +61,6 @@ export function resolveTemplate(name) {
 }
 
 /**
- * Resolve a theme file. Local first, then package fallback.
- * @param {string} name — theme name without extension (e.g. "modern-dark")
- * @returns {{ path: string, source: 'local' | 'package' } | null}
- */
-export function resolveTheme(name) {
-  const fileName = name.endsWith('.css') ? name : `${name}.css`;
-
-  const localPath = join(getCwd(), 'themes', fileName);
-  if (existsSync(localPath)) {
-    return { path: localPath, source: 'local' };
-  }
-
-  const packagePath = join(PACKAGE_ROOT, 'themes', fileName);
-  if (existsSync(packagePath)) {
-    return { path: packagePath, source: 'package' };
-  }
-
-  return null;
-}
-
-/**
  * List all available templates (local + package, deduplicated).
  * @returns {Array<{ name: string, source: 'local' | 'package' }>}
  */
@@ -115,34 +94,6 @@ export function listTemplates() {
     for (const f of readdirSync(pkgDir)) {
       if (f.endsWith('.html') && !seen.has(f)) {
         seen.set(f, { name: f.replace('.html', ''), source: 'package' });
-      }
-    }
-  }
-
-  return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name));
-}
-
-/**
- * List all available themes (local + package, deduplicated).
- * @returns {Array<{ name: string, source: 'local' | 'package' }>}
- */
-export function listThemes() {
-  const seen = new Map();
-
-  const localDir = join(getCwd(), 'themes');
-  if (existsSync(localDir)) {
-    for (const f of readdirSync(localDir)) {
-      if (f.endsWith('.css')) {
-        seen.set(f, { name: f.replace('.css', ''), source: 'local' });
-      }
-    }
-  }
-
-  const pkgDir = join(PACKAGE_ROOT, 'themes');
-  if (existsSync(pkgDir)) {
-    for (const f of readdirSync(pkgDir)) {
-      if (f.endsWith('.css') && !seen.has(f)) {
-        seen.set(f, { name: f.replace('.css', ''), source: 'package' });
       }
     }
   }

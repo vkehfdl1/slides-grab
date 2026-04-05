@@ -18,18 +18,18 @@ Guides you through the complete presentation pipeline from topic to exported fil
 Use the installed **slides-grab-plan** skill.
 
 1. Take user's topic, audience, and tone.
-2. Create `slide-outline.md`.
-3. Present outline to user.
-4. Revise until user explicitly approves.
+2. **Style selection (mandatory before outline):** Run `slides-grab list-styles`, analyze the topic/tone, and shortlist 2–3 bundled styles that fit. Present the shortlist with reasons. Optionally offer `slides-grab preview-styles` for visual preview. If none of the 35 bundled styles fit, propose a fully custom visual direction. **Get explicit style approval before writing the outline.**
+3. Create `slide-outline.md` with the chosen style ID in the meta section (`style: <id>`).
+4. Present outline to user.
+5. Revise until user explicitly approves.
 
-**Do not proceed to Stage 2 without approval.**
+**Do not proceed to Stage 2 without approval of both style and outline.**
 
 ### Stage 2 — Design
 
 Use the installed **slides-grab-design** skill.
 
-1. Read approved `slide-outline.md`.
-2. If the design direction is still open, shortlist bundled design collections with `slides-grab list-styles`, preview one or the full catalog with `slides-grab preview-styles`, and persist the approved direction with `slides-grab select-style <id>` before generating slides. For multi-deck projects, append `--slides-dir <path>` so the deck-local `style-config.json` stays with that workspace.
+1. Read approved `slide-outline.md` and apply the style specified in its meta section (`style: <id>`). Do not re-open style selection — the style was already approved in Stage 1.
 3. Generate `slide-*.html` files in the slides workspace (default: `slides/`).
 4. Run validation: `slides-grab validate --slides-dir <path>`
 5. If validation fails, automatically fix the slide HTML/CSS until validation passes.

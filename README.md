@@ -70,9 +70,9 @@ There are many AI tools that generate slide HTML. Almost none let you **visually
 
 ## CLI Commands
 
-Workflow commands support `--slides-dir <path>` (default: `slides`). The style discovery commands also accept `--slides-dir <path>` when you want to read/write `style-config.json` inside a specific deck workspace; otherwise they use the current working directory.
+Workflow commands support `--slides-dir <path>` (default: `slides`).
 
-On a fresh clone, the discovery commands (`--help`, `list-templates`, `list-themes`, `list-styles`, `preview-styles`, and `select-style`) work without a deck. `edit`, `build-viewer`, `validate`, `convert`, and `pdf` require an existing slides workspace containing `slide-*.html`.
+On a fresh clone, the discovery commands (`--help`, `list-templates`, `list-styles`, and `preview-styles`) work without a deck. `edit`, `build-viewer`, `validate`, `convert`, and `pdf` require an existing slides workspace containing `slide-*.html`.
 
 ```bash
 slides-grab edit              # Launch visual slide editor
@@ -88,29 +88,20 @@ slides-grab image --prompt "..."    # Generate a local slide image with Nano Ban
 slides-grab fetch-video --url <youtube-url> --slides-dir decks/my-deck  # Download a local video asset with yt-dlp
 slides-grab tldraw           # Render a .tldr diagram into a slide-sized local SVG asset
 slides-grab list-templates    # Show available slide templates
-slides-grab list-themes       # Show available color themes
-slides-grab list-styles       # Show bundled design collections derived from corazzon/pptx-design-styles
-slides-grab preview-styles --style glassmorphism  # Write a local HTML preview for one style
-slides-grab select-style glassmorphism            # Persist the approved style before generation
+slides-grab list-styles       # Show 35 bundled design styles (browse, preview, select)
+slides-grab preview-styles                        # Open the 35-style visual gallery in browser
 ```
 
 ## Design Style Collections
 
-slides-grab bundles 30 design collections derived from [corazzon/pptx-design-styles](https://github.com/corazzon/pptx-design-styles) and preserves the citation in the local preview/config flow.
-
-The simplest workflow stays inside the CLI:
+slides-grab bundles 35 design styles: 30 derived from [corazzon/pptx-design-styles](https://github.com/corazzon/pptx-design-styles) plus 5 slides-grab originals. Agents can also create fully custom designs beyond the bundled collection.
 
 ```bash
-slides-grab list-styles
-slides-grab preview-styles --style glassmorphism
-slides-grab select-style glassmorphism
+slides-grab list-styles                           # Browse the catalog
+slides-grab preview-styles  # Local HTML preview
 ```
 
-- Run `slides-grab preview-styles` without `--style` to generate a full local gallery.
-- `slides-grab select-style <id>` writes `style-config.json` in your current workspace, or inside the `--slides-dir` workspace when you target a specific deck, so agents can reuse the approved direction before generating slides.
-- You can change the selected style anytime before creating or regenerating slides.
-
-This keeps preview/approval in scope without adding a separate GUI: the agent can suggest a few styles, the user previews only when needed, and the approved style is persisted before design work starts.
+Tell the agent which style to use (or ask for something custom) — no config files needed.
 
 ## Asset Contract
 
@@ -225,7 +216,7 @@ bin/              CLI entry point
 src/editor/       Visual editor (HTML + JS client modules)
 scripts/          Build, validate, convert, editor server
 templates/        Slide HTML templates (cover, content, chart, ...)
-themes/           Color themes (modern-dark, executive, sage, ...)
+src/              Design styles data, style config, path resolution
 skills/           Shared Vercel-installable agent skills + references
 docs/             Installation & usage guides
 ```

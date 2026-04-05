@@ -1602,5 +1602,327 @@ export const RAW_DESIGN_STYLES = [
       "Dark backgrounds",
       "Screen-blend mode (must be multiply for authentic CMYK overlap)"
     ]
+  },
+  {
+    "number": "31",
+    "title": "Executive Minimal",
+    "mood": "Refined · Business",
+    "bestFor": "Business presentations",
+    "id": "executive-minimal",
+    "background": [
+      "Warm white: `#F5F5F0`"
+    ],
+    "colors": [
+      {
+        "role": "Background",
+        "label": "Warm white",
+        "hex": "#F5F5F0"
+      },
+      {
+        "role": "Secondary background",
+        "label": "Muted beige",
+        "hex": "#E8E8E3"
+      },
+      {
+        "role": "Primary text / accent",
+        "label": "Near-black",
+        "hex": "#1A1A1A"
+      },
+      {
+        "role": "Secondary text",
+        "label": "Mid grey",
+        "hex": "#666666"
+      },
+      {
+        "role": "Light text",
+        "label": "Light grey",
+        "hex": "#999999"
+      },
+      {
+        "role": "Border",
+        "label": "Warm grey",
+        "hex": "#D4D4D0"
+      }
+    ],
+    "fonts": [
+      "Title: **Pretendard Bold**, 32–44pt",
+      "Body: **Pretendard**, 14–16pt",
+      "Caption: **Pretendard Light**, 10–12pt"
+    ],
+    "layout": [
+      "Clean grid with generous whitespace",
+      "Dark accent bar or block for emphasis",
+      "Minimal decoration, content-first hierarchy",
+      "Optional dark section (`#1A1A1A`) for contrast slides"
+    ],
+    "signature": [
+      "Warm neutral background with black accent blocks",
+      "High contrast title-body pairing",
+      "No decorative elements — content speaks"
+    ],
+    "avoid": [
+      "Bright or saturated accent colors",
+      "Decorative shapes or patterns",
+      "Complex multi-column layouts"
+    ]
+  },
+  {
+    "number": "32",
+    "title": "Sage Professional",
+    "mood": "Calm · Trustworthy",
+    "bestFor": "Consulting, healthcare",
+    "id": "sage-professional",
+    "background": [
+      "Sage green: `#B8C4B8`",
+      "Or light sage: `#F8FAF8`"
+    ],
+    "colors": [
+      {
+        "role": "Background",
+        "label": "Sage green",
+        "hex": "#B8C4B8"
+      },
+      {
+        "role": "Secondary background",
+        "label": "Deep sage",
+        "hex": "#A3B0A3"
+      },
+      {
+        "role": "Light surface",
+        "label": "Near-white sage",
+        "hex": "#F8FAF8"
+      },
+      {
+        "role": "Primary text",
+        "label": "Near-black",
+        "hex": "#1A1A1A"
+      },
+      {
+        "role": "Secondary text",
+        "label": "Dark grey",
+        "hex": "#3D3D3D"
+      },
+      {
+        "role": "Accent",
+        "label": "Charcoal",
+        "hex": "#2D2D2D"
+      },
+      {
+        "role": "Border",
+        "label": "Muted sage",
+        "hex": "#9AA89A"
+      }
+    ],
+    "fonts": [
+      "Title: **Pretendard SemiBold**, 32–44pt",
+      "Body: **Pretendard**, 14–16pt",
+      "Caption: **Pretendard Light**, 10–12pt"
+    ],
+    "layout": [
+      "Soft-toned background with high-contrast text",
+      "Cards or panels in lighter sage (`#F8FAF8`) over sage base",
+      "Generous padding, calm visual rhythm",
+      "Thin sage-toned borders for structure"
+    ],
+    "signature": [
+      "Muted green-grey palette throughout",
+      "Two-tone sage layering (dark sage base, light sage cards)",
+      "Quiet confidence — no bold accents"
+    ],
+    "avoid": [
+      "Bright or warm accent colors",
+      "High-contrast neon elements",
+      "Busy layouts or dense grids"
+    ]
+  },
+  {
+    "number": "33",
+    "title": "Modern Dark",
+    "mood": "High-impact · Dramatic",
+    "bestFor": "Tech talks, demos",
+    "id": "modern-dark",
+    "background": [
+      "Pure dark: `#0F0F0F`"
+    ],
+    "colors": [
+      {
+        "role": "Background",
+        "label": "Near-black",
+        "hex": "#0F0F0F"
+      },
+      {
+        "role": "Card / secondary",
+        "label": "Dark grey",
+        "hex": "#1A1A1A"
+      },
+      {
+        "role": "Elevated surface",
+        "label": "Medium dark",
+        "hex": "#252525"
+      },
+      {
+        "role": "Primary text / accent",
+        "label": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "role": "Secondary text",
+        "label": "Light grey",
+        "hex": "#B0B0B0"
+      },
+      {
+        "role": "Border",
+        "label": "Subtle grey",
+        "hex": "#333333"
+      }
+    ],
+    "fonts": [
+      "Title: **Pretendard Bold**, 36–48pt",
+      "Body: **Pretendard**, 14–16pt",
+      "Code: **JetBrains Mono / Fira Code**, 12–14pt"
+    ],
+    "layout": [
+      "Full dark background with layered dark surfaces for depth",
+      "Card-based content on `#1A1A1A` over `#0F0F0F` base",
+      "White text on dark — clean and high-contrast",
+      "Thin `#333333` borders to separate sections"
+    ],
+    "signature": [
+      "Pure dark base with subtle surface layering",
+      "White-on-black typography as primary visual",
+      "Monochrome palette — zero color accents"
+    ],
+    "avoid": [
+      "Colored accents (stay monochrome)",
+      "Light or white backgrounds",
+      "Grey text on grey backgrounds (maintain contrast)"
+    ]
+  },
+  {
+    "number": "34",
+    "title": "Corporate Blue",
+    "mood": "Traditional · Professional",
+    "bestFor": "Enterprise, reports",
+    "id": "corporate-blue",
+    "background": [
+      "White: `#FFFFFF`",
+      "Or light blue-grey: `#F7F9FC`"
+    ],
+    "colors": [
+      {
+        "role": "Background",
+        "label": "White",
+        "hex": "#FFFFFF"
+      },
+      {
+        "role": "Secondary background",
+        "label": "Light blue-grey",
+        "hex": "#F7F9FC"
+      },
+      {
+        "role": "Primary text",
+        "label": "Dark navy",
+        "hex": "#1E2A3A"
+      },
+      {
+        "role": "Secondary text",
+        "label": "Blue grey",
+        "hex": "#5A6B7D"
+      },
+      {
+        "role": "Accent",
+        "label": "Blue",
+        "hex": "#2563EB"
+      },
+      {
+        "role": "Border",
+        "label": "Light slate",
+        "hex": "#E2E8F0"
+      }
+    ],
+    "fonts": [
+      "Title: **Pretendard Bold**, 32–44pt",
+      "Body: **Pretendard**, 14–16pt",
+      "Caption: **Pretendard Light**, 10–12pt"
+    ],
+    "layout": [
+      "Clean white base with blue accent elements",
+      "Blue highlight bar or underline for key headings",
+      "Structured grid layout with ample margins",
+      "Light blue-grey secondary surfaces for data sections"
+    ],
+    "signature": [
+      "Blue accent on white — classic corporate identity",
+      "Navy text with blue highlights for hierarchy",
+      "Professional and readable at any distance"
+    ],
+    "avoid": [
+      "Trendy or experimental layouts",
+      "Dark mode variants",
+      "Multiple accent colors"
+    ]
+  },
+  {
+    "number": "35",
+    "title": "Warm Neutral",
+    "mood": "Warm · Approachable",
+    "bestFor": "Culture, community",
+    "id": "warm-neutral",
+    "background": [
+      "Cream white: `#FAF8F5`"
+    ],
+    "colors": [
+      {
+        "role": "Background",
+        "label": "Cream white",
+        "hex": "#FAF8F5"
+      },
+      {
+        "role": "Secondary background",
+        "label": "Warm beige",
+        "hex": "#F0EBE3"
+      },
+      {
+        "role": "Primary text",
+        "label": "Dark brown",
+        "hex": "#2D2A26"
+      },
+      {
+        "role": "Secondary text",
+        "label": "Medium brown",
+        "hex": "#6B6560"
+      },
+      {
+        "role": "Accent",
+        "label": "Terracotta",
+        "hex": "#C45A3B"
+      },
+      {
+        "role": "Border",
+        "label": "Warm grey",
+        "hex": "#DDD8D0"
+      }
+    ],
+    "fonts": [
+      "Title: **Pretendard SemiBold**, 32–44pt",
+      "Body: **Pretendard**, 14–16pt",
+      "Caption: **Pretendard Light**, 10–12pt"
+    ],
+    "layout": [
+      "Warm cream base with terracotta accent touches",
+      "Beige secondary panels for content grouping",
+      "Earthy, organic feel with structured layout",
+      "Generous whitespace, relaxed visual tempo"
+    ],
+    "signature": [
+      "Cream + terracotta color story",
+      "Warm brown text instead of black",
+      "Approachable without being casual"
+    ],
+    "avoid": [
+      "Cool blues or greens",
+      "High-tech or futuristic aesthetics",
+      "Dark mode variants"
+    ]
   }
 ];
