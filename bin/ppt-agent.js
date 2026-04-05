@@ -270,7 +270,7 @@ program
       }
 
       console.log(`\nTotal: ${styles.length} styles`);
-      console.log('Preview: slides-grab preview-styles [--style <id>]');
+      console.log('Preview: slides-grab preview-styles');
     } catch (error) {
       reportCliError(error);
     }

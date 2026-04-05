@@ -88,6 +88,8 @@ test('slides-grab list-styles shows all 35 styles', () => {
     assert.match(output, /glassmorphism/);
     assert.match(output, /modern-dark/);
     assert.match(output, /Total: 35 styles/);
+    assert.match(output, /Preview: slides-grab preview-styles\b/);
+    assert.doesNotMatch(output, /--style/);
   } finally {
     rmSync(workspace, { recursive: true, force: true });
   }
