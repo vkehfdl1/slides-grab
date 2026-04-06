@@ -114,11 +114,18 @@ export function createLogoRouter(ctx) {
       }
 
       const resolved = join(slidesDir, logoPath);
+      if (!resolved.startsWith(slidesDir)) {
+        return res.status(400).json({ error: 'Invalid logo path.' });
+      }
       if (!existsSync(resolved)) {
         return res.status(404).json({ error: 'Logo file not found.' });
       }
 
-      res.sendFile(resolved);
+      res.sendFile(resolved, (err) => {
+        if (err && !res.headersSent) {
+          res.status(404).json({ error: 'Logo file not found.' });
+        }
+      });
     } catch (err) {
       res.status(500).json({ error: err.message });
     }

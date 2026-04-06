@@ -306,6 +306,7 @@ export function connectSSE() {
   });
 
   evtSource.addEventListener('devReload', () => {
+    evtSource.close();
     window.location.reload();
   });
 
