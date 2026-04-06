@@ -6,5 +6,11 @@
     "dark tech"
   ],
   "bestFor": "게이밍, AI 인프라, 보안 브리핑",
-  "order": 7
+  "order": 7,
+  "description": "네온 시안 아웃라인 텍스트와 HUD 그리드",
+  "tags": [
+    "게이밍",
+    "AI 인프라",
+    "보안"
+  ]
 }

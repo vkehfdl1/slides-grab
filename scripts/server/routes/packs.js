@@ -12,15 +12,9 @@ export function createPacksRouter(ctx) {
   const { express, PACKAGE_ROOT } = ctx;
   const router = express.Router();
 
-  // Serve pack gallery page
-  router.get('/packs-gallery', async (_req, res) => {
-    const galleryPath = join(PACKAGE_ROOT, 'src', 'editor', 'gallery.html');
-    try {
-      const html = await readFile(galleryPath, 'utf-8');
-      res.type('html').send(html);
-    } catch (err) {
-      res.status(500).send(`Failed to load gallery: ${err.message}`);
-    }
+  // Redirect gallery to main create screen
+  router.get('/packs-gallery', (_req, res) => {
+    res.redirect('/');
   });
 
   router.get('/api/packs', (_req, res) => {

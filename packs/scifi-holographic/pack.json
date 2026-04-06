@@ -6,5 +6,11 @@
     "absolute precision"
   ],
   "bestFor": "방위산업, AI 연구, 양자컴퓨팅, 데이터 엔지니어링",
-  "order": 26
+  "order": 26,
+  "description": "모노크롬 시안 동심원의 군사 HUD",
+  "tags": [
+    "방위산업",
+    "AI 연구",
+    "양자"
+  ]
 }

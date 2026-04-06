@@ -7,5 +7,11 @@
     "otherworldly"
   ],
   "bestFor": "AI 제품, 사이버보안, 딥테크",
-  "order": 3
+  "order": 3,
+  "description": "네온 글로우와 그라디언트 텍스트",
+  "tags": [
+    "AI",
+    "딥테크",
+    "사이버보안"
+  ]
 }

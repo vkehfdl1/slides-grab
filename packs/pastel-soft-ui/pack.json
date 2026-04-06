@@ -6,5 +6,11 @@
     "healthcare-friendly"
   ],
   "bestFor": "헬스케어, 뷰티, 교육 스타트업",
-  "order": 23
+  "order": 23,
+  "description": "삼색 파스텔 그라디언트와 프로스티드 카드",
+  "tags": [
+    "헬스케어",
+    "뷰티",
+    "교육"
+  ]
 }

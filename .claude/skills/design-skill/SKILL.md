@@ -111,6 +111,19 @@ All packs share a common set of template type names defined in `packs/common-typ
 
 ---
 
+## Core Production Principles
+
+> These are non-negotiable. Every slide must satisfy ALL of these.
+
+1. **Strictly follow the pack's design.md** — background, font, layout, colors를 정확히 따른다. 근사치가 아닌 명시된 값 그대로.
+2. **모든 슬라이드에 최소 1개의 시각 요소** — 도형, 컬러 블록, 구분선, 카드, 배경 패턴 등. 텍스트만 있는 슬라이드는 금지.
+3. **Signature element를 매 슬라이드에 반복** — 팩의 정체성을 일관되게 유지한다. (예: neo-brutalism의 하드 그림자, dark-academia의 금색 테두리, editorial-magazine의 빨간 rule)
+4. **Font pairing을 정확히 매칭** — 타이포그래피가 스타일 인상의 50%를 결정한다. design.md의 폰트 이름, 크기, 웨이트를 그대로 사용. 유사 폰트로 대체하지 않는다.
+5. **정확한 HEX 값 사용** — 근사치 색상은 미학을 깨뜨린다. theme.css의 CSS 변수 또는 design.md의 CSS 패턴 값을 그대로 사용.
+6. **텍스트만 있는 슬라이드 금지** — 색상, 형태, 공간으로 디자인을 표현한다. cover와 closing도 시각 요소가 있어야 한다.
+
+---
+
 ## Design Principles
 
 **핵심: 복사가 아니라 합성이다.**
@@ -122,6 +135,27 @@ All packs share a common set of template type names defined in `packs/common-typ
 - 슬라이드마다 콘텐츠에 최적화된 레이아웃을 선택. 같은 패턴을 3장 이상 반복하지 않기
 
 **팩은 "디자인 철학"이고, 타입 스킬은 "구조적 지식"이다. 둘을 합쳐서 콘텐츠에 맞는 슬라이드를 창작한다.**
+
+---
+
+## Style Recommendation Matrix
+
+사용자가 팩을 선택하지 않았을 때, 주제/청중에 따라 추천한다:
+
+| 발표 목적 | 추천 팩 |
+|-----------|---------|
+| 테크 / AI / 스타트업 | glassmorphism, aurora-neon-glow, cyberpunk-outline, scifi-holographic |
+| 기업 / 컨설팅 / 금융 | swiss-international, monochrome-minimal, editorial-magazine, simple_light |
+| 교육 / 연구 / 학술 | dark-academia, nordic-minimalism, brutalist-newspaper |
+| 브랜드 / 마케팅 | gradient-mesh, typographic-bold, duotone-split, risograph-print |
+| 제품 / 앱 / UX | bento-grid, claymorphism, pastel-soft-ui, liquid-blob |
+| 엔터테인먼트 / 게이밍 | retro-y2k, dark-neon-miami, vaporwave, memphis-pop |
+| 에코 / 웰니스 / 문화 | handcrafted-organic, nordic-minimalism, dark-forest, stained-glass-mosaic |
+| IT 인프라 / 아키텍처 | isometric-3d-flat, architectural-blueprint, cyberpunk-outline |
+| 포트폴리오 / 아트 / 크리에이티브 | monochrome-minimal, editorial-magazine, maximalist-collage, risograph-print |
+| 피치덱 / 전략 | neo-brutalism, duotone-split, bento-grid, simple_light |
+| 럭셔리 / 이벤트 / 갈라 | art-deco-luxe, monochrome-minimal, dark-academia |
+| 바이오 / 혁신 / 과학 | liquid-blob, scifi-holographic, aurora-neon-glow |
 
 ---
 

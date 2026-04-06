@@ -7,5 +7,11 @@
     "sustainable"
   ],
   "bestFor": "에코 브랜드, 식음료, 공방",
-  "order": 15
+  "order": 15,
+  "description": "크래프트지에 중첩 원과 보타니컬 요소",
+  "tags": [
+    "에코",
+    "식음료",
+    "공방"
+  ]
 }

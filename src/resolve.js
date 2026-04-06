@@ -130,6 +130,8 @@ export function getPackInfo(packId) {
     colors,
     mood: meta.mood || [],
     bestFor: meta.bestFor || '',
+    description: meta.description || meta.bestFor || '',
+    tags: meta.tags || [],
     order: meta.order || 999,
   };
 }
@@ -187,6 +189,8 @@ export function listPacks() {
         colors: info?.colors || {},
         mood: info?.mood || [],
         bestFor: info?.bestFor || '',
+        description: info?.description || '',
+        tags: info?.tags || [],
         order: info?.order || 999,
         templates,
         ownTemplates: own,

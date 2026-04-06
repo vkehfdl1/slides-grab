@@ -6,5 +6,11 @@
     "architectural"
   ],
   "bestFor": "IT 아키텍처, 데이터 흐름, 시스템 다이어그램",
-  "order": 16
+  "order": 16,
+  "description": "30도 아이소메트릭 큐브의 3면 셰이딩",
+  "tags": [
+    "IT 아키텍처",
+    "시스템",
+    "인프라"
+  ]
 }

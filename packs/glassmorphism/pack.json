@@ -6,5 +6,11 @@
     "futuristic"
   ],
   "bestFor": "SaaS, 앱 런칭, AI 제품 발표",
-  "order": 13
+  "order": 13,
+  "description": "반투명 유리 카드와 블러 효과",
+  "tags": [
+    "SaaS",
+    "앱 런칭",
+    "AI 제품"
+  ]
 }

@@ -7,5 +7,11 @@
     "analog warmth"
   ],
   "bestFor": "독립 출판, 음악 레이블, 아트 진, 부티크 스튜디오",
-  "order": 25
+  "order": 25,
+  "description": "3색 원의 multiply 블렌드 아날로그 인쇄",
+  "tags": [
+    "독립출판",
+    "음악",
+    "아트 진"
+  ]
 }

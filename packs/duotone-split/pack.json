@@ -6,5 +6,11 @@
     "energetic"
   ],
   "bestFor": "전략 발표, 비교 분석, Before/After",
-  "order": 11
+  "order": 11,
+  "description": "50:50 수직 분할의 강렬한 색상 대비",
+  "tags": [
+    "전략",
+    "비교 분석",
+    "Before/After"
+  ]
 }

@@ -6,5 +6,11 @@
     "advertising-bold"
   ],
   "bestFor": "광고 에이전시, 패션, 음악, 에디토리얼",
-  "order": 18
+  "order": 18,
+  "description": "회전된 컬러 블록이 겹치는 과감한 충돌",
+  "tags": [
+    "광고",
+    "패션",
+    "에디토리얼"
+  ]
 }

@@ -1,4 +1,4 @@
-// editor-pack.js — Template pack selector for creation mode (CSS art preview)
+// editor-pack.js — Template pack selector (gallery-style, integrated into create screen)
 
 import { creationState } from './editor-state.js';
 
@@ -45,16 +45,10 @@ export async function loadPacks() {
   updateToggleText();
 }
 
-/**
- * Get the currently selected pack ID.
- */
 export function getSelectedPack() {
   return selectedPackId;
 }
 
-/**
- * Set the selected pack by ID.
- */
 export function setSelectedPack(packId) {
   selectedPackId = packId;
   creationState.packId = packId;
@@ -62,7 +56,6 @@ export function setSelectedPack(packId) {
   updateToggleText();
 }
 
-/** Update the collapsible toggle text with current pack name. */
 function updateToggleText() {
   const el = document.getElementById('pack-toggle-current');
   if (!el) return;
@@ -70,8 +63,8 @@ function updateToggleText() {
   el.textContent = pack?.name || selectedPackId;
 }
 
-/** Create a pack card with CSS art preview. */
-function createPackCard(pack) {
+/** Create a gallery-style pack card (number + name + desc + tags) */
+function createPackCard(pack, idx) {
   const card = document.createElement('button');
   card.className = 'pack-card' + (pack.id === selectedPackId ? ' selected' : '');
   card.dataset.packId = pack.id;
@@ -84,21 +77,32 @@ function createPackCard(pack) {
 
   // Info
   const info = document.createElement('div');
-  info.className = 'pack-info';
+  info.className = 'pack-card-info';
 
-  const nameSpan = document.createElement('span');
-  nameSpan.className = 'pack-name';
-  nameSpan.textContent = pack.name || pack.id;
+  // Name
+  const name = document.createElement('div');
+  name.className = 'pack-card-name';
+  name.textContent = pack.name || pack.id;
 
-  info.append(nameSpan);
+  // Description (prefer pack description, fall back to bestFor)
+  const desc = document.createElement('div');
+  desc.className = 'pack-card-desc';
+  desc.textContent = pack.description || pack.bestFor || '';
 
-  // Mood as comma-separated text
-  if (pack.mood?.length) {
-    const moodText = document.createElement('span');
-    moodText.className = 'pack-mood-text';
-    moodText.textContent = pack.mood.slice(0, 3).join(', ');
-    info.appendChild(moodText);
-  }
+  // Use-case tags (Korean)
+  const tags = document.createElement('div');
+  tags.className = 'pack-card-tags';
+  const tagList = pack.tags || [];
+  tagList.slice(0, 3).forEach(t => {
+    const tag = document.createElement('span');
+    tag.className = 'pack-card-tag';
+    tag.textContent = t;
+    tags.appendChild(tag);
+  });
+
+  info.append(name);
+  if (desc.textContent) info.appendChild(desc);
+  if (tagList.length) info.appendChild(tags);
 
   card.append(preview, info);
   return card;
@@ -110,16 +114,14 @@ function renderPackGrid() {
 
   grid.innerHTML = '';
 
-  // Remove existing browse link if present
   const existingLink = grid.parentNode?.querySelector('.pack-browse-all');
   if (existingLink) existingLink.remove();
 
-  // All packs in one grid (no custom/skin separation — all have design.md now)
   const packGrid = document.createElement('div');
   packGrid.className = 'pack-grid-all';
 
-  for (const pack of packsData) {
-    const card = createPackCard(pack);
+  packsData.forEach((pack, idx) => {
+    const card = createPackCard(pack, idx);
     card.addEventListener('click', () => {
       selectedPackId = pack.id;
       creationState.packId = pack.id;
@@ -127,17 +129,9 @@ function renderPackGrid() {
       updateToggleText();
     });
     packGrid.appendChild(card);
-  }
-  grid.appendChild(packGrid);
+  });
 
-  // "Browse all packs" link
-  const browseLink = document.createElement('a');
-  browseLink.className = 'pack-browse-all';
-  browseLink.href = '/packs-gallery';
-  browseLink.target = '_blank';
-  browseLink.rel = 'noopener';
-  browseLink.textContent = '전체 팩 갤러리 보기 \u2192';
-  grid.parentNode.insertBefore(browseLink, grid.nextSibling);
+  grid.appendChild(packGrid);
 }
 
 function updatePackSelection() {
@@ -145,12 +139,11 @@ function updatePackSelection() {
   if (!grid) return;
 
   for (const card of grid.querySelectorAll('.pack-card')) {
-    const isSelected = card.dataset.packId === selectedPackId;
-    card.classList.toggle('selected', isSelected);
+    card.classList.toggle('selected', card.dataset.packId === selectedPackId);
   }
 }
 
-// ── Modal handlers (simplified — no iframe preview) ──
+// ── Modal handlers (keep for backward compat) ──
 const modalCloseBtn = document.getElementById('pack-modal-close');
 const modalBackdrop = document.getElementById('pack-modal-backdrop');
 
@@ -158,16 +151,10 @@ function closePackModal() {
   if (modalBackdrop) modalBackdrop.hidden = true;
 }
 
-if (modalCloseBtn) {
-  modalCloseBtn.addEventListener('click', closePackModal);
-}
-if (modalBackdrop) {
-  modalBackdrop.addEventListener('click', (e) => {
-    if (e.target === modalBackdrop) closePackModal();
-  });
-}
+if (modalCloseBtn) modalCloseBtn.addEventListener('click', closePackModal);
+if (modalBackdrop) modalBackdrop.addEventListener('click', (e) => {
+  if (e.target === modalBackdrop) closePackModal();
+});
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && modalBackdrop && !modalBackdrop.hidden) {
-    closePackModal();
-  }
+  if (e.key === 'Escape' && modalBackdrop && !modalBackdrop.hidden) closePackModal();
 });

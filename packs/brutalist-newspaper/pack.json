@@ -6,5 +6,11 @@
     "broadsheet heritage"
   ],
   "bestFor": "미디어, 연구소, 콘텐츠 산업",
-  "order": 5
+  "order": 5,
+  "description": "다크 마스트헤드와 2단 레이아웃",
+  "tags": [
+    "미디어",
+    "연구소",
+    "콘텐츠"
+  ]
 }

@@ -7,5 +7,11 @@
     "millennium energy"
   ],
   "bestFor": "이벤트, 라이프스타일, 패션, 캠페인",
-  "order": 24
+  "order": 24,
+  "description": "레인보우 스트라이프와 이중 텍스트 섀도",
+  "tags": [
+    "이벤트",
+    "패션",
+    "캠페인"
+  ]
 }

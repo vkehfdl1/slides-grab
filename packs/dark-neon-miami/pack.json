@@ -6,5 +6,11 @@
     "neon nightlife"
   ],
   "bestFor": "엔터테인먼트, 뮤직 페스티벌, 이벤트",
-  "order": 10
+  "order": 10,
+  "description": "선셋 반원과 원근 그리드의 신스웨이브",
+  "tags": [
+    "엔터",
+    "뮤직",
+    "이벤트"
+  ]
 }

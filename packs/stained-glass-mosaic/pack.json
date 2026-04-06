@@ -6,5 +6,11 @@
     "cathedral richness"
   ],
   "bestFor": "문화기관, 박물관, 예술 단체",
-  "order": 28
+  "order": 28,
+  "description": "보석빛 컬러 셀과 다크 그라우트 모자이크",
+  "tags": [
+    "문화기관",
+    "박물관",
+    "예술"
+  ]
 }
