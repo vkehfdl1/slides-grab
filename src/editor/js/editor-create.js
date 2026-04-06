@@ -12,7 +12,7 @@ import {
   importFileList, importFileListItems, importAddMore,
   importSlideCount, importResearchMode,
   importModel, importSubmit, importPrompt, importUrlInput, importUrlGo,
-  btnPresent,
+  btnPresent, btnDuplicateSlide, btnDeleteSlide,
 } from './editor-dom.js';
 import { getSelectedPack } from './editor-pack.js';
 import { setStatus, loadModelOptions } from './editor-utils.js';
@@ -119,6 +119,9 @@ export function showCreationMode() {
   if (btnNext) btnNext.disabled = true;
   if (btnReviewOutline) btnReviewOutline.disabled = true;
   if (btnExportToggle) btnExportToggle.disabled = true;
+  if (btnPresent) btnPresent.disabled = true;
+  if (btnDuplicateSlide) btnDuplicateSlide.disabled = true;
+  if (btnDeleteSlide) btnDeleteSlide.disabled = true;
   if (btnReviewDeck) btnReviewDeck.style.display = 'none';
   // Remove editor-mode emphasis during creation
   if (btnReviewOutline) btnReviewOutline.classList.remove('nav-emphasis');
@@ -139,6 +142,9 @@ export function hideCreationMode() {
   if (btnNext) btnNext.disabled = false;
   if (btnReviewOutline) btnReviewOutline.disabled = false;
   if (btnExportToggle) btnExportToggle.disabled = false;
+  if (btnPresent) btnPresent.disabled = false;
+  if (btnDuplicateSlide) btnDuplicateSlide.disabled = false;
+  if (btnDeleteSlide) btnDeleteSlide.disabled = false;
   if (btnReviewDeck) btnReviewDeck.style.display = '';
   if (btnPresent) btnPresent.style.display = '';
   // Editor-mode button states (same logic in editor-init.js init)
