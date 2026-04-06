@@ -934,21 +934,17 @@ async function init() {
       await fetch('/api/decks/new', { method: 'POST' }).catch(() => {});
     }
 
-    // Detect browse mode: show back button and deck name in nav bar
+    // Show deck name in nav bar
     const configRes = await fetch('/api/editor-config');
     const config = configRes.ok ? await configRes.json() : {};
-    if (config.browseMode) {
-      const backBtn = document.getElementById('btn-back-browser');
-      const deckNameEl = document.getElementById('nav-deck-name');
-      if (backBtn) backBtn.style.display = '';
-      if (deckNameEl) {
-        if (forceCreate) {
-          deckNameEl.textContent = '';
-          deckNameEl.style.display = 'none';
-        } else if (config.deckName) {
-          deckNameEl.textContent = config.deckName;
-          deckNameEl.style.display = '';
-        }
+    const deckNameEl = document.getElementById('nav-deck-name');
+    if (deckNameEl) {
+      if (forceCreate) {
+        deckNameEl.textContent = '';
+        deckNameEl.style.display = 'none';
+      } else if (config.deckName) {
+        deckNameEl.textContent = config.deckName;
+        deckNameEl.style.display = '';
       }
     }
 

@@ -91,8 +91,8 @@ export function createStaticRouter(ctx) {
 
   router.get('/', async (_req, res) => {
     try {
-      const targetPath = opts.browseMode ? browserHtmlPath : editorHtmlPath;
-      const html = await readFile(targetPath, 'utf-8');
+      // Always show deck browser at root; editor lives at /editor
+      const html = await readFile(browserHtmlPath, 'utf-8');
       res.type('html').send(html);
     } catch (err) {
       res.status(500).send(`Failed to load page: ${err.message}`);
