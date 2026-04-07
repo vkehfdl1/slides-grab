@@ -212,7 +212,7 @@ export async function submitGeneration() {
 
   const requirements = creationRequirements?.value?.trim() || '';
   const model = creationModel?.value || 'claude-sonnet-4-6';
-  const slideCount = creationSlideCount?.value || '8~12';
+  const slideCount = creationSlideCount?.value ?? '';
 
   creationState.generating = true;
   window.addEventListener('beforeunload', preventUnload);
