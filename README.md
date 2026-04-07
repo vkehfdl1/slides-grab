@@ -10,7 +10,7 @@ Simple things like text, size, or bold can still be edited manually, just like i
 </p>
 
 <p align="center">
-The whole slides are HTML & CSS, the programming langauge (which is not) that outperformed by AI agents.<br>
+The whole slides are HTML & CSS, the programming language (which is not) that outperformed by AI agents.<br>
 So the slides are beautiful, easily editable by AI agents, and can be converted to PDF or to experimental / unstable PPTX formats.
 </p>
 
@@ -66,32 +66,61 @@ There are many AI tools that generate slide HTML. Almost none let you **visually
 - **Plan** — Agent creates a structured slide outline from your topic/files
 - **Design** — Agent generates each slide as a self-contained HTML file
 - **Edit** — Browser-based editor with bbox selection, direct text editing, and agent-powered rewrites
-- **Export** — One command to PDF, plus experimental / unstable PPTX or Figma-export flows
+- **Export** — One command to PDF, plus experimental / unstable PPTX and SVG
 
 ## CLI Commands
 
-All commands support `--slides-dir <path>` (default: `slides`).
+Most export/edit commands support `--slides-dir <path>` (default: `slides`). Deck-management commands use `--deck <name>` instead.
 
 On a fresh clone, only `--help`, `list-templates`, `list-themes`, and `list-packs` work without a deck. `edit`, `build-viewer`, `validate`, `convert`, and `pdf` require an existing slides workspace containing `slide-*.html`.
+
+**Creation & Editing:**
 
 ```bash
 slides-grab create              # Start creation mode — generate a new deck from scratch
 slides-grab edit                # Launch visual slide editor
 slides-grab browse              # Open deck browser to view and manage all decks
-slides-grab import <md-file>    # Import markdown file into a presentation
-slides-grab build-viewer        # Build single-file viewer.html
-slides-grab validate            # Validate slide HTML (Playwright-based)
+slides-grab import <source>     # Import markdown, PDF, or URL into a presentation
+```
+
+**Export:**
+
+```bash
+slides-grab pdf                 # Export to PDF
 slides-grab convert             # Export to experimental / unstable PPTX
-slides-grab convert --resolution 2160p  # Higher-resolution raster PPTX export
-slides-grab figma               # Export an experimental / unstable Figma Slides importable PPTX
-slides-grab pdf                 # Export PDF in capture mode (default)
-slides-grab pdf --resolution 2160p  # Higher-resolution image-backed PDF export
-slides-grab pdf --mode print    # Export searchable/selectable text PDF
-slides-grab svg                 # Export to SVG
-slides-grab list-templates      # Show available slide templates
-slides-grab list-themes         # Show available color themes
-slides-grab list-packs          # Show available template packs
-slides-grab show-pack <id>      # Show details of a specific pack
+slides-grab svg                 # Export to SVG (or PNG with --format png)
+slides-grab build-viewer        # Build single-file viewer.html
+```
+
+**Analysis & Transformation:**
+
+```bash
+slides-grab review --deck <name>                     # Analyze deck quality & generate report
+slides-grab retheme --deck <name> --pack <id>        # Redesign deck with a different pack
+slides-grab split --input <file>                     # Split multi-slide HTML into individual files
+slides-grab validate                                 # Validate slide HTML (Playwright-based)
+```
+
+**Template Packs:**
+
+```bash
+slides-grab list-packs                               # List all 37+ packs with colors & template counts
+slides-grab show-pack <id>                           # Show pack details and templates
+slides-grab show-template <name> --pack <id>         # View a template from a specific pack
+slides-grab show-theme <id>                          # Show pack's theme.css
+slides-grab pack init <name>                         # Scaffold a new custom pack
+slides-grab pack list                                # Alias for list-packs
+```
+
+**Logo & Utilities:**
+
+```bash
+slides-grab logo set --slides-dir <path> --image <path>   # Set deck logo overlay
+slides-grab logo show --slides-dir <path>                  # Show current logo config
+slides-grab logo remove --slides-dir <path>                # Remove logo config
+slides-grab list-templates                                 # Show available slide templates
+slides-grab list-themes                                    # Show available color themes
+slides-grab install-codex-skills                           # Install Codex skills to ~/.codex/skills
 ```
 
 ### Create Mode
@@ -112,14 +141,18 @@ slides-grab create --deck-name my-deck --port 4000  # Use a custom port
 4. **Revise** individual slides or the whole outline with feedback, or **Approve & Generate**
 5. Once generated, the editor switches to normal edit mode with your new slides
 
-### Import Markdown
+### Import
 
-Convert an existing markdown file into a presentation:
+Convert an existing document (markdown, PDF, or URL) into a presentation:
 
 ```bash
 slides-grab import docs/content.md --deck-name my-deck
+slides-grab import report.pdf --deck-name from-pdf
+slides-grab import https://example.com/article --deck-name from-web --research
 slides-grab import docs/content.md --slide-count "25~30" --research
 ```
+
+Options: `--deck-name`, `--slide-count`, `--research`, `--pack`, `--port`.
 
 ### Deck Browser
 
@@ -130,15 +163,61 @@ slides-grab browse
 slides-grab browse --port 4000
 ```
 
-### Template Packs
+### Review
 
-Packs provide different visual themes for your slides. Default pack is `simple_light`.
+Analyze a presentation deck and generate a quality report:
 
 ```bash
-slides-grab list-packs              # List all packs with colors and template counts
-slides-grab show-pack midnight      # Show pack details and templates
-slides-grab show-template cover --pack midnight  # View a template from a specific pack
+slides-grab review --deck my-deck
+slides-grab review --deck my-deck --audience investors --time 20
 ```
+
+Options: `--deck` (required), `--audience`, `--time` (default: 15 minutes).
+
+### Retheme
+
+Re-generate a deck with a different template pack (one-click redesign):
+
+```bash
+slides-grab retheme --deck my-deck --pack aurora-gradient
+slides-grab retheme --deck my-deck --pack swiss-international --save-as my-deck-swiss
+```
+
+Options: `--deck` (required), `--pack` (required), `--save-as`, `--model`.
+
+### Split
+
+Split a multi-slide HTML file into individual `slide-*.html` files:
+
+```bash
+slides-grab split --input combined.html --slides-dir decks/my-deck
+```
+
+Options: `--input` (required), `--slides-dir`, `--selector` (default: `.slide`), `--source-width`, `--source-height`, `--no-scale`.
+
+### Template Packs
+
+Packs provide different visual themes for your slides. 37+ packs available, including `simple_light`, `dark-wave`, `aurora-gradient`, `glassmorphism`, `neo-brutalism`, `swiss-international`, and more. Default pack is `simple_light`.
+
+```bash
+slides-grab list-packs                               # List all packs with colors and template counts
+slides-grab show-pack dark-wave                      # Show pack details and templates
+slides-grab show-template cover --pack dark-wave     # View a template from a specific pack
+slides-grab pack init my-custom-pack                 # Scaffold a new custom pack
+```
+
+### Logo Management
+
+Configure a persistent logo overlay for a deck. Logo config is stored in `deck.json`. Export commands (`pdf`, `convert`) also accept one-off `--logo` flags.
+
+```bash
+slides-grab logo set --slides-dir decks/my-deck --image assets/logo.png
+slides-grab logo set --slides-dir decks/my-deck --image assets/logo.png --position bottom-left --exclude 1,15
+slides-grab logo show --slides-dir decks/my-deck
+slides-grab logo remove --slides-dir decks/my-deck
+```
+
+Options for `logo set`: `--slides-dir` (required), `--image` (required), `--position` (top-right, top-left, bottom-right, bottom-left; default: top-right), `--width`, `--height`, `--x`, `--y`, `--exclude`.
 
 ## Image Contract
 
@@ -151,9 +230,7 @@ Slides should store local image files in `<slides-dir>/assets/` and reference th
 
 Run `slides-grab validate --slides-dir <path>` before export to catch missing local assets and discouraged path forms.
 
-`slides-grab pdf` now defaults to `--mode capture`, which rasterizes each rendered slide into the PDF for better visual fidelity. Use `--mode print` when searchable/selectable browser text matters more than pixel-perfect parity.
-
-`slides-grab pdf` and `slides-grab convert` now default to `2160p` / `4k` raster output for sharper exports. You can still override with `--resolution <preset>` using `720p`, `1080p`, `1440p`, `2160p`, or `4k` when you want smaller or faster artifacts.
+> PDF export internally uses capture mode with high-resolution rasterization for visual fidelity. For advanced control (`--mode`, `--resolution`), invoke `node scripts/html2pdf.js` directly.
 
 ### Multi-Deck Workflow
 
@@ -163,20 +240,13 @@ Prerequisite: create or generate a deck in `decks/my-deck/` first.
 slides-grab edit       --slides-dir decks/my-deck
 slides-grab validate   --slides-dir decks/my-deck
 slides-grab pdf        --slides-dir decks/my-deck --output decks/my-deck.pdf
-slides-grab pdf        --slides-dir decks/my-deck --mode print --output decks/my-deck-searchable.pdf
 slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
-slides-grab figma      --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
+slides-grab svg        --slides-dir decks/my-deck --output decks/my-deck-svg
+slides-grab review     --deck my-deck --audience investors
+slides-grab retheme    --deck my-deck --pack dark-wave --save-as my-deck-dark
 ```
 
-> **Warning:** `slides-grab convert` and `slides-grab figma` are currently **experimental / unstable**. Expect best-effort output, layout shifts, and manual cleanup in PowerPoint or Figma.
-
-### Figma Workflow
-
-```bash
-slides-grab figma --slides-dir decks/my-deck --output decks/my-deck-figma.pptx
-```
-
-This command reuses the HTML to PPTX pipeline and emits a `.pptx` deck intended for manual import into Figma Slides via `Import`. It does not upload to Figma directly. The Figma export path is **experimental / unstable** and should be treated as best-effort only.
+> **Warning:** `slides-grab convert` is currently **experimental / unstable**. Expect best-effort output, layout shifts, and manual cleanup in PowerPoint.
 
 ### npm Scripts (Shortcuts)
 
@@ -185,8 +255,10 @@ If you cloned the repo, you can use shorter `npm run` aliases:
 ```bash
 npm run edit   -- --slides-dir decks/my-deck          # Launch editor
 npm run create -- --deck-name my-deck                  # Create new deck
-npm run pdf    -- --slides-dir decks/my-deck --output out.pdf  # Export PDF
-npm run pptx   -- --slides-dir decks/my-deck --output out.pptx # Export PPTX
+npm run pdf    -- --slides-dir decks/my-deck --output out.pdf   # Export PDF
+npm run pptx   -- --slides-dir decks/my-deck --output out.pptx  # Export PPTX
+npm run svg    -- --slides-dir decks/my-deck --output out/       # Export SVG
+npm run split  -- --input combined.html                          # Split HTML
 ```
 
 ## Installation Guides
@@ -213,14 +285,17 @@ This npm-install path is enough for normal usage. Clone the repo only when you w
 ## Project Structure
 
 ```
-bin/              CLI entry point
-src/editor/       Visual editor (HTML + JS client modules)
-scripts/          Build, validate, convert, editor server
-packs/            Template packs (simple_light, midnight, corporate, creative)
+bin/              CLI entry point (ppt-agent.js)
+src/              Core modules (resolve, logo, pack-init, retheme, review, etc.)
+  editor/         Visual editor client (HTML + JS modules)
+scripts/          Build, validate, convert, editor server, review, retheme
+packs/            37+ template packs (simple_light, dark-wave, aurora-gradient, glassmorphism, etc.)
 decks/            Your presentation decks (one folder per deck)
-skills/           Shared agent skills + references
-.claude/skills/   Claude Code skill definitions
-docs/             Installation & usage guides
+skills/           Shared agent skills (Codex)
+.claude/skills/   Claude Code skill definitions (plan, design, pptx, presentation)
+plugins/          Figma plugin (slides-to-figma)
+docs/             Installation guides, prompts, power-user docs
+tests/            Test suites (editor, pdf, svg, pptx, pack, validation)
 ```
 
 ## License
