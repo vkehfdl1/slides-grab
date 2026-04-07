@@ -53,6 +53,16 @@ When deciding font sizes for a slide:
 
 **사용법**: 슬라이드 생성 시작 전에 반드시 `cat packs/<pack-id>/design.md`로 읽는다.
 
+**design.md 파일 구조** (8개 섹션):
+1. **Identity** — mood 키워드 + 팩의 시각 철학 설명
+2. **Signature Elements** — 이 팩을 이 팩답게 만드는 시각 모티프 목록
+3. **CSS Patterns** — 검증된 CSS 스니펫 (베이스, 히어로, 카드, 스플릿 등 3–5가지)
+4. **Font Pairing** — 폰트 이름, 크기, 웨이트, letter-spacing, line-height
+5. **Color Usage** — Token/Value/Usage 테이블 (`--bg-primary`, `--accent` 등)
+6. **Layout Principles** — 핵심 레이아웃 패턴 2–3개
+7. **Avoid** — 이 팩에서 절대 하면 안 되는 것들
+8. **Webfont CDN** — 웹폰트 CDN `<link>` 태그
+
 ### 2. Type Skills — 타입별 레이아웃 원칙
 
 각 슬라이드 타입의 `skills/types/<type>.md`에 정의된 레이아웃 원칙:
