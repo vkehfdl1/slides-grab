@@ -85,7 +85,7 @@ export function createPlanRouter(ctx) {
       try {
         const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim()
           ? slideCountRange.trim()
-          : '8~12';
+          : '';
         const selectedPackId = normalizePackId(reqPackId);
         const existingDeckNames = await listExistingDeckNames();
 
@@ -95,7 +95,11 @@ export function createPlanRouter(ctx) {
         if (typeof requirements === 'string' && requirements.trim()) {
           promptLines.push(`요구사항: ${requirements.trim()}`);
         }
-        promptLines.push(`슬라이드 수: ${countLabel}장`);
+        if (countLabel) {
+          promptLines.push(`슬라이드 수: ${countLabel}장`);
+        } else {
+          promptLines.push('슬라이드 수: 주제에 적합한 분량으로 자유롭게 결정하세요 (보통 8~12장)');
+        }
         promptLines.push('');
         promptLines.push('다음을 수행하세요:');
         promptLines.push('');
