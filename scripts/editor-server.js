@@ -64,7 +64,6 @@ function parseArgs(argv) {
     importDocSourceType: '',
     importPack: '',
     importSlideCount: '',
-    importResearch: false,
     rethemeMode: false,
     rethemeSaveAs: '',
   };
@@ -165,11 +164,6 @@ function parseArgs(argv) {
     if (arg === '--pack') {
       opts.importPack = argv[i + 1] || '';
       i += 1;
-      continue;
-    }
-
-    if (arg === '--research') {
-      opts.importResearch = true;
       continue;
     }
 

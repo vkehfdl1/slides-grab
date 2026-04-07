@@ -179,7 +179,6 @@ program
   .option('--port <number>', 'Server port')
   .option('--deck-name <name>', 'Deck folder name under decks/ (auto-generated if omitted)')
   .option('--slide-count <range>', 'Target slide count range (e.g., "25~30")')
-  .option('--research', 'Enable additional web research to enrich content')
   .option('--pack <id>', 'Template pack to use')
   .action(async (source, options = {}) => {
     // Auto-detect source type
@@ -194,7 +193,6 @@ program
       if (options.deckName) args.push('--deck-name', options.deckName);
       if (options.port) args.push('--port', String(options.port));
       if (options.slideCount) args.push('--slide-count', options.slideCount);
-      if (options.research) args.push('--research');
       if (options.pack) args.push('--pack', options.pack);
       await runCommand('scripts/editor-server.js', args);
     } else {
@@ -203,7 +201,6 @@ program
       if (options.deckName) args.push('--deck-name', options.deckName);
       if (options.port) args.push('--port', String(options.port));
       if (options.slideCount) args.push('--slide-count', options.slideCount);
-      if (options.research) args.push('--research');
       await runCommand('scripts/editor-server.js', args);
     }
   });

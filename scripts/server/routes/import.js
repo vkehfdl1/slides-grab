@@ -44,7 +44,7 @@ export function createImportRouter(ctx) {
 
   // ── POST /api/import-md ─────────────────────────────────────────────
   router.post('/api/import-md', async (req, res) => {
-    const { content: mdContent, filePath, model, slideCount, researchMode, packId: reqImportPackId, userPrompt } = req.body ?? {};
+    const { content: mdContent, filePath, model, slideCount, packId: reqImportPackId, userPrompt } = req.body ?? {};
 
     let rawMd = '';
     if (typeof mdContent === 'string' && mdContent.trim()) {
@@ -76,7 +76,6 @@ export function createImportRouter(ctx) {
     runImportPlan(ctx, {
       runId, model: selectedModel, reqPackId: reqImportPackId,
       slideCount: typeof slideCount === 'string' ? slideCount.trim() : '',
-      useResearch: researchMode === 'research',
       userPrompt: typeof userPrompt === 'string' ? userPrompt.trim() : '',
       preambleLines: [
         '아래 마크다운 문서를 분석하여 프레젠테이션 아웃라인으로 변환하세요.',
@@ -204,7 +203,6 @@ export function createImportRouter(ctx) {
     runImportPlan(ctx, {
       runId, model, reqPackId: q('packId'),
       slideCount: typeof rawSlideCount === 'string' ? rawSlideCount.trim() : '',
-      useResearch: q('researchMode') === 'research',
       userPrompt: typeof rawUserPrompt === 'string' ? rawUserPrompt.trim() : '',
       preambleLines,
       folderExample: '"AI 도입 보고서" → ai-adoption-report',
@@ -216,7 +214,7 @@ export function createImportRouter(ctx) {
   // ── POST /api/import-files (multi-file, JSON with base64 PDFs) ─────
   router.post('/api/import-files', express.json({ limit: '15mb' }), async (req, res) => {
     const { parseSource } = await import('../../../src/parsers.js');
-    const { files, model, slideCount, researchMode, packId, userPrompt } = req.body ?? {};
+    const { files, model, slideCount, packId, userPrompt } = req.body ?? {};
 
     if (!Array.isArray(files) || files.length === 0) {
       return res.status(400).json({ error: 'No files provided.' });
@@ -255,7 +253,6 @@ export function createImportRouter(ctx) {
       runId, files, model: selectedModel,
       reqPackId: packId,
       slideCount: typeof slideCount === 'string' ? slideCount.trim() : '',
-      useResearch: researchMode === 'research',
       userPrompt: typeof userPrompt === 'string' ? userPrompt.trim() : '',
     });
   });
@@ -288,7 +285,7 @@ async function parseFileEntry(entry, parseSource, visionTmpDir) {
   return { name, text: '', pageImages: [] };
 }
 
-function runMultiFileImport(ctx, { runId, files, model, reqPackId, slideCount, useResearch, userPrompt }) {
+function runMultiFileImport(ctx, { runId, files, model, reqPackId, slideCount, userPrompt }) {
   (async () => {
     let visionTmpDir = '';
     try {
@@ -351,7 +348,7 @@ function runMultiFileImport(ctx, { runId, files, model, reqPackId, slideCount, u
 
       runImportPlan(ctx, {
         runId, model, reqPackId,
-        slideCount, useResearch, userPrompt,
+        slideCount, userPrompt,
         preambleLines,
         folderExample: '"AI 도입 보고서" → ai-adoption-report',
         imagePaths: allPageImages.length > 0 ? allPageImages : null,
@@ -369,16 +366,12 @@ function runMultiFileImport(ctx, { runId, files, model, reqPackId, slideCount, u
 
 // ── Shared import plan runner ───────────────────────────────────────
 
-function runImportPlan(ctx, { runId, model, reqPackId, slideCount, useResearch, userPrompt, preambleLines, folderExample, imagePaths, visionTmpDir }) {
+function runImportPlan(ctx, { runId, model, reqPackId, slideCount, userPrompt, preambleLines, folderExample, imagePaths, visionTmpDir }) {
   (async () => {
     try {
       const promptLines = [...preambleLines];
 
-      if (useResearch) {
-        promptLines.push('6. 웹 리서치를 추가로 수행하여 내용을 보강하세요. 최신 데이터, 통계, 사례를 추가할 수 있습니다.');
-      } else {
-        promptLines.push('6. 원본 마크다운의 내용만 사용하세요. 추가 리서치는 하지 마세요.');
-      }
+      promptLines.push('6. 원본 문서의 내용만 사용하세요.');
       if (slideCount) promptLines.push(`7. 목표 슬라이드 수: ${slideCount}장`);
 
       if (userPrompt) {

@@ -30,7 +30,6 @@ export function createModelsRouter(ctx) {
       importDocSourceType: opts.importDocSourceType || null,
       importPack: opts.importPack || null,
       importSlideCount: opts.importSlideCount || null,
-      importResearch: opts.importResearch || false,
     });
   });
 

@@ -983,12 +983,8 @@ async function init() {
           if (cfg.importDocSource) {
             switchToImportTab();
             const importSlideCountEl = document.getElementById('import-slide-count');
-            const importResearchEl = document.getElementById('import-research-mode');
             if (cfg.importSlideCount && importSlideCountEl) {
               importSlideCountEl.value = cfg.importSlideCount;
-            }
-            if (cfg.importResearch && importResearchEl) {
-              importResearchEl.value = 'research';
             }
             // Show source info in dropzone area
             const dropzone = document.getElementById('import-dropzone');
@@ -1002,7 +998,6 @@ async function init() {
               source: cfg.importDocSource,
               sourceType: cfg.importDocSourceType,
               slideCount: cfg.importSlideCount,
-              researchMode: cfg.importResearch ? 'research' : 'none',
               packId: cfg.importPack,
             });
             return;
@@ -1014,14 +1009,10 @@ async function init() {
             const fileRes = await fetch('/api/import-file');
             if (fileRes.ok) {
               const { content: importContent, fileName } = await fileRes.json();
-              // Set slide count / research mode from CLI flags
+              // Set slide count from CLI flags
               const importSlideCountEl = document.getElementById('import-slide-count');
-              const importResearchEl = document.getElementById('import-research-mode');
               if (cfg.importSlideCount && importSlideCountEl) {
                 importSlideCountEl.value = cfg.importSlideCount;
-              }
-              if (cfg.importResearch && importResearchEl) {
-                importResearchEl.value = 'research';
               }
               // Show file info
               const dropzone = document.getElementById('import-dropzone');

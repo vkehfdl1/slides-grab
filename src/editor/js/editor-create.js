@@ -10,7 +10,7 @@ import {
   tabTopic, tabImport, tabTopicPanel, tabImportPanel,
   importDropzone, importFileInput, importBrowse,
   importFileList, importFileListItems, importAddMore,
-  importSlideCount, importResearchMode,
+  importSlideCount,
   importModel, importSubmit, importPrompt, importUrlInput, importUrlGo,
   btnPresent, btnDuplicateSlide, btnDeleteSlide,
 } from './editor-dom.js';
@@ -580,7 +580,6 @@ export async function submitImport(content) {
 
   const model = importModel?.value || 'claude-sonnet-4-6';
   const slideCount = importSlideCount?.value || '';
-  const researchMode = importResearchMode?.value || 'none';
 
   creationState.generating = true;
   window.addEventListener('beforeunload', preventUnload);
@@ -595,7 +594,7 @@ export async function submitImport(content) {
     const res = await fetch('/api/import-md', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: mdContent, model, slideCount, researchMode, packId: getSelectedPack(), userPrompt }),
+      body: JSON.stringify({ content: mdContent, model, slideCount, packId: getSelectedPack(), userPrompt }),
     });
 
     if (!res.ok) {
@@ -691,7 +690,7 @@ export async function loadImportModelOptions() {
  * Submit a document import (PDF path or URL) to /api/import-doc.
  * Called from editor-init.js for CLI --import-doc mode, or from the UI.
  */
-export async function submitDocImport({ source, sourceType, model, slideCount, researchMode, packId } = {}) {
+export async function submitDocImport({ source, sourceType, model, slideCount, packId } = {}) {
   if (!source) {
     setStatus('소스가 지정되지 않았습니다.');
     return;
@@ -703,7 +702,6 @@ export async function submitDocImport({ source, sourceType, model, slideCount, r
 
   const selectedModel = model || importModel?.value || 'claude-sonnet-4-6';
   const selectedSlideCount = slideCount || importSlideCount?.value || '';
-  const selectedResearchMode = researchMode || importResearchMode?.value || 'none';
   const selectedPack = packId || getSelectedPack();
 
   creationState.generating = true;
@@ -723,7 +721,6 @@ export async function submitDocImport({ source, sourceType, model, slideCount, r
     const body = {
       model: selectedModel,
       slideCount: selectedSlideCount,
-      researchMode: selectedResearchMode,
       packId: selectedPack,
       userPrompt,
     };
@@ -761,7 +758,7 @@ export async function submitDocImport({ source, sourceType, model, slideCount, r
 /**
  * Submit a PDF file (browser File object) via binary upload.
  */
-export async function submitPdfUpload(file, { model, slideCount, researchMode, packId } = {}) {
+export async function submitPdfUpload(file, { model, slideCount, packId } = {}) {
   if (!file) {
     setStatus('PDF 파일을 선택해 주세요.');
     return;
@@ -773,7 +770,6 @@ export async function submitPdfUpload(file, { model, slideCount, researchMode, p
 
   const selectedModel = model || importModel?.value || 'claude-sonnet-4-6';
   const selectedSlideCount = slideCount || importSlideCount?.value || '';
-  const selectedResearchMode = researchMode || importResearchMode?.value || 'none';
   const selectedPack = packId || getSelectedPack();
 
   creationState.generating = true;
@@ -791,7 +787,6 @@ export async function submitPdfUpload(file, { model, slideCount, researchMode, p
       sourceType: 'pdf',
       model: selectedModel,
       slideCount: selectedSlideCount,
-      researchMode: selectedResearchMode,
       packId: selectedPack,
       userPrompt,
     });
@@ -856,7 +851,6 @@ async function submitMultiFileImport() {
 
   const model = importModel?.value || 'claude-sonnet-4-6';
   const slideCount = importSlideCount?.value || '';
-  const researchMode = importResearchMode?.value || 'none';
   const userPrompt = getUserPrompt();
 
   creationState.generating = true;
@@ -884,7 +878,7 @@ async function submitMultiFileImport() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        files, model, slideCount, researchMode,
+        files, model, slideCount,
         packId: getSelectedPack(), userPrompt,
       }),
     });

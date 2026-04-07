@@ -120,7 +120,6 @@ export const importFileList = $('#import-file-list');
 export const importFileListItems = $('#import-file-list-items');
 export const importAddMore = $('#import-add-more');
 export const importSlideCount = $('#import-slide-count');
-export const importResearchMode = $('#import-research-mode');
 export const importModel = $('#import-model');
 export const importSubmit = $('#import-submit');
 export const importPrompt = $('#import-prompt');

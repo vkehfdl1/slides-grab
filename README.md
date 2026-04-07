@@ -148,11 +148,11 @@ Convert an existing document (markdown, PDF, or URL) into a presentation:
 ```bash
 slides-grab import docs/content.md --deck-name my-deck
 slides-grab import report.pdf --deck-name from-pdf
-slides-grab import https://example.com/article --deck-name from-web --research
-slides-grab import docs/content.md --slide-count "25~30" --research
+slides-grab import https://example.com/article --deck-name from-web
+slides-grab import docs/content.md --slide-count "25~30"
 ```
 
-Options: `--deck-name`, `--slide-count`, `--research`, `--pack`, `--port`.
+Options: `--deck-name`, `--slide-count`, `--pack`, `--port`.
 
 ### Deck Browser
 
