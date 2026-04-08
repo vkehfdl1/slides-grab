@@ -129,3 +129,49 @@ export function spawnClaudeEdit({ prompt, imagePath, imagePaths, model, cwd, onL
     });
   });
 }
+
+/**
+ * Call OpenAI API (with vision) for PptxGenJS code generation.
+ * Sends both the text prompt and a screenshot for visual accuracy.
+ * Returns the extracted JavaScript code from the response.
+ */
+export async function callOpenAIForPptx({ prompt, imageBase64, timeout = 60_000 }) {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error('OPENAI_API_KEY is not set. Add it to .env file.');
+  }
+
+  const { default: OpenAI } = await import('openai');
+  const client = new OpenAI({ apiKey, timeout });
+
+  const content = [];
+  if (imageBase64) {
+    content.push({
+      type: 'image_url',
+      image_url: { url: `data:image/png;base64,${imageBase64}`, detail: 'high' },
+    });
+  }
+  content.push({ type: 'text', text: prompt });
+
+  const response = await client.chat.completions.create({
+    model: process.env.PPTX_MODEL || 'gpt-4o',
+    messages: [{ role: 'user', content }],
+    temperature: 0.2,
+    max_tokens: 4096,
+  });
+
+  const text = response.choices[0]?.message?.content || '';
+  const m = text.match(/```(?:javascript|js)?\n([\s\S]*?)```/);
+  if (!m) throw new Error(`No code block in OpenAI response: ${text.slice(0, 200)}`);
+  return unwrapFunctionBody(m[1]);
+}
+
+/**
+ * Strip function wrapper if AI wrapped code in a function declaration.
+ * e.g. "function foo(slide, pres) { ...body... }" → "...body..."
+ */
+function unwrapFunctionBody(code) {
+  const wrapped = code.match(/^function\s+\w*\s*\([^)]*\)\s*\{([\s\S]*)\}\s*$/);
+  if (wrapped) return wrapped[1].trim();
+  return code;
+}

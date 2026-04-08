@@ -300,7 +300,9 @@ function validateTextBoxPosition(slideData, bodyDimensions) {
 
 // Helper: Add background to slide
 async function addBackground(slideData, targetSlide, tmpDir) {
-  if (slideData.background.type === 'image' && slideData.background.path) {
+  if (slideData.background.type === 'rasterizedImage' && slideData.background.data) {
+    targetSlide.background = { data: slideData.background.data };
+  } else if (slideData.background.type === 'image' && slideData.background.path) {
     let imagePath = slideData.background.path.startsWith('file://')
       ? slideData.background.path.replace('file://', '')
       : slideData.background.path;
@@ -358,6 +360,19 @@ function addElements(slideData, targetSlide, pres) {
       if (el.shape.shadow) shapeOptions.shadow = el.shape.shadow;
 
       targetSlide.addText(el.text || '', shapeOptions);
+    } else if (el.type === 'table') {
+      const tableRows = el.rows.map(row =>
+        row.map(cell => ({ text: cell.text, options: { ...cell.options } }))
+      );
+      const tableOptions = {
+        x: el.position.x,
+        y: el.position.y,
+        w: el.position.w,
+        colW: el.colWidths.length > 0 ? el.colWidths : undefined,
+        border: el.border,
+        margin: [3, 3, 3, 3],
+      };
+      targetSlide.addTable(tableRows, tableOptions);
     } else if (el.type === 'list') {
       const listOptions = {
         x: el.position.x,
@@ -686,12 +701,10 @@ async function extractSlideData(page) {
     // Collect validation errors
     const errors = [];
 
-    // Validate: Check for CSS gradients
+    // CSS gradients: mark for rasterization instead of erroring
+    let needsBgRasterize = false;
     if (bgImage && (bgImage.includes('linear-gradient') || bgImage.includes('radial-gradient'))) {
-      errors.push(
-        'CSS gradients are not supported. Use Sharp to rasterize gradients as PNG images first, ' +
-        'then reference with background-image: url(\'gradient.png\')'
-      );
+      needsBgRasterize = true;
     }
 
     let background;
@@ -737,11 +750,40 @@ async function extractSlideData(page) {
         const hasShadow = computed.boxShadow && computed.boxShadow !== 'none';
 
         if (hasBg || hasBorder || hasShadow) {
-          errors.push(
-            `Text element <${el.tagName.toLowerCase()}> has ${hasBg ? 'background' : hasBorder ? 'border' : 'shadow'}. ` +
-            'Backgrounds, borders, and shadows are only supported on <div> elements, not text elements.'
-          );
-          return;
+          // Instead of rejecting, emit a backing shape so the text element renders on top
+          const tRect = el.getBoundingClientRect();
+          if (tRect.width > 0 && tRect.height > 0) {
+            const borderW = parseFloat(computed.borderTopWidth) || 0;
+            const shadow = parseBoxShadow(computed.boxShadow);
+            elements.push({
+              type: 'shape',
+              text: '',
+              position: {
+                x: pxToInch(tRect.left),
+                y: pxToInch(tRect.top),
+                w: pxToInch(tRect.width),
+                h: pxToInch(tRect.height)
+              },
+              shape: {
+                fill: hasBg ? rgbToHex(computed.backgroundColor) : null,
+                transparency: hasBg ? extractAlpha(computed.backgroundColor) : null,
+                line: hasBorder && borderW > 0 ? {
+                  color: rgbToHex(computed.borderTopColor),
+                  width: borderW * PT_PER_PX
+                } : null,
+                rectRadius: (() => {
+                  const r = parseFloat(computed.borderRadius);
+                  if (r === 0) return 0;
+                  if (computed.borderRadius.includes('%')) {
+                    return r >= 50 ? 1 : (r / 100) * pxToInch(Math.min(tRect.width, tRect.height));
+                  }
+                  return r / PX_PER_IN;
+                })(),
+                shadow: shadow
+              }
+            });
+          }
+          // Don't return - let the text element be processed below
         }
       }
 
@@ -761,6 +803,96 @@ async function extractSlideData(page) {
             h: pxToInch(rect.height)
           });
         }
+        processed.add(el);
+        return;
+      }
+
+      // Extract tables
+      if (el.tagName === 'TABLE') {
+        const rect = el.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+
+        const rows = [];
+        const colWidths = [];
+        const trs = Array.from(el.querySelectorAll('tr'));
+
+        trs.forEach((tr, rowIdx) => {
+          const cells = Array.from(tr.querySelectorAll(':scope > td, :scope > th'));
+          const rowData = [];
+
+          cells.forEach((cell) => {
+            const cellComputed = window.getComputedStyle(cell);
+            const cellRect = cell.getBoundingClientRect();
+            const isHeader = cell.tagName === 'TH' || !!tr.closest('thead');
+
+            if (rowIdx === 0) {
+              colWidths.push(pxToInch(cellRect.width));
+            }
+
+            const hasCellFormatting = cell.querySelector('b, i, u, strong, em, span, br');
+            let text;
+            if (hasCellFormatting) {
+              text = parseInlineFormatting(cell, {});
+              if (text.length === 0) text = cell.textContent.trim();
+            } else {
+              text = cell.textContent.trim();
+            }
+
+            const cellBg = cellComputed.backgroundColor;
+            const cellFill = (cellBg && cellBg !== 'rgba(0, 0, 0, 0)') ? rgbToHex(cellBg) : null;
+
+            const cellData = {
+              text: text,
+              options: {
+                bold: isHeader || cellComputed.fontWeight === 'bold' || parseInt(cellComputed.fontWeight) >= 600,
+                fontSize: pxToPoints(cellComputed.fontSize),
+                fontFace: cellComputed.fontFamily.split(',')[0].replace(/['"]/g, '').trim(),
+                color: rgbToHex(cellComputed.color),
+                align: cellComputed.textAlign === 'start' ? 'left' : cellComputed.textAlign,
+                valign: 'middle',
+              }
+            };
+            if (cellFill) cellData.options.fill = { color: cellFill };
+
+            const colspan = cell.getAttribute('colspan');
+            const rowspan = cell.getAttribute('rowspan');
+            if (colspan && parseInt(colspan) > 1) cellData.options.colspan = parseInt(colspan);
+            if (rowspan && parseInt(rowspan) > 1) cellData.options.rowspan = parseInt(rowspan);
+
+            rowData.push(cellData);
+          });
+
+          rows.push(rowData);
+        });
+
+        // Detect border from table or first cell
+        const tableComputed = window.getComputedStyle(el);
+        let borderPt = 0.5;
+        let borderHex = 'CCCCCC';
+        const firstCell = el.querySelector('td, th');
+        if (firstCell) {
+          const fcStyle = window.getComputedStyle(firstCell);
+          const bw = parseFloat(fcStyle.borderTopWidth) || 0;
+          if (bw > 0) {
+            borderPt = bw * PT_PER_PX;
+            borderHex = rgbToHex(fcStyle.borderTopColor);
+          }
+        }
+
+        elements.push({
+          type: 'table',
+          rows: rows,
+          colWidths: colWidths,
+          position: {
+            x: pxToInch(rect.left),
+            y: pxToInch(rect.top),
+            w: pxToInch(rect.width),
+            h: pxToInch(rect.height)
+          },
+          border: { pt: borderPt, color: borderHex }
+        });
+
+        el.querySelectorAll('*').forEach(child => processed.add(child));
         processed.add(el);
         return;
       }
@@ -790,26 +922,107 @@ async function extractSlideData(page) {
         const computed = window.getComputedStyle(el);
         const hasBg = computed.backgroundColor && computed.backgroundColor !== 'rgba(0, 0, 0, 0)';
 
-        // Validate: Check for unwrapped text content in DIV
-        for (const node of el.childNodes) {
-          if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.textContent.trim();
-            if (text) {
-              errors.push(
-                `DIV element contains unwrapped text "${text.substring(0, 50)}${text.length > 50 ? '...' : ''}". ` +
-                'All text must be wrapped in <p>, <h1>-<h6>, <ul>, or <ol> tags to appear in PowerPoint.'
-              );
+        // Handle unwrapped text content in DIV — extract as text element instead of erroring
+        const divText = el.textContent.trim();
+        const hasChildTextTags = el.querySelector('p, h1, h2, h3, h4, h5, h6, ul, ol, table, img');
+        if (divText && !hasChildTextTags) {
+          // This div contains only direct text (no proper text tags inside)
+          // Emit it as a text element using the div's position/style
+          const dRect = el.getBoundingClientRect();
+          if (dRect.width > 0 && dRect.height > 0) {
+            const dComputed = window.getComputedStyle(el);
+            const dHasBg = dComputed.backgroundColor && dComputed.backgroundColor !== 'rgba(0, 0, 0, 0)';
+
+            // If div has background, emit a backing shape first
+            if (dHasBg) {
+              const shadow = parseBoxShadow(dComputed.boxShadow);
+              const borderW = parseFloat(dComputed.borderTopWidth) || 0;
+              elements.push({
+                type: 'shape',
+                text: '',
+                position: {
+                  x: pxToInch(dRect.left),
+                  y: pxToInch(dRect.top),
+                  w: pxToInch(dRect.width),
+                  h: pxToInch(dRect.height)
+                },
+                shape: {
+                  fill: rgbToHex(dComputed.backgroundColor),
+                  transparency: extractAlpha(dComputed.backgroundColor),
+                  line: borderW > 0 ? { color: rgbToHex(dComputed.borderTopColor), width: borderW * PT_PER_PX } : null,
+                  rectRadius: (() => {
+                    const r = parseFloat(dComputed.borderRadius);
+                    if (r === 0) return 0;
+                    return r / PX_PER_IN;
+                  })(),
+                  shadow: shadow
+                }
+              });
             }
+
+            const hasFormatting = el.querySelector('b, i, u, strong, em, span, br');
+            let textContent;
+            if (hasFormatting) {
+              textContent = parseInlineFormatting(el, {});
+              if (textContent.length === 0) textContent = divText;
+            } else {
+              textContent = divText;
+            }
+
+            const isBold = dComputed.fontWeight === 'bold' || parseInt(dComputed.fontWeight) >= 600;
+            elements.push({
+              type: 'p',
+              text: textContent,
+              position: {
+                x: pxToInch(dRect.left),
+                y: pxToInch(dRect.top),
+                w: pxToInch(dRect.width),
+                h: pxToInch(dRect.height)
+              },
+              style: {
+                fontSize: pxToPoints(dComputed.fontSize),
+                fontFace: dComputed.fontFamily.split(',')[0].replace(/['"]/g, '').trim(),
+                color: rgbToHex(dComputed.color),
+                align: dComputed.textAlign === 'start' ? 'left' : dComputed.textAlign,
+                lineSpacing: dComputed.lineHeight && dComputed.lineHeight !== 'normal' ? pxToPoints(dComputed.lineHeight) : null,
+                bold: isBold && !shouldSkipBold(dComputed.fontFamily),
+                italic: dComputed.fontStyle === 'italic',
+                underline: dComputed.textDecoration && dComputed.textDecoration.includes('underline'),
+                paraSpaceBefore: 0,
+                paraSpaceAfter: 0,
+                margin: [
+                  pxToPoints(dComputed.paddingLeft),
+                  pxToPoints(dComputed.paddingRight),
+                  pxToPoints(dComputed.paddingBottom),
+                  pxToPoints(dComputed.paddingTop)
+                ]
+              }
+            });
+
+            processed.add(el);
+            return;
           }
         }
 
-        // Check for background images on shapes
+        // Handle background images on shapes via rasterization
         const bgImage = computed.backgroundImage;
         if (bgImage && bgImage !== 'none') {
-          errors.push(
-            'Background images on DIV elements are not supported. ' +
-            'Use solid colors or borders for shapes, or use slide.addImage() in PptxGenJS to layer images.'
-          );
+          const dRect = el.getBoundingClientRect();
+          if (dRect.width > 0 && dRect.height > 0) {
+            elements.push({
+              type: 'rasterize',
+              clipPx: { x: dRect.left, y: dRect.top, width: dRect.width, height: dRect.height },
+              position: {
+                x: pxToInch(dRect.left),
+                y: pxToInch(dRect.top),
+                w: pxToInch(dRect.width),
+                h: pxToInch(dRect.height)
+              }
+            });
+          }
+          // Mark children as processed so they don't duplicate
+          el.querySelectorAll('*').forEach(child => processed.add(child));
+          processed.add(el);
           return;
         }
 
@@ -1080,7 +1293,7 @@ async function extractSlideData(page) {
       processed.add(el);
     });
 
-    return { background, elements, placeholders, errors };
+    return { background, elements, placeholders, errors, needsBgRasterize };
   });
 }
 
@@ -1118,6 +1331,40 @@ async function html2pptx(htmlFile, pres, options = {}) {
       });
 
       slideData = await extractSlideData(page);
+
+      // Rasterization pass: screenshot elements that can't be converted to PPTX primitives
+      // (gradient backgrounds, divs with background-image, etc.)
+      if (slideData.needsBgRasterize) {
+        try {
+          const bgPng = await page.screenshot({ type: 'png', fullPage: true });
+          const base64 = Buffer.from(bgPng).toString('base64');
+          slideData.background = { type: 'rasterizedImage', data: `image/png;base64,${base64}` };
+        } catch (_) {
+          // Fall back to color if screenshot fails
+        }
+      }
+
+      for (const el of slideData.elements) {
+        if (el.type === 'rasterize' && el.clipPx) {
+          try {
+            const clip = {
+              x: Math.round(el.clipPx.x),
+              y: Math.round(el.clipPx.y),
+              width: Math.round(el.clipPx.width),
+              height: Math.round(el.clipPx.height)
+            };
+            const pngBuf = await page.screenshot({ type: 'png', clip });
+            el.type = 'image';
+            el.src = `data:image/png;base64,${Buffer.from(pngBuf).toString('base64')}`;
+            delete el.clipPx;
+          } catch (err) {
+            console.warn(`[html2pptx] Rasterize failed for clip ${JSON.stringify(el.clipPx)}: ${err.message}`);
+            el.type = '_skip';
+          }
+        }
+      }
+      // Remove failed rasterizations
+      slideData.elements = slideData.elements.filter(el => el.type !== '_skip');
     } finally {
       await browser.close();
     }
