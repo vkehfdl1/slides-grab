@@ -11,7 +11,7 @@ import {
 
 import { SLIDE_PX, SCREENSHOT_SCALE } from '../../../src/slide-dimensions.js';
 import { broadcastSSE } from '../sse.js';
-import { listSlideFiles, getScreenshotBrowser, withScreenshotPage } from '../helpers.js';
+import { listSlideFiles, getScreenshotBrowser, withScreenshotPage, getDeckLabel } from '../helpers.js';
 
 /**
  * PDF export and Figma export routes + WebSocket setup.
@@ -73,8 +73,9 @@ export function createPdfFigmaRouter(ctx) {
       try {
         const { browser } = await getScreenshotBrowser(ctx);
         const pdfBuffer = await renderSlideToPdfBuffer(browser, slideFile);
+        const deckLabel = getDeckLabel(opts, ctx.getSlidesDir());
         res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename="${slideFile.replace(/\.html$/i, '.pdf')}"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${deckLabel}.pdf"`);
         return res.send(Buffer.from(pdfBuffer));
       } catch (err) { return res.status(500).json({ error: err.message }); }
     }
@@ -120,8 +121,9 @@ export function createPdfFigmaRouter(ctx) {
   router.get('/api/pdf-export/:exportId/download.pdf', (req, res) => {
     const pdfBuffer = pdfExportFiles.get(req.params.exportId);
     if (!pdfBuffer) return res.status(404).json({ error: 'PDF not found or expired.' });
+    const deckLabel = getDeckLabel(opts, ctx.getSlidesDir());
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', 'attachment; filename="slides.pdf"');
+    res.setHeader('Content-Disposition', `attachment; filename="${deckLabel}.pdf"`);
     res.send(pdfBuffer);
   });
 

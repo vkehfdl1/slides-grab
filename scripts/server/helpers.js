@@ -19,6 +19,10 @@ export { spawnCodexEdit, spawnClaudeEdit } from './spawn.js';
 
 // ── Path utilities ──────────────────────────────────────────────────
 
+export function getDeckLabel(opts, slidesDirectory, fallback = 'slides') {
+  return opts.deckName || (slidesDirectory ? basename(slidesDirectory) : '') || fallback;
+}
+
 export function toPosixPath(inputPath) {
   return inputPath.split(sep).join('/');
 }

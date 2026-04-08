@@ -35,6 +35,7 @@ export const state = {
   selectedModel: DEFAULT_MODELS[0],
   toolMode: TOOL_MODE_DRAW,
   hoveredObjectXPath: '',
+  deckName: '',
 };
 
 export const creationState = {

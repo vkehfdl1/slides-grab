@@ -1,5 +1,7 @@
 // editor-pptx-export.js — PPTX export modal logic
 
+import { state } from './editor-state.js';
+
 const modal = document.querySelector('#pptx-export-modal');
 const progressDiv = document.querySelector('#pptx-export-progress');
 const progressFill = document.querySelector('#pptx-export-progress-fill');
@@ -27,6 +29,7 @@ export function closePptxExportModal() {
   if (!modal) return;
   modal.hidden = true;
   resetProgress();
+  document.getElementById('export-dropdown')?.classList.remove('open');
 }
 
 async function startPptxExport() {
@@ -40,7 +43,9 @@ async function startPptxExport() {
     const res = await fetch('/api/pptx-export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
+      body: JSON.stringify({
+        mode: document.querySelector('input[name="pptx-export-mode"]:checked')?.value || 'image',
+      }),
     });
 
     if (!res.ok) {
@@ -73,17 +78,18 @@ export function onPptxExportFinished(data) {
 
     const a = document.createElement('a');
     a.href = data.downloadUrl;
-    a.download = 'slides.pptx';
+    a.download = `${state.deckName || 'slides'}.pptx`;
     document.body.appendChild(a);
     a.click();
     a.remove();
 
     if (progressText) progressText.textContent = data.message || 'PPTX export complete.';
+    setTimeout(closePptxExportModal, 1500);
   } else {
     if (progressText) progressText.textContent = data.message || 'PPTX export failed.';
+    if (btnStart) btnStart.disabled = false;
   }
 
-  if (btnStart) btnStart.disabled = false;
   activeExportId = null;
 }
 

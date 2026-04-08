@@ -1,6 +1,7 @@
 // editor-svg-export.js — SVG/PNG export modal logic
 
 import { currentSlideFile } from './editor-utils.js';
+import { state } from './editor-state.js';
 
 const modal = document.querySelector('#svg-export-modal');
 const presetSelect = document.querySelector('#svg-export-preset');
@@ -79,6 +80,7 @@ export function openExportModal() {
 export function closeExportModal() {
   modal.hidden = true;
   resetProgress();
+  document.getElementById('export-dropdown')?.classList.remove('open');
 }
 
 function triggerDownload(blob, filename) {
@@ -117,14 +119,14 @@ export async function startExport() {
 
       const disposition = res.headers.get('Content-Disposition') || '';
       const filenameMatch = disposition.match(/filename="(.+?)"/);
-      const filename = filenameMatch ? filenameMatch[1] : `slide.${params.format}`;
+      const filename = filenameMatch ? filenameMatch[1] : `${state.deckName || 'slide'}.${params.format}`;
 
       const blob = await res.blob();
       triggerDownload(blob, filename);
 
       progressFill.style.width = '100%';
       progressText.textContent = `Downloaded: ${filename}`;
-      btnStart.disabled = false;
+      setTimeout(closeExportModal, 1500);
     } else {
       // scope === 'all'
       progressDiv.classList.add('active');
@@ -174,7 +176,7 @@ export async function onSvgExportFinished(data) {
       progressText.textContent = `Downloading ZIP (${data.files.length} files)...`;
       const a = document.createElement('a');
       a.href = data.zipUrl;
-      a.download = 'slides-export.zip';
+      a.download = `${state.deckName || 'slides'}-export.zip`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -196,12 +198,13 @@ export async function onSvgExportFinished(data) {
     }
 
     progressText.textContent = data.message || 'Export complete.';
+    setTimeout(closeExportModal, 1500);
   } else {
     progressText.textContent = data.message || 'Export failed.';
     console.error('[svg-export] Export failed:', data.message);
+    btnStart.disabled = false;
   }
 
-  btnStart.disabled = false;
   activeExportId = null;
 }
 

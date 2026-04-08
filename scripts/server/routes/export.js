@@ -13,7 +13,7 @@ import {
 
 import { SLIDE_PX } from '../../../src/slide-dimensions.js';
 import { broadcastSSE } from '../sse.js';
-import { listSlideFiles, withScreenshotPage } from '../helpers.js';
+import { listSlideFiles, withScreenshotPage, getDeckLabel } from '../helpers.js';
 
 /**
  * SVG/PNG export routes.
@@ -159,8 +159,9 @@ export function createExportRouter(ctx) {
       return res.status(404).json({ error: 'Export not found or expired.' });
     }
     console.log(`[svg-export] Sending ZIP: ${zipBuffer.length} bytes`);
+    const deckLabel = getDeckLabel(opts, ctx.getSlidesDir());
     res.setHeader('Content-Type', 'application/zip');
-    res.setHeader('Content-Disposition', 'attachment; filename="slides-export.zip"');
+    res.setHeader('Content-Disposition', `attachment; filename="${deckLabel}-export.zip"`);
     res.send(zipBuffer);
   });
 
