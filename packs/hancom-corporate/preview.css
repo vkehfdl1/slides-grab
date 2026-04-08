@@ -1,0 +1,63 @@
+/* Hancom Corporate — white bg, orange accent line, dark gray block */
+.preview-hancom-corporate {
+  background: #FFFFFF;
+}
+
+/* Bold black title bar — top-left */
+.preview-hancom-corporate .el-1 {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 100px;
+  height: 12px;
+  background: #000000;
+  border-radius: 2px;
+}
+
+/* Orange accent line — full width under title */
+.preview-hancom-corporate .el-2 {
+  position: absolute;
+  top: 44px;
+  left: 24px;
+  width: 186px;
+  height: 3px;
+  background: #FC5D19;
+  border-radius: 1px;
+}
+
+/* Light gray card area */
+.preview-hancom-corporate .el-3 {
+  position: absolute;
+  bottom: 20px;
+  left: 24px;
+  width: 120px;
+  height: 56px;
+  background: #F7F7F7;
+  border-radius: 6px;
+  border: 1px solid #D9D9D9;
+}
+
+/* Second card */
+.preview-hancom-corporate .el-3::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 132px;
+  width: 52px;
+  height: 56px;
+  background: #F7F7F7;
+  border-radius: 6px;
+  border: 1px solid #D9D9D9;
+}
+
+/* Dark gray bottom block accent (cover reference) */
+.preview-hancom-corporate .el-3::after {
+  content: '';
+  position: absolute;
+  top: -28px;
+  right: -70px;
+  width: 16px;
+  height: 88px;
+  background: #FC5D19;
+  border-radius: 0;
+}

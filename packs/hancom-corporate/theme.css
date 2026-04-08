@@ -1,0 +1,28 @@
+:root {
+  /* === Background === */
+  --bg-primary: #FFFFFF;      /* 메인 슬라이드 배경 — 깨끗한 흰색 */
+  --bg-secondary: #F7F7F7;    /* 카드, 섹션 배경 — 밝은 회색 */
+  --bg-elevated: #FFFFFF;     /* 카드 표면 (보더로 구분) */
+
+  /* === Text === */
+  --text-primary: #000000;    /* 제목, 헤딩 — 진한 검정 */
+  --text-secondary: #434343;  /* 본문, 부제목 — 다크 그레이 */
+
+  /* === Accent === */
+  --accent: #FC5D19;          /* 한컴 주황 — 구분선, 강조 */
+
+  /* === Border === */
+  --border: #D9D9D9;          /* 카드 보더, 구분선 */
+
+  /* === Font === */
+  --font-sans: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* === Typography scale === */
+  --title-hero: 56pt;
+  --title-section: 40pt;
+  --title-slide: 30pt;
+  --text-subtitle: 20pt;
+  --text-body: 15pt;
+  --text-caption: 11pt;
+  --text-label: 10pt;
+}

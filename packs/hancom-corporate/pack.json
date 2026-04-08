@@ -1,0 +1,8 @@
+{
+  "name": "한컴 기업",
+  "mood": ["corporate", "professional", "bold", "structured"],
+  "bestFor": "기업 제안서, 서비스 소개, 내부 보고",
+  "order": 37,
+  "description": "한컴 스타일 주황 액센트의 기업용 프레젠테이션",
+  "tags": ["기업", "비즈니스", "주황", "한컴"]
+}
