@@ -7,6 +7,7 @@ import {
   normalizeSelection,
   isClaudeModel,
 } from '../../src/editor/codex-edit.js';
+import { normalizePackId } from '../../src/resolve.js';
 
 import { backupDeck } from '../../src/retheme.js';
 import { broadcastSSE } from './sse.js';
@@ -17,13 +18,39 @@ const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;
 
 export { appendOutlinePrompt, parseOutline } from './outline.js';
 
-import { spawnClaudeEdit, spawnCodexEdit, spawnOpenAIEdit } from './spawn.js';
+/**
+ * Ensure outline markdown has the correct pack line.
+ * Replaces existing pack line or inserts one after deck-name/slide-count anchor.
+ */
+export function syncPackInOutline(content, packId) {
+  const id = normalizePackId(packId);
+  if (!id || id === 'auto') return content;
+
+  const packMatch = content.match(/^-\s*pack:\s*(.+)/im);
+  if (packMatch) {
+    return normalizePackId(packMatch[1]) !== id
+      ? content.replace(/^(-\s*pack:\s*).+/im, `$1${id}`)
+      : content;
+  }
+
+  const anchor = content.match(/^-\s*(slide-count|deck-name):\s*.+$/im);
+  if (anchor) {
+    const idx = content.indexOf(anchor[0]) + anchor[0].length;
+    return content.slice(0, idx) + `\n- pack: ${id}` + content.slice(idx);
+  }
+  return content;
+}
+
+import { spawnClaudeEdit, spawnCodexEdit, spawnOpenAIEdit, inlineTemplateRefs, inlineThemeRefs } from './spawn.js';
 export { spawnClaudeEdit, spawnCodexEdit, spawnOpenAIEdit };
 
 export function spawnAIEdit(params) {
   const backend = isClaudeModel(params.model) ? 'Claude' : 'OpenAI API';
   console.log(`[AI] Using ${backend} — model: ${params.model}`);
-  return isClaudeModel(params.model) ? spawnClaudeEdit(params) : spawnOpenAIEdit(params);
+  // Inline template/theme CLI refs into actual content so AI doesn't need tool calls
+  const inlinedPrompt = inlineThemeRefs(inlineTemplateRefs(params.prompt));
+  const inlinedParams = { ...params, prompt: inlinedPrompt };
+  return isClaudeModel(params.model) ? spawnClaudeEdit(inlinedParams) : spawnOpenAIEdit(inlinedParams);
 }
 
 // ── Path utilities ──────────────────────────────────────────────────

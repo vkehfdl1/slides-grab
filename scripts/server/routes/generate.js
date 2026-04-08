@@ -1,11 +1,13 @@
 import { readdir, readFile, mkdir, rename, stat } from 'node:fs/promises';
 import { basename, dirname, join, resolve, relative } from 'node:path';
 
-import { CLAUDE_MODELS, CODEX_MODELS } from '../../../src/editor/codex-edit.js';
+import { CLAUDE_MODELS, CODEX_MODELS, isClaudeModel } from '../../../src/editor/codex-edit.js';
 import { listPackTemplates, normalizePackId } from '../../../src/resolve.js';
 
 import { broadcastSSE } from '../sse.js';
-import { randomRunId, toPosixPath, listSlideFiles, spawnAIEdit, setupFileWatcher, backupSlides, uniqueDeckName, listExistingDeckNames } from '../helpers.js';
+import { randomRunId, toPosixPath, listSlideFiles, spawnAIEdit, setupFileWatcher, backupSlides, uniqueDeckName, listExistingDeckNames, syncPackInOutline } from '../helpers.js';
+import { parseOutline } from '../outline.js';
+import { parallelGenerate } from '../parallel-generate.js';
 
 const ALL_MODELS = [...CLAUDE_MODELS, ...CODEX_MODELS];
 
@@ -84,27 +86,44 @@ export function createGenerateRouter(ctx) {
     (async () => {
       try {
         const slidesDir = resolvedDeckPath;
-        let fullPrompt;
+        let result;
 
-        if (fromOutline && slidesDirectory) {
-          fullPrompt = await buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPackId, runId);
+        const onLog = (stream, chunk) => {
+          ctx.generateRunStore.appendLog(runId, chunk);
+          broadcastSSE(ctx.sseClients, 'generateLog', { runId, stream, chunk });
+        };
+
+        // Parallel path: fromOutline + Claude + 4+ slides
+        if (fromOutline && slidesDirectory && isClaudeModel(selectedModel)) {
+          const { outlineContent, genPackId } = await prepareOutlineContext(ctx, slidesDirectory, slidesDir, reqGenPackId, runId);
+          const outline = parseOutline(outlineContent, basename(slidesDirectory));
+
+          if (outline.slides.length > 3) {
+            broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step: `Building ${outline.slides.length} slides in parallel` });
+
+            result = await parallelGenerate({
+              outline, outlineContent, genPackId, slidesDir,
+              model: selectedModel, cwd: process.cwd(),
+              onBatchProgress: (_idx, _total, step) => {
+                broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step });
+              },
+              onBatchLog: (_idx, stream, chunk) => onLog(stream, chunk),
+            });
+          } else {
+            const fullPrompt = buildFromOutlinePromptFull(outlineContent, genPackId, slidesDir);
+            broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step: 'Building slides with AI' });
+            result = await spawnAIEdit({ prompt: fullPrompt, imagePath: null, model: selectedModel, cwd: process.cwd(), onLog });
+          }
+        } else if (fromOutline && slidesDirectory) {
+          const fullPrompt = await buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPackId, runId);
+          broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step: 'Building slides with AI' });
+          result = await spawnAIEdit({ prompt: fullPrompt, imagePath: null, model: selectedModel, cwd: process.cwd(), onLog });
         } else {
           const existingNames = slidesDir ? [] : await listExistingDeckNames();
-          fullPrompt = buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId, existingNames);
+          const fullPrompt = buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId, existingNames);
+          broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step: 'Building slides with AI' });
+          result = await spawnAIEdit({ prompt: fullPrompt, imagePath: null, model: selectedModel, cwd: process.cwd(), onLog });
         }
-
-        broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step: 'Building slides with AI' });
-
-        const result = await spawnAIEdit({
-          prompt: fullPrompt,
-          imagePath: null,
-          model: selectedModel,
-          cwd: process.cwd(),
-          onLog: (stream, chunk) => {
-            ctx.generateRunStore.appendLog(runId, chunk);
-            broadcastSSE(ctx.sseClients, 'generateLog', { runId, stream, chunk });
-          },
-        });
 
         const success = result.code === 0;
 
@@ -192,7 +211,11 @@ export function createGenerateRouter(ctx) {
 
 // ── Prompt builders ─────────────────────────────────────────────────
 
-async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPackId, runId) {
+/**
+ * Shared: read outline, resolve pack, backup slides.
+ * Returns { outlineContent, genPackId } for both parallel and single-process paths.
+ */
+async function prepareOutlineContext(ctx, slidesDirectory, slidesDir, reqGenPackId, runId) {
   const backupPath = await backupSlides(slidesDirectory);
   if (backupPath) {
     broadcastSSE(ctx.sseClients, 'progress', { runId, phase: 'generate', step: 'Backed up existing slides' });
@@ -213,9 +236,18 @@ async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPac
   }
 
   const outlinePackMatch = outlineContent.match(/^-\s*pack:\s*(.+)/im);
-  const genPackId = normalizePackId(reqGenPackId) || normalizePackId(outlinePackMatch?.[1]);
-  const packTemplateList = genPackId ? listPackTemplates(genPackId, { includeFallback: true }) : [];
+  const requestPack = normalizePackId(reqGenPackId);
+  const outlinePack = normalizePackId(outlinePackMatch?.[1]);
+  const genPackId = (requestPack && requestPack !== 'auto') ? requestPack : outlinePack || requestPack;
 
+  return { outlineContent: syncPackInOutline(outlineContent, genPackId), genPackId };
+}
+
+/**
+ * Build full single-process prompt from outline context.
+ */
+function buildFromOutlinePromptFull(outlineContent, genPackId, slidesDir) {
+  const packTemplateList = genPackId && genPackId !== 'auto' ? listPackTemplates(genPackId, { includeFallback: true }) : [];
   const promptLines = [
     `작업 디렉토리: ${slidesDir}`,
     '',
@@ -227,16 +259,23 @@ async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPac
     '--- 아웃라인 끝 ---',
     '',
   ];
-
   appendPackInstructions(promptLines, genPackId, packTemplateList);
   appendSlideSteps(promptLines, genPackId, slidesDir, { includeBackupNote: true });
   return promptLines.join('\n');
 }
 
+/**
+ * Legacy: full prompt builder (for non-parallel paths that call this directly).
+ */
+async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPackId, runId) {
+  const { outlineContent, genPackId } = await prepareOutlineContext(ctx, slidesDirectory, slidesDir, reqGenPackId, runId);
+  return buildFromOutlinePromptFull(outlineContent, genPackId, slidesDir);
+}
+
 function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId, existingDeckNames = []) {
   const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim() ? slideCountRange.trim() : '';
   const genPackId = normalizePackId(reqGenPackId);
-  const packTemplateList = genPackId ? listPackTemplates(genPackId, { includeFallback: true }) : [];
+  const packTemplateList = genPackId && genPackId !== 'auto' ? listPackTemplates(genPackId, { includeFallback: true }) : [];
   const hasDeckDir = !!slidesDir;
 
   const promptLines = [`주제: ${(topic || '').trim()}`];
@@ -278,7 +317,7 @@ function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir,
     '   - 크기: 720pt x 405pt (body width/height)',
     '   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")',
     '   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용',
-    genPackId ? `   - slides-grab show-template <name> --pack ${genPackId} 으로 템플릿 확인 후 활용` : '   - slides-grab show-template <name> 으로 템플릿 확인 후 활용',
+    `   - slides-grab show-template <name>${genPackId && genPackId !== 'auto' ? ` --pack ${genPackId}` : ''} 으로 템플릿 확인 후 활용`,
     '   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다',
   );
   stepNum += 1;
@@ -290,7 +329,7 @@ function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir,
 
 // ── Shared prompt helpers ───────────────────────────────────────────
 
-function appendPackInstructions(promptLines, genPackId, packTemplateList) {
+export function appendPackInstructions(promptLines, genPackId, packTemplateList) {
   if (!genPackId) return;
 
   if (genPackId === 'auto') {
@@ -323,12 +362,14 @@ function appendPackInstructions(promptLines, genPackId, packTemplateList) {
     return;
   }
 
-  promptLines.push('', `사용할 템플릿 팩: ${genPackId}`);
-  if (packTemplateList.length > 0) promptLines.push(`이 팩의 보유 템플릿: ${packTemplateList.join(', ')}`);
+  promptLines.push('', `사용할 팩: ${genPackId}`);
+  if (packTemplateList.length > 0) promptLines.push(`사용 가능 템플릿: ${packTemplateList.join(', ')}`);
   promptLines.push('', '각 슬라이드 생성 시:');
-  promptLines.push(`- 팩에 있는 type → slides-grab show-template <type> --pack ${genPackId} 로 템플릿 기반 생성`);
-  promptLines.push(`- 팩에 없는 type → slides-grab show-theme ${genPackId} 로 색상 확인 후, 720pt×405pt 크기로 직접 HTML 디자인`);
-  promptLines.push('  (simple_light 템플릿을 복사하지 말고, 팩의 색상/분위기로 새로 만드세요)');
+  promptLines.push(`1. 먼저 팩의 디자인 사양을 읽으세요: cat packs/${genPackId}/design.md`);
+  promptLines.push(`2. slides-grab show-template <type> --pack ${genPackId} 로 템플릿 구조를 참고하세요`);
+  promptLines.push(`3. design.md의 mood, signature elements, CSS patterns를 반드시 적용하여 팩 고유 스타일로 생성하세요`);
+  promptLines.push(`4. 팩에 없는 type → slides-grab show-theme ${genPackId} 로 색상 확인 후 직접 디자인`);
+  promptLines.push('  (템플릿은 구조 참고용입니다. 반드시 design.md의 스타일을 적용하세요)');
 }
 
 function appendSlideSteps(promptLines, genPackId, slidesDir, { includeBackupNote = false } = {}) {
@@ -337,7 +378,8 @@ function appendSlideSteps(promptLines, genPackId, slidesDir, { includeBackupNote
   promptLines.push('   - 크기: 720pt x 405pt (body width/height)');
   promptLines.push('   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")');
   promptLines.push('   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용');
-  promptLines.push(genPackId ? `   - slides-grab show-template <name> --pack ${genPackId} 으로 템플릿 확인 후 활용` : '   - slides-grab show-template <name> 으로 템플릿 확인 후 활용');
+  const packArg = genPackId && genPackId !== 'auto' ? ` --pack ${genPackId}` : '';
+  promptLines.push(`   - slides-grab show-template <name>${packArg} 으로 템플릿 확인 후 활용`);
   if (includeBackupNote) promptLines.push('   - backup/ 폴더는 절대 수정하지 마세요 (이전 슬라이드 백업)');
   promptLines.push('   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다', '');
   promptLines.push('2. 승인 대기 없이 전체 슬라이드를 한번에 생성하세요.', '');

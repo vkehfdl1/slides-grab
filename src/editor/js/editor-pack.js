@@ -3,14 +3,18 @@
 import { creationState } from './editor-state.js';
 
 let packsData = [];
-let selectedPackId = 'simple_light';
+let selectedPackId = 'auto';
 let previewCssLoaded = false;
 
-/** Sort by order from pack.json, simple_light first */
+/** Sort packs: pinned order first, then by pack.json order */
+const pinnedOrder = ['hancom-corporate', 'simple_light', 'simple-dark'];
 function sortPacks(packs) {
   return [...packs].sort((a, b) => {
-    if (a.id === 'simple_light') return -1;
-    if (b.id === 'simple_light') return 1;
+    const ai = pinnedOrder.indexOf(a.id);
+    const bi = pinnedOrder.indexOf(b.id);
+    if (ai !== -1 && bi !== -1) return ai - bi;
+    if (ai !== -1) return -1;
+    if (bi !== -1) return 1;
     return (a.order || 999) - (b.order || 999);
   });
 }
@@ -140,23 +144,13 @@ function renderPackGrid() {
       <div class="pack-card-desc">주제에 가장 어울리는 템플릿을 AI가 선택</div>
     </div>
   `;
-  autoCard.addEventListener('click', () => {
-    selectedPackId = 'auto';
-    creationState.packId = 'auto';
-    updatePackSelection();
-    updateToggleText();
-  });
+  autoCard.addEventListener('click', () => setSelectedPack('auto'));
   packGrid.appendChild(autoCard);
 
   // 나머지 팩 카드
   packsData.forEach((pack, idx) => {
     const card = createPackCard(pack, idx);
-    card.addEventListener('click', () => {
-      selectedPackId = pack.id;
-      creationState.packId = pack.id;
-      updatePackSelection();
-      updateToggleText();
-    });
+    card.addEventListener('click', () => setSelectedPack(pack.id));
     packGrid.appendChild(card);
   });
 

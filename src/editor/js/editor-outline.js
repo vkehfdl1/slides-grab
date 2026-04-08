@@ -1,10 +1,12 @@
 // editor-outline.js — Outline review panel with inline-editable cards
 
-import { creationState } from './editor-state.js';
+import { state, creationState } from './editor-state.js';
 import { setStatus } from './editor-utils.js';
-import { appendCreationLog, showCreationMode, loadCreationModelOptions, showPlanLoading, updatePlanLoadingStep } from './editor-create.js';
+import { appendCreationLog, showCreationMode, hideCreationMode, loadCreationModelOptions, showPlanLoading, updatePlanLoadingStep } from './editor-create.js';
 import { btnReviewOutline } from './editor-dom.js';
 import { getSelectedPack, setSelectedPack } from './editor-pack.js';
+import { goToSlide } from './editor-navigation.js';
+import { scaleSlide } from './editor-bbox.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -24,6 +26,7 @@ const creationGenerate = $('#creation-generate');
 
 let currentOutline = null;
 let editingIndex = -1;
+let _openedFromEditor = false;
 
 // ── Public API ──
 
@@ -77,6 +80,7 @@ export function resetOutlineIndicators(result) {
 }
 
 export function showOutlinePhase(outline, { isExistingDeck = false } = {}) {
+  _openedFromEditor = isExistingDeck;
   currentOutline = outline;
   editingIndex = -1;
 
@@ -96,7 +100,7 @@ export function showOutlinePhase(outline, { isExistingDeck = false } = {}) {
   }
   if (outlineCount) {
     const packLabel = outline.pack || getSelectedPack() || '';
-    const packBadge = packLabel && packLabel !== 'simple_light'
+    const packBadge = packLabel && packLabel !== 'simple_light' && packLabel !== 'auto'
       ? ` <span class="outline-pack-badge">${packLabel}</span>`
       : '';
     outlineCount.innerHTML = `${outline.slides?.length || 0} slides${packBadge}`;
@@ -118,6 +122,7 @@ export function hideOutlinePhase() {
   if (creationHeader) creationHeader.hidden = false;
   currentOutline = null;
   editingIndex = -1;
+  _openedFromEditor = false;
 }
 
 export function getOutlineDeckName() {
@@ -413,8 +418,13 @@ function escapeHtml(str) {
 
 if (outlineBack) {
   outlineBack.addEventListener('click', () => {
+    const returnToEditor = _openedFromEditor && state.slides.length > 0;
     hideOutlinePhase();
-    if (creationGenerate) {
+    if (returnToEditor) {
+      hideCreationMode();
+      goToSlide(state.currentIndex);
+      scaleSlide();
+    } else if (creationGenerate) {
       creationGenerate.disabled = false;
       creationGenerate.style.display = '';
     }
@@ -553,6 +563,7 @@ export function onPlanFinished(payload) {
   }
 
   if (payload.success && payload.outline) {
+    if (payload.outline.pack) setSelectedPack(payload.outline.pack);
     resetOutlineIndicators('success');
     appendCreationLog(`\n[Done] Outline ready.\n`);
     showOutlinePhase(payload.outline);
@@ -579,6 +590,7 @@ export async function loadAndShowOutline() {
     const res = await fetch('/api/outline');
     if (!res.ok) { setStatus('이 덱에서 아웃라인을 찾을 수 없습니다.'); return; }
     const outline = await res.json();
+    if (outline.pack) setSelectedPack(outline.pack);
     showCreationMode();
     await loadCreationModelOptions();
     showOutlinePhase(outline, { isExistingDeck: true });

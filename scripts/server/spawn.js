@@ -212,7 +212,7 @@ function isReasoningModel(model) {
  * Replace `slides-grab show-template <type> --pack <packId>` references
  * in the prompt with the actual template HTML content.
  */
-function inlineTemplateRefs(prompt) {
+export function inlineTemplateRefs(prompt) {
   return prompt.replace(
     /slides-grab show-template (\S+)(?: --pack (\S+))?/g,
     (match, name, packId) => {
@@ -232,7 +232,7 @@ function inlineTemplateRefs(prompt) {
  * Replace `slides-grab show-theme <packId>` references
  * in the prompt with the actual theme CSS content.
  */
-function inlineThemeRefs(prompt) {
+export function inlineThemeRefs(prompt) {
   return prompt.replace(
     /slides-grab show-theme (\S+)/g,
     (match, packId) => {
@@ -281,9 +281,8 @@ export async function spawnOpenAIEdit({ prompt, model, cwd, onLog, timeout = 300
   const selectedModel = (model || 'gpt-4o').trim();
   onLog?.('stdout', `[OpenAI API] Calling ${selectedModel}...\n`);
 
-  // Pre-process prompt: inline template and theme references
-  let enhancedPrompt = inlineTemplateRefs(prompt);
-  enhancedPrompt = inlineThemeRefs(enhancedPrompt);
+  // Template/theme inlining is done in spawnAIEdit() before dispatch
+  const enhancedPrompt = prompt;
 
   try {
     const { default: OpenAI } = await import('openai');

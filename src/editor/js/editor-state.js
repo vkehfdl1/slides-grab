@@ -42,5 +42,5 @@ export const creationState = {
   active: false,
   generating: false,
   runId: null,
-  packId: 'simple_light',
+  packId: 'auto',
 };
