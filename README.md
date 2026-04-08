@@ -1,308 +1,178 @@
-`npx slides-grab browse`
----
-<h1 align="center">slides-grab</h1>
+# Slide-Grab-Studio
 
-<p align="center">Select context for agents directly from AI-generated HTML slides</p>
+**The Ultimate HTML-based Hybrid Slide Studio Maximizing Human-AI Collaboration**
 
-<p align="center">
-How? Just drag an area in the slides and ask the agent to edit it.<br>
-Simple things like text, size, or bold can still be edited manually, just like in the 2024 era.
-</p>
+Slide-Grab-Studio is a powerful, hybrid slide editor designed to work seamlessly with AI coding agents (like Claude Code). It provides the most intuitive environment to plan, generate, and edit slides. Handle simple text edits manually, and delegate complex layout changes or new element generation to the AI with a single mouse drag.
 
-<p align="center">
-The whole slides are HTML & CSS, the programming language (which is not) that outperformed by AI agents.<br>
-So the slides are beautiful, easily editable by AI agents, and can be converted to PDF or to experimental / unstable PPTX formats.
-</p>
+![Main](docs/assets/main.png)
 
-<p align="center">
-The editor is pure javascript file. You can easily add up new features like adding new coding agents, changing designs, etc.
-</p>
+## Why Slide-Grab-Studio?
 
-<p align="center">
-  <a href="https://github.com/vkehfdl1/slides-grab/releases/download/v0.0.1-demo/demo.mp4">
-    <img src="docs/assets/demo.gif" alt="slides-grab demo" width="720">
-  </a>
-</p>
+Describing specific layout changes to an AI using only text prompts is highly inefficient and error-prone. This project solves that bottleneck through a **Bbox Selection (Visual Context)** and an **Outline-First Workflow**. By providing exact visual and structural context to the AI, it eliminates the risk of touching the wrong code and drastically accelerates the presentation creation process.
 
 ---
 
-## Quick Start
+## Key Features
 
-Paste one of these into your coding agent:
+### 1. Multi-Source Import & PDF Vision Pipeline
 
-**Claude Code:**
+* **Rich Inputs:** Import content from multiple sources simultaneously — raw text, Markdown, URLs (scraped via `cheerio`), and PDFs (up to **5 files, 10 MB total** per request).
+* **PDF Vision Analysis:** Goes beyond simple text extraction. Slide-Grab-Studio renders PDF pages to PNGs (`pdfjs-dist` + `@napi-rs/canvas`) and feeds them to the AI's vision model, ensuring charts, diagrams, and complex tables are fully understood. Vision rendering is capped at **25 pages per PDF** (configurable via `SLIDES_GRAB_PDF_PAGE_LIMIT` env var).
+* **Smart Truncation:** If a document's extracted text exceeds 400 KB, it is automatically trimmed with a visible marker, preventing silent data loss.
 
-```
-Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/installation/claude.md and follow every step.
-```
+### 2. Outline-First Workflow & Smart Review
 
-**Codex:**
+* **Outline-First:** Before rendering any slides, the AI (Claude) generates a comprehensive `slide-outline.md` that preserves your original document's visual style hints (e.g., `- style: use dark background`). You review and edit this outline first, preventing wasted rendering time.
+* **Rule-Based Review System:** A built-in review engine analyzes your deck's slide count (8–12 recommended), layout diversity (chart, table, timeline, metric, split, quote, image), and structure (cover/closing slide presence) to produce a score from **0–100** (grade A–F) with actionable suggestions.
 
-```
-Read https://raw.githubusercontent.com/vkehfdl1/slides-grab/main/docs/installation/codex.md and follow every step.
-```
+### 3. Precision Bbox Selection (Modify & Create)
 
-Or clone manually:
+* **Drag-and-Drop Context:** Simply drag your mouse over any area you want to change. The editor captures the **XPath** and a **screenshot** of that bounding box, annotates it with numbered red-border overlays, and sends everything to the AI.
+* **Crystal Clear Instructions:** The AI accurately **modifies** existing elements without breaking the layout, or perfectly **creates** new structures (e.g., "draw a skill matrix here") in the empty space you selected.
+
+### 4. 38 Design Packs & 1-Click Retheme
+
+* **AI Template Recommendation:** Just type your topic, and the AI automatically recommends the most suitable design pack from the library.
+* **Extensive Library:** Comes with **38 built-in design packs** ranging from `glassmorphism` and `cyberpunk-outline` to `nordic-minimalism` and `swiss-international`.
+* **Design Spec System:** Each pack ships with a `design.md` spec (layout principles, CSS patterns, color system, typography rules). This spec is automatically injected into AI prompts during generation and retheme to enforce visual consistency.
+* **Instant Retheme:** Completely transform the mood, colors, and typography of your entire deck with a single click.
+
+### 5. Pro Workflow & Logo System
+
+* **Global Logo Overlay:** Upload your logo once. It is automatically injected into editor views, PDF exports, and PPTX exports. Supports four corner position presets (`top-right`, `top-left`, `bottom-right`, `bottom-left`) with custom width, height, and per-slide exclude lists.
+* **Deck Management (CRUD):** Manage multiple slide projects with built-in Rename, Duplicate (creates `-copy` suffix), and Delete from the deck browser. New decks are never silently overwritten — a `-2` suffix is added on name collisions.
+* **Concurrency Safety:** An `AsyncMutex` on the server prevents multiple simultaneous AI generation or import jobs from corrupting state.
+
+### 6. Multi-Format Export
+
+**PDF:**
+Export perfectly crisp, high-resolution PDFs with optional logo overlay.
+
+**PPTX (two modes — choose in the export modal):**
+
+| Mode | Output | Best For |
+|---|---|---|
+| **Image** *(default)* | Pixel-perfect screenshots embedded as images | Guaranteed visual fidelity |
+| **Structured** | DOM extraction v3 → PptxGenJS editable text, shapes, and fonts | Post-export editing in PowerPoint |
+
+The Structured mode uses a 3-tier fallback: DOM extraction → OpenAI GPT-4o vision (requires `OPENAI_API_KEY`) → screenshot embed if both fail.
+
+**SVG / PNG Batch Export:**
+Export all slides as SVG or PNG files, bundled into a single ZIP archive via Playwright + `dom-to-svg`.
+
+**Figma:**
+Connect the companion Figma plugin via WebSocket to activate the "Send to Figma" button in the editor. Once the plugin is connected, slides are transferred directly into your Figma file — the button is hidden by default until the plugin handshake is established.
+
+### 7. Built-in Slide Validation
+
+Run `slides-grab validate` before any export to catch layout and accessibility issues early:
 
 ```bash
-git clone https://github.com/vkehfdl1/slides-grab.git && cd slides-grab
-npm ci && npx playwright install chromium
+slides-grab validate --slides-dir decks/<deck-name>
 ```
 
-> Requires **Node.js >= 18**.
+The validator checks each slide against 8+ rule categories:
 
-### No-clone install
+| Category | Examples |
+|---|---|
+| **Frame overflow** | Elements outside the 720pt × 405pt boundary |
+| **Text clipping** | Text taller than its container |
+| **Layout** | Sibling element overlaps |
+| **Contrast** | Text contrast ratio below WCAG thresholds (3:1 large / 4.5:1 normal) |
+| **Assets** | Missing local image files, insecure HTTP image URLs |
+| **Accessibility** | Missing `alt` text on images |
+
+Six issue types are **export-blocking** and will prevent `convert` / `pptx` from proceeding until resolved.
+
+---
+
+## CLI Reference
 
 ```bash
-npm install slides-grab
+# Core workflow
+slides-grab edit   [--port] [--slides-dir]       # Open interactive editor
+slides-grab create [--port] [--deck-name]         # Create a new deck
+slides-grab import <source> [options]             # Import doc + auto-create deck
+slides-grab browse [--port]                       # Deck browser UI
+
+# Export
+slides-grab validate --slides-dir <path>          # Validate before export (run this first)
+slides-grab pdf     --slides-dir <path> [--output]
+slides-grab convert --slides-dir <path> [--output]  # PPTX (image mode)
+slides-grab svg     --slides-dir <path> [--output]
+
+# Pack utilities
+slides-grab list-packs
+slides-grab show-pack <pack-id>
+slides-grab show-template <name> --pack <pack-id>
+slides-grab show-theme <pack-id>
+
+# Design tools
+slides-grab retheme --deck <name> --pack <id>    # Non-interactive retheme
+slides-grab split   --input <file>               # Split combined HTML to individual slides
+
+# Logo management
+slides-grab logo set    --slides-dir <path> --image <path> \
+                        [--position top-right|top-left|bottom-right|bottom-left] \
+                        [--width <in>] [--height <in>] [--exclude <slide-nums>]
+slides-grab logo show   --slides-dir <path>
+slides-grab logo remove --slides-dir <path>
+```
+
+---
+
+## Installation & Setup
+
+### Prerequisites
+
+* Node.js v18 or higher
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YooSuhwa/slides-grab.git
+cd slides-grab
+
+# Install dependencies
+npm install
+
+# Install Playwright browsers (required for export, validation, and rendering)
 npx playwright install chromium
-npx skills add ./node_modules/slides-grab -g -a codex -a claude-code --yes --copy
+
+# Start the local development server
+npm run dev
 ```
 
-## Why This Project?
+### Environment Variables
 
-There are many AI tools that generate slide HTML. Almost none let you **visually point at what you want changed** and iterate in-place. slides-grab fills that gap:
-
-- **Plan** — Agent creates a structured slide outline from your topic/files
-- **Design** — Agent generates each slide as a self-contained HTML file
-- **Edit** — Browser-based editor with bbox selection, direct text editing, and agent-powered rewrites
-- **Export** — One command to PDF, plus experimental / unstable PPTX and SVG
-
-## CLI Commands
-
-Most export/edit commands support `--slides-dir <path>` (default: `slides`). Deck-management commands use `--deck <name>` instead.
-
-On a fresh clone, only `--help`, `list-templates`, `list-themes`, and `list-packs` work without a deck. `edit`, `build-viewer`, `validate`, `convert`, and `pdf` require an existing slides workspace containing `slide-*.html`.
-
-**Creation & Editing:**
+Create a `.env` file in the project root:
 
 ```bash
-slides-grab create              # Start creation mode — generate a new deck from scratch
-slides-grab edit                # Launch visual slide editor
-slides-grab browse              # Open deck browser to view and manage all decks
-slides-grab import <source>     # Import markdown, PDF, or URL into a presentation
+# Required — used for all AI generation (outline, slides, retheme, bbox edit)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Optional — required only for PPTX Structured mode AI fallback
+OPENAI_API_KEY=sk-...
+
+# Optional — limit PDF vision rendering (default: 25 pages)
+SLIDES_GRAB_PDF_PAGE_LIMIT=10
 ```
 
-**Export:**
+---
 
-```bash
-slides-grab pdf                 # Export to PDF
-slides-grab convert             # Export to experimental / unstable PPTX
-slides-grab svg                 # Export to SVG (or PNG with --format png)
-slides-grab build-viewer        # Build single-file viewer.html
-```
+## How to Use
 
-**Analysis & Transformation:**
+1. **Import:** Feed your data (URL, PDF, text, or up to 5 mixed files) and let the AI recommend a template.
+2. **Review Outline:** Check the AI-generated `slide-outline.md` and make manual adjustments if necessary.
+3. **Validate:** Run `slides-grab validate` to catch overflow, contrast, or missing-asset issues before committing to export.
+4. **Manual Edit:** Click directly on rendered text for quick typo fixes.
+5. **AI Edit:** Use the **Bbox Selection** tool to drag over an area and ask the AI to redesign the layout or insert new elements.
+6. **Retheme:** Hit the Retheme button in the navbar to apply a new design pack across the entire deck.
+7. **Export:** Export as Image PPTX (pixel-perfect), Structured PPTX (editable), PDF, or SVG/PNG batch.
 
-```bash
-slides-grab review --deck <name>                     # Analyze deck quality & generate report
-slides-grab retheme --deck <name> --pack <id>        # Redesign deck with a different pack
-slides-grab split --input <file>                     # Split multi-slide HTML into individual files
-slides-grab validate                                 # Validate slide HTML (Playwright-based)
-```
+---
 
-**Template Packs:**
+## Acknowledgments
 
-```bash
-slides-grab list-packs                               # List all 37+ packs with colors & template counts
-slides-grab show-pack <id>                           # Show pack details and templates
-slides-grab show-template <name> --pack <id>         # View a template from a specific pack
-slides-grab show-theme <id>                          # Show pack's theme.css
-slides-grab pack init <name>                         # Scaffold a new custom pack
-slides-grab pack list                                # Alias for list-packs
-```
-
-**Logo & Utilities:**
-
-```bash
-slides-grab logo set --slides-dir <path> --image <path>   # Set deck logo overlay
-slides-grab logo show --slides-dir <path>                  # Show current logo config
-slides-grab logo remove --slides-dir <path>                # Remove logo config
-slides-grab list-templates                                 # Show available slide templates
-slides-grab list-themes                                    # Show available color themes
-slides-grab install-codex-skills                           # Install Codex skills to ~/.codex/skills
-```
-
-### Create Mode
-
-Generate a full presentation from a topic, without writing any HTML yourself.
-
-```bash
-slides-grab create                                # Interactive — enter topic in browser
-slides-grab create --deck-name my-deck            # Pre-set the deck folder name
-slides-grab create --deck-name my-deck --port 4000  # Use a custom port
-```
-
-**Workflow:**
-
-1. Run `slides-grab create` — the editor opens in **creation mode**
-2. Enter your **topic** and optional requirements, pick a slide count and model
-3. AI generates an **outline** — review it in editable cards
-4. **Revise** individual slides or the whole outline with feedback, or **Approve & Generate**
-5. Once generated, the editor switches to normal edit mode with your new slides
-
-### Import
-
-Convert an existing document (markdown, PDF, or URL) into a presentation:
-
-```bash
-slides-grab import docs/content.md --deck-name my-deck
-slides-grab import report.pdf --deck-name from-pdf
-slides-grab import https://example.com/article --deck-name from-web
-slides-grab import docs/content.md --slide-count "25~30"
-```
-
-Options: `--deck-name`, `--slide-count`, `--pack`, `--port`.
-
-### Deck Browser
-
-View, rename, duplicate, and delete all your decks in a browser UI:
-
-```bash
-slides-grab browse
-slides-grab browse --port 4000
-```
-
-### Review
-
-Analyze a presentation deck and generate a quality report:
-
-```bash
-slides-grab review --deck my-deck
-slides-grab review --deck my-deck --audience investors --time 20
-```
-
-Options: `--deck` (required), `--audience`, `--time` (default: 15 minutes).
-
-### Retheme
-
-Re-generate a deck with a different template pack (one-click redesign):
-
-```bash
-slides-grab retheme --deck my-deck --pack aurora-gradient
-slides-grab retheme --deck my-deck --pack swiss-international --save-as my-deck-swiss
-```
-
-Options: `--deck` (required), `--pack` (required), `--save-as`, `--model`.
-
-### Split
-
-Split a multi-slide HTML file into individual `slide-*.html` files:
-
-```bash
-slides-grab split --input combined.html --slides-dir decks/my-deck
-```
-
-Options: `--input` (required), `--slides-dir`, `--selector` (default: `.slide`), `--source-width`, `--source-height`, `--no-scale`.
-
-### Template Packs
-
-Packs provide different visual themes for your slides. 37+ packs available, including `simple_light`, `dark-wave`, `aurora-gradient`, `glassmorphism`, `neo-brutalism`, `swiss-international`, and more. Default pack is `simple_light`.
-
-```bash
-slides-grab list-packs                               # List all packs with colors and template counts
-slides-grab show-pack dark-wave                      # Show pack details and templates
-slides-grab show-template cover --pack dark-wave     # View a template from a specific pack
-slides-grab pack init my-custom-pack                 # Scaffold a new custom pack
-```
-
-### Logo Management
-
-Configure a persistent logo overlay for a deck. Logo config is stored in `deck.json`. Export commands (`pdf`, `convert`) also accept one-off `--logo` flags.
-
-```bash
-slides-grab logo set --slides-dir decks/my-deck --image assets/logo.png
-slides-grab logo set --slides-dir decks/my-deck --image assets/logo.png --position bottom-left --exclude 1,15
-slides-grab logo show --slides-dir decks/my-deck
-slides-grab logo remove --slides-dir decks/my-deck
-```
-
-Options for `logo set`: `--slides-dir` (required), `--image` (required), `--position` (top-right, top-left, bottom-right, bottom-left; default: top-right), `--width`, `--height`, `--x`, `--y`, `--exclude`.
-
-## Image Contract
-
-Slides should store local image files in `<slides-dir>/assets/` and reference them as `./assets/<file>` from each `slide-XX.html`.
-
-- Preferred: `<img src="./assets/example.png" alt="...">`
-- Allowed: `data:` URLs for fully self-contained slides
-- Allowed with warnings: remote `https://` images
-- Unsupported: absolute filesystem paths such as `/Users/...` or `C:\...`
-
-Run `slides-grab validate --slides-dir <path>` before export to catch missing local assets and discouraged path forms.
-
-> PDF export internally uses capture mode with high-resolution rasterization for visual fidelity. For advanced control (`--mode`, `--resolution`), invoke `node scripts/html2pdf.js` directly.
-
-### Multi-Deck Workflow
-
-Prerequisite: create or generate a deck in `decks/my-deck/` first.
-
-```bash
-slides-grab edit       --slides-dir decks/my-deck
-slides-grab validate   --slides-dir decks/my-deck
-slides-grab pdf        --slides-dir decks/my-deck --output decks/my-deck.pdf
-slides-grab convert    --slides-dir decks/my-deck --output decks/my-deck.pptx
-slides-grab svg        --slides-dir decks/my-deck --output decks/my-deck-svg
-slides-grab review     --deck my-deck --audience investors
-slides-grab retheme    --deck my-deck --pack dark-wave --save-as my-deck-dark
-```
-
-> **Warning:** `slides-grab convert` is currently **experimental / unstable**. Expect best-effort output, layout shifts, and manual cleanup in PowerPoint.
-
-### npm Scripts (Shortcuts)
-
-If you cloned the repo, you can use shorter `npm run` aliases:
-
-```bash
-npm run edit   -- --slides-dir decks/my-deck          # Launch editor
-npm run create -- --deck-name my-deck                  # Create new deck
-npm run pdf    -- --slides-dir decks/my-deck --output out.pdf   # Export PDF
-npm run pptx   -- --slides-dir decks/my-deck --output out.pptx  # Export PPTX
-npm run svg    -- --slides-dir decks/my-deck --output out/       # Export SVG
-npm run split  -- --input combined.html                          # Split HTML
-```
-
-## Installation Guides
-
-- [Claude detailed guide](docs/installation/claude.md)
-- [Codex detailed guide](docs/installation/codex.md)
-
-## npm Package
-
-Also available as an npm package for standalone CLI + skill usage:
-
-```bash
-npm install slides-grab
-```
-
-Install shared agent skills with Vercel Agent Skills:
-
-```bash
-npx skills add ./node_modules/slides-grab -g -a codex -a claude-code --yes --copy
-```
-
-This npm-install path is enough for normal usage. Clone the repo only when you want to modify or contribute to `slides-grab` itself.
-
-## Project Structure
-
-```
-bin/              CLI entry point (ppt-agent.js)
-src/              Core modules (resolve, logo, pack-init, retheme, review, etc.)
-  editor/         Visual editor client (HTML + JS modules)
-scripts/          Build, validate, convert, editor server, review, retheme
-packs/            37+ template packs (simple_light, dark-wave, aurora-gradient, glassmorphism, etc.)
-decks/            Your presentation decks (one folder per deck)
-skills/           Shared agent skills (Codex)
-.claude/skills/   Claude Code skill definitions (plan, design, pptx, presentation)
-plugins/          Figma plugin (slides-to-figma)
-docs/             Installation guides, prompts, power-user docs
-tests/            Test suites (editor, pdf, svg, pptx, pack, validation)
-```
-
-## License
-
-[MIT](LICENSE)
-
-
-## Acknowledgment
-
-This project is built based on the [ppt_team_agent](https://github.com/uxjoseph/ppt_team_agent) by Builder Josh. Huge thanks to him!
+This project is an advanced fork of the [slides-grab](https://github.com/vkehfdl1/slides-grab) repository by vkehfdl1. The core foundation and initial inspiration for this workflow trace back to the `ppt_team_agent` built by Builder Josh. Huge thanks to them for their incredible groundwork!
