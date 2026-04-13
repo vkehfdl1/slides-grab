@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 import { existsSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, extname, join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { buildSync } from 'esbuild';
 import { chromium } from 'playwright';
 import { findSlideFiles } from './html2pdf.js';
@@ -894,6 +894,148 @@ export async function renderSlideToSvg(page, slideFile, slidesDir, bundlePath, o
   const bodySize = await getSlideSize(page);
   await page.setViewportSize({ width: bodySize.width, height: bodySize.height });
   await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+
+  // Pre-convert all <img> src to data URIs before dom-to-svg.
+  // dom-to-svg's inlineResources has an href.baseVal / xlink:href mismatch
+  // that silently drops images with external URLs.  Data URIs bypass this bug.
+  // For http:// pages (Figma/server export) fetch works directly.  For file://
+  // pages (CLI), both fetch and tainted-canvas fail, so we read via Node.js fs.
+  const imageSrcs = await page.evaluate(() => {
+    const srcs = [];
+    for (const img of document.querySelectorAll('img:not([data-logo-overlay])')) {
+      if (img.src && !img.src.startsWith('data:')) srcs.push(img.src);
+    }
+    return srcs;
+  });
+  if (imageSrcs.length > 0) {
+    const imageDataMap = {};
+    for (const src of imageSrcs) {
+      try {
+        if (src.startsWith('file://')) {
+          const filePath = fileURLToPath(src);
+          const buf = await readFile(filePath);
+          const ext = filePath.split('.').pop().toLowerCase();
+          const mime = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml' }[ext] || 'application/octet-stream';
+          imageDataMap[src] = `data:${mime};base64,${buf.toString('base64')}`;
+        }
+        // http:// images are handled inside page.evaluate below via fetch()
+      } catch { /* skip unreadable files */ }
+    }
+    await page.evaluate(async (dataMap) => {
+      for (const img of document.querySelectorAll('img:not([data-logo-overlay])')) {
+        const src = img.src;
+        if (!src || src.startsWith('data:')) continue;
+        // Use pre-read Node.js data for file:// images
+        if (dataMap[src]) { img.src = dataMap[src]; continue; }
+        // Fetch for http:// images
+        try {
+          const res = await fetch(src);
+          if (!res.ok) throw new Error(`${res.status}`);
+          const blob = await res.blob();
+          const dataUri = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+          img.src = dataUri;
+        } catch {
+          console.warn(`[html2svg] Failed to inline image: ${src}`);
+        }
+      }
+    }, imageDataMap);
+  }
+
+  // Bake border-radius + object-fit into image pixels via canvas.
+  // dom-to-svg ignores these CSS properties on <image> elements, so we
+  // pre-render the visual result as a new PNG data URI.
+  await page.evaluate(async () => {
+    for (const img of document.querySelectorAll('img:not([data-logo-overlay])')) {
+      if (!img.src || !img.src.startsWith('data:')) continue;
+
+      const cs = window.getComputedStyle(img);
+      const parent = img.parentElement;
+      const parentCs = parent ? window.getComputedStyle(parent) : null;
+
+      // Determine effective border-radius (from img or overflow:hidden parent)
+      const imgRadius = parseFloat(cs.borderRadius) || 0;
+      const parentRadius = parentCs ? (parseFloat(parentCs.borderRadius) || 0) : 0;
+      const parentOverflow = parentCs ? parentCs.overflow : '';
+      const effectiveRadius = imgRadius || (parentOverflow === 'hidden' ? parentRadius : 0);
+
+      const objectFit = cs.objectFit || 'fill';
+
+      // Compute cumulative opacity from all ancestors (dom-to-svg ignores it)
+      let effectiveOpacity = 1;
+      let el = img;
+      while (el) {
+        const op = parseFloat(window.getComputedStyle(el).opacity);
+        if (!isNaN(op)) effectiveOpacity *= op;
+        el = el.parentElement;
+      }
+
+      // Skip if no special styling needed
+      if (effectiveRadius === 0 && objectFit === 'fill' && effectiveOpacity >= 1) continue;
+
+      // Wait for image to be loaded
+      if (!img.complete || img.naturalWidth === 0) {
+        await new Promise((resolve, reject) => {
+          img.addEventListener('load', resolve, { once: true });
+          img.addEventListener('error', reject, { once: true });
+        });
+      }
+
+      const rect = img.getBoundingClientRect();
+      const nw = img.naturalWidth;
+      const nh = img.naturalHeight;
+      if (nw === 0 || nh === 0 || rect.width === 0 || rect.height === 0) continue;
+
+      // Scale up from CSS display size to preserve original image quality.
+      // Canvas must match container ASPECT RATIO (not image aspect ratio)
+      // because dom-to-svg sets SVG <image> to the container dimensions.
+      const scale = Math.max(2, Math.ceil(Math.max(nw / rect.width, nh / rect.height)));
+      const cw = Math.round(rect.width * scale);
+      const ch = Math.round(rect.height * scale);
+
+      const canvas = document.createElement('canvas');
+      canvas.width = cw;
+      canvas.height = ch;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(scale, scale);
+
+      // Apply rounded clip (coordinates in CSS px, scaled by ctx.scale)
+      if (effectiveRadius > 0) {
+        ctx.beginPath();
+        ctx.roundRect(0, 0, rect.width, rect.height, effectiveRadius);
+        ctx.clip();
+      }
+
+      // Draw with object-fit calculation (in CSS px coordinate space)
+      let dx = 0, dy = 0, dw = rect.width, dh = rect.height;
+
+      if (objectFit === 'contain' || objectFit === 'cover') {
+        const imgRatio = nw / nh;
+        const boxRatio = rect.width / rect.height;
+        const fitW = objectFit === 'contain'
+          ? (imgRatio > boxRatio) : (imgRatio < boxRatio);
+        if (fitW) {
+          dw = rect.width;
+          dh = rect.width / imgRatio;
+        } else {
+          dh = rect.height;
+          dw = rect.height * imgRatio;
+        }
+        dx = (rect.width - dw) / 2;
+        dy = (rect.height - dh) / 2;
+      }
+
+      // Apply ancestor opacity (dom-to-svg ignores CSS opacity on parents)
+      if (effectiveOpacity < 1) ctx.globalAlpha = effectiveOpacity;
+
+      ctx.drawImage(img, 0, 0, nw, nh, dx, dy, dw, dh);
+      img.src = canvas.toDataURL('image/png');
+    }
+  });
 
   // Extract logo info and remove it from DOM before dom-to-svg.
   // dom-to-svg's inlineResources reads element.href.baseVal (the SVG href
