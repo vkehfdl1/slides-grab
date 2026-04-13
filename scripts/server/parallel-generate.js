@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process';
 
 import { listPackTemplates } from '../../src/resolve.js';
-import { spawnClaudeEdit, inlineTemplateRefs, inlineThemeRefs } from './spawn.js';
+import { spawnClaudeEdit, inlineTemplateRefs, inlineThemeRefs, inlineDesignMdRefs } from './spawn.js';
 import { appendPackInstructions } from './routes/generate.js';
 
 const DEFAULT_CONCURRENCY = Number(process.env.SLIDES_GRAB_PARALLEL) || 3;
@@ -106,7 +106,7 @@ export async function parallelGenerate({
       packTemplateList,
       slidesDir,
     });
-    return inlineThemeRefs(inlineTemplateRefs(raw));
+    return inlineDesignMdRefs(inlineThemeRefs(inlineTemplateRefs(raw)));
   });
 
   // Spawn all batches concurrently

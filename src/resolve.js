@@ -281,6 +281,35 @@ export function resolvePackTheme(packId) {
 }
 
 /**
+ * Resolve a pack's design.md file.
+ * @param {string} packId — pack ID (e.g. "midnight")
+ * @returns {{ path: string, source: 'local' | 'package', pack: string } | null}
+ */
+export function resolvePackDesign(packId) {
+  const effectivePackId = packId || DEFAULT_PACK;
+  const pack = resolvePack(effectivePackId);
+  if (pack) {
+    const designPath = join(pack.path, 'design.md');
+    if (existsSync(designPath)) {
+      return { path: designPath, source: pack.source, pack: effectivePackId };
+    }
+  }
+
+  // Fallback to simple_light pack's design.md
+  if (effectivePackId !== DEFAULT_PACK) {
+    const defaultPack = resolvePack(DEFAULT_PACK);
+    if (defaultPack) {
+      const fallbackPath = join(defaultPack.path, 'design.md');
+      if (existsSync(fallbackPath)) {
+        return { path: fallbackPath, source: defaultPack.source, pack: DEFAULT_PACK };
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Resolve a theme file. Checks pack theme.css first, then legacy themes/ dir.
  * @param {string} name — theme/pack name without extension (e.g. "midnight", "simple_light")
  * @returns {{ path: string, source: 'local' | 'package' } | null}

@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 import { buildCodexExecArgs } from '../../src/editor/codex-edit.js';
-import { resolveTemplate, resolvePackTheme } from '../../src/resolve.js';
+import { resolveTemplate, resolvePackTheme, resolvePackDesign } from '../../src/resolve.js';
 
 /**
  * Spawn a Codex subprocess for slide editing.
@@ -243,6 +243,26 @@ export function inlineThemeRefs(prompt) {
           return `[Theme CSS for pack "${result.pack}"]\n\`\`\`css\n${css}\n\`\`\``;
         }
       } catch { /* theme not found */ }
+      return match;
+    },
+  );
+}
+
+/**
+ * Replace `cat packs/<packId>/design.md` references
+ * in the prompt with the actual design specification content.
+ */
+export function inlineDesignMdRefs(prompt) {
+  return prompt.replace(
+    /cat packs\/(\S+)\/design\.md/g,
+    (match, packId) => {
+      try {
+        const result = resolvePackDesign(packId);
+        if (result) {
+          const md = readFileSync(result.path, 'utf-8');
+          return `[Design specification for pack "${result.pack}"]\n\`\`\`markdown\n${md}\n\`\`\``;
+        }
+      } catch { /* design.md not found */ }
       return match;
     },
   );
