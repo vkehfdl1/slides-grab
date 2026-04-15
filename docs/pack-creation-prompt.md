@@ -33,7 +33,6 @@ packs/<PACK_ID>/
   ├── design.md       ← design philosophy (the most important file)
   ├── theme.css       ← CSS variables
   └── preview.css     ← gallery card thumbnail
-  [optional] templates/  ← HTML overrides (only when needed)
 ```
 
 Do NOT run `slides-grab pack init`. Create files directly.
@@ -282,19 +281,7 @@ You can add `::before` and `::after` pseudo-elements on `.el-3` for additional d
 
 ---
 
-## Step 6: Override Templates (optional)
-
-Only create HTML overrides in `packs/<PACK_ID>/templates/` when:
-- The pack needs a unique HTML structure (glow effects, device mockups, glass cards, etc.)
-- The base layout from `simple_light` breaks visually with this pack's colors/fonts
-- The pack's signature element cannot be expressed through CSS variables alone
-
-The most commonly overridden types are `cover.html` and `section-divider.html`.
-When in doubt, skip and let `simple_light` serve as the base.
-
----
-
-## Step 7: Validate
+## Step 6: Validate
 
 ```bash
 slides-grab show-pack <PACK_ID>
@@ -303,7 +290,6 @@ slides-grab show-pack <PACK_ID>
 Check that:
 - Pack name, mood, and tags appear correctly
 - Color swatches display the right palette
-- Template count is shown
 
 ---
 

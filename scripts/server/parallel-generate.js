@@ -1,7 +1,6 @@
 import { execFile } from 'node:child_process';
 
-import { listPackTemplates } from '../../src/resolve.js';
-import { spawnClaudeEdit, inlineTemplateRefs, inlineThemeRefs, inlineDesignMdRefs } from './spawn.js';
+import { spawnClaudeEdit, inlineDesignMdRefs } from './spawn.js';
 import { appendPackInstructions, appendImageInstructions, appendImageAssetsInstructions } from './routes/generate.js';
 
 const DEFAULT_CONCURRENCY = Number(process.env.SLIDES_GRAB_PARALLEL) || 3;
@@ -27,8 +26,7 @@ export function splitIntoBatches(slides, concurrency = DEFAULT_CONCURRENCY) {
  * Includes the FULL outline for consistency — each batch sees the whole picture
  * but only generates its assigned slides.
  */
-export function buildBatchPrompt({ batchSlides, outlineContent, genPackId, packTemplateList, slidesDir, useImages = false, availableAssets = [] }) {
-  const packArg = genPackId && genPackId !== 'auto' ? ` --pack ${genPackId}` : '';
+export function buildBatchPrompt({ batchSlides, outlineContent, genPackId, slidesDir, useImages = false, availableAssets = [] }) {
   const slideNumbers = batchSlides.map(s => String(s.slideIndex + 1).padStart(2, '0'));
   const slideNumberSet = new Set(batchSlides.map(s => s.slideIndex + 1));
   const fileList = slideNumbers.map(n => `slide-${n}.html`).join(', ');
@@ -56,7 +54,7 @@ export function buildBatchPrompt({ batchSlides, outlineContent, genPackId, packT
     '',
   );
 
-  appendPackInstructions(lines, genPackId, packTemplateList);
+  appendPackInstructions(lines, genPackId);
 
   // Assigned slides
   lines.push('', `**이 배치에서 생성할 슬라이드: ${fileList}**`);
@@ -65,7 +63,7 @@ export function buildBatchPrompt({ batchSlides, outlineContent, genPackId, packT
   lines.push('   - 크기: 720pt x 405pt (body width/height)');
   lines.push('   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")');
   lines.push('   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용');
-  lines.push(`   - slides-grab show-template <name>${packArg} 으로 템플릿 확인 후 활용`);
+  lines.push('   - design.md의 mood, signature elements, CSS patterns를 따라 생성');
   lines.push('   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다');
   lines.push('   - backup/ 폴더는 절대 수정하지 마세요');
   lines.push('');
@@ -105,20 +103,16 @@ export async function parallelGenerate({
 
   onBatchProgress?.(0, totalBatches, `Splitting ${outline.slides.length} slides into ${totalBatches} batches`);
 
-  // Resolve pack templates once (not per batch)
-  const packTemplateList = genPackId && genPackId !== 'auto' ? listPackTemplates(genPackId, { includeFallback: true }) : [];
-
   const batchPrompts = batches.map(batch => {
     const raw = buildBatchPrompt({
       batchSlides: batch,
       outlineContent,
       genPackId,
-      packTemplateList,
       slidesDir,
       useImages,
       availableAssets,
     });
-    return inlineDesignMdRefs(inlineThemeRefs(inlineTemplateRefs(raw)));
+    return inlineDesignMdRefs(raw);
   });
 
   // Spawn all batches concurrently

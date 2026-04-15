@@ -8,15 +8,15 @@
 ## User Stories
 
 ### US-001
-- Title: 템플릿 시스템 외부화
+- Title: 팩 시스템 외부화
 - Priority: 1
-- Description: design-skill/SKILL.md(963줄)에 내장된 10개 슬라이드 템플릿과 5개 컬러 팔레트를 독립 파일로 분리한다. 에이전트가 참조할 수 있는 예시 파일로 존재하며, 사용자가 커스텀 템플릿을 drop-in으로 추가할 수 있는 구조를 만든다.
+- Description: design-skill/SKILL.md에 내장된 디자인 정보를 design.md + theme.css 기반 팩 시스템으로 분리한다. 각 팩은 design.md(디자인 철학, CSS 패턴, 레이아웃 원칙)와 theme.css(색상, 타이포그래피 변수)로 구성되며, 에이전트가 참조하여 슬라이드를 생성한다.
 - Acceptance Criteria:
-  - REQ-001 `templates/` 디렉토리에 10개 HTML 템플릿 파일이 존재한다 (cover.html, contents.html, section-divider.html, content.html, statistics.html, split-layout.html, team.html, quote.html, timeline.html, closing.html)
-  - REQ-002 `themes/` 디렉토리에 5개 CSS 테마 파일이 존재한다 (executive.css, sage.css, modern-dark.css, corporate.css, warm.css)
-  - REQ-003 design-skill/SKILL.md에서 HTML 코드 블록이 제거되고, 대신 `templates/`와 `themes/` 경로를 참조하도록 업데이트된다
+  - REQ-001 `packs/` 디렉토리에 design.md + theme.css 기반 팩이 존재한다
+  - REQ-002 각 팩의 theme.css에 색상, 타이포그래피 CSS 변수가 정의된다
+  - REQ-003 design-skill/SKILL.md에서 인라인 디자인 코드가 제거되고, 대신 팩의 design.md와 theme.css를 참조하도록 업데이트된다
   - REQ-004 design-skill/SKILL.md의 디자인 철학, 규칙, 제약사항 섹션은 그대로 유지된다
-  - REQ-005 `templates/custom/` 디렉토리가 존재하고, 사용자가 여기에 커스텀 템플릿을 추가할 수 있다
+  - REQ-005 사용자가 새 팩을 `packs/` 디렉토리에 drop-in으로 추가할 수 있다
 
 ### US-002
 - Title: Playwright 기반 구조화 검증 스크립트
@@ -51,8 +51,8 @@
   - REQ-019 design-skill/SKILL.md에 Mermaid CDN 링크와 사용 예시(flowchart, sequence diagram)가 포함된다
   - REQ-020 design-skill/SKILL.md에 인라인 SVG 아이콘 작성 가이드가 포함된다
   - REQ-021 design-skill/SKILL.md에 이미지 사용 규칙(로컬 경로, URL, 플레이스홀더)이 포함된다
-  - REQ-022 `templates/chart.html` 예시 템플릿이 존재한다 (Chart.js 차트가 포함된 슬라이드)
-  - REQ-023 `templates/diagram.html` 예시 템플릿이 존재한다 (Mermaid 다이어그램이 포함된 슬라이드)
+  - REQ-022 design-skill/SKILL.md에 Chart.js 차트가 포함된 슬라이드 예시가 문서화된다
+  - REQ-023 design-skill/SKILL.md에 Mermaid 다이어그램이 포함된 슬라이드 예시가 문서화된다
   - REQ-024 html2pptx.js(또는 관련 변환 스크립트)에서 Chart.js/Mermaid 렌더링 완료를 대기하는 로직이 있다
 
 ### US-005

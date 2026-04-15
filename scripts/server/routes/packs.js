@@ -1,12 +1,11 @@
 import { join } from 'node:path';
 import { readFile } from 'node:fs/promises';
 
-import { listPacks, resolvePack, resolveTemplate, getPackInfo } from '../../../src/resolve.js';
+import { listPacks, resolvePack, getPackInfo } from '../../../src/resolve.js';
 
 /**
- * Template pack API routes.
- * Routes: GET /api/packs, GET /api/packs/:id/preview, GET /api/packs/:id/templates/:name,
- *         GET /packs-gallery
+ * Pack API routes.
+ * Routes: GET /api/packs, GET /api/packs/:id/preview, GET /packs-gallery
  */
 export function createPacksRouter(ctx) {
   const { express, PACKAGE_ROOT } = ctx;
@@ -55,12 +54,6 @@ export function createPacksRouter(ctx) {
     </svg>`;
       res.type('image/svg+xml').send(svg);
     });
-  });
-
-  router.get('/api/packs/:id/templates/:name', (req, res) => {
-    const resolved = resolveTemplate(req.params.name, req.params.id);
-    if (!resolved) return res.status(404).send('Template not found');
-    res.sendFile(resolved.path);
   });
 
   // Serve preview.css for gallery thumbnails

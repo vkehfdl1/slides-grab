@@ -6,7 +6,7 @@
  *   2. Package root — built-in defaults
  *
  * slides directory, slide-outline.md, style-config.md → always local (CWD)
- * packs/, templates/, themes/ → local first, package fallback
+ * packs/, themes/ → local first, package fallback
  * scripts/ → always package
  */
 
@@ -137,37 +137,13 @@ export function getPackInfo(packId) {
 }
 
 /**
- * List templates owned by a specific pack.
- * @param {string} packId
- * @param {{ includeFallback?: boolean }} [opts]
- * @returns {string[]} template names (without .html)
- */
-export function listPackTemplates(packId, opts = {}) {
-  const pack = resolvePack(packId);
-  if (!pack) return [];
-
-  const templatesDir = join(pack.path, 'templates');
-  const own = existsSync(templatesDir)
-    ? readdirSync(templatesDir).filter(f => f.endsWith('.html')).map(f => f.replace('.html', ''))
-    : [];
-
-  if (!opts.includeFallback || packId === DEFAULT_PACK) return own.sort();
-
-  // Merge with simple_light fallback templates
-  const fallback = listPackTemplates(DEFAULT_PACK);
-  const merged = new Set([...own, ...fallback]);
-  return Array.from(merged).sort();
-}
-
-/**
  * List all available packs with info derived from theme.css.
- * @returns {Array<{ id: string, name: string, colors: Record<string, string>, templates: string[] }>}
+ * @returns {Array<{ id: string, name: string, colors: Record<string, string> }>}
  */
 export function listPacks() {
   // Auto-discover packs: scan both local and package packs dirs
   // for subdirectories containing theme.css
   const seen = new Map(); // id → pack entry (local wins over package)
-  const fallbackTemplates = listPackTemplates(DEFAULT_PACK); // cache once
 
   for (const baseDir of [join(getCwd(), 'packs'), join(PACKAGE_ROOT, 'packs')]) {
     if (!existsSync(baseDir)) continue;
@@ -178,11 +154,7 @@ export function listPacks() {
       if (!existsSync(join(packDir, 'theme.css'))) continue;
 
       const info = getPackInfo(entry.name);
-      const own = listPackTemplates(entry.name);
-      const templates = entry.name === DEFAULT_PACK
-        ? own
-        : Array.from(new Set([...own, ...fallbackTemplates])).sort();
-      const ownCount = own.length;
+      const hasDesignMd = existsSync(join(packDir, 'design.md'));
       seen.set(entry.name, {
         id: entry.name,
         name: info?.name || entry.name,
@@ -192,10 +164,7 @@ export function listPacks() {
         description: info?.description || '',
         tags: info?.tags || [],
         order: info?.order || 999,
-        templates,
-        ownTemplates: own,
-        tier: ownCount > 0 ? 'custom' : 'skin',
-        ownTemplateCount: ownCount,
+        hasDesignMd,
       });
     }
   }
@@ -208,47 +177,6 @@ export function listPacks() {
     return a.id.localeCompare(b.id);
   });
   return result;
-}
-
-/**
- * Resolve a template file with pack support.
- * Resolution: pack → simple_light fallback → local CWD fallback
- *
- * @param {string} name — template name without extension (e.g. "cover")
- * @param {string} [packId] — pack ID (defaults to simple_light)
- * @returns {{ path: string, source: 'local' | 'package', pack: string } | null}
- */
-export function resolveTemplate(name, packId) {
-  const fileName = name.endsWith('.html') ? name : `${name}.html`;
-  const effectivePackId = packId || DEFAULT_PACK;
-
-  // 1. Check requested pack
-  const pack = resolvePack(effectivePackId);
-  if (pack) {
-    const packTemplatePath = join(pack.path, 'templates', fileName);
-    if (existsSync(packTemplatePath)) {
-      return { path: packTemplatePath, source: pack.source, pack: effectivePackId };
-    }
-  }
-
-  // 2. Fallback to simple_light (if not already)
-  if (effectivePackId !== DEFAULT_PACK) {
-    const defaultPack = resolvePack(DEFAULT_PACK);
-    if (defaultPack) {
-      const fallbackPath = join(defaultPack.path, 'templates', fileName);
-      if (existsSync(fallbackPath)) {
-        return { path: fallbackPath, source: defaultPack.source, pack: DEFAULT_PACK };
-      }
-    }
-  }
-
-  // 3. Legacy fallback: local CWD templates/ dir (backward compatibility)
-  const localPath = join(getCwd(), 'templates', fileName);
-  if (existsSync(localPath)) {
-    return { path: localPath, source: 'local', pack: 'local' };
-  }
-
-  return null;
 }
 
 /**
@@ -336,51 +264,6 @@ export function resolveTheme(name) {
 }
 
 /**
- * List all available templates (local + package, deduplicated).
- * Uses simple_light pack as the primary source.
- * @returns {Array<{ name: string, source: 'local' | 'package' }>}
- */
-export function listTemplates() {
-  const seen = new Map();
-
-  // Local templates first (take priority)
-  const localDir = join(getCwd(), 'templates');
-  if (existsSync(localDir)) {
-    for (const f of readdirSync(localDir)) {
-      if (f.endsWith('.html')) {
-        seen.set(f, { name: f.replace('.html', ''), source: 'local' });
-      }
-    }
-  }
-
-  // Also check local custom/ subdirectory
-  const localCustomDir = join(localDir, 'custom');
-  if (existsSync(localCustomDir)) {
-    for (const f of readdirSync(localCustomDir)) {
-      if (f.endsWith('.html')) {
-        const key = `custom/${f}`;
-        seen.set(key, { name: `custom/${f.replace('.html', '')}`, source: 'local' });
-      }
-    }
-  }
-
-  // Package templates from simple_light pack
-  const defaultPack = resolvePack(DEFAULT_PACK);
-  if (defaultPack) {
-    const pkgDir = join(defaultPack.path, 'templates');
-    if (existsSync(pkgDir)) {
-      for (const f of readdirSync(pkgDir)) {
-        if (f.endsWith('.html') && !seen.has(f)) {
-          seen.set(f, { name: f.replace('.html', ''), source: 'package' });
-        }
-      }
-    }
-  }
-
-  return Array.from(seen.values()).sort((a, b) => a.name.localeCompare(b.name));
-}
-
-/**
  * List all available themes (local + package, deduplicated).
  * @returns {Array<{ name: string, source: 'local' | 'package' }>}
  */
@@ -409,7 +292,7 @@ export function listThemes() {
 }
 
 /**
- * Read common template types from packs/common-types.json.
+ * Read common slide types from packs/common-types.json.
  * @returns {Record<string, string>} type name → description
  */
 let _commonTypesCache;

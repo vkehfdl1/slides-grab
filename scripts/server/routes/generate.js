@@ -2,7 +2,7 @@ import { readdir, readFile, mkdir, rename, stat } from 'node:fs/promises';
 import { basename, dirname, join, resolve, relative } from 'node:path';
 
 import { CLAUDE_MODELS, CODEX_MODELS, isClaudeModel } from '../../../src/editor/codex-edit.js';
-import { listPackTemplates, normalizePackId } from '../../../src/resolve.js';
+import { normalizePackId } from '../../../src/resolve.js';
 
 import { broadcastSSE } from '../sse.js';
 import { randomRunId, toPosixPath, listSlideFiles, spawnAIEdit, setupFileWatcher, backupSlides, uniqueDeckName, listExistingDeckNames, syncPackInOutline } from '../helpers.js';
@@ -283,7 +283,6 @@ async function prepareOutlineContext(ctx, slidesDirectory, slidesDir, reqGenPack
  * Build full single-process prompt from outline context.
  */
 function buildFromOutlinePromptFull(outlineContent, genPackId, slidesDir, { useImages = false, availableAssets = [] } = {}) {
-  const packTemplateList = genPackId && genPackId !== 'auto' ? listPackTemplates(genPackId, { includeFallback: true }) : [];
   const promptLines = [
     `작업 디렉토리: ${slidesDir}`,
     '',
@@ -302,7 +301,7 @@ function buildFromOutlinePromptFull(outlineContent, genPackId, slidesDir, { useI
     '--- 아웃라인 끝 ---',
     '',
   );
-  appendPackInstructions(promptLines, genPackId, packTemplateList);
+  appendPackInstructions(promptLines, genPackId);
   appendSlideSteps(promptLines, genPackId, slidesDir, { includeBackupNote: true });
   return promptLines.join('\n');
 }
@@ -318,7 +317,6 @@ async function buildFromOutlinePrompt(ctx, slidesDirectory, slidesDir, reqGenPac
 function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir, reqGenPackId, existingDeckNames = []) {
   const countLabel = typeof slideCountRange === 'string' && slideCountRange.trim() ? slideCountRange.trim() : '';
   const genPackId = normalizePackId(reqGenPackId);
-  const packTemplateList = genPackId && genPackId !== 'auto' ? listPackTemplates(genPackId, { includeFallback: true }) : [];
   const hasDeckDir = !!slidesDir;
 
   const promptLines = [`주제: ${(topic || '').trim()}`];
@@ -330,7 +328,7 @@ function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir,
   }
   if (hasDeckDir) promptLines.push(`작업 디렉토리: ${slidesDir}`);
 
-  appendPackInstructions(promptLines, genPackId, packTemplateList);
+  appendPackInstructions(promptLines, genPackId);
   promptLines.push('', '다음 단계를 순서대로 수행하세요:', '');
 
   let stepNum = 1;
@@ -356,11 +354,10 @@ function buildFromScratchPrompt(topic, requirements, slideCountRange, slidesDir,
   promptLines.push(`${stepNum}. ${dirRef}/slide-outline.md 아웃라인을 생성하세요.`);
   stepNum += 1;
   promptLines.push(
-    `${stepNum}. 템플릿 기반으로 slide-01.html ~ slide-NN.html을 ${countLabel}장 생성하세요.`,
+    `${stepNum}. design.md 기반으로 slide-01.html ~ slide-NN.html을 ${countLabel}장 생성하세요.`,
     '   - 크기: 720pt x 405pt (body width/height)',
     '   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")',
     '   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용',
-    `   - slides-grab show-template <name>${genPackId && genPackId !== 'auto' ? ` --pack ${genPackId}` : ''} 으로 템플릿 확인 후 활용`,
     '   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다',
   );
   stepNum += 1;
@@ -403,11 +400,11 @@ export function appendImageAssetsInstructions(lines, assets) {
   );
 }
 
-export function appendPackInstructions(promptLines, genPackId, packTemplateList) {
+export function appendPackInstructions(promptLines, genPackId) {
   if (!genPackId) return;
 
   if (genPackId === 'auto') {
-    promptLines.push('', '## 템플릿 팩: AI 자동 선택');
+    promptLines.push('', '## 팩: AI 자동 선택');
     promptLines.push('사용자가 팩을 지정하지 않았습니다. 주제와 청중에 가장 어울리는 팩을 아래 매트릭스에서 선택하세요.');
     promptLines.push('');
     promptLines.push('### Style Recommendation Matrix');
@@ -437,23 +434,18 @@ export function appendPackInstructions(promptLines, genPackId, packTemplateList)
   }
 
   promptLines.push('', `사용할 팩: ${genPackId}`);
-  if (packTemplateList.length > 0) promptLines.push(`사용 가능 템플릿: ${packTemplateList.join(', ')}`);
   promptLines.push('', '각 슬라이드 생성 시:');
   promptLines.push(`1. 먼저 팩의 디자인 사양을 읽으세요: cat packs/${genPackId}/design.md`);
-  promptLines.push(`2. slides-grab show-template <type> --pack ${genPackId} 로 템플릿 구조를 참고하세요`);
-  promptLines.push(`3. design.md의 mood, signature elements, CSS patterns를 반드시 적용하여 팩 고유 스타일로 생성하세요`);
-  promptLines.push(`4. 팩에 없는 type → slides-grab show-theme ${genPackId} 로 색상 확인 후 직접 디자인`);
-  promptLines.push('  (템플릿은 구조 참고용입니다. 반드시 design.md의 스타일을 적용하세요)');
+  promptLines.push(`2. design.md의 mood, signature elements, CSS patterns를 반드시 적용하여 팩 고유 스타일로 생성하세요`);
+  promptLines.push(`3. 팩에 없는 type → design.md의 CSS patterns와 Color Usage를 따라 직접 디자인`);
 }
 
 function appendSlideSteps(promptLines, genPackId, slidesDir, { includeBackupNote = false } = {}) {
   promptLines.push('다음 단계를 순서대로 수행하세요:', '');
-  promptLines.push('1. 템플릿 기반으로 slide-01.html ~ slide-NN.html을 생성하세요.');
+  promptLines.push('1. design.md 기반으로 slide-01.html ~ slide-NN.html을 생성하세요.');
   promptLines.push('   - 크기: 720pt x 405pt (body width/height)');
   promptLines.push('   - 폰트: Pretendard CDN (link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css")');
   promptLines.push('   - 텍스트는 p, h1-h6, ul, ol, li 태그만 사용');
-  const packArg = genPackId && genPackId !== 'auto' ? ` --pack ${genPackId}` : '';
-  promptLines.push(`   - slides-grab show-template <name>${packArg} 으로 템플릿 확인 후 활용`);
   if (includeBackupNote) promptLines.push('   - backup/ 폴더는 절대 수정하지 마세요 (이전 슬라이드 백업)');
   promptLines.push('   - 각 슬라이드는 독립적인 완전한 HTML 파일이어야 합니다', '');
   promptLines.push('2. 승인 대기 없이 전체 슬라이드를 한번에 생성하세요.', '');

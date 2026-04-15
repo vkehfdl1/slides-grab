@@ -1,4 +1,4 @@
-import { getCommonTypes, listPackTemplates } from '../../src/resolve.js';
+import { getCommonTypes } from '../../src/resolve.js';
 
 /**
  * Append outline format example + pack/type instructions to prompt lines.
@@ -52,13 +52,11 @@ export function appendOutlinePrompt(promptLines, packId, { includePresenterNote 
 
   const allTypeNames = Object.keys(getCommonTypes());
   if (packId && packId !== 'auto') {
-    const packTemplates = listPackTemplates(packId, { includeFallback: true });
     promptLines.push(`사용할 팩: ${packId}`);
-    promptLines.push(`이 팩이 보유한 type: ${packTemplates.join(', ')}`);
     promptLines.push(`전체 공통 type: ${allTypeNames.join(', ')}`);
     promptLines.push('');
-    promptLines.push('팩이 보유한 템플릿을 최대한 사용하세요.');
-    promptLines.push('팩에 없는 type의 슬라이드는, AI가 팩의 theme 색상으로 직접 디자인합니다.');
+    promptLines.push('팩의 design.md를 읽고 mood, signature elements, CSS patterns를 따라 슬라이드를 디자인하세요.');
+    promptLines.push('팩에 없는 type은 theme.css 색상으로 직접 디자인합니다.');
   } else if (packId === 'auto') {
     promptLines.push(`전체 공통 type: ${allTypeNames.join(', ')}`);
     promptLines.push('');

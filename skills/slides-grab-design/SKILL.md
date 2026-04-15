@@ -43,8 +43,7 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 - Prefer `<img>` for slide imagery and `data-image-placeholder` when no final asset exists.
 - Do not present slides for review until `slides-grab validate --slides-dir <path>` passes.
 - Do not start conversion before approval.
-- Design slides based on existing templates from the selected pack — do NOT invent custom layouts from scratch.
-- Use `slides-grab show-template <name> --pack <pack-id>` to inspect templates before designing.
+- Design slides based on the pack's design.md specifications and theme.css — synthesize mood, signature elements, and CSS patterns into each slide.
 
 ## Reference
 For full constraints and style system, follow:

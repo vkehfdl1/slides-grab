@@ -297,25 +297,7 @@ program
     await runCommand('scripts/install-codex-skills.js', args);
   });
 
-// --- Template/theme discovery commands ---
-
-program
-  .command('list-templates')
-  .description('List all available slide templates (local overrides + package built-ins)')
-  .action(async () => {
-    const { listTemplates } = await import('../src/resolve.js');
-    const templates = listTemplates();
-    if (templates.length === 0) {
-      console.log('No templates found.');
-      return;
-    }
-    console.log('Available templates:\n');
-    for (const t of templates) {
-      const tag = t.source === 'local' ? '(local)' : '(built-in)';
-      console.log(`  ${t.name.padEnd(20)} ${tag}`);
-    }
-    console.log(`\nTotal: ${templates.length} templates`);
-  });
+// --- Theme/pack discovery commands ---
 
 program
   .command('list-themes')
@@ -335,105 +317,55 @@ program
     console.log(`\nTotal: ${themes.length} themes`);
   });
 
+async function printPackList() {
+  const { listPacks } = await import('../src/resolve.js');
+  const packs = listPacks();
+  if (packs.length === 0) {
+    console.log('No packs found.');
+    return;
+  }
+  console.log('Available packs:\n');
+  for (const p of packs) {
+    const accent = p.colors.accent || '';
+    const bg = p.colors['bg-primary'] || '';
+    const designTag = p.hasDesignMd ? 'design.md' : 'theme-only';
+    console.log(`  ${p.id.padEnd(18)} ${p.name.padEnd(16)} ${designTag.padEnd(12)} (bg: ${bg}, accent: ${accent})`);
+  }
+  console.log(`Total: ${packs.length} packs`);
+}
+
 program
   .command('list-packs')
-  .description('List all available template packs')
-  .action(async () => {
-    const { listPacks } = await import('../src/resolve.js');
-    const packs = listPacks();
-    if (packs.length === 0) {
-      console.log('No packs found.');
-      return;
-    }
-    console.log('Available template packs:\n');
-    for (const p of packs) {
-      const accent = p.colors.accent || '';
-      const bg = p.colors['bg-primary'] || '';
-      console.log(`  ${p.id.padEnd(18)} ${p.name.padEnd(16)} ${p.templates.length} templates  (bg: ${bg}, accent: ${accent})`);
-    }
-    console.log(`Total: ${packs.length} packs`);
-  });
+  .description('List all available design packs')
+  .action(printPackList);
 
 program
   .command('show-pack')
-  .description('Show details and templates of a specific pack')
+  .description('Show details of a specific pack')
   .argument('<id>', 'Pack ID (e.g. "midnight", "corporate")')
   .action(async (id) => {
-    const { getPackInfo, listPackTemplates, getCommonTypes } = await import('../src/resolve.js');
+    const { getPackInfo, getCommonTypes, resolvePackDesign } = await import('../src/resolve.js');
     const info = getPackInfo(id);
     if (!info) {
       console.error(`Pack "${id}" not found.`);
       process.exitCode = 1;
       return;
     }
-    const ownTemplates = listPackTemplates(id);
-    const effectiveTemplates = listPackTemplates(id, { includeFallback: true });
     const commonTypes = getCommonTypes();
     const allTypeNames = Object.keys(commonTypes);
+    const hasDesignMd = resolvePackDesign(id) !== null;
 
     console.log(`Pack: ${info.name} (${id})`);
+    console.log(`Design spec: ${hasDesignMd ? 'design.md ✓' : 'theme-only (no design.md)'}`);
     console.log(`Colors:`);
     for (const [key, val] of Object.entries(info.colors)) {
       console.log(`  --${key}: ${val}`);
     }
-    console.log(`\nAvailable templates (${effectiveTemplates.length}):`);
-    for (const t of effectiveTemplates) {
+    console.log(`\nCommon slide types (${allTypeNames.length}):`);
+    for (const t of allTypeNames) {
       const desc = commonTypes[t] || '';
-      const source = ownTemplates.includes(t) ? '' : ' (base)';
-      console.log(`  ${t.padEnd(20)} ${desc ? `— ${desc}` : ''}${source}`);
+      console.log(`  ${t.padEnd(20)} ${desc ? `— ${desc}` : ''}`);
     }
-    const missing = allTypeNames.filter(t => !effectiveTemplates.includes(t));
-    if (missing.length > 0) {
-      console.log(`\nNot available — AI generates from theme.css (${missing.length}):`);
-      for (const t of missing) {
-        console.log(`  ${t}`);
-      }
-    }
-  });
-
-program
-  .command('show-template')
-  .description('Print the contents of a template file')
-  .argument('<name>', 'Template name (e.g. "cover", "content", "chart")')
-  .option('--pack <id>', 'Pack ID to resolve template from')
-  .option('--raw', 'Print raw HTML without inlining external CSS')
-  .action(async (name, options) => {
-    const { resolveTemplate } = await import('../src/resolve.js');
-    const { dirname: dirnameFn, join: joinFn } = await import('node:path');
-    const result = resolveTemplate(name, options.pack);
-    if (!result) {
-      console.error(`Template "${name}" not found${options.pack ? ` in pack "${options.pack}"` : ''}.`);
-      process.exitCode = 1;
-      return;
-    }
-    let content = readFileSync(result.path, 'utf-8');
-    console.log(`# Template: ${name} (${result.source}, pack: ${result.pack})`);
-    console.log(`# Path: ${result.path}\n`);
-
-    // Inline external CSS <link> references for AI readability
-    if (!options.raw) {
-      const templateDir = dirnameFn(result.path);
-      // Also check pack root (one level up from templates/)
-      const packDir = dirnameFn(templateDir);
-      content = content.replace(
-        /<link\s+rel=["']stylesheet["']\s+href=["']([^"']+)["']\s*\/?>/gi,
-        (match, href) => {
-          // Skip CDN/external URLs
-          if (href.startsWith('http://') || href.startsWith('https://')) return match;
-          // Try resolving from template dir, then pack root
-          for (const base of [templateDir, packDir]) {
-            const cssPath = joinFn(base, href);
-            try {
-              const css = readFileSync(cssPath, 'utf-8');
-              return `<style>\n/* Inlined from ${href} */\n${css}\n</style>`;
-            } catch { /* not found here, try next */ }
-          }
-          return match; // Keep original if not found
-        }
-      );
-    }
-
-    console.log(content);
   });
 
 program
@@ -564,12 +496,11 @@ packCmd
 
     const packsDir = joinPath(process.cwd(), 'packs');
     try {
-      const { packDir, themePath, templatesDir } = createPack(name, packsDir);
+      const { packDir, themePath } = createPack(name, packsDir);
       console.log(`Pack "${name}" created successfully:`);
       console.log(`  ${packDir}/`);
       console.log(`  ${themePath}`);
-      console.log(`  ${templatesDir}/`);
-      console.log(`\nEdit theme.css to customize colors, then add templates in templates/.`);
+      console.log(`\nEdit theme.css to customize colors, then create design.md for design specifications.`);
     } catch (error) {
       console.error(`[slides-grab] ${error.message}`);
       process.exitCode = 1;
@@ -578,22 +509,8 @@ packCmd
 
 packCmd
   .command('list')
-  .description('List all available template packs (alias for list-packs)')
-  .action(async () => {
-    const { listPacks } = await import('../src/resolve.js');
-    const packs = listPacks();
-    if (packs.length === 0) {
-      console.log('No packs found.');
-      return;
-    }
-    console.log('Available template packs:\n');
-    for (const p of packs) {
-      const accent = p.colors.accent || '';
-      const bg = p.colors['bg-primary'] || '';
-      console.log(`  ${p.id.padEnd(18)} ${p.name.padEnd(16)} ${p.templates.length} templates  (bg: ${bg}, accent: ${accent})`);
-    }
-    console.log(`Total: ${packs.length} packs`);
-  });
+  .description('List all available packs (alias for list-packs)')
+  .action(printPackList);
 
 await program.parseAsync(process.argv);
 

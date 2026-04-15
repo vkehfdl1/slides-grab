@@ -6,7 +6,7 @@ description: Design presentation slides as polished HTML. Use when generating sl
 # Design Skill - Professional Presentation Design System
 
 A skill for designing HTML slides for top-tier business presentations.
-Delivers minimal, refined design based on existing templates and theme system.
+Delivers minimal, refined design based on design.md specifications and theme system.
 
 ---
 
@@ -18,7 +18,7 @@ Delivers minimal, refined design based on existing templates and theme system.
 
 ### Default Style
 - Default pack: `simple_light`
-- Run `slides-grab show-theme simple_light` to see current colors
+- Read `packs/simple_light/design.md` for design specifications
 
 ### Pretendard Webfont CDN
 ```html
@@ -77,8 +77,8 @@ When deciding font sizes for a slide:
 ### 3. theme.css — CSS 변수 값
 
 Each pack has a `theme.css` with CSS variables (`:root { --bg-primary, --text-primary, --accent, ... }`).
-- View: `slides-grab show-theme <pack-id>`
-- Use `var()` references instead of hardcoded colors
+- design.md의 Color Usage 테이블에서 값 확인
+- CSS 변수 값은 design.md에 명시된 것을 사용
 
 ### Design Resolution (3-tier)
 
@@ -99,17 +99,17 @@ Each pack has a `theme.css` with CSS variables (`:root { --bg-primary, --text-pr
 
 ---
 
-## Template Pack System
+## Pack System
 
-Templates are organized into **packs** in the `packs/` directory. Each pack provides a different visual design.
+Packs are organized in the `packs/` directory. Each pack provides a different visual design through `design.md` + `theme.css`.
 
-All packs share a common set of template type names defined in `packs/common-types.json`.
+All packs share a common set of slide type names defined in `packs/common-types.json`.
 
 ### How to use packs
 
 1. **Check available packs**: `slides-grab list-packs`
 2. **Read design spec**: `cat packs/<pack-id>/design.md` (mood, signature, CSS patterns, avoid)
-3. **View pack colors**: `slides-grab show-theme <pack-id>`
+3. **Check colors in design.md**: Color Usage 섹션 참조
 4. **Read type skill**: `cat skills/types/<type>.md` (layout principles for each slide type)
 5. **Follow the pack's design language** consistently across all slides.
 
@@ -117,7 +117,6 @@ All packs share a common set of template type names defined in `packs/common-typ
 
 1. **Pack has design.md** → 디자인 사양서의 mood, signature, CSS patterns를 따라 생성
 2. **Pack doesn't have design.md** → theme.css 색상 + simple_light design.md를 기본 참조로 사용
-3. **HTML 템플릿은 선택적 참조** → `show-template <type> --pack <pack-id>`로 참고할 수 있지만, 복사가 아닌 원칙 이해 목적
 
 ---
 

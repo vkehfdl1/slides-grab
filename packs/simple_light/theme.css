@@ -1,9 +1,9 @@
 :root {
   --bg-primary: #ffffff;      /* 순백 배경 */
   --bg-secondary: #f5f5f5;    /* 카드/영역 배경 */
-  --bg-elevated: #eeeeee;     /* 강조 영역 (원칙 카드 등) */
+  --bg-elevated: #d0d0d0;     /* 강조 영역 (원칙 카드 등) */
   --text-primary: #000000;    /* 메인 텍스트 (순수 블랙) */
-  --text-secondary: #6b6b6b;  /* 보조 텍스트 */
+  --text-secondary: #444444;  /* 보조 텍스트 */
   --accent: #FC5E20;          /* 강조색 (오렌지) */
   --border: #e0e0e0;          /* 테두리 */
 

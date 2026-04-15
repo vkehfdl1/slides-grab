@@ -32,7 +32,7 @@ Describing specific layout changes to an AI using only text prompts is highly in
 
 ### 4. 38 Design Packs & 1-Click Retheme
 
-* **AI Template Recommendation:** Just type your topic, and the AI automatically recommends the most suitable design pack from the library.
+* **AI Pack Recommendation:** Just type your topic, and the AI automatically recommends the most suitable design pack from the library.
 * **Extensive Library:** Comes with **38 built-in design packs** ranging from `glassmorphism` and `cyberpunk-outline` to `nordic-minimalism` and `swiss-international`.
 * **Design Spec System:** Each pack ships with a `design.md` spec (layout principles, CSS patterns, color system, typography rules). This spec is automatically injected into AI prompts during generation and retheme to enforce visual consistency.
 * **Instant Retheme:** Completely transform the mood, colors, and typography of your entire deck with a single click.
@@ -104,7 +104,6 @@ slides-grab svg     --slides-dir <path> [--output]
 # Pack utilities
 slides-grab list-packs
 slides-grab show-pack <pack-id>
-slides-grab show-template <name> --pack <pack-id>
 slides-grab show-theme <pack-id>
 
 # Design tools
@@ -163,12 +162,12 @@ SLIDES_GRAB_PDF_PAGE_LIMIT=10
 
 ## How to Use
 
-1. **Import:** Feed your data (URL, PDF, text, or up to 5 mixed files) and let the AI recommend a template.
+1. **Import:** Feed your data (URL, PDF, text, or up to 5 mixed files) and let the AI recommend a design pack.
 2. **Review Outline:** Check the AI-generated `slide-outline.md` and make manual adjustments if necessary.
 3. **Validate:** Run `slides-grab validate` to catch overflow, contrast, or missing-asset issues before committing to export.
 4. **Manual Edit:** Click directly on rendered text for quick typo fixes.
 5. **AI Edit:** Use the **Bbox Selection** tool to drag over an area and ask the AI to redesign the layout or insert new elements.
-6. **Retheme:** Hit the Retheme button in the navbar to apply a new design pack across the entire deck.
+6. **Retheme:** Hit the Retheme button in the navbar to apply a new pack across the entire deck.
 7. **Export:** Export as Image PPTX (pixel-perfect), Structured PPTX (editable), PDF, or SVG/PNG batch.
 
 ---

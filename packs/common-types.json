@@ -23,5 +23,8 @@
   "simple-list": "compact vertical list",
   "team": "team member profiles grid",
   "logo-grid": "grid of client/partner/product logos",
-  "table": "data table or matrix with rows and columns"
+  "table": "data table or matrix with rows and columns",
+  "hero-image": "full-bleed background image with overlay text",
+  "before-after": "side-by-side image comparison (left vs right)",
+  "image-grid": "2-4 image grid layout with optional captions"
 }

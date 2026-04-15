@@ -21,35 +21,31 @@ These are the packaged design rules for `slides-grab` skills.
 - Allow `data:` URLs only when the slide must be fully self-contained
 - Never use absolute filesystem paths
 
-## Template Pack System
+## Pack System
 
-Templates are organized into **packs** in `packs/`. Each pack provides a different visual design.
+Packs are organized in `packs/`. Each pack provides a different visual design defined by `design.md` and `theme.css`.
 
 ### Discovering packs
 
-Run `slides-grab list-packs` to see all available packs with colors and template counts.
+Run `slides-grab list-packs` to see all available packs with colors and slide type counts.
 Default pack is `simple_light`.
 
 ### Pack CLI commands
 ```bash
 slides-grab list-packs                              # List all packs
 slides-grab show-pack <pack-id>                     # View pack details
-slides-grab show-template <name> --pack <pack-id>   # View a template from a specific pack
-slides-grab show-theme <pack-id>                    # View pack's theme.css
+cat packs/<pack-id>/design.md                        # Read pack's design specification
 ```
 
-### Pack resolution (2-tier)
-1. **Pack owns the template** → use it directly via `show-template`
-2. **Pack doesn't own the template** → design from scratch using the pack's `theme.css` colors
-   - Do NOT fall back to simple_light HTML structure
-   - Use `slides-grab show-theme <pack-id>` to get CSS variables
-   - Create a layout that fits the pack's visual language
+### Pack resolution (design.md-based)
+1. **Pack has design.md** → follow the mood, signature elements, CSS patterns, Color Usage, and avoid rules from `design.md`
+2. **Pack doesn't have design.md** → use simple_light design.md as a baseline, adapting colors from that pack's own Color Usage if available
 
-### Theme CSS variables
-Each pack has a `theme.css` defining `:root { --bg-primary, --text-primary, --accent, ... }`.
-Templates use `var()` references. Copy the `:root` block when generating slides.
+### Design specification
+Each pack has a `design.md` with Color Usage table, CSS Patterns, Font Pairing, and Avoid rules.
+Use the values specified in design.md when generating slides.
 
-### Common template types
+### Common slide types
 Defined in `packs/common-types.json`. Each pack implements a subset.
 Check pack coverage: `slides-grab show-pack <pack-id>`
 

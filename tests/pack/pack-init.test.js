@@ -87,12 +87,10 @@ test('createPack creates correct directory structure', async () => {
     // Returns correct paths
     assert.equal(result.packDir, path.join(packsDir, 'my-custom-pack'));
     assert.equal(result.themePath, path.join(packsDir, 'my-custom-pack', 'theme.css'));
-    assert.equal(result.templatesDir, path.join(packsDir, 'my-custom-pack', 'templates'));
 
     // Directories and files exist
     assert.ok(existsSync(result.packDir), 'pack directory should exist');
     assert.ok(existsSync(result.themePath), 'theme.css should exist');
-    assert.ok(existsSync(result.templatesDir), 'templates/ directory should exist');
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }
@@ -108,7 +106,7 @@ test('createPack theme.css contains pack name and CSS variables', async () => {
     assert.ok(css.includes('test-brand'), 'theme.css should contain pack name');
     assert.ok(css.includes('--bg-primary'), 'theme.css should define --bg-primary');
     assert.ok(css.includes('--accent'), 'theme.css should define --accent');
-    assert.ok(css.includes('--font-family'), 'theme.css should define --font-family');
+    assert.ok(css.includes('--font-sans'), 'theme.css should define --font-sans');
     assert.ok(css.includes('--text-primary'), 'theme.css should define --text-primary');
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
@@ -146,15 +144,16 @@ test('createPack rejects already-existing pack directory', async () => {
   }
 });
 
-test('createPack templates directory is initially empty', async () => {
+test('createPack directory contains only theme.css', async () => {
   const tmpDir = await mkdtemp(path.join(os.tmpdir(), 'slides-grab-pack-test-'));
   try {
     const packsDir = path.join(tmpDir, 'packs');
-    const { templatesDir } = createPack('empty-pack', packsDir);
+    const { packDir } = createPack('empty-pack', packsDir);
 
     const { readdirSync } = await import('node:fs');
-    const entries = readdirSync(templatesDir);
-    assert.equal(entries.length, 0, 'templates/ should be empty after init');
+    const entries = readdirSync(packDir);
+    assert.equal(entries.length, 1, 'pack dir should contain only theme.css');
+    assert.equal(entries[0], 'theme.css');
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
   }

@@ -1,11 +1,10 @@
 import { basename, relative } from 'node:path';
 
 import { listSlideFiles, toPosixPath } from '../helpers.js';
-import { listTemplates } from '../../../src/resolve.js';
 
 /**
- * Model, template, and editor config routes.
- * Routes: GET /api/models, GET /api/templates, GET /api/editor-config
+ * Model and editor config routes.
+ * Routes: GET /api/models, GET /api/editor-config
  */
 export function createModelsRouter(ctx) {
   const { express, opts } = ctx;
@@ -38,15 +37,6 @@ export function createModelsRouter(ctx) {
       models: ctx.ALL_MODELS,
       defaultModel: ctx.DEFAULT_CODEX_MODEL,
     });
-  });
-
-  router.get('/api/templates', (_req, res) => {
-    try {
-      const templates = listTemplates();
-      res.json(templates);
-    } catch (err) {
-      res.status(500).json({ error: err.message });
-    }
   });
 
   return router;

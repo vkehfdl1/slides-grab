@@ -99,13 +99,13 @@ line-height: 1;
 
 ## Color Palette System
 
-Colors are managed per-pack via `theme.css` files. Each pack defines CSS variables (`:root { --bg-primary, --text-primary, --accent, ... }`).
+Colors are defined per-pack in `design.md` (Color Usage section). Each pack specifies tokens, hex values, and usage guidelines.
 
 - View available packs: `slides-grab list-packs`
-- View pack colors: `slides-grab show-theme <pack-id>`
+- Read pack design spec: `cat packs/<pack-id>/design.md`
 - Default pack: `simple_light`
 
-When designing slides, use `var()` references from the pack's theme instead of hardcoded colors.
+When designing slides, use the color values from the pack's design.md Color Usage table.
 
 ---
 
@@ -232,14 +232,12 @@ grid-template-columns: 1fr 2.3fr;
 
 ---
 
-## Slide Templates
+## Slide Types
 
-Template types are defined in `packs/common-types.json` (26 types).
+Slide types are defined in `packs/common-types.json` (26 types).
 Each pack implements a subset. Check coverage: `slides-grab show-pack <pack-id>`
 
-View a specific template: `slides-grab show-template <type> --pack <pack-id>`
-
-If the pack doesn't own a template type, design from scratch using the pack's theme.css.
+Design each slide by synthesizing the pack's `design.md` (mood, signature, CSS patterns) with the type skill (`skills/types/<type>.md`) and `theme.css` variables.
 
 ---
 

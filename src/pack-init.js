@@ -1,10 +1,9 @@
 /**
  * Pack scaffolding logic for `slides-grab pack init <name>`.
  *
- * Creates the directory structure for a new custom template pack:
+ * Creates the directory structure for a new custom pack:
  *   packs/<name>/
  *   packs/<name>/theme.css
- *   packs/<name>/templates/   (empty)
  */
 
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
@@ -75,7 +74,7 @@ function buildThemeCss(name) {
  * @param {string} name - pack name (must pass validatePackName)
  * @param {string} packsDir - absolute path to the packs/ directory (e.g. `join(cwd, 'packs')`)
  * @throws {Error} if name is invalid or the pack already exists
- * @returns {{ packDir: string, themePath: string, templatesDir: string }}
+ * @returns {{ packDir: string, themePath: string }}
  */
 export function createPack(name, packsDir) {
   const validation = validatePackName(name);
@@ -88,14 +87,11 @@ export function createPack(name, packsDir) {
     throw new Error(`Pack "${name}" already exists at ${packDir}`);
   }
 
-  // Create pack root and templates subdirectory
   mkdirSync(packDir, { recursive: true });
-  const templatesDir = join(packDir, 'templates');
-  mkdirSync(templatesDir);
 
   // Write theme.css
   const themePath = join(packDir, 'theme.css');
   writeFileSync(themePath, buildThemeCss(name), 'utf-8');
 
-  return { packDir, themePath, templatesDir };
+  return { packDir, themePath };
 }

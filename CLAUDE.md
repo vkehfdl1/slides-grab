@@ -30,23 +30,22 @@ npm ci && npx playwright install chromium
 slides-grab validate --slides-dir decks/<deck-name>
 ```
 
-## Template Pack System
+## Pack System
 
-템플릿은 `packs/` 디렉토리에서 팩 단위로 관리됩니다. 각 팩은 고유한 시각 디자인을 제공합니다.
+팩은 `packs/` 디렉토리에서 팩 단위로 관리됩니다. 각 팩은 design.md + theme.css로 고유한 시각 디자인을 정의합니다.
 기본 팩은 `simple_light`입니다.
 
 ### Pack CLI Commands
 
 ```bash
-slides-grab list-packs                              # 전체 팩 목록 + 색상 + 템플릿 수
-slides-grab show-pack <pack-id>                      # 팩 상세 (색상, 보유 템플릿, 미보유 type)
-slides-grab show-template <name> --pack <pack-id>    # 특정 팩의 템플릿 HTML 보기
+slides-grab list-packs                              # 전체 팩 목록 + 색상
+slides-grab show-pack <pack-id>                      # 팩 상세 (색상, type 목록)
 slides-grab show-theme <pack-id>                     # 팩의 theme.css 보기
 ```
 
 ### Pack Resolution
 
-1. `packs/<packId>/templates/<name>.html` 확인
+1. `packs/<packId>/design.md` 읽기 → mood, signature, CSS patterns 파악
 2. 팩에 없는 type → AI가 팩의 theme.css 색상으로 직접 디자인
 3. 팩 미지정 시 `simple_light` 사용
 

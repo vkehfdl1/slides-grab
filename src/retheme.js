@@ -9,7 +9,7 @@
 
 import { readFile, readdir, writeFile, mkdir, copyFile, stat, unlink } from 'node:fs/promises';
 import { join, basename } from 'node:path';
-import { getPackInfo, listPackTemplates, resolvePackTheme, resolvePack, getCommonTypes } from './resolve.js';
+import { getPackInfo, resolvePackTheme, resolvePack, getCommonTypes } from './resolve.js';
 
 /**
  * Read the slide-outline.md from a deck, if it exists.
@@ -137,11 +137,10 @@ export function swapOutlinePack(outline, newPackId) {
  * @param {string} opts.deckName - Deck folder name
  * @param {string} opts.themeCss - Target pack's theme.css content
  * @param {string} [opts.designMd] - Target pack's design.md content
- * @param {string[]} opts.packTemplates - Available templates in target pack
  * @param {string[]} opts.allTypes - All common types
  * @returns {string}
  */
-export function buildRethemePrompt({ outline, targetPackId, deckName, themeCss, designMd, packTemplates, allTypes }) {
+export function buildRethemePrompt({ outline, targetPackId, deckName, themeCss, designMd, allTypes }) {
   const lines = [
     `기존 프레젠테이션을 "${targetPackId}" 팩으로 리디자인하세요.`,
     '',
@@ -230,8 +229,6 @@ export async function prepareRetheme({ deckDir, targetPackId, targetDeckName }) 
     } catch { /* design.md is optional */ }
   }
 
-  // Get pack templates
-  const packTemplates = listPackTemplates(targetPackId, { includeFallback: true });
   const allTypes = Object.keys(getCommonTypes());
 
   // Get or reconstruct outline
@@ -254,7 +251,6 @@ export async function prepareRetheme({ deckDir, targetPackId, targetDeckName }) 
     deckName,
     themeCss,
     designMd,
-    packTemplates,
     allTypes,
   });
 

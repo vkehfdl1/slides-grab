@@ -3,7 +3,6 @@ import { join } from 'node:path';
 import { existsSync } from 'node:fs';
 
 import { normalizeSlideFilename } from '../helpers.js';
-import { DEFAULT_PACK, PACK_NAME_REGEX } from '../../../src/resolve.js';
 
 /**
  * Static file serving and page routes.
@@ -28,59 +27,10 @@ export function createStaticRouter(ctx) {
   router.get('/browser.css', (_req, res) => { res.type('text/css').sendFile(join(editorDir, 'browser.css')); });
   router.get('/gallery.css', (_req, res) => { res.type('text/css').sendFile(join(editorDir, 'gallery.css')); });
 
-  // Serve pack template previews with theme.css injection and base fallback
+  // Serve pack assets (preview images, etc.)
   const localPacksDir = join(process.cwd(), 'packs');
-  const packDirs = [localPacksDir, join(PACKAGE_ROOT, 'packs')];
 
-  function findPackFile(...segments) {
-    for (const dir of packDirs) {
-      const p = join(dir, ...segments);
-      if (existsSync(p)) return p;
-    }
-    return null;
-  }
-
-  function extractRootVars(css) {
-    const match = css.match(/:root\s*\{(?:[^{}]|\{[^}]*\})*\}/);
-    return match ? match[0] : '';
-  }
-
-  router.get('/packs-preview/:packId/templates/:file', async (req, res, next) => {
-    const { packId, file } = req.params;
-    if (!PACK_NAME_REGEX.test(packId) || file.includes('..')) return next();
-
-    // CSS files: serve from pack's templates/ or pack root
-    if (file.endsWith('.css')) {
-      const p = findPackFile(packId, 'templates', file) || findPackFile(packId, file);
-      return p ? res.sendFile(p) : next();
-    }
-
-    if (!file.endsWith('.html')) return next();
-
-    // HTML: resolve template (pack own → base fallback)
-    const ownPath = findPackFile(packId, 'templates', file);
-    const templatePath = ownPath
-      || (packId !== DEFAULT_PACK ? findPackFile(DEFAULT_PACK, 'templates', file) : null);
-    if (!templatePath) return next();
-
-    // Inject pack's theme.css
-    const themePath = findPackFile(packId, 'theme.css');
-    if (!themePath) return res.sendFile(templatePath);
-
-    const [themeCss, html] = await Promise.all([
-      readFile(themePath, 'utf-8'),
-      readFile(templatePath, 'utf-8'),
-    ]);
-    // Own templates: inject full theme.css (component CSS needed)
-    // Fallback templates: inject only :root variables (avoid layout conflicts)
-    const cssToInject = ownPath ? themeCss : extractRootVars(themeCss);
-    if (!cssToInject) return res.sendFile(templatePath);
-
-    const result = html.replace('</head>', `<style>\n/* Pack: ${packId} */\n${cssToInject}\n</style>\n</head>`);
-    return res.type('html').send(result);
-  });
-
-  // Static fallback for non-template pack assets (images, etc.)
+  // Static fallback for pack assets
   if (existsSync(localPacksDir)) {
     router.use('/packs-preview', express.static(localPacksDir));
   }

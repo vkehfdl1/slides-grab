@@ -41,14 +41,14 @@ export function syncPackInOutline(content, packId) {
   return content;
 }
 
-import { spawnClaudeEdit, spawnCodexEdit, spawnOpenAIEdit, inlineTemplateRefs, inlineThemeRefs, inlineDesignMdRefs } from './spawn.js';
+import { spawnClaudeEdit, spawnCodexEdit, spawnOpenAIEdit, inlineDesignMdRefs } from './spawn.js';
 export { spawnClaudeEdit, spawnCodexEdit, spawnOpenAIEdit };
 
 export function spawnAIEdit(params) {
   const backend = isClaudeModel(params.model) ? 'Claude' : 'OpenAI API';
   console.log(`[AI] Using ${backend} — model: ${params.model}`);
-  // Inline template/theme/design CLI refs into actual content so AI doesn't need tool calls
-  const inlinedPrompt = inlineDesignMdRefs(inlineThemeRefs(inlineTemplateRefs(params.prompt)));
+  // Inline design.md CLI refs into actual content so AI doesn't need tool calls
+  const inlinedPrompt = inlineDesignMdRefs(params.prompt);
   const inlinedParams = { ...params, prompt: inlinedPrompt };
   return isClaudeModel(params.model) ? spawnClaudeEdit(inlinedParams) : spawnOpenAIEdit(inlinedParams);
 }

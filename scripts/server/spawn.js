@@ -4,7 +4,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
 import { buildCodexExecArgs } from '../../src/editor/codex-edit.js';
-import { resolveTemplate, resolvePackTheme, resolvePackDesign } from '../../src/resolve.js';
+import { resolvePackDesign } from '../../src/resolve.js';
 
 /**
  * Spawn a Codex subprocess for slide editing.
@@ -206,46 +206,6 @@ Rules:
  */
 function isReasoningModel(model) {
   return /^o\d/.test(model);
-}
-
-/**
- * Replace `slides-grab show-template <type> --pack <packId>` references
- * in the prompt with the actual template HTML content.
- */
-export function inlineTemplateRefs(prompt) {
-  return prompt.replace(
-    /slides-grab show-template (\S+)(?: --pack (\S+))?/g,
-    (match, name, packId) => {
-      try {
-        const result = resolveTemplate(name, packId);
-        if (result) {
-          const html = readFileSync(result.path, 'utf-8');
-          return `[Template "${name}" from pack "${result.pack}"]\n\`\`\`html\n${html}\n\`\`\``;
-        }
-      } catch { /* template not found */ }
-      return match;
-    },
-  );
-}
-
-/**
- * Replace `slides-grab show-theme <packId>` references
- * in the prompt with the actual theme CSS content.
- */
-export function inlineThemeRefs(prompt) {
-  return prompt.replace(
-    /slides-grab show-theme (\S+)/g,
-    (match, packId) => {
-      try {
-        const result = resolvePackTheme(packId);
-        if (result) {
-          const css = readFileSync(result.path, 'utf-8');
-          return `[Theme CSS for pack "${result.pack}"]\n\`\`\`css\n${css}\n\`\`\``;
-        }
-      } catch { /* theme not found */ }
-      return match;
-    },
-  );
 }
 
 /**
