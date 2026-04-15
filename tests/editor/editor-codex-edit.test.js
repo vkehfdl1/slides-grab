@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync, writeFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
@@ -14,6 +15,17 @@ import {
   DEFAULT_EDIT_TIMEOUT_MS,
   parseEditTimeoutMs,
 } from '../../src/editor/edit-subprocess.js';
+
+const DETAILED_DESIGN_RULES_URL = new URL(
+  '../../skills/slides-grab-design/references/detailed-design-rules.md',
+  import.meta.url,
+);
+
+async function importFreshCodexEditModule() {
+  const moduleUrl = new URL('../../src/editor/codex-edit.js', import.meta.url);
+  moduleUrl.searchParams.set('t', `${Date.now()}-${Math.random()}`);
+  return import(moduleUrl.href);
+}
 
 test('normalizeSelection rounds values and clamps to slide bounds', () => {
   const selection = normalizeSelection(
@@ -148,6 +160,29 @@ test('getPptDesignSkillPrompt loads bundled ppt design skill guidance', () => {
   assert.match(skillPrompt, /fetch-video|yt-dlp/i);
   assert.match(skillPrompt, /slides-grab image/i);
   assert.match(skillPrompt, /Nano Banana Pro/i);
+});
+
+test('getDetailedDesignSkillPrompt falls back when packaged icon guidance section is missing', async () => {
+  const originalMarkdown = readFileSync(DETAILED_DESIGN_RULES_URL, 'utf8');
+  const missingIconSection = originalMarkdown.replace(
+    /\n## Icon Usage Rules[\s\S]*?(?=\n## Workflow \(Stage 2: Design \+ Human Review\))/,
+    '\n',
+  );
+
+  assert.notEqual(missingIconSection, originalMarkdown);
+
+  writeFileSync(DETAILED_DESIGN_RULES_URL, missingIconSection);
+
+  try {
+    const { getDetailedDesignSkillPrompt: getFreshDetailedDesignSkillPrompt } = await importFreshCodexEditModule();
+    const detailedPrompt = getFreshDetailedDesignSkillPrompt();
+
+    assert.match(detailedPrompt, /## Icon Usage Rules/);
+    assert.match(detailedPrompt, /Prefer Lucide as the default icon library/i);
+    assert.match(detailedPrompt, /Do not default to emoji/i);
+  } finally {
+    writeFileSync(DETAILED_DESIGN_RULES_URL, originalMarkdown);
+  }
 });
 
 test('getDetailedDesignSkillPrompt loads only relevant detailed design sections', () => {

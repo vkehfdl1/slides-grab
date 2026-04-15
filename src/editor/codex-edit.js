@@ -32,6 +32,9 @@ const DETAILED_DESIGN_SECTION_HEADINGS = [
   '## Workflow (Stage 2: Design + Human Review)',
   '## Important Notes',
 ];
+const DETAILED_DESIGN_REQUIRED_SECTION_HEADINGS = [
+  '## Icon Usage Rules',
+];
 const BEAUTIFUL_SLIDE_DEFAULTS_SECTION_HEADINGS = [
   '## Working Model',
   '## Beautiful Defaults for Slides',
@@ -299,14 +302,20 @@ function pruneDuplicateLines(markdown, patterns) {
   return filtered.join('\n').trim();
 }
 
-function loadMarkdownSections(markdownPath, headings, fallback) {
+function loadMarkdownSections(markdownPath, headings, fallback, options = {}) {
   try {
     const markdown = readFileSync(markdownPath, 'utf8');
+    const { requiredHeadings = [] } = options;
+    const sectionsByHeading = new Map(headings.map((heading) => [
+      heading,
+      extractMarkdownSection(markdown, heading),
+    ]));
     const sections = headings
-      .map((heading) => extractMarkdownSection(markdown, heading))
+      .map((heading) => sectionsByHeading.get(heading))
       .filter(Boolean);
+    const isMissingRequiredSection = requiredHeadings.some((requiredHeading) => !sectionsByHeading.get(requiredHeading));
 
-    return sections.length > 0
+    return sections.length > 0 && !isMissingRequiredSection
       ? sections.join('\n\n')
       : fallback;
   } catch {
@@ -323,6 +332,9 @@ function getStructuralDesignSkillPrompt() {
     DETAILED_DESIGN_SKILL_PATH,
     DETAILED_DESIGN_SECTION_HEADINGS,
     DETAILED_DESIGN_SKILL_FALLBACK,
+    {
+      requiredHeadings: DETAILED_DESIGN_REQUIRED_SECTION_HEADINGS,
+    },
   );
 
   return cachedStructuralDesignSkillPrompt;
