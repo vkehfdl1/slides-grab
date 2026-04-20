@@ -24,6 +24,19 @@
 - All text must be inside `<p>`, `<h1>`-`<h6>`, `<ul>`, `<ol>`, or `<li>`.
 - Never place text directly in `<div>` or `<span>`.
 
+## Typography Scale Rules
+- Body copy minimum is 14pt on a 720pt × 405pt slide; prefer 16-20pt so copy reads cleanly at presentation distance and on PDF export.
+- Absolute floor for captions, labels, footnotes, and meta text is 10pt. Never render any text below 10pt.
+- Display and title text should scale well above body copy — prefer 36pt or larger so the slide's main takeaway reads in 3-5 seconds.
+- If content does not fit at the minimum scale, cut content. Do not shrink type to accommodate more.
+- Keep at most two typefaces across the deck. One display/headline face plus one body face is enough.
+
+## Color Usage Rules
+- Pull every color from the approved style spec in `src/design-styles-data.js` or the user-provided brand tokens. Do not invent fresh standalone hex colors mid-slide.
+- If the approved palette cannot cover a specific slide, extend it harmonically with `oklch()` — derive the new color from the existing accent, surface, or background — rather than picking a fresh hex from scratch.
+- Keep one accent color per deck. Two background colors max across the entire deck, used to introduce rhythm between section dividers and content slides.
+- Every CSS color must keep the `#` prefix and survive raster export to PPTX/PDF; avoid non-sRGB values that will flatten unexpectedly.
+
 ## Icon Usage Rules
 - Prefer Lucide as the default icon library for slide UI elements, callouts, and supporting visuals.
 - Do not default to emoji for iconography; reserve emoji for cases where the brief explicitly wants a playful or native-emoji tone.
