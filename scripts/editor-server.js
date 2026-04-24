@@ -50,7 +50,7 @@ async function loadDeps() {
 
 const DEFAULT_PORT = 3456;
 const DEFAULT_SLIDES_DIR = 'slides';
-const CODEX_MODELS = ['gpt-5.4', 'gpt-5.3-codex', 'gpt-5.3-codex-spark'];
+const CODEX_MODELS = ['gpt-5.5', 'gpt-5.3-codex', 'gpt-5.3-codex-spark'];
 const ALL_MODELS = [...CODEX_MODELS, ...CLAUDE_MODELS];
 const DEFAULT_CODEX_MODEL = CODEX_MODELS[0];
 const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;

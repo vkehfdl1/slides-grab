@@ -234,7 +234,7 @@ test('keeps bbox prompt draft and model state per slide session', { concurrency:
     await page.waitForTimeout(800);
 
     // slide-01
-    await page.selectOption('#model-select', 'gpt-5.4');
+    await page.selectOption('#model-select', 'gpt-5.5');
     await page.fill('#prompt-input', 'slide-01 prompt');
 
     // slide-02
@@ -254,7 +254,7 @@ test('keeps bbox prompt draft and model state per slide session', { concurrency:
     });
 
     const restoredModel = await page.$eval('#model-select', (el) => el.value);
-    assert.equal(restoredModel, 'gpt-5.4');
+    assert.equal(restoredModel, 'gpt-5.5');
     const restoredPrompt = await page.$eval('#prompt-input', (el) => el.value);
     assert.equal(restoredPrompt, 'slide-01 prompt');
 
