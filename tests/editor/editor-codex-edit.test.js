@@ -310,11 +310,18 @@ test('DEFAULT_MODELS drops the superseded claude-opus-4-6 identifier (issue #69)
   );
 });
 
-test('DEFAULT_MODELS keeps gpt-5.4 as the first entry so the default selection is unchanged', () => {
+test('DEFAULT_MODELS uses gpt-5.5 as the first entry per issue #73 (gpt-5.4 deprecation)', () => {
   assert.equal(
     DEFAULT_MODELS[0],
-    'gpt-5.4',
-    `DEFAULT_MODELS[0] must remain 'gpt-5.4' so state.defaultModel is not changed by the Opus 4.7 upgrade. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+    'gpt-5.5',
+    `DEFAULT_MODELS[0] must be 'gpt-5.5' per issue #73 after gpt-5.4 deprecation, so state.defaultModel opens fresh sessions on the supported model. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+  );
+});
+
+test('DEFAULT_MODELS drops the deprecated gpt-5.4 identifier (issue #73)', () => {
+  assert.ok(
+    !DEFAULT_MODELS.includes('gpt-5.4'),
+    `DEFAULT_MODELS should no longer include the deprecated 'gpt-5.4' per issue #73. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
   );
 });
 
