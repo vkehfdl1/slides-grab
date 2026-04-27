@@ -140,6 +140,139 @@ test('refuses to open a second editor when another slides-grab editor already ow
   }
 });
 
+test('/api/models exposes claude-opus-4-7 so the bbox editor can route edits to Opus 4.7 (issue #69)', async () => {
+  const workspace = await createWorkspace();
+  const port = await getAvailablePort();
+  const server = spawnEditorServer(workspace, port);
+
+  try {
+    await waitForServerReady(port, server.child, server.output);
+
+    const res = await fetch(`http://localhost:${port}/api/models`);
+    assert.equal(res.status, 200);
+    const body = await res.json();
+
+    assert.ok(Array.isArray(body.models), '/api/models must return a models array');
+    assert.ok(
+      body.models.includes('claude-opus-4-7'),
+      `/api/models should include 'claude-opus-4-7' after the Opus 4.7 upgrade. Got: ${JSON.stringify(body.models)}`,
+    );
+    assert.ok(
+      !body.models.includes('claude-opus-4-6'),
+      `/api/models should no longer include 'claude-opus-4-6'. Got: ${JSON.stringify(body.models)}`,
+    );
+    assert.ok(
+      body.models.includes('claude-sonnet-4-6'),
+      `/api/models should still include 'claude-sonnet-4-6' (no Sonnet 4.7 exists). Got: ${JSON.stringify(body.models)}`,
+    );
+    assert.equal(
+      body.defaultModel,
+      'gpt-5.4',
+      '/api/models should keep gpt-5.4 as the default model so the UI selection is unchanged',
+    );
+  } finally {
+    await stopChild(server.child);
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('/api/apply routes claude-opus-4-7 through the claude CLI with --model claude-opus-4-7 (issue #69)', async () => {
+  const workspace = await createWorkspace();
+  const mockClaude = await writeMockCli(workspace, 'mock-claude.js');
+  const port = await getAvailablePort();
+  const server = spawnEditorServer(workspace, port, {
+    env: {
+      PPT_AGENT_CLAUDE_BIN: mockClaude,
+    },
+  });
+
+  try {
+    await waitForServerReady(port, server.child, server.output);
+
+    const applyRes = await fetch(`http://localhost:${port}/api/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slide: 'slide-01.html',
+        prompt: 'Upgrade the title styling.',
+        model: 'claude-opus-4-7',
+        selections: [
+          {
+            x: 40,
+            y: 60,
+            width: 320,
+            height: 180,
+            targets: [
+              {
+                xpath: '/html/body/div[1]/h1[1]',
+                tag: 'h1',
+                text: 'Test',
+              },
+            ],
+          },
+        ],
+      }),
+    });
+
+    const applyBody = await applyRes.json();
+    assert.equal(applyRes.status, 200, JSON.stringify(applyBody));
+    assert.equal(applyBody.success, true, `claude-opus-4-7 edit should succeed: ${JSON.stringify(applyBody)}`);
+
+    const logRes = await fetch(`http://localhost:${port}/api/runs/${applyBody.runId}/log`);
+    assert.equal(logRes.status, 200);
+    const log = await logRes.text();
+
+    assert.match(log, /Upgrade the title styling\./);
+  } finally {
+    await stopChild(server.child);
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('/api/apply rejects the superseded claude-opus-4-6 identifier (issue #69)', async () => {
+  const workspace = await createWorkspace();
+  const port = await getAvailablePort();
+  const server = spawnEditorServer(workspace, port);
+
+  try {
+    await waitForServerReady(port, server.child, server.output);
+
+    const applyRes = await fetch(`http://localhost:${port}/api/apply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slide: 'slide-01.html',
+        prompt: 'Try a dropped model.',
+        model: 'claude-opus-4-6',
+        selections: [
+          {
+            x: 40,
+            y: 60,
+            width: 320,
+            height: 180,
+            targets: [],
+          },
+        ],
+      }),
+    });
+
+    assert.equal(applyRes.status, 400, 'claude-opus-4-6 should be rejected with 400 now that it is removed');
+    const body = await applyRes.json();
+    assert.match(body.error || '', /Invalid `model`/);
+    assert.ok(
+      !(body.error || '').includes('claude-opus-4-6'),
+      `error.Allowed models list should no longer mention 'claude-opus-4-6'. Got: ${body.error}`,
+    );
+    assert.ok(
+      (body.error || '').includes('claude-opus-4-7'),
+      `error.Allowed models list should mention 'claude-opus-4-7'. Got: ${body.error}`,
+    );
+  } finally {
+    await stopChild(server.child);
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
 test('card-news editor mode passes square sizing guidance into Codex apply runs', async () => {
   const workspace = await createWorkspace({
     slideHtml: `<!doctype html>

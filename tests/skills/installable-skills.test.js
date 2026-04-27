@@ -189,3 +189,63 @@ test('slides-grab card-news skill documents square Instagram workflow via packag
   assert.match(text, /slides-grab validate/i);
   assert.match(text, /slides-grab build-viewer/i);
 });
+
+test('beautiful-slide-defaults declares the system before designing (issue #66)', () => {
+  const text = readFileSync('skills/slides-grab-design/references/beautiful-slide-defaults.md', 'utf-8');
+
+  assert.match(text, /system declaration/i);
+  assert.match(text, /vocalize the system/i);
+});
+
+test('beautiful-slide-defaults enforces content discipline against filler (issue #66)', () => {
+  const text = readFileSync('skills/slides-grab-design/references/beautiful-slide-defaults.md', 'utf-8');
+
+  assert.match(text, /## Content Discipline/);
+  assert.match(text, /filler/i);
+  assert.match(text, /data slop/i);
+  assert.match(text, /one thousand no's/i);
+});
+
+test('beautiful-slide-defaults enforces color discipline with oklch extension (issue #66)', () => {
+  const text = readFileSync('skills/slides-grab-design/references/beautiful-slide-defaults.md', 'utf-8');
+
+  assert.match(text, /## Color Discipline/);
+  assert.match(text, /oklch/i);
+  assert.match(text, /design-styles-data\.js/);
+});
+
+test('beautiful-slide-defaults names AI slop tropes to avoid (issue #66)', () => {
+  const text = readFileSync('skills/slides-grab-design/references/beautiful-slide-defaults.md', 'utf-8');
+
+  assert.match(text, /## AI Slop Tropes to Avoid/);
+  assert.match(text, /gradient backgrounds/i);
+  assert.match(text, /left-border accent/i);
+  assert.match(text, /Inter, Roboto, Arial/);
+});
+
+test('detailed-design-rules enforces typography scale floors (issue #66)', () => {
+  const text = readFileSync('skills/slides-grab-design/references/detailed-design-rules.md', 'utf-8');
+
+  assert.match(text, /## Typography Scale Rules/);
+  assert.match(text, /14pt/);
+  assert.match(text, /10pt/);
+  assert.match(text, /cut content/i);
+});
+
+test('detailed-design-rules enforces color usage rules with oklch extension (issue #66)', () => {
+  const text = readFileSync('skills/slides-grab-design/references/detailed-design-rules.md', 'utf-8');
+
+  assert.match(text, /## Color Usage Rules/);
+  assert.match(text, /oklch/i);
+  assert.match(text, /design-styles-data\.js/);
+});
+
+test('design SKILL.md surfaces system declaration and AI-slop guardrails (issue #66)', () => {
+  const text = readFileSync('skills/slides-grab-design/SKILL.md', 'utf-8');
+
+  assert.match(text, /system declaration/i);
+  assert.match(text, /filler copy|filler content/i);
+  assert.match(text, /14pt minimum/i);
+  assert.match(text, /AI slop tropes/i);
+  assert.match(text, /oklch/i);
+});

@@ -3,10 +3,13 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import test from 'node:test';
 
 import {
+  buildClaudeExecArgs,
   buildCodexEditPrompt,
   buildCodexExecArgs,
+  CLAUDE_MODELS,
   getDetailedDesignSkillPrompt,
   getPptDesignSkillPrompt,
+  isClaudeModel,
   normalizeSelection,
   scaleSelectionToScreenshot,
 } from '../../src/editor/codex-edit.js';
@@ -15,6 +18,7 @@ import {
   DEFAULT_EDIT_TIMEOUT_MS,
   parseEditTimeoutMs,
 } from '../../src/editor/edit-subprocess.js';
+import { DEFAULT_MODELS } from '../../src/editor/js/editor-state.js';
 
 const DETAILED_DESIGN_RULES_URL = new URL(
   '../../skills/slides-grab-design/references/detailed-design-rules.md',
@@ -241,4 +245,82 @@ test('buildCodexEditPrompt switches sizing guidance for card-news mode', () => {
 
   assert.match(prompt, /Selected regions on slide \(960x960 coordinate space\):/);
   assert.match(prompt, /Keep slide dimensions at 720pt x 720pt\./);
+});
+
+test('CLAUDE_MODELS exposes claude-opus-4-7 as the bbox-editor Opus option (issue #69)', () => {
+  assert.ok(
+    CLAUDE_MODELS.includes('claude-opus-4-7'),
+    `CLAUDE_MODELS should include 'claude-opus-4-7' so the editor dropdown can route edits to Opus 4.7. Got: ${JSON.stringify(CLAUDE_MODELS)}`,
+  );
+});
+
+test('CLAUDE_MODELS drops the superseded claude-opus-4-6 identifier (issue #69)', () => {
+  assert.ok(
+    !CLAUDE_MODELS.includes('claude-opus-4-6'),
+    `CLAUDE_MODELS should no longer include 'claude-opus-4-6' after the Opus 4.7 upgrade. Got: ${JSON.stringify(CLAUDE_MODELS)}`,
+  );
+});
+
+test('CLAUDE_MODELS still exposes claude-sonnet-4-6 (there is no Sonnet 4.7 yet)', () => {
+  assert.ok(
+    CLAUDE_MODELS.includes('claude-sonnet-4-6'),
+    `CLAUDE_MODELS should still include 'claude-sonnet-4-6' because Sonnet 4.7 does not exist. Got: ${JSON.stringify(CLAUDE_MODELS)}`,
+  );
+});
+
+test('isClaudeModel recognizes claude-opus-4-7 after the upgrade', () => {
+  assert.equal(isClaudeModel('claude-opus-4-7'), true);
+  assert.equal(isClaudeModel('  claude-opus-4-7  '), true);
+});
+
+test('isClaudeModel rejects the dropped claude-opus-4-6 identifier', () => {
+  assert.equal(isClaudeModel('claude-opus-4-6'), false);
+});
+
+test('buildClaudeExecArgs forwards claude-opus-4-7 to the claude CLI --model flag', () => {
+  const args = buildClaudeExecArgs({
+    prompt: 'Edit slide',
+    imagePath: '/tmp/slide-annotated.png',
+    model: 'claude-opus-4-7',
+  });
+
+  assert.deepEqual(args, [
+    '-p',
+    '--dangerously-skip-permissions',
+    '--model',
+    'claude-opus-4-7',
+    '--max-turns',
+    '30',
+    '--verbose',
+    'First, read the annotated screenshot at "/tmp/slide-annotated.png" to see the visual context of the bbox regions highlighted on the slide.\n\nEdit slide',
+  ]);
+});
+
+test('DEFAULT_MODELS exposes claude-opus-4-7 as the Claude Opus fallback (issue #69)', () => {
+  assert.ok(
+    DEFAULT_MODELS.includes('claude-opus-4-7'),
+    `DEFAULT_MODELS should include 'claude-opus-4-7' so the editor UI dropdown falls back to Opus 4.7 when /api/models is unreachable. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+  );
+});
+
+test('DEFAULT_MODELS drops the superseded claude-opus-4-6 identifier (issue #69)', () => {
+  assert.ok(
+    !DEFAULT_MODELS.includes('claude-opus-4-6'),
+    `DEFAULT_MODELS should no longer include 'claude-opus-4-6' after the Opus 4.7 upgrade. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+  );
+});
+
+test('DEFAULT_MODELS keeps gpt-5.4 as the first entry so the default selection is unchanged', () => {
+  assert.equal(
+    DEFAULT_MODELS[0],
+    'gpt-5.4',
+    `DEFAULT_MODELS[0] must remain 'gpt-5.4' so state.defaultModel is not changed by the Opus 4.7 upgrade. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+  );
+});
+
+test('DEFAULT_MODELS still exposes claude-sonnet-4-6 (there is no Sonnet 4.7 yet)', () => {
+  assert.ok(
+    DEFAULT_MODELS.includes('claude-sonnet-4-6'),
+    `DEFAULT_MODELS should still include 'claude-sonnet-4-6' because Sonnet 4.7 does not exist. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+  );
 });

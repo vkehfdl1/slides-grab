@@ -23,7 +23,7 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 ## Workflow
 1. Read approved `slide-outline.md` and extract the `style` field from its meta section.
 2. Load the chosen style's full spec from `src/design-styles-data.js` — colors, fonts, layout, signature elements, and things to avoid. If the meta specifies a custom direction instead of a bundled ID, use that custom direction as the design basis.
-3. Before generating slides, write a quick **visual thesis** (mood/material/energy), a **content plan** (opener → support/proof → detail/story → close/CTA), and the core design tokens (background, surface, text, muted, accent + display/headline/body/caption roles). Ground these tokens in the chosen style's spec.
+3. Before generating slides, write a quick **visual thesis** (mood/material/energy), a **content plan** (opener → support/proof → detail/story → close/CTA), a **system declaration** (reused layout patterns, max two background colors, max two typefaces, image-led vs text-led slides, where section dividers reset tempo), and the core design tokens (background, surface, text, muted, accent + display/headline/body/caption roles). Ground these tokens in the chosen style's spec. Follow `references/beautiful-slide-defaults.md` for the full working model, content discipline, color discipline, and AI slop tropes to avoid.
 4. If you need to confirm or revisit the approved bundled style before designing, re-run `slides-grab list-styles` and open the gallery from `slides-grab preview-styles` so the Stage 2 deck stays aligned with the Stage 1 direction.
 5. Generate slide HTML files with 2-digit numbering in selected `--slides-dir`.
 6. When a slide needs iconography, prefer Lucide as the default icon library. Use clean Lucide icons before falling back to emoji, and only use emoji when the brief explicitly calls for them.
@@ -55,6 +55,10 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 - Treat opening slides and section dividers like posters, not dashboards.
 - Default to cardless layouts; only add a card when it improves structure or comprehension.
 - Use whitespace, alignment, scale, cropping, and contrast before adding decorative chrome.
+- Do not pad slides with filler copy, dummy stats, or decorative iconography — when a slide feels empty, solve it with layout and scale, not invented content.
+- Pull every color from the approved style spec or the user's brand tokens; extend only with harmonic `oklch()` neighbors. Do not invent fresh standalone hex colors mid-slide.
+- Keep body copy at 14pt minimum on a 720pt × 405pt slide and never render any text below the 10pt absolute floor.
+- Avoid AI slop tropes — aggressive gradient backgrounds, left-border accent cards, SVG-drawn imagery, generic font stacks (Inter/Roboto/Arial), and generic 3×2 icon-plus-blurb grids. See `references/beautiful-slide-defaults.md` for the full list.
 - Prefer `tldraw` for complex diagrams instead of recreating dense node/edge diagrams directly in HTML/CSS.
 - Use `slides-grab tldraw` plus `templates/diagram-tldraw.html` when that gives a cleaner, more export-friendly result.
 - Do not present slides for review until `slides-grab validate --slides-dir <path>` passes.
@@ -65,5 +69,5 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 For full constraints and style system, follow:
 - `references/design-rules.md`
 - `references/detailed-design-rules.md`
-- `references/beautiful-slide-defaults.md` — slide-specific art direction defaults adapted from OpenAI's frontend design guidance
+- `references/beautiful-slide-defaults.md` — slide-specific art direction defaults adapted from OpenAI's frontend design guidance and Anthropic's Claude design system guidance (content/color discipline, system declaration, AI slop tropes)
 - `references/design-system-full.md` — archived full design system, templates, and advanced pattern guidance
