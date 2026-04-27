@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Slide 16 — Humanoid future</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Barlow+Condensed:wght@400;600;800&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(400pt 280pt at 28% 30%, rgba(59,143,245,0.32), transparent 70%),
+      radial-gradient(400pt 280pt at 72% 80%, rgba(255,45,94,0.28), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:6pt; top:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:36pt 44pt; display:grid; grid-template-columns:1fr 200pt; gap:26pt; align-items:center;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:26pt; line-height:1.4; letter-spacing:-1pt; margin:6pt 0 10pt; color:#E8E8F5;}
+  h1 em{font-style:normal;
+    background:linear-gradient(100deg,#FF2D5E,#ffffff 50%,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 20pt rgba(255,255,255,0.2);}
+  .body{font-family:'Noto Sans KR',sans-serif; font-size:12.5pt; line-height:1.5; color:#D0D0F0; margin:0;}
+  .chain{margin:12pt 0 0; font-family:'DM Mono',monospace; font-size:11pt; color:#D0D0F0; letter-spacing:1pt; white-space:nowrap;}
+  .chain span{display:inline-block; padding:4pt 9pt; margin:0 3pt 0 0; border:1pt solid rgba(255,255,255,0.15); border-radius:5pt; background:rgba(10,10,30,0.55);}
+  .chain .arr{border:none; background:none; color:#8a8ab0;}
+  .art{position:relative; width:200pt; height:260pt; display:flex; align-items:center; justify-content:center;}
+  .ring{position:absolute; inset:0; border-radius:50%; border:1pt solid rgba(255,255,255,0.12);}
+  .ring.r1{transform:scale(0.95); box-shadow:0 0 30pt rgba(59,143,245,0.35), inset 0 0 22pt rgba(59,143,245,0.3);}
+  .ring.r2{transform:scale(0.72); border-color:rgba(255,45,94,0.35); box-shadow:0 0 22pt rgba(255,45,94,0.4);}
+  .ring.r3{transform:scale(0.5); border-color:rgba(255,255,255,0.4);}
+  .robot{font-size:90pt; filter:drop-shadow(0 0 14pt rgba(255,255,255,0.5)); z-index:2;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <div>
+      <p class="kicker">// Beyond screens</p>
+      <h1>Claw will soon <em>have a body.</em></h1>
+      <p class="body">Imagine a future where Claw commands humanoid robots. The interface expands once again, and the scope of Agent-native design reaches beyond the digital.</p>
+      <p class="chain">
+        <span>prompt</span><span class="arr">→</span>
+        <span>Claw</span><span class="arr">→</span>
+        <span>Humanoid</span><span class="arr">→</span>
+        <span>physical world</span>
+      </p>
+    </div>
+    <div class="art">
+      <div class="ring r1"></div>
+      <div class="ring r2"></div>
+      <div class="ring r3"></div>
+      <div class="robot">🤖</div>
+    </div>
+  </div>
+</div>
+
+
+</body></html>

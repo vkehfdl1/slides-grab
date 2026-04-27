@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 04 — Agent penetration</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(400pt 260pt at 50% 8%, rgba(59,143,245,0.26), transparent 70%),
+      radial-gradient(400pt 260pt at 50% 95%, rgba(255,45,94,0.28), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(55pt); opacity:0.45; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(55pt); opacity:0.45; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:38pt 44pt 38pt; display:flex; flex-direction:column; justify-content:center;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:24pt; line-height:1.4; letter-spacing:-1pt; margin:8pt 0 22pt; color:#E8E8F5;}
+  h1 .hl{background:linear-gradient(100deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .chain{display:grid; grid-template-columns:1fr 26pt 1fr 26pt 1fr; align-items:center; gap:8pt;}
+  .stop{border:1pt solid rgba(255,255,255,0.15); border-radius:12pt; padding:16pt; text-align:center;
+    background:rgba(10,10,30,0.55);}
+  .stop .num{font-family:'Bebas Neue',sans-serif; font-size:14pt; color:#8a8ab0; letter-spacing:3pt; margin:0;}
+  .stop .name{font-family:'Bebas Neue',sans-serif; font-size:28pt; letter-spacing:2pt; margin:2pt 0 4pt;}
+  .stop .kr{font-family:'Noto Sans KR',sans-serif; font-size:11pt; color:#D0D0F0; margin:0;}
+  .s1 .name{background:linear-gradient(90deg,#3B8FF5,#7fc0ff); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .s1{box-shadow:0 0 22pt rgba(59,143,245,0.22) inset; border-color:rgba(59,143,245,0.45);}
+  .s2 .name{background:linear-gradient(90deg,#3B8FF5,#FF2D5E); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .s2{box-shadow:0 0 22pt rgba(160,100,200,0.22) inset; border-color:rgba(180,120,220,0.45);}
+  .s3 .name{background:linear-gradient(90deg,#FF2D5E,#ff7a9a); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .s3{box-shadow:0 0 22pt rgba(255,45,94,0.28) inset; border-color:rgba(255,45,94,0.50);}
+  .arrow{font-family:'Bebas Neue',sans-serif; font-size:24pt; text-align:center; color:#ffffff; text-shadow:0 0 10pt rgba(255,255,255,0.5); margin:0;}
+  .takeaway{margin-top:18pt; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:18pt; letter-spacing:2pt; color:#D0D0F0; text-align:center;}
+  .takeaway b{color:#ffffff; text-shadow:0 0 12pt rgba(255,45,94,0.5);}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// Where agents go</p>
+    <h1>Agents are spreading <span class="hl">beyond coding</span> — into industry and daily life.</h1>
+    <div class="chain">
+      <div class="stop s1">
+        <p class="num">01</p>
+        <p class="name">CODING</p>
+        <p class="kr">Dev IDE · Code review</p>
+      </div>
+      <p class="arrow">→</p>
+      <div class="stop s2">
+        <p class="num">02</p>
+        <p class="name">INDUSTRY</p>
+        <p class="kr">Logistics · Finance · Manufacturing</p>
+      </div>
+      <p class="arrow">→</p>
+      <div class="stop s3">
+        <p class="num">03</p>
+        <p class="name">DAILY</p>
+        <p class="kr">Booking · Delivery · Civic services</p>
+      </div>
+    </div>
+    <p class="takeaway">Spreading <b>fast</b>. It won't stop.</p>
+  </div>
+</div>
+</body>
+</html>

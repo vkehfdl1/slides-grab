@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 7</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!doctype html>
+<html lang=&quot;ko&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;><title>KIA Bullpen 2026 — 01</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--paper:#FFFFFF;--ink:#1A1A1A;--red:#E63030;--grey:#BBBBBB;--muted:#666666;--soft:#F3F0EA;--line:#D8D2C8;--kia:#C70125;}
+*{box-sizing:border-box} body{margin:0;background:#ddd}.slide{width:720pt;height:405pt;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Pretendard, Georgia, serif}.dark{background:var(--ink);color:#fff}.label{font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:1.8pt;text-transform:uppercase}.kicker{font-family:'Space Mono',monospace;font-size:8.5pt;letter-spacing:1.8pt;text-transform:uppercase;color:var(--red);margin:0}.title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;letter-spacing:-1.7pt;padding-bottom:10pt}.body{font-size:13.5pt;line-height:1.48;margin:0}.small{font-size:10pt;line-height:1.35;margin:0;color:var(--muted)}.tiny{font-size:7.5pt;line-height:1.25;margin:0;color:var(--grey)}.rule{width:60pt;height:2pt;background:var(--red);margin:13pt 0 18pt}.vlabel{position:absolute;right:18pt;top:32pt;writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:2pt;color:#fff}.num{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800}.photo{object-fit:cover;display:block;width:100%;height:100%}.cut{object-fit:contain;display:block;width:100%;height:100%}.credit{position:absolute;left:28pt;bottom:18pt;font-family:'Space Mono',monospace;font-size:6.5pt;letter-spacing:.4pt;color:#777}.tag{border-top:1pt solid var(--ink);padding-top:5pt}.tag.darktag{border-top:1pt solid #fff}.dot{width:5pt;height:5pt;background:var(--red);display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5pt}.card{border-top:2pt solid var(--ink);padding:8pt 0 0}.redbox{background:var(--red);color:#fff;padding:5pt 7pt}.source{line-height:1.45;padding-bottom:5pt;font-family:'Space Mono',monospace;font-size:6.7pt;line-height:1.25;color:#777;margin:0}.thin{height:1pt;background:var(--line)}
+</style></head><body>
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute;left:34pt;top:31pt;width:365pt&quot;>
+    <p class=&quot;kicker&quot;>KIA TIGERS · 2026 BULLPEN REPORT</p><div class=&quot;rule&quot;></div>
+    <h1 class=&quot;title&quot; style=&quot;font-size:49pt&quot;>불펜 올인,<br>아직 닫히지<br>않은 9회</h1>
+    <p class=&quot;body&quot; style=&quot;width:302pt;margin-top:20pt&quot;>보강은 확실했다. 조상우를 붙잡고 김범수·홍건희까지 더했다. 그런데 시즌 초반 KIA의 후반 이닝은 왜 계속 흔들릴까.</p>
+    <p class=&quot;source&quot; style=&quot;margin-top:20pt&quot;>DATA CHECK · 2026.04.24 · KIA 공식 선수 기록 및 공개 보도 기준</p>
+  </div>
+  <div class=&quot;dark&quot; style=&quot;position:absolute;right:0;top:0;width:290pt;height:405pt&quot;><p class=&quot;vlabel&quot;>MAGAZINE FEATURE</p></div>
+  <div style=&quot;position:absolute;right:32pt;top:37pt;width:226pt;height:304pt;display:grid;grid-template-columns:1fr 1fr;gap:7pt&quot;>
+    <div style=&quot;background:#2A2A2A;height:148pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/jung-haeyoung.png&quot; alt=&quot;정해영 선수 사진&quot; /></div>
+    <div style=&quot;background:#2A2A2A;height:148pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/cho-sangwoo.png&quot; alt=&quot;조상우 선수 사진&quot; /></div>
+    <div style=&quot;background:#2A2A2A;height:148pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/kim-beomsoo.png&quot; alt=&quot;김범수 선수 사진&quot; /></div>
+    <div style=&quot;background:#2A2A2A;height:148pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/hong-geonhee.png&quot; alt=&quot;홍건희 선수 사진&quot; /></div>
+  </div>
+  <div class=&quot;redbox&quot; style=&quot;position:absolute;right:31pt;bottom:27pt;width:174pt&quot;><p class=&quot;label&quot; style=&quot;color:#fff;margin:0&quot;>question · why unstable?</p></div>
+</div>
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!doctype html>
+<html lang=&quot;ko&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;><title>KIA Bullpen 2026 — 02</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--paper:#FFFFFF;--ink:#1A1A1A;--red:#E63030;--grey:#BBBBBB;--muted:#666666;--soft:#F3F0EA;--line:#D8D2C8;--kia:#C70125;}
+*{box-sizing:border-box} body{margin:0;background:#ddd}.slide{width:720pt;height:405pt;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Pretendard, Georgia, serif}.dark{background:var(--ink);color:#fff}.label{font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:1.8pt;text-transform:uppercase}.kicker{font-family:'Space Mono',monospace;font-size:8.5pt;letter-spacing:1.8pt;text-transform:uppercase;color:var(--red);margin:0}.title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;letter-spacing:-1.7pt;padding-bottom:10pt}.body{font-size:13.5pt;line-height:1.48;margin:0}.small{font-size:10pt;line-height:1.35;margin:0;color:var(--muted)}.tiny{font-size:7.5pt;line-height:1.25;margin:0;color:var(--grey)}.rule{width:60pt;height:2pt;background:var(--red);margin:13pt 0 18pt}.vlabel{position:absolute;right:18pt;top:32pt;writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:2pt;color:#fff}.num{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800}.photo{object-fit:cover;display:block;width:100%;height:100%}.cut{object-fit:contain;display:block;width:100%;height:100%}.credit{position:absolute;left:28pt;bottom:18pt;font-family:'Space Mono',monospace;font-size:6.5pt;letter-spacing:.4pt;color:#777}.tag{border-top:1pt solid var(--ink);padding-top:5pt}.tag.darktag{border-top:1pt solid #fff}.dot{width:5pt;height:5pt;background:var(--red);display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5pt}.card{border-top:2pt solid var(--ink);padding:8pt 0 0}.redbox{background:var(--red);color:#fff;padding:5pt 7pt}.source{line-height:1.45;padding-bottom:5pt;font-family:'Space Mono',monospace;font-size:6.7pt;line-height:1.25;color:#777;margin:0}.thin{height:1pt;background:var(--line)}
+</style></head><body>
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute;left:34pt;top:31pt;width:360pt&quot;>
+    <p class=&quot;kicker&quot;>OFFSEASON BLUEPRINT</p><div class=&quot;rule&quot;></div>
+    <h1 class=&quot;title&quot; style=&quot;font-size:38pt&quot;>42억의 메시지:<br>약점은 불펜이었다</h1>
+    <p class=&quot;body&quot; style=&quot;width:330pt;margin-top:17pt&quot;>KIA는 선발보다 후반 이닝을 먼저 고쳤다. 조상우 잔류, 김범수·홍건희 영입은 “이름값 추가”가 아니라 2025년 불펜 불안을 겨냥한 구조 보강이었다.</p>
+  </div>
+  <div class=&quot;dark&quot; style=&quot;position:absolute;right:0;top:0;width:276pt;height:405pt&quot;><p class=&quot;vlabel&quot;>WINTER TRANSACTIONS</p></div>
+  <div style=&quot;position:absolute;left:41pt;bottom:35pt;width:594pt;display:grid;grid-template-columns:1fr 1fr 1fr;gap:13pt&quot;>
+    <div class=&quot;card&quot;><p class=&quot;label&quot;>RETAIN</p><h2 style=&quot;font-size:23pt;margin:5pt 0 6pt&quot;>조상우</h2><p class=&quot;small&quot;>2년 최대 15억<br>셋업·마무리 보험</p></div>
+    <div class=&quot;card&quot;><p class=&quot;label&quot;>SIGN</p><h2 style=&quot;font-size:23pt;margin:5pt 0 6pt&quot;>김범수</h2><p class=&quot;small&quot;>3년 최대 20억<br>좌완 강속구 카드</p></div>
+    <div class=&quot;card&quot;><p class=&quot;label&quot;>RETURN</p><h2 style=&quot;font-size:23pt;margin:5pt 0 6pt&quot;>홍건희</h2><p class=&quot;small&quot;>1년 최대 7억<br>친정 복귀 베테랑</p></div>
+  </div>
+  <div style=&quot;position:absolute;right:30pt;top:56pt;width:226pt;height:236pt;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4pt;align-items:end&quot;>
+    <div style=&quot;height:182pt;background:#303030&quot;><img class=&quot;cut&quot; src=&quot;./assets/cho-sangwoo.png&quot; alt=&quot;조상우 선수 사진&quot; /></div>
+    <div style=&quot;height:206pt;background:#303030&quot;><img class=&quot;cut&quot; src=&quot;./assets/kim-beomsoo.png&quot; alt=&quot;김범수 선수 사진&quot; /></div>
+    <div style=&quot;height:170pt;background:#303030&quot;><img class=&quot;cut&quot; src=&quot;./assets/hong-geonhee.png&quot; alt=&quot;홍건희 선수 사진&quot; /></div>
+  </div>
+  <p class=&quot;credit&quot;>Sources: Korea JoongAng Daily, Sports Chosun, KIA Tigers official player records</p>
+</div>
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!doctype html>
+<html lang=&quot;ko&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;><title>KIA Bullpen 2026 — 03</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--paper:#FFFFFF;--ink:#1A1A1A;--red:#E63030;--grey:#BBBBBB;--muted:#666666;--soft:#F3F0EA;--line:#D8D2C8;--kia:#C70125;}
+*{box-sizing:border-box} body{margin:0;background:#ddd}.slide{width:720pt;height:405pt;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Pretendard, Georgia, serif}.dark{background:var(--ink);color:#fff}.label{font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:1.8pt;text-transform:uppercase}.kicker{font-family:'Space Mono',monospace;font-size:8.5pt;letter-spacing:1.8pt;text-transform:uppercase;color:var(--red);margin:0}.title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;letter-spacing:-1.7pt;padding-bottom:10pt}.body{font-size:13.5pt;line-height:1.48;margin:0}.small{font-size:10pt;line-height:1.35;margin:0;color:var(--muted)}.tiny{font-size:7.5pt;line-height:1.25;margin:0;color:var(--grey)}.rule{width:60pt;height:2pt;background:var(--red);margin:13pt 0 18pt}.vlabel{position:absolute;right:18pt;top:32pt;writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:2pt;color:#fff}.num{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800}.photo{object-fit:cover;display:block;width:100%;height:100%}.cut{object-fit:contain;display:block;width:100%;height:100%}.credit{position:absolute;left:28pt;bottom:18pt;font-family:'Space Mono',monospace;font-size:6.5pt;letter-spacing:.4pt;color:#777}.tag{border-top:1pt solid var(--ink);padding-top:5pt}.tag.darktag{border-top:1pt solid #fff}.dot{width:5pt;height:5pt;background:var(--red);display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5pt}.card{border-top:2pt solid var(--ink);padding:8pt 0 0}.redbox{background:var(--red);color:#fff;padding:5pt 7pt}.source{line-height:1.45;padding-bottom:5pt;font-family:'Space Mono',monospace;font-size:6.7pt;line-height:1.25;color:#777;margin:0}.thin{height:1pt;background:var(--line)}
+</style></head><body>
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute;left:30pt;top:27pt;width:286pt&quot;>
+    <p class=&quot;kicker&quot;>ROLE MAP</p><div class=&quot;rule&quot;></div>
+    <h1 class=&quot;title&quot; style=&quot;font-size:31pt&quot;>이름은 많다.<br>순서가 문제다.</h1>
+    <p class=&quot;body&quot; style=&quot;margin-top:15pt;font-size:12.5pt;line-height:1.42&quot;>필승조는 선형 구조다. 9회가 흔들리면 8회·7회가 동시에 재배치되고, 매치업 카드가 원래보다 무거운 이닝에 들어간다.</p>
+  </div>
+  <div style=&quot;position:absolute;right:30pt;top:30pt;width:345pt;height:332pt&quot;>
+    <div style=&quot;position:absolute;left:0;top:0;width:345pt;height:70pt&quot;><p class=&quot;label&quot;>9TH · 정해영 / 성영탁 / 조상우</p><div style=&quot;display:flex;gap:7pt;height:51pt;margin-top:5pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/jung-haeyoung.png&quot; alt=&quot;정해영 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/sung-youngtak.png&quot; alt=&quot;성영탁 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/cho-sangwoo.png&quot; alt=&quot;조상우 선수 사진&quot; /></div></div>
+    <div style=&quot;position:absolute;left:0;top:80pt;width:345pt;height:70pt&quot;><p class=&quot;label&quot;>8TH · 전상현 / 조상우 / 김범수</p><div style=&quot;display:flex;gap:7pt;height:51pt;margin-top:5pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/jeon-sanghyun.png&quot; alt=&quot;전상현 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/cho-sangwoo.png&quot; alt=&quot;조상우 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/kim-beomsoo.png&quot; alt=&quot;김범수 선수 사진&quot; /></div></div>
+    <div style=&quot;position:absolute;left:0;top:160pt;width:345pt;height:70pt&quot;><p class=&quot;label&quot;>BRIDGE · 홍건희 / 최지민 / 홍민규 / 김시훈</p><div style=&quot;display:flex;gap:7pt;height:51pt;margin-top:5pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/hong-geonhee.png&quot; alt=&quot;홍건희 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/choi-jimin.png&quot; alt=&quot;최지민 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/hong-mingyu.png&quot; alt=&quot;홍민규 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/kim-sihoon.png&quot; alt=&quot;김시훈 선수 사진&quot; /></div></div>
+    <div style=&quot;position:absolute;left:0;top:240pt;width:345pt;height:70pt&quot;><p class=&quot;label&quot;>LONG · 김기훈 / 황동하</p><div style=&quot;display:flex;gap:7pt;height:51pt;margin-top:5pt&quot;><img class=&quot;cut&quot; src=&quot;./assets/kim-gihoon.png&quot; alt=&quot;김기훈 선수 사진&quot; /><img class=&quot;cut&quot; src=&quot;./assets/hwang-dongha.png&quot; alt=&quot;황동하 선수 사진&quot; /></div></div>
+  </div>
+  <p class=&quot;credit&quot;>Player photos: KIA Tigers official profile images</p>
+</div>
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!doctype html>
+<html lang=&quot;ko&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;><title>KIA Bullpen 2026 — 04</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--paper:#FFFFFF;--ink:#1A1A1A;--red:#E63030;--grey:#BBBBBB;--muted:#666666;--soft:#F3F0EA;--line:#D8D2C8;--kia:#C70125;}
+*{box-sizing:border-box} body{margin:0;background:#ddd}.slide{width:720pt;height:405pt;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Pretendard, Georgia, serif}.dark{background:var(--ink);color:#fff}.label{font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:1.8pt;text-transform:uppercase}.kicker{font-family:'Space Mono',monospace;font-size:8.5pt;letter-spacing:1.8pt;text-transform:uppercase;color:var(--red);margin:0}.title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;letter-spacing:-1.7pt;padding-bottom:10pt}.body{font-size:13.5pt;line-height:1.48;margin:0}.small{font-size:10pt;line-height:1.35;margin:0;color:var(--muted)}.tiny{font-size:7.5pt;line-height:1.25;margin:0;color:var(--grey)}.rule{width:60pt;height:2pt;background:var(--red);margin:13pt 0 18pt}.vlabel{position:absolute;right:18pt;top:32pt;writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:2pt;color:#fff}.num{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800}.photo{object-fit:cover;display:block;width:100%;height:100%}.cut{object-fit:contain;display:block;width:100%;height:100%}.credit{position:absolute;left:28pt;bottom:18pt;font-family:'Space Mono',monospace;font-size:6.5pt;letter-spacing:.4pt;color:#777}.tag{border-top:1pt solid var(--ink);padding-top:5pt}.tag.darktag{border-top:1pt solid #fff}.dot{width:5pt;height:5pt;background:var(--red);display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5pt}.card{border-top:2pt solid var(--ink);padding:8pt 0 0}.redbox{background:var(--red);color:#fff;padding:5pt 7pt}.source{line-height:1.45;padding-bottom:5pt;font-family:'Space Mono',monospace;font-size:6.7pt;line-height:1.25;color:#777;margin:0}.thin{height:1pt;background:var(--line)}
+</style></head><body>
+<div class=&quot;slide&quot;>
+  <div class=&quot;dark&quot; style=&quot;position:absolute;left:0;top:0;width:303pt;height:405pt&quot;><p class=&quot;vlabel&quot; style=&quot;right:auto;left:18pt&quot;>CHAIN REACTION</p></div>
+  <div style=&quot;position:absolute;left:31pt;top:37pt;width:235pt;color:#fff&quot;>
+    <p class=&quot;label&quot; style=&quot;color:#fff&quot;>BREAKDOWN POINT</p><div class=&quot;rule&quot;></div>
+    <h1 class=&quot;title&quot; style=&quot;font-size:35pt;color:#fff&quot;>마무리 축이<br>무너지면<br>전부 다시<br>짜야 한다</h1>
+    <p class=&quot;tiny&quot; style=&quot;margin-top:21pt;color:#BBBBBB&quot;>정해영은 4월 중순 1군 말소 보도, 전상현은 부상 변수. 두 축이 흔들리며 7~9회 순서표가 매 경기 다시 쓰인다.</p>
+  </div>
+  <div style=&quot;position:absolute;left:330pt;top:36pt;width:350pt&quot;>
+    <div style=&quot;display:grid;grid-template-columns:96pt 1fr;gap:14pt;align-items:center;margin-bottom:16pt&quot;><div style=&quot;height:94pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/jung-haeyoung.png&quot; alt=&quot;정해영 선수 사진&quot; /></div><div><p class=&quot;label&quot;>CLOSER INSTABILITY</p><p class=&quot;body&quot;>정해영 ERA 12.27, WHIP 2.18 · 세이브 기회에서 벤치 신뢰가 흔들린다.</p></div></div>
+    <div style=&quot;display:grid;grid-template-columns:96pt 1fr;gap:14pt;align-items:center;margin-bottom:16pt&quot;><div style=&quot;height:94pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/jeon-sanghyun.png&quot; alt=&quot;전상현 선수 사진&quot; /></div><div><p class=&quot;label&quot;>SETUP GAP</p><p class=&quot;body&quot;>전상현 부상 변수는 우완 셋업 한 칸을 비우고, 조상우·김범수의 투입 타이밍을 앞당긴다.</p></div></div>
+    <div class=&quot;redbox&quot; style=&quot;width:314pt&quot;><p class=&quot;body&quot; style=&quot;font-size:14pt;line-height:1.32;margin:0&quot;>결과: 9회 후보 재배치 → 8회 소모 증가 → 좌완 카드 과부하 → 후반 대량 실점 리스크</p></div>
+  </div>
+  <p class=&quot;credit&quot;>Sources: Yonhap, Financial News, Chosun Biz, KIA official stats</p>
+</div>
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!doctype html>
+<html lang=&quot;ko&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;><title>KIA Bullpen 2026 — 05</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--paper:#FFFFFF;--ink:#1A1A1A;--red:#E63030;--grey:#BBBBBB;--muted:#666666;--soft:#F3F0EA;--line:#D8D2C8;--kia:#C70125;}
+*{box-sizing:border-box} body{margin:0;background:#ddd}.slide{width:720pt;height:405pt;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Pretendard, Georgia, serif}.dark{background:var(--ink);color:#fff}.label{font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:1.8pt;text-transform:uppercase}.kicker{font-family:'Space Mono',monospace;font-size:8.5pt;letter-spacing:1.8pt;text-transform:uppercase;color:var(--red);margin:0}.title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;letter-spacing:-1.7pt;padding-bottom:10pt}.body{font-size:13.5pt;line-height:1.48;margin:0}.small{font-size:10pt;line-height:1.35;margin:0;color:var(--muted)}.tiny{font-size:7.5pt;line-height:1.25;margin:0;color:var(--grey)}.rule{width:60pt;height:2pt;background:var(--red);margin:13pt 0 18pt}.vlabel{position:absolute;right:18pt;top:32pt;writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:2pt;color:#fff}.num{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800}.photo{object-fit:cover;display:block;width:100%;height:100%}.cut{object-fit:contain;display:block;width:100%;height:100%}.credit{position:absolute;left:28pt;bottom:18pt;font-family:'Space Mono',monospace;font-size:6.5pt;letter-spacing:.4pt;color:#777}.tag{border-top:1pt solid var(--ink);padding-top:5pt}.tag.darktag{border-top:1pt solid #fff}.dot{width:5pt;height:5pt;background:var(--red);display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5pt}.card{border-top:2pt solid var(--ink);padding:8pt 0 0}.redbox{background:var(--red);color:#fff;padding:5pt 7pt}.source{line-height:1.45;padding-bottom:5pt;font-family:'Space Mono',monospace;font-size:6.7pt;line-height:1.25;color:#777;margin:0}.thin{height:1pt;background:var(--line)}
+</style></head><body>
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute;left:33pt;top:29pt;width:625pt&quot;>
+    <p class=&quot;kicker&quot;>FOUR REASONS</p><div class=&quot;rule&quot;></div>
+    <h1 class=&quot;title&quot; style=&quot;font-size:36pt&quot;>KIA가 불펜 때문에 고생하는 4가지 이유</h1>
+  </div>
+  <div style=&quot;position:absolute;left:35pt;top:126pt;width:640pt;display:grid;grid-template-columns:1fr 1fr;gap:18pt 22pt&quot;>
+    <div class=&quot;card&quot;><p class=&quot;label&quot;><span class=&quot;dot&quot;></span>01 · 9회 불확실성</p><p class=&quot;body&quot;>정해영이 제 궤도로 돌아오지 못하면 성영탁·조상우·김범수가 모두 한 칸씩 뒤로 밀린다.</p></div>
+    <div class=&quot;card&quot;><p class=&quot;label&quot;><span class=&quot;dot&quot;></span>02 · 부상 변수</p><p class=&quot;body&quot;>전상현 공백은 가장 안정적이어야 할 8회 설계를 흔들고, 벤치의 매치업 선택지를 줄인다.</p></div>
+    <div class=&quot;card&quot;><p class=&quot;label&quot;><span class=&quot;dot&quot;></span>03 · 적응 비용</p><p class=&quot;body&quot;>김범수·홍건희는 좋은 카드지만 새 팀, 새 보직, 새 포수와의 조합에는 시간이 필요하다.</p></div>
+    <div class=&quot;card&quot;><p class=&quot;label&quot;><span class=&quot;dot&quot;></span>04 · 볼넷과 장타</p><p class=&quot;body&quot;>팀 투수진은 ERA 4.90, WHIP 1.47, 피홈런 21개. 후반 볼넷 하나가 곧 장타 리스크로 번진다.</p></div>
+  </div>
+  <div class=&quot;dark&quot; style=&quot;position:absolute;right:0;bottom:0;width:160pt;height:49pt&quot;><p class=&quot;label&quot; style=&quot;color:#fff;margin:15pt 0 0 18pt&quot;>KBO TEAM PITCHING · 9TH ERA</p></div>
+  <p class=&quot;credit&quot;>KIA official team pitching ranking endpoint, sorted by ERA, checked 2026.04.24</p>
+</div>
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!doctype html>
+<html lang=&quot;ko&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-06.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;><title>KIA Bullpen 2026 — 06</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--paper:#FFFFFF;--ink:#1A1A1A;--red:#E63030;--grey:#BBBBBB;--muted:#666666;--soft:#F3F0EA;--line:#D8D2C8;--kia:#C70125;}
+*{box-sizing:border-box} body{margin:0;background:#ddd}.slide{width:720pt;height:405pt;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Pretendard, Georgia, serif}.dark{background:var(--ink);color:#fff}.label{font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:1.8pt;text-transform:uppercase}.kicker{font-family:'Space Mono',monospace;font-size:8.5pt;letter-spacing:1.8pt;text-transform:uppercase;color:var(--red);margin:0}.title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;letter-spacing:-1.7pt;padding-bottom:10pt}.body{font-size:13.5pt;line-height:1.48;margin:0}.small{font-size:10pt;line-height:1.35;margin:0;color:var(--muted)}.tiny{font-size:7.5pt;line-height:1.25;margin:0;color:var(--grey)}.rule{width:60pt;height:2pt;background:var(--red);margin:13pt 0 18pt}.vlabel{position:absolute;right:18pt;top:32pt;writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:2pt;color:#fff}.num{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800}.photo{object-fit:cover;display:block;width:100%;height:100%}.cut{object-fit:contain;display:block;width:100%;height:100%}.credit{position:absolute;left:28pt;bottom:18pt;font-family:'Space Mono',monospace;font-size:6.5pt;letter-spacing:.4pt;color:#777}.tag{border-top:1pt solid var(--ink);padding-top:5pt}.tag.darktag{border-top:1pt solid #fff}.dot{width:5pt;height:5pt;background:var(--red);display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5pt}.card{border-top:2pt solid var(--ink);padding:8pt 0 0}.redbox{background:var(--red);color:#fff;padding:5pt 7pt}.source{line-height:1.45;padding-bottom:5pt;font-family:'Space Mono',monospace;font-size:6.7pt;line-height:1.25;color:#777;margin:0}.thin{height:1pt;background:var(--line)}
+</style></head><body>
+<div class=&quot;slide&quot;>
+  <div class=&quot;dark&quot; style=&quot;position:absolute;left:0;top:0;width:228pt;height:405pt&quot;><p class=&quot;vlabel&quot; style=&quot;right:auto;left:18pt&quot;>PLAYER CARDS</p></div>
+  <div style=&quot;position:absolute;left:31pt;top:34pt;width:167pt;color:#fff&quot;>
+    <p class=&quot;label&quot; style=&quot;color:#fff&quot;>CORE RELIEVERS</p><div class=&quot;rule&quot;></div>
+    <h1 class=&quot;title&quot; style=&quot;font-size:32pt;color:#fff&quot;>핵심은<br>최강 투수보다<br>역할 정상화</h1>
+    <p class=&quot;tiny&quot; style=&quot;margin-top:19pt;color:#BBBBBB&quot;>숫자는 2026년 4월 24일 KIA 공식 기록 기준. 샘플은 아직 작지만, 보직 스트레스는 이미 선명하다.</p>
+  </div>
+  <div style=&quot;position:absolute;left:253pt;top:30pt;width:420pt;display:grid;grid-template-columns:1fr 1fr;gap:11pt 15pt&quot;><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/jung-haeyoung.png&quot; alt=&quot;정해영 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#62 정해영</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>CL 재정비 · ERA 12.27 · WHIP 2.18</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>우투우타 · 9회</p></div></div><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/cho-sangwoo.png&quot; alt=&quot;조상우 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#11 조상우</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>고레버리지 보험 · ERA 3.72 · WHIP 1.45</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>우투우타 · 8-9회</p></div></div><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/kim-beomsoo.png&quot; alt=&quot;김범수 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#49 김범수</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>좌완 파이어볼러 · ERA 7.45 · WHIP 1.76</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>좌투좌타 · 7-8회/L</p></div></div><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/hong-geonhee.png&quot; alt=&quot;홍건희 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#52 홍건희</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>베테랑 브릿지 · ERA 0.00 · WHIP 1.33</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>우투우타 · 6-8회</p></div></div><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/jeon-sanghyun.png&quot; alt=&quot;전상현 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#51 전상현</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>건강하면 셋업 · ERA 13.50 · WHIP 2.10</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>우투우타 · 8회</p></div></div><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/sung-youngtak.png&quot; alt=&quot;성영탁 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#65 성영탁</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>대체 마무리 후보 · ERA 0.77 · WHIP 0.94</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>우투우타 · 9회 후보</p></div></div><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/choi-jimin.png&quot; alt=&quot;최지민 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#39 최지민</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>좌완 매치업 · ERA 1.93 · WHIP 1.50</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>좌투좌타 · L 매치업</p></div></div><div style=&quot;border-top:2pt solid #1A1A1A;padding-top:5pt;display:grid;grid-template-columns:42pt 1fr;gap:7pt;align-items:center&quot;><div style=&quot;height:52pt;background:#F3F0EA&quot;><img class=&quot;cut&quot; src=&quot;./assets/hong-mingyu.png&quot; alt=&quot;홍민규 선수 사진&quot; /></div><div><h2 style=&quot;font-size:15pt;margin:0 0 2pt&quot;>#67 홍민규</h2><p class=&quot;small&quot; style=&quot;font-size:8.6pt;color:#1A1A1A&quot;>멀티이닝 보완 · ERA 10.80 · WHIP 2.16</p><p class=&quot;tiny&quot; style=&quot;color:#666&quot;>우투좌타 · 브릿지</p></div></div></div>
+  <p class=&quot;credit&quot;>Photos and player stats: KIA Tigers official player detail API</p>
+</div>
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!doctype html>
+<html lang=&quot;ko&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script><meta charset=&quot;utf-8&quot;><meta name=&quot;viewport&quot; content=&quot;width=device-width,initial-scale=1&quot;><title>KIA Bullpen 2026 — 07</title><style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700;1,800&amp;family=Space+Mono:wght@400;700&amp;display=swap');
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css');
+:root{--paper:#FFFFFF;--ink:#1A1A1A;--red:#E63030;--grey:#BBBBBB;--muted:#666666;--soft:#F3F0EA;--line:#D8D2C8;--kia:#C70125;}
+*{box-sizing:border-box} body{margin:0;background:#ddd}.slide{width:720pt;height:405pt;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);font-family:Pretendard, Georgia, serif}.dark{background:var(--ink);color:#fff}.label{font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:1.8pt;text-transform:uppercase}.kicker{font-family:'Space Mono',monospace;font-size:8.5pt;letter-spacing:1.8pt;text-transform:uppercase;color:var(--red);margin:0}.title{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;line-height:1.05;margin:0;letter-spacing:-1.7pt;padding-bottom:10pt}.body{font-size:13.5pt;line-height:1.48;margin:0}.small{font-size:10pt;line-height:1.35;margin:0;color:var(--muted)}.tiny{font-size:7.5pt;line-height:1.25;margin:0;color:var(--grey)}.rule{width:60pt;height:2pt;background:var(--red);margin:13pt 0 18pt}.vlabel{position:absolute;right:18pt;top:32pt;writing-mode:vertical-rl;transform:rotate(180deg);font-family:'Space Mono',monospace;font-size:8pt;letter-spacing:2pt;color:#fff}.num{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800}.photo{object-fit:cover;display:block;width:100%;height:100%}.cut{object-fit:contain;display:block;width:100%;height:100%}.credit{position:absolute;left:28pt;bottom:18pt;font-family:'Space Mono',monospace;font-size:6.5pt;letter-spacing:.4pt;color:#777}.tag{border-top:1pt solid var(--ink);padding-top:5pt}.tag.darktag{border-top:1pt solid #fff}.dot{width:5pt;height:5pt;background:var(--red);display:inline-block;border-radius:50%;vertical-align:middle;margin-right:5pt}.card{border-top:2pt solid var(--ink);padding:8pt 0 0}.redbox{background:var(--red);color:#fff;padding:5pt 7pt}.source{line-height:1.45;padding-bottom:5pt;font-family:'Space Mono',monospace;font-size:6.7pt;line-height:1.25;color:#777;margin:0}.thin{height:1pt;background:var(--line)}
+</style></head><body>
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute;left:35pt;top:34pt;width:390pt&quot;>
+    <p class=&quot;kicker&quot;>EDITORIAL VERDICT</p><div class=&quot;rule&quot;></div>
+    <h1 class=&quot;title&quot; style=&quot;font-size:42pt&quot;>불펜은 약하지 않다.<br>아직 순서가<br>정리되지 않았다.</h1>
+    <p class=&quot;body&quot; style=&quot;margin-top:22pt;width:344pt&quot;>KIA의 반등 조건은 명확하다. 9회를 고정하고, 전상현 복귀 전까지 조상우·성영탁·김범수의 보직을 흔들지 않는 것. 많은 이름보다 확실한 순서가 먼저다.</p>
+  </div>
+  <div class=&quot;dark&quot; style=&quot;position:absolute;right:0;top:0;width:247pt;height:405pt&quot;><p class=&quot;vlabel&quot;>CLOSING DIAGNOSIS</p></div>
+  <div style=&quot;position:absolute;right:30pt;top:48pt;width:190pt;height:240pt;display:flex;align-items:end;gap:2pt&quot;>
+    <div style=&quot;width:63pt;height:176pt;background:#2A2A2A&quot;><img class=&quot;cut&quot; src=&quot;./assets/sung-youngtak.png&quot; alt=&quot;성영탁 선수 사진&quot; /></div>
+    <div style=&quot;width:63pt;height:220pt;background:#2A2A2A&quot;><img class=&quot;cut&quot; src=&quot;./assets/cho-sangwoo.png&quot; alt=&quot;조상우 선수 사진&quot; /></div>
+    <div style=&quot;width:63pt;height:190pt;background:#2A2A2A&quot;><img class=&quot;cut&quot; src=&quot;./assets/kim-beomsoo.png&quot; alt=&quot;김범수 선수 사진&quot; /></div>
+  </div>
+  <div style=&quot;position:absolute;right:34pt;bottom:45pt;width:184pt;color:#fff&quot;>
+    <p class=&quot;label&quot; style=&quot;color:#fff&quot;>THE FIX</p>
+    <p class=&quot;body&quot; style=&quot;font-size:13pt;color:#fff&quot;>마무리 확정 · 셋업 고정 · 좌완 분업 · 롱맨 보호</p>
+  </div>
+  <p class=&quot;credit&quot;>Prepared for fan-facing editorial analysis · 2026.04.24</p>
+</div>
+</body></html>" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 7;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

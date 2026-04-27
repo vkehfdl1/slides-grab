@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(135deg, #0047A0 0%, #1a1a3e 40%, #2a1020 60%, #CD2E3A 100%);
+    }
+
+    /* 태극 원 (커버와 동일) */
+    .taegeuk {
+      position: absolute;
+      width: 280pt; height: 280pt;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      overflow: hidden;
+      opacity: 0.12;
+    }
+    .taegeuk-top {
+      position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 140pt 140pt 0 0;
+    }
+    .taegeuk-bottom {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+      background: #0047A0;
+      border-radius: 0 0 140pt 140pt;
+    }
+    .taegeuk-inner-red {
+      position: absolute; top: 25%; left: 0;
+      width: 50%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 50%;
+    }
+    .taegeuk-inner-blue {
+      position: absolute; top: 25%; right: 0;
+      width: 50%; height: 50%;
+      background: #0047A0;
+      border-radius: 50%;
+    }
+
+    /* 펄럭 리본 */
+    .ribbon {
+      position: absolute;
+      width: 500pt; height: 60pt;
+      top: 10pt; left: 20pt;
+      background: linear-gradient(90deg, rgba(205,46,58,0.2), rgba(0,71,160,0.2));
+      filter: blur(3pt);
+      opacity: 0.4;
+    }
+
+    /* 글래스 패널 */
+    .glass-main {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 540pt;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(24pt);
+      -webkit-backdrop-filter: blur(24pt);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28pt;
+      padding: 48pt 40pt;
+      text-align: center;
+      box-shadow: 0 8pt 40pt rgba(0, 0, 0, 0.3);
+    }
+
+    .closing-text {
+      font-size: 30pt;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      line-height: 1.4;
+    }
+    .closing-text .highlight {
+      background: linear-gradient(90deg, #FFD700, #FFA500);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .closing-sub {
+      margin-top: 20pt;
+      font-size: 14pt;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8pt;
+      margin-top: 24pt;
+      padding: 10pt 24pt;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20pt;
+      font-size: 12pt;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .star { color: #FFD700; }
+
+    .page-num {
+      position: absolute; bottom: 28pt; right: 48pt;
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="taegeuk">
+    <div class="taegeuk-top"></div>
+    <div class="taegeuk-bottom"></div>
+    <div class="taegeuk-inner-red"></div>
+    <div class="taegeuk-inner-blue"></div>
+  </div>
+  <div class="ribbon"></div>
+
+  <div class="glass-main">
+    <p class="closing-text">
+      한국인 <span class="highlight">Agent-native</span>라면,<br>
+      K-Skill은 선택이 아닌 <span class="highlight">필수</span>
+    </p>
+    <p class="closing-sub">
+      더 한국적인 에이전트 경험을 만들어갑니다
+    </p>
+    <div class="github-link">
+      <span class="star">★</span> GitHub에서 K-Skill 만나기
+    </div>
+  </div>
+
+  <span class="page-num">10</span>
+</body>
+</html>

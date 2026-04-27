@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>LightRAG — Slide 1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(167, 139, 250, 0.55) 0%, transparent 38%),
+      radial-gradient(circle at 88% 82%, rgba(96, 165, 250, 0.55) 0%, transparent 38%),
+      radial-gradient(circle at 65% 50%, rgba(236, 72, 153, 0.32) 0%, transparent 25%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide {
+    width: 720pt;
+    height: 405pt;
+    position: relative;
+    overflow: hidden;
+  }
+  .topbar {
+    position: absolute;
+    top: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+  }
+  .topbar p {
+    font-size: 11pt;
+    color: #E0E0F0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6pt 14pt;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1pt solid rgba(255, 255, 255, 0.25);
+    border-radius: 999pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    font-size: 10pt;
+    color: #E0E0F0;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .center {
+    position: absolute;
+    top: 50%;
+    left: 48pt;
+    right: 48pt;
+    transform: translateY(-50%);
+    z-index: 5;
+  }
+  h1 {
+    font-size: 92pt;
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+    margin-bottom: 14pt;
+    background: linear-gradient(90deg, #FFFFFF 0%, #C4B5FD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  h1 .accent { font-weight: 700; }
+  .subtitle {
+    font-size: 22pt;
+    font-weight: 400;
+    color: #E0E0F0;
+    margin-bottom: 18pt;
+    letter-spacing: -0.01em;
+  }
+  .tagline {
+    display: inline-flex;
+    gap: 10pt;
+    align-items: center;
+    padding: 10pt 22pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 14pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .tagline p {
+    font-size: 14pt;
+    color: #FFFFFF;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .tagline .dot {
+    width: 6pt;
+    height: 6pt;
+    border-radius: 50%;
+    background: #A78BFA;
+  }
+  .footer {
+    position: absolute;
+    bottom: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 5;
+  }
+  .authors p {
+    font-size: 11pt;
+    color: #E0E0F0;
+    line-height: 1.5;
+  }
+  .authors .name { font-weight: 600; color: #FFFFFF; }
+  .authors .org { color: #B8B8D0; font-size: 10pt; }
+  .links {
+    display: flex;
+    flex-direction: column;
+    gap: 6pt;
+    align-items: flex-end;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="topbar">
+    <p>Paper Walkthrough · 2024</p>
+    <span class="badge">arXiv 2410.05779v3</span>
+  </div>
+
+  <div class="center">
+    <h1><span class="accent">Light</span>RAG</h1>
+    <p class="subtitle">Simple and Fast Retrieval-Augmented Generation</p>
+    <div class="tagline">
+      <span class="dot"></span>
+      <p>그래프 구조로 RAG의 한계를 넘다 · Simple. Fast. Graph-empowered.</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="authors">
+      <p class="name">Zirui Guo · Lianghao Xia · Yanhua Yu · Tu Ao · Chao Huang</p>
+      <p class="org">Beijing University of Posts and Telecommunications · University of Hong Kong</p>
+    </div>
+    <div class="links">
+      <span class="badge">github.com/HKUDS/LightRAG</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

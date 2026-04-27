@@ -51,6 +51,7 @@
   "scripts": {
     "html2pptx": "node scripts/html2pptx.js",
     "build-viewer": "node scripts/build-viewer.js",
+    "build:showcase": "node showcase/scripts/build-manifest.js",
     "validate": "node scripts/validate-slides.js",
     "convert": "node convert.cjs",
     "test": "node --test --test-concurrency=1 tests/design/design-styles.test.js tests/editor/editor-codex-edit.test.js tests/editor/editor-server.test.js tests/nano-banana/nano-banana.test.js tests/pdf/html2pdf.test.js tests/pdf/html2pdf.e2e.test.js tests/figma/figma-export.test.js tests/image-contract/image-contract.test.js tests/tldraw/render-tldraw.test.js tests/validation/validate-slides.test.js tests/viewer/build-viewer.test.js tests/skills/installable-skills.test.js tests/video/download-video.test.js",

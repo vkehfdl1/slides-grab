@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=720, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>하니는 누구인가</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    background: #F0F4FF;
+    overflow: hidden;
+    display: flex;
+  }
+  .photo-side {
+    width: 300pt;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+  }
+  .photo-side img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center top;
+  }
+  .photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 60%, #F0F4FF 100%);
+  }
+  .text-side {
+    flex: 1;
+    padding: 44pt 40pt 44pt 24pt;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20pt;
+  }
+  h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #FF69B4;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-size: 28pt;
+    font-weight: 700;
+    color: #1A1A2E;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+  }
+  .profile-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12pt;
+  }
+  .profile-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10pt;
+  }
+  p.profile-label {
+    font-size: 9pt;
+    font-weight: 600;
+    color: #89CFF0;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    min-width: 52pt;
+  }
+  p.profile-value {
+    font-size: 13pt;
+    font-weight: 400;
+    color: #4A4A5A;
+    line-height: 1.4;
+  }
+  p.highlight {
+    font-size: 12pt;
+    font-weight: 500;
+    color: #FF69B4;
+    margin-top: 4pt;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="photo-side">
+    <img src="./assets/hanni-nate-01.jpg" alt="하니 프로필 사진 - 마린 스트라이프 의상">
+    <div class="photo-overlay"></div>
+  </div>
+  <div class="text-side">
+    <h2>Who is Hanni</h2>
+    <h1>팜 하 니<br>Phạm Ngọc Hân</h1>
+    <div class="profile-items">
+      <div class="profile-row">
+        <p class="profile-label">Born</p>
+        <p class="profile-value">2004. 10. 06 · 호주 멜버른</p>
+      </div>
+      <div class="profile-row">
+        <p class="profile-label">Roots</p>
+        <p class="profile-value">베트남계 호주인</p>
+      </div>
+      <div class="profile-row">
+        <p class="profile-label">Group</p>
+        <p class="profile-value">NewJeans · 2022년 데뷔</p>
+      </div>
+      <div class="profile-row">
+        <p class="profile-label">Label</p>
+        <p class="profile-value">ADOR (HYBE)</p>
+      </div>
+    </div>
+    <p class="highlight">글로벌 Z세대가 사랑하는 아이콘</p>
+  </div>
+</body>
+</html>

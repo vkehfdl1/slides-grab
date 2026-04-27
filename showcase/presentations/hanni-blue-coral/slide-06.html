@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=720, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>숫자로 보는 열풍</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    background: #FFF8FA;
+    padding: 36pt 48pt;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6pt;
+  }
+  h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #FF69B4;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  p.num {
+    font-size: 10pt;
+    color: #C0C0C0;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #1A1A2E;
+    letter-spacing: -0.02em;
+    margin-bottom: 20pt;
+  }
+  .grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 14pt;
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 12pt;
+    padding: 18pt;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    border: 1pt solid #F0E8EE;
+  }
+  .card.accent {
+    background: #1A1A2E;
+  }
+  .card.accent p.card-value {
+    color: #89CFF0;
+  }
+  .card.accent p.card-label {
+    color: rgba(255,255,255,0.6);
+  }
+  .card.accent p.card-sub {
+    color: rgba(255,255,255,0.4);
+  }
+  p.card-value {
+    font-size: 28pt;
+    font-weight: 700;
+    color: #FF69B4;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  p.card-label {
+    font-size: 11pt;
+    font-weight: 500;
+    color: #1A1A2E;
+    margin-top: 6pt;
+  }
+  p.card-sub {
+    font-size: 9pt;
+    font-weight: 400;
+    color: #8B8FA3;
+    margin-top: 3pt;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h2>Viral Impact</h2>
+    <p class="num">06</p>
+  </div>
+  <h1>44년 전 노래가 만든 신기록</h1>
+  <div class="grid">
+    <div class="card accent">
+      <p class="card-value">12M+</p>
+      <p class="card-label">YouTube 조회수</p>
+      <p class="card-sub">팬캠 영상 기준</p>
+    </div>
+    <div class="card">
+      <p class="card-value">828→100</p>
+      <p class="card-label">멜론 역주행</p>
+      <p class="card-sub">이틀 만에 100위권 진입</p>
+    </div>
+    <div class="card">
+      <p class="card-value">#12</p>
+      <p class="card-label">Apple Music KR</p>
+      <p class="card-sub">2024년 7월 11일</p>
+    </div>
+    <div class="card">
+      <p class="card-value">#1</p>
+      <p class="card-label">Billboard Japan</p>
+      <p class="card-sub">Songs (Korea) 차트</p>
+    </div>
+    <div class="card">
+      <p class="card-value">#1</p>
+      <p class="card-label">금영 노래방</p>
+      <p class="card-sub">일본곡 차트 1위</p>
+    </div>
+    <div class="card accent">
+      <p class="card-value">9만 명</p>
+      <p class="card-label">도쿄돔 동원</p>
+      <p class="card-sub">2일간 총 관객</p>
+    </div>
+  </div>
+</body>
+</html>

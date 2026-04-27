@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 10 — 메시지</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .header {
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2.5pt solid #000000;
+    padding-bottom: 5pt;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 22pt; line-height: 1.25;
+    letter-spacing: -0.6pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    border: 2.5pt solid #000000;
+  }
+  .subhead {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+  }
+  .map {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6pt; flex: 1;
+  }
+  .item {
+    border: 3pt solid #000000;
+    padding: 6pt 9pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    background: #FFFFFF;
+    display: flex; flex-direction: column;
+    gap: 3pt;
+  }
+  .item.next {
+    background: #F5F500;
+    grid-column: span 2;
+  }
+  .domain {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    background: #000000; color: #F5F500;
+    padding: 2pt 5pt;
+    align-self: flex-start;
+  }
+  .item.next .domain {
+    background: #FF2D55; color: #FFFFFF;
+  }
+  .tool {
+    font-weight: 900; font-size: 13pt;
+    line-height: 1.2; letter-spacing: -0.4pt;
+    margin: 0;
+  }
+  .item.next .tool { font-size: 14pt; }
+  .item-body {
+    font-size: 9pt; line-height: 1.4;
+    margin: 0; color: #333333;
+  }
+  .next-question {
+    display: flex; flex-wrap: wrap; gap: 3pt;
+    margin-top: 2pt;
+  }
+  .next-q {
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt; font-weight: 700;
+    background: #FFFFFF;
+    border: 1.5pt solid #000000;
+    padding: 2pt 4pt;
+  }
+  .punch {
+    border: 3pt solid #000000;
+    background: #000000; color: #FFFFFF;
+    padding: 9pt 12pt;
+    font-weight: 900; font-size: 16pt;
+    line-height: 1.3; letter-spacing: -0.4pt;
+    text-align: center;
+    box-shadow: 5pt 5pt 0 #FF2D55;
+  }
+  .punch b {
+    background: #F5F500; color: #000000;
+    padding: 0 5pt;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="header">
+      <h1>하네스의 <span class="accent">영토</span>를 넓히세요</h1>
+      <span class="subhead">The Message</span>
+    </div>
+    <div class="map">
+      <div class="item">
+        <span class="domain">일상생활</span>
+        <p class="tool">K-skill</p>
+        <p class="item-body">SRT, 학교급식, 부동산···</p>
+      </div>
+      <div class="item">
+        <span class="domain">오픈소스 운영</span>
+        <p class="tool">Dani</p>
+        <p class="item-body">Issue → PR → 자동 머지</p>
+      </div>
+      <div class="item">
+        <span class="domain">슬라이드 디자인</span>
+        <p class="tool">slides-grab</p>
+        <p class="item-body">이 발표가 그 산출물</p>
+      </div>
+      <div class="item">
+        <span class="domain">UI/UX 디자인</span>
+        <p class="tool">Claude Design</p>
+        <p class="item-body">코딩 모델이 디자인까지</p>
+      </div>
+      <div class="item">
+        <span class="domain">인물 페르소나</span>
+        <p class="tool">openclone</p>
+        <p class="item-body">"이 사람"이 말하다</p>
+      </div>
+      <div class="item next">
+        <span class="domain">다음은?</span>
+        <div class="next-question">
+          <span class="next-q">글쓰기</span>
+          <span class="next-q">음악</span>
+          <span class="next-q">회계</span>
+          <span class="next-q">법률</span>
+          <span class="next-q">교육</span>
+          <span class="next-q">의료</span>
+          <span class="next-q">이미지 생성</span>
+          <span class="next-q">···</span>
+        </div>
+      </div>
+    </div>
+    <div class="punch">코딩에만 쓰지 마세요. 당신의 <b>도메인</b>을 하네스로 묶으세요.</div>
+  </div>
+</body>
+</html>

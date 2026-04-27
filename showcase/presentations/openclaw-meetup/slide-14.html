@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>Slide 14</title>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;">
+<div style="width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; padding: 32pt 40pt;">
+
+  <h1 style="margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff;">진짜 격리 — 컨테이너 마운트</h1>
+
+  <div style="display: flex; gap: 24pt;">
+
+    <div style="flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 12pt; padding: 20pt 22pt;">
+      <p style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 600; color: #b0b0b0;">마운트 구조</p>
+      <p style="margin: 0 0 10pt 0; font-size: 15pt; font-weight: 600; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; font-family: 'SF Mono', 'Fira Code', monospace; display: inline-block;">/workspace/</p>
+      <p style="margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;"><span style="color: #b0b0b0;">├── group/</span>        <span style="color: #10b981;">← 에이전트 전용 메모리 (RW)</span></p>
+      <p style="margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;"><span style="color: #b0b0b0;">├── ipc/</span>          <span style="color: #10b981;">← 호스트 통신 채널 (RW)</span></p>
+      <p style="margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;"><span style="color: #b0b0b0;">├── codebase/</span>     <span style="color: #f59e0b;">← 프로젝트 코드 (RO)</span></p>
+      <p style="margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;"><span style="color: #b0b0b0;">├── secondbrain/</span>  <span style="color: #10b981;">← 공유 지식 저장소 (RW)</span></p>
+      <p style="margin: 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;"><span style="color: #b0b0b0;">└── extra/</span>        <span style="color: #f59e0b;">← 추가 마운트 (RO)</span></p>
+    </div>
+
+    <div style="flex: 0 0 200pt; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #ef4444; border-radius: 12pt; padding: 20pt 22pt;">
+      <p style="margin: 0 0 16pt 0; font-size: 13pt; font-weight: 600; color: #b0b0b0;">자동 차단 패턴</p>
+      <ul style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8pt;">
+        <li style="margin: 0;">
+          <p style="margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;">.ssh</p>
+        </li>
+        <li style="margin: 0;">
+          <p style="margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;">.gnupg</p>
+        </li>
+        <li style="margin: 0;">
+          <p style="margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;">.aws</p>
+        </li>
+        <li style="margin: 0;">
+          <p style="margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;">.env</p>
+        </li>
+        <li style="margin: 0;">
+          <p style="margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;">credentials</p>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <p style="position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;">14</p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 40pt 48pt;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="position: absolute; top: 36pt; left: 48pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em;">09 // DEBATE</p>
+  </div>
+
+  <!-- Main quote -->
+  <div style="max-width: 560pt;">
+    <div style="display: flex; align-items: flex-start; gap: 16pt; margin-bottom: 28pt;">
+      <div style="min-width: 4pt; background: #7C6FFF; align-self: stretch;"></div>
+      <div>
+        <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 30pt; font-weight: 700; color: #FFFFFF; line-height: 1.2; margin-bottom: 8pt;">
+          "클로즈드 소스는<br>AI 시대의 가장 큰 실책"
+        </h2>
+        <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA;">— THEO BROWNE</p>
+      </div>
+    </div>
+
+    <!-- Supporting points -->
+    <div style="display: flex; flex-direction: column; gap: 16pt; padding-left: 20pt;">
+      <div style="display: flex; gap: 24pt; align-items: center;">
+        <!-- Isometric locked cube -->
+        <div style="position: relative; width: 36pt; height: 36pt; flex-shrink: 0;">
+          <div style="position: absolute; width: 36pt; height: 21pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+          <div style="position: absolute; width: 18pt; height: 28pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+          <div style="position: absolute; width: 18pt; height: 28pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+        </div>
+        <p style="font-size: 12pt; color: #FFFFFF; line-height: 1.5;">
+          유출 코드에서 <span style="color: #FF6B6B; font-weight: 600;">토큰 10~20배 과다 소모</span> 버그 발견<br>
+          <span style="font-size: 10pt; color: #8888AA;">→ 사용자들이 직접 패치해서 공유</span>
+        </p>
+      </div>
+
+      <div style="display: flex; gap: 24pt; align-items: center;">
+        <!-- Isometric open cube -->
+        <div style="position: relative; width: 36pt; height: 36pt; flex-shrink: 0;">
+          <div style="position: absolute; width: 36pt; height: 21pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+          <div style="position: absolute; width: 18pt; height: 28pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+          <div style="position: absolute; width: 18pt; height: 28pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+        </div>
+        <p style="font-size: 12pt; color: #FFFFFF; line-height: 1.5;">
+          AI 코딩 에이전트의 <span style="color: #A594FF; font-weight: 600;">오픈소스화/감사 가능성</span> 요구 증가<br>
+          <span style="font-size: 10pt; color: #8888AA;">→ claw-code 외 수십 개 클론 프로젝트 활성화</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VS visual element -->
+  <div style="position: absolute; right: 48pt; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 20pt;">
+    <!-- Closed -->
+    <div style="position: relative; width: 50pt; height: 50pt; opacity: 0.4;">
+      <div style="position: absolute; width: 50pt; height: 29pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+      <div style="position: absolute; width: 25pt; height: 39pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+      <div style="position: absolute; width: 25pt; height: 39pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+    </div>
+    <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 18pt; font-weight: 700; color: #8888AA;">VS</p>
+    <!-- Open -->
+    <div style="position: relative; width: 50pt; height: 50pt;">
+      <div style="position: absolute; width: 50pt; height: 29pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+      <div style="position: absolute; width: 25pt; height: 39pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+      <div style="position: absolute; width: 25pt; height: 39pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+    </div>
+  </div>
+</body>
+</html>

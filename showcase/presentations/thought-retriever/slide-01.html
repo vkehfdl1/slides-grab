@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt; height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    background: #0f0f0f; color: #ededed;
+    padding: 14pt 22pt;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .mono { font-family: 'Space Mono', monospace; letter-spacing: 1.5px; }
+  .head { display: flex; justify-content: space-between; align-items: center; color: #9a9a9a; font-size: 7pt; }
+  .head .tag { padding: 2pt 7pt; border: 1px solid #333; border-radius: 10pt; color: #d0d0d0; font-size: 7pt; }
+  .title-wrap { margin-top: 6pt; }
+  h1 {
+    font-size: 28pt; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2;
+    color: #fff; padding-bottom: 2pt;
+  }
+  h1 .accent { color: #7ad0ff; }
+  .subtitle { margin-top: 3pt; font-size: 9pt; color: #b8b8b8; line-height: 1.3; max-width: 420pt; }
+  .subtitle b { color: #7ad0ff; }
+  .authors { margin-top: 2pt; font-size: 7pt; color: #808080; letter-spacing: 0.5px; }
+  .body { display: grid; grid-template-columns: 260pt 1fr; gap: 10pt; margin-top: 8pt; flex: 1; min-height: 0; }
+  .card {
+    background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 6pt;
+    padding: 7pt 10pt;
+  }
+  .card-label { font-size: 6.5pt; color: #7ad0ff; font-weight: 700; letter-spacing: 1.5px; margin-bottom: 3pt; }
+  .card h3 { font-size: 9pt; color: #fff; margin-bottom: 3pt; font-weight: 700; }
+  .card p, .card li { font-size: 7.5pt; color: #c8c8c8; line-height: 1.35; }
+  .card ul { padding-left: 10pt; display: flex; flex-direction: column; gap: 2pt; }
+  .card li::marker { color: #7ad0ff; }
+  .card b { color: #fff; }
+  .fig-wrap {
+    background: #151515; border: 1px solid #2a2a2a; border-radius: 6pt;
+    padding: 6pt; display: flex; flex-direction: column; min-height: 0;
+  }
+  .fig-label { font-size: 6.5pt; color: #9a9a9a; margin-bottom: 3pt; letter-spacing: 1.5px; }
+  .fig-img {
+    flex: 1; background: #fff; border-radius: 3pt; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; min-height: 0;
+  }
+  .fig-img img { width: 100%; height: 100%; object-fit: contain; }
+  .fig-cap { font-size: 6.5pt; color: #909090; margin-top: 3pt; line-height: 1.3; }
+  .hook { background: linear-gradient(90deg, #1e2a36 0%, #151515 100%); border-left: 2pt solid #7ad0ff; padding: 4pt 9pt; border-radius: 3pt; font-size: 7.5pt; color: #d8eaff; }
+  .stack { display: flex; flex-direction: column; gap: 5pt; min-height: 0; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div style="display:flex; gap:8pt; align-items:center;">
+      <span class="mono tag">AI / ML · RESEARCH SUMMARY</span>
+      <span class="mono">arXiv:2604.12231v1</span>
+    </div>
+    <span class="mono">01 / 03</span>
+  </div>
+
+  <div class="title-wrap">
+    <h1>Thought-Retriever<span class="accent">.</span></h1>
+    <p class="subtitle">Don't just retrieve raw data — retrieve <b>thoughts</b> for memory-augmented agentic systems.</p>
+    <p class="authors mono">FENG · HAN · LIN · LIU · YOU  /  UIUC · MIT · CMU</p>
+  </div>
+
+  <div class="body">
+    <div class="stack">
+      <div class="card">
+        <div class="card-label mono">PROBLEM</div>
+        <ul>
+          <li>Standard RALMs: recall collapses beyond context window</li>
+          <li>Hierarchical retrievers: fixed structure, not query-adaptive</li>
+          <li>Long-context LLMs: costly, no persistence, no self-evolution</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-label mono">CORE IDEA</div>
+        <ul>
+          <li>Persist LLM's reasoning as reusable <b>thoughts</b></li>
+          <li>Retrieve over (external KB ∪ thought memory) — unlimited scale</li>
+          <li>Model-agnostic, lightweight plug-in</li>
+          <li>Self-evolves through user interactions</li>
+        </ul>
+      </div>
+      <div class="hook mono">NEW SCALING LAW · DRIVEN BY INTERACTIONS, NOT PARAMETERS</div>
+    </div>
+
+    <div class="fig-wrap">
+      <div class="fig-label mono">FIG. 1 — RALM vs HIERARCHICAL vs THOUGHT-RETRIEVER</div>
+      <div class="fig-img"><img src="./assets/fig1.png" alt="Figure 1"></div>
+      <div class="fig-cap">Standard RALMs hit recall limits; hierarchical methods lack adaptability; Thought-Retriever balances precision and recall.</div>
+    </div>
+  </div>
+</body>
+</html>

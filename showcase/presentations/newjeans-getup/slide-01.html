@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #000080;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Rainbow stripe bars */
+    .rainbow-bar {
+      width: 100%;
+      height: 7pt;
+      background: linear-gradient(90deg, #FF0000, #FF7700, #FFFF00, #00FF00, #0000FF, #8B00FF);
+      flex-shrink: 0;
+    }
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      position: relative;
+    }
+    .left {
+      flex: 1;
+      padding: 32pt 0 32pt 44pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      z-index: 2;
+    }
+    .right {
+      width: 320pt;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+    .right img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(1.2) contrast(1.05);
+    }
+    .right::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(90deg, #000080 0%, transparent 40%);
+    }
+    h1 {
+      font-family: Impact, 'Pretendard', sans-serif;
+      font-size: 44pt;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-shadow: 2px 2px 0 #00FFFF, 4px 4px 0 #FF00FF;
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+    .subtitle {
+      font-size: 13pt;
+      color: #FFFF00;
+      margin-top: 14pt;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+    .star {
+      color: #FFFF00;
+      font-size: 16pt;
+      position: absolute;
+    }
+  </style>
+</head>
+<body>
+  <div class="rainbow-bar"></div>
+  <div class="main">
+    <div class="left">
+      <p class="star" style="top: 28pt; left: 28pt;">&#10022;</p>
+      <p class="star" style="top: 60pt; left: 180pt;">&#9733;</p>
+      <h1>NewJeans<br>"Get Up"</h1>
+      <p class="subtitle">2nd Mini Album &middot; 2023.07.21</p>
+    </div>
+    <div class="right">
+      <img src="./assets/teaser_1.jpg" alt="NewJeans Get Up">
+    </div>
+    <p class="star" style="bottom: 24pt; right: 24pt;">&#10022;</p>
+  </div>
+  <div class="rainbow-bar"></div>
+</body>
+</html>

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      overflow: hidden;
+      position: relative;
+    }
+    .iso-grid {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(124,111,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,111,255,0.06) 1px, transparent 1px);
+      background-size: 40pt 40pt;
+    }
+    .iso-cube {
+      position: absolute;
+      width: 80pt; height: 80pt;
+    }
+    .iso-top {
+      position: absolute; width: 80pt; height: 46pt; top: 0; left: 0;
+      background: #7C6FFF;
+      clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);
+    }
+    .iso-left {
+      position: absolute; width: 40pt; height: 63pt; bottom: 0; left: 0;
+      background: #4A3FCC;
+      clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);
+    }
+    .iso-right {
+      position: absolute; width: 40pt; height: 63pt; bottom: 0; right: 0;
+      background: #6254E8;
+      clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);
+    }
+    .cube-lg .iso-top { width: 120pt; height: 69pt; }
+    .cube-lg .iso-left { width: 60pt; height: 95pt; }
+    .cube-lg .iso-right { width: 60pt; height: 95pt; }
+    .cube-lg { width: 120pt; height: 120pt; }
+    .cube-sm { width: 50pt; height: 50pt; }
+    .cube-sm .iso-top { width: 50pt; height: 29pt; }
+    .cube-sm .iso-left { width: 25pt; height: 39pt; }
+    .cube-sm .iso-right { width: 25pt; height: 39pt; }
+    .leak-line {
+      position: absolute;
+      width: 2pt;
+      background: #A594FF;
+      opacity: 0.4;
+    }
+  </style>
+</head>
+<body>
+  <div class="iso-grid"></div>
+
+  <!-- Isometric cubes scattered -->
+  <div class="iso-cube cube-lg" style="bottom: 40pt; left: 60pt; opacity: 0.7;">
+    <div class="iso-top"></div>
+    <div class="iso-left"></div>
+    <div class="iso-right"></div>
+  </div>
+  <div class="iso-cube" style="bottom: 80pt; left: 160pt; opacity: 0.5;">
+    <div class="iso-top"></div>
+    <div class="iso-left"></div>
+    <div class="iso-right"></div>
+  </div>
+  <div class="iso-cube cube-sm" style="bottom: 30pt; left: 250pt; opacity: 0.3;">
+    <div class="iso-top"></div>
+    <div class="iso-left"></div>
+    <div class="iso-right"></div>
+  </div>
+
+  <!-- Leak lines streaming from cubes -->
+  <div class="leak-line" style="left: 120pt; top: 80pt; height: 180pt; transform: rotate(15deg);"></div>
+  <div class="leak-line" style="left: 150pt; top: 60pt; height: 220pt; transform: rotate(10deg); opacity: 0.25;"></div>
+  <div class="leak-line" style="left: 200pt; top: 40pt; height: 200pt; transform: rotate(20deg); opacity: 0.15;"></div>
+
+  <!-- Title area -->
+  <div style="position: absolute; top: 64pt; right: 56pt; text-align: right; max-width: 420pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #A594FF; letter-spacing: 0.15em; margin-bottom: 16pt;">2026.03.31 INCIDENT REPORT</p>
+    <h1 style="font-family: 'Barlow Condensed', sans-serif; font-size: 44pt; font-weight: 700; color: #FFFFFF; line-height: 1.2; letter-spacing: -0.01em;">
+      CLAUDE CODE<br>SOURCE LEAK
+    </h1>
+    <p style="font-family: 'Pretendard', sans-serif; font-size: 14pt; color: #8888AA; margin-top: 20pt; line-height: 1.6;">
+      .npmignore 하나가 불러온<br>GitHub 역사상 최대의 폭풍
+    </p>
+  </div>
+
+  <!-- Bottom tag -->
+  <div style="position: absolute; bottom: 32pt; right: 56pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC; letter-spacing: 0.1em;">512,000 LINES // 1,906 FILES // 59.8 MB</p>
+  </div>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 07 — 패턴이 보이시나요?</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #F5F500;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 20pt 28pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 10pt;
+    justify-content: space-between;
+  }
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt;
+    align-self: flex-start;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 38pt; line-height: 1.2;
+    letter-spacing: -1pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    color: #FF2D55; font-style: italic;
+  }
+  .table {
+    border: 3pt solid #000000;
+    background: #FFFFFF;
+    box-shadow: 5pt 5pt 0 #000000;
+    flex: 1;
+    display: flex; flex-direction: column;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 100pt 1fr 1.6fr;
+    border-bottom: 2.5pt solid #000000;
+    flex: 1;
+  }
+  .row:last-child { border-bottom: none; }
+  .row.head {
+    background: #000000; color: #F5F500;
+    flex: 0 0 auto;
+  }
+  .cell {
+    padding: 6pt 10pt;
+    border-right: 2.5pt solid #000000;
+    display: flex; align-items: center;
+  }
+  .cell:last-child { border-right: none; }
+  .cell.label {
+    font-weight: 900; font-size: 12pt;
+    background: #F5F500;
+  }
+  .row.head .cell.label { background: #000000; }
+  .cell.head {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+  .cell.body {
+    font-size: 10pt; line-height: 1.4;
+    font-weight: 500;
+  }
+  .cell.body b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 3pt;
+  }
+  .core {
+    border: 3pt solid #000000;
+    background: #000000; color: #FFFFFF;
+    padding: 8pt 12pt;
+    font-size: 12pt; font-weight: 700;
+    box-shadow: 4pt 4pt 0 #FF2D55;
+    text-align: center;
+  }
+  .core b {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <span class="section-tag">Synthesis</span>
+    <h1>패턴이 <span class="accent">보이시나요?</span></h1>
+    <div class="table">
+      <div class="row head">
+        <div class="cell label head">프로젝트</div>
+        <div class="cell head">도메인</div>
+        <div class="cell head">하네스 = 무엇이 출력 공간을 묶는가</div>
+      </div>
+      <div class="row">
+        <div class="cell label">K-skill</div>
+        <div class="cell body">한국 생활</div>
+        <div class="cell body"><b>SKILL.md</b>로 "한국에서 살아남는 법" 구조화</div>
+      </div>
+      <div class="row">
+        <div class="cell label">slides-grab</div>
+        <div class="cell body">슬라이드 디자인</div>
+        <div class="cell body"><b>Validator + Editor + Style</b>로 "예쁜 슬라이드" 정의</div>
+      </div>
+      <div class="row">
+        <div class="cell label">openclone</div>
+        <div class="cell body">인물 페르소나</div>
+        <div class="cell body"><b>persona.md + knowledge/</b>로 "이 사람" 정의</div>
+      </div>
+    </div>
+    <div class="core">도메인을 <b>구조</b>로 정의하면, LLM은 그 안에서 <b>창의적</b>으로 일한다.</div>
+  </div>
+</body>
+</html>

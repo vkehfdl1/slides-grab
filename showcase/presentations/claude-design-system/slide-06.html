@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>The AI Slop Blacklist — Anatomy of Claude's Design System Prompt</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Serif+KR:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 16pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 24pt;
+    }
+    .hero-left {
+      max-width: 470pt;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 24pt;
+      line-height: 1.36;
+      letter-spacing: -0.3pt;
+      margin: 0;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .edition {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      text-align: right;
+      margin: 0;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .blacklist {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1pt 1fr;
+      gap: 0;
+      padding: 0;
+    }
+    .col {
+      padding: 14pt 20pt 14pt 22pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .col-left { padding-left: 32pt; }
+    .col-right { padding-right: 32pt; }
+    .rule-v {
+      background: #1A1208;
+      width: 1pt;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 36pt 1fr;
+      gap: 12pt;
+      align-items: baseline;
+      padding: 3pt 0;
+    }
+    .item-num {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 20pt;
+      color: #1A1208;
+      margin: 0;
+      line-height: 1.3;
+      letter-spacing: -0.5pt;
+    }
+    .item-text {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.4;
+      color: #3A3020;
+      margin: 0;
+    }
+    .item-text strong {
+      font-family: 'Space Mono', monospace;
+      font-size: 12pt;
+      color: #1A1208;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <article class="slide">
+    <header class="masthead">
+      <p style="margin:0;">THE BLACKLIST</p>
+      <p style="margin:0;">§ 5 · AI SLOP 블랙리스트</p>
+      <p style="margin:0;">06 / 08</p>
+    </header>
+    <div class="hero">
+      <div class="hero-left">
+        <p class="kicker">SEVEN ANTI-PATTERNS · 반(反)패턴 일곱</p>
+        <h1 class="headline">순식간에 덱을 싸구려로 만드는<br>일곱 가지 <em>패턴</em></h1>
+      </div>
+      <p class="edition">AVOID EXPLICITLY<br>— UNLESS THE BRIEF DEMANDS —</p>
+    </div>
+    <div class="blacklist">
+      <section class="col col-left">
+        <div class="item">
+          <p class="item-num">01</p>
+          <p class="item-text">전면 그라디언트 배경을 메인 표면 처리로 씀</p>
+        </div>
+        <div class="item">
+          <p class="item-num">02</p>
+          <p class="item-text">둥근 컨테이너 + 좌측 border-accent 스트라이프</p>
+        </div>
+        <div class="item">
+          <p class="item-num">03</p>
+          <p class="item-text">SVG로 이미지와 아이콘을 직접 그리기</p>
+        </div>
+        <div class="item">
+          <p class="item-num">04</p>
+          <p class="item-text">범용 폰트 — <strong>Inter · Roboto · Arial · Fraunces</strong>, 시스템 스택</p>
+        </div>
+      </section>
+      <div class="rule-v"></div>
+      <section class="col col-right">
+        <div class="item">
+          <p class="item-num">05</p>
+          <p class="item-text">이모지를 기본 iconography로 사용</p>
+        </div>
+        <div class="item">
+          <p class="item-num">06</p>
+          <p class="item-text">아이콘 + 헤더 + 두 줄 blurb의 3×2 feature-card 그리드</p>
+        </div>
+        <div class="item">
+          <p class="item-num">07</p>
+          <p class="item-text">빈 공간 장식용 섀도 · 그라디언트 · 보더 (faux chrome)</p>
+        </div>
+      </section>
+    </div>
+  </article>
+</body>
+</html>

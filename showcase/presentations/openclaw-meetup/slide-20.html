@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Swarm — 4개의 에이전트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;">
+<div style="width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 32pt 40pt 28pt 40pt;">
+
+  <!-- Section badge -->
+  <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 6pt;">
+    <div style="background: #6366f1; color: #ffffff; font-size: 9pt; font-weight: 700; padding: 3pt 8pt; border-radius: 4pt; letter-spacing: 0.08em; text-transform: uppercase;">
+      <p style="margin: 0;">ACT 4</p>
+    </div>
+    <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">마개조 결과물</p>
+  </div>
+
+  <!-- Title -->
+  <h1 style="font-size: 28pt; font-weight: 700; margin: 0 0 24pt 0; letter-spacing: -0.5pt;">Agent Swarm — 4개의 에이전트</h1>
+
+  <!-- 2x2 grid -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14pt;">
+
+    <!-- Card 1: Dobby -->
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;">
+        <h3 style="font-size: 16pt; font-weight: 700; margin: 0;">도비 (Dobby)</h3>
+        <div style="background: #1e1e2a; border: 1pt solid #6366f1; border-radius: 4pt; padding: 2pt 8pt;">
+          <p style="font-size: 9pt; font-weight: 600; margin: 0; color: #6366f1;">Opus</p>
+        </div>
+      </div>
+      <p style="font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;">오케스트레이터</p>
+      <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">최고 권한, 모든 그룹 관리</p>
+    </div>
+
+    <!-- Card 2: Young-Gu -->
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;">
+        <h3 style="font-size: 16pt; font-weight: 700; margin: 0;">영구 (Young-Gu)</h3>
+        <div style="background: #1e1e2a; border: 1pt solid #6366f1; border-radius: 4pt; padding: 2pt 8pt;">
+          <p style="font-size: 9pt; font-weight: 600; margin: 0; color: #6366f1;">Opus</p>
+        </div>
+      </div>
+      <p style="font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;">PM 에이전트</p>
+      <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">AutoRAG GitHub 이슈/PR 자동화</p>
+    </div>
+
+    <!-- Card 3: Marketer -->
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #f59e0b; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;">
+        <h3 style="font-size: 16pt; font-weight: 700; margin: 0;">홍명보</h3>
+        <div style="background: #1e1e2a; border: 1pt solid #22d3ee; border-radius: 4pt; padding: 2pt 8pt;">
+          <p style="font-size: 9pt; font-weight: 600; margin: 0; color: #22d3ee;">Sonnet</p>
+        </div>
+      </div>
+      <p style="font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;">마케터</p>
+      <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">SNS 트렌드/콘텐츠/댓글 관리</p>
+    </div>
+
+    <!-- Card 4: Todomon -->
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #10b981; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;">
+        <h3 style="font-size: 16pt; font-weight: 700; margin: 0;">투두몬 (Todomon)</h3>
+        <div style="background: #1e1e2a; border: 1pt solid #22d3ee; border-radius: 4pt; padding: 2pt 8pt;">
+          <p style="font-size: 9pt; font-weight: 600; margin: 0; color: #22d3ee;">Sonnet</p>
+        </div>
+      </div>
+      <p style="font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;">태스크 관리</p>
+      <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">할 일 추적 및 리마인더</p>
+    </div>
+
+  </div>
+
+  <!-- Page number -->
+  <p style="position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;">20</p>
+
+</div>
+
+</body></html>

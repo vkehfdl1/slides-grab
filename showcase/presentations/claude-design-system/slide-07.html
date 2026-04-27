@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Port vs. Skip — Anatomy of Claude's Design System Prompt</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Serif+KR:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 16pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 26pt;
+      line-height: 1.38;
+      letter-spacing: -0.3pt;
+      margin: 0;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .columns {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 3pt 1fr;
+      gap: 0;
+    }
+    .rule-heavy {
+      background: #1A1208;
+      width: 3pt;
+    }
+    .col {
+      padding: 16pt 22pt 14pt;
+      display: flex;
+      flex-direction: column;
+    }
+    .col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 0 0 10pt;
+      padding-bottom: 6pt;
+      border-bottom: 2pt solid #1A1208;
+    }
+    .col-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 20pt;
+      color: #1A1208;
+      margin: 0;
+      letter-spacing: -0.3pt;
+    }
+    .col-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: 9pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .list li {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.4;
+      color: #3A3020;
+      padding: 3pt 0 3pt 18pt;
+      position: relative;
+    }
+    .list-skip li::before {
+      content: "×";
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 14pt;
+      color: #1A1208;
+      position: absolute;
+      left: 0;
+      top: 3pt;
+    }
+    .list-keep li::before {
+      content: "§";
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 13pt;
+      color: #1A1208;
+      position: absolute;
+      left: 0;
+      top: 3pt;
+    }
+    .list li strong {
+      font-family: 'Space Mono', monospace;
+      font-size: 11pt;
+      color: #1A1208;
+    }
+  </style>
+</head>
+<body>
+  <article class="slide">
+    <header class="masthead">
+      <p style="margin:0;">WHAT TO PORT</p>
+      <p style="margin:0;">§ 6 · 원칙과 런타임의 분리</p>
+      <p style="margin:0;">07 / 08</p>
+    </header>
+    <div class="hero">
+      <p class="kicker">PRINCIPLE VS. RUNTIME · 이식 가능성 판정</p>
+      <h1 class="headline">원칙과 런타임을 <em>분리하라</em></h1>
+    </div>
+    <div class="columns">
+      <section class="col">
+        <div class="col-header">
+          <h2 class="col-title">Skip</h2>
+          <p class="col-sub">CLAUDE-ARTIFACT 전용</p>
+        </div>
+        <ul class="list list-skip">
+          <li><strong>Tweaks</strong> postMessage 프로토콜</li>
+          <li><strong>done</strong> · <strong>fork_verifier_agent</strong> 도구</li>
+          <li><strong>window.claude.complete</strong> 런타임 호출</li>
+          <li><strong>mentioned-element</strong> DOM 핸들</li>
+          <li>React + Babel 스타터 컴포넌트</li>
+          <li>GitHub connector · napkin sketch 첨부</li>
+          <li>snip 컨텍스트 관리 · CLAUDE.md</li>
+          <li>저작권 거부 가드레일</li>
+        </ul>
+      </section>
+      <div class="rule-heavy"></div>
+      <section class="col">
+        <div class="col-header">
+          <h2 class="col-title">Keep</h2>
+          <p class="col-sub">이식 가능한 디자인 원칙</p>
+        </div>
+        <ul class="list list-keep">
+          <li>역할 프레이밍 — HTML은 도구, 매체는 다양</li>
+          <li>6단계 워크플로 규율과 게이트</li>
+          <li>"먼저 시스템을 선언하라"</li>
+          <li>콘텐츠 규율 — 필러 금지, 허락받고 추가</li>
+          <li>AI slop 블랙리스트 (일곱 항목)</li>
+          <li>컬러·타이포 규율 — <strong>oklch</strong> 확장, 14pt 최소</li>
+          <li>Review litmus — 3-5초 파악 가능한가</li>
+        </ul>
+      </section>
+    </div>
+  </article>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 13 — Korea-only</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 240pt at 82% 28%, rgba(255,45,94,0.26), transparent 70%),
+      radial-gradient(360pt 240pt at 18% 82%, rgba(59,143,245,0.24), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(55pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(55pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:30pt 44pt; display:flex; flex-direction:column;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:26pt; line-height:1.4; letter-spacing:-1pt; margin:8pt 0 16pt; color:#E8E8F5;}
+  h1 .hl{background:linear-gradient(90deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .row{display:grid; grid-template-columns:repeat(4,1fr); gap:8pt;}
+  .chip{border:1pt solid rgba(255,255,255,0.15); border-radius:8pt; padding:10pt 8pt; background:rgba(10,10,30,0.55);
+    text-align:center; font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:11pt; color:#E8E8F5; margin:0;}
+  .chip small{display:block; font-family:'DM Mono',monospace; font-weight:400; font-size:9pt; color:#8a8ab0; letter-spacing:1pt; margin-top:2pt;}
+  .chip.red{border-color:rgba(255,45,94,0.45); box-shadow:0 0 12pt rgba(255,45,94,0.18) inset;}
+  .chip.blue{border-color:rgba(59,143,245,0.45); box-shadow:0 0 12pt rgba(59,143,245,0.18) inset;}
+  .msg{margin-top:auto; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:17pt; letter-spacing:1pt; color:#D0D0F0; line-height:1.5;}
+  .msg b{color:#ffffff; text-shadow:0 0 12pt rgba(255,45,94,0.5), 0 0 12pt rgba(59,143,245,0.5);}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// Why K-skill existed</p>
+    <h1>Korea has <span class="hl">too many "Korea-only" services</span>.</h1>
+    <div class="row">
+      <p class="chip red">Naver<small>Search · Maps</small></p>
+      <p class="chip blue">Kakao<small>Talk · T · Pay</small></p>
+      <p class="chip red">KB · Shinhan · Toss<small>Finance</small></p>
+      <p class="chip blue">Gov24<small>Civic services</small></p>
+      <p class="chip blue">Coupang · Kurly<small>Commerce</small></p>
+      <p class="chip red">KTX · SRT<small>Train booking</small></p>
+      <p class="chip blue">NEIS<small>Schools · meals</small></p>
+      <p class="chip red">Hi-pass · WeTax<small>Public services</small></p>
+    </div>
+    <p class="msg">A foreign-made Claw gets lost in Korea.<br>We had to <b>re-teach it to be Korean</b>. That's why we built K-skill.</p>
+  </div>
+</div>
+</body>
+</html>

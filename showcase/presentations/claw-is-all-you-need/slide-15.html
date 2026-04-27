@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 15 — Drop closedness</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(500pt 340pt at 50% 50%, rgba(255,45,94,0.34), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:44pt 52pt; display:flex; flex-direction:column; justify-content:center;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#FF8FA8; text-transform:uppercase; margin:0;}
+  h1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:30pt; line-height:1.45; letter-spacing:-1pt; margin:12pt 0 10pt; color:#E8E8F5;}
+  h1 em{font-style:normal;
+    background:linear-gradient(100deg,#FF2D5E 0%,#ffffff 60%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 18pt rgba(255,45,94,0.5);}
+  .body{font-family:'Noto Sans KR',sans-serif; font-size:14pt; line-height:1.6; color:#D0D0F0; max-width:560pt; margin:0;}
+  .body b{color:#ffffff;}
+  .list{margin-top:14pt; display:grid; grid-template-columns:1fr 1fr; gap:8pt;}
+  .tag{font-family:'DM Mono',monospace; font-size:10pt; color:#E8E8F5; letter-spacing:1pt;
+    padding:7pt 10pt; border:1pt dashed rgba(255,45,94,0.45); border-radius:6pt; background:rgba(40,10,20,0.5); margin:0;}
+  .tag::before{content:"# "; color:#FF2D5E;}
+  .punch{margin-top:auto; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:18pt; letter-spacing:2pt; color:#ffffff; text-align:right; margin-bottom:0;}
+  .punch b{background:linear-gradient(90deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// But —</p>
+    <h1>But Korea's characteristic <em>closedness</em> has to go.</h1>
+    <p class="body">Too many Korean services are still <b>Anti-Agent</b>. Openness is the precondition for an agent transition.</p>
+    <div class="list">
+      <p class="tag">Mandatory PASS identity verification</p>
+      <p class="tag">ActiveX leftovers · security modules</p>
+      <p class="tag">App-only / shrunken web</p>
+      <p class="tag">Excessive robots · UA blocking</p>
+    </div>
+    <p class="punch">Leave it closed, and <b>Claw walks past.</b></p>
+  </div>
+</div>
+</body>
+</html>

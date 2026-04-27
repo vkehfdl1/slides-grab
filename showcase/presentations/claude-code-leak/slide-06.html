@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="margin-bottom: 20pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;">04 // CLAW-CODE</p>
+    <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;">Sigrid Jin과 claw-code의 탄생</h2>
+  </div>
+
+  <!-- Main content -->
+  <div style="flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 36pt; align-items: center;">
+    <!-- Left: Info -->
+    <div style="display: flex; flex-direction: column; gap: 18pt;">
+      <!-- Quote badge -->
+      <div style="background: rgba(124,111,255,0.1); border-left: 3pt solid #7C6FFF; padding: 12pt 16pt;">
+        <p style="font-size: 11pt; color: #A594FF; font-style: italic; line-height: 1.5;">
+          "세계에서 Claude Code를 가장 많이 쓰는 개발자"
+        </p>
+        <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA; margin-top: 6pt;">— WALL STREET JOURNAL</p>
+      </div>
+
+      <!-- Key points -->
+      <div style="display: flex; flex-direction: column; gap: 12pt;">
+        <div style="display: flex; align-items: flex-start; gap: 10pt;">
+          <div style="min-width: 6pt; height: 6pt; background: #7C6FFF; margin-top: 5pt; transform: rotate(45deg);"></div>
+          <p style="font-size: 11pt; color: #FFFFFF; line-height: 1.5;">유출 코드를 <span style="color: #A594FF; font-weight: 600;">복사하지 않고</span> 아키텍처만 분석</p>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 10pt;">
+          <div style="min-width: 6pt; height: 6pt; background: #7C6FFF; margin-top: 5pt; transform: rotate(45deg);"></div>
+          <p style="font-size: 11pt; color: #FFFFFF; line-height: 1.5;">OpenAI Codex로 <span style="color: #A594FF; font-weight: 600;">하룻밤 만에</span> Python 재작성</p>
+        </div>
+        <div style="display: flex; align-items: flex-start; gap: 10pt;">
+          <div style="min-width: 6pt; height: 6pt; background: #7C6FFF; margin-top: 5pt; transform: rotate(45deg);"></div>
+          <p style="font-size: 11pt; color: #FFFFFF; line-height: 1.5;"><span style="color: #A594FF; font-weight: 600;">클린룸 재구현</span> — 법적으로 보호받는 역공학</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Clean Room visualization -->
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 16pt;">
+      <!-- TypeScript cube (source) -->
+      <div style="display: flex; align-items: center; gap: 16pt;">
+        <div style="position: relative; width: 60pt; height: 60pt;">
+          <div style="position: absolute; width: 60pt; height: 35pt; top: 0; left: 0; background: #4A3FCC; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%); opacity: 0.5;"></div>
+          <div style="position: absolute; width: 30pt; height: 47pt; bottom: 0; left: 0; background: #3A2FAA; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%); opacity: 0.5;"></div>
+          <div style="position: absolute; width: 30pt; height: 47pt; bottom: 0; right: 0; background: #4A3FCC; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%); opacity: 0.5;"></div>
+        </div>
+        <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;">TypeScript<br>512K lines</p>
+      </div>
+
+      <!-- Arrow -->
+      <div style="display: flex; align-items: center; gap: 8pt;">
+        <div style="width: 2pt; height: 24pt; background: #7C6FFF;"></div>
+      </div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 7pt; color: #7C6FFF; letter-spacing: 0.1em;">CLEAN ROOM</p>
+      <div style="display: flex; align-items: center; gap: 8pt;">
+        <div style="width: 2pt; height: 24pt; background: #7C6FFF;"></div>
+      </div>
+
+      <!-- Python cube (output) -->
+      <div style="display: flex; align-items: center; gap: 16pt;">
+        <div style="position: relative; width: 60pt; height: 60pt;">
+          <div style="position: absolute; width: 60pt; height: 35pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+          <div style="position: absolute; width: 30pt; height: 47pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+          <div style="position: absolute; width: 30pt; height: 47pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+        </div>
+        <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #FFFFFF;">Python<br>claw-code</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top: 12pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 7pt; color: #4A3FCC; letter-spacing: 0.08em;">SIGRID JIN (@sigridjineth) // instructkr/claw-code // 250B+ TOKENS PROCESSED</p>
+  </div>
+</body>
+</html>

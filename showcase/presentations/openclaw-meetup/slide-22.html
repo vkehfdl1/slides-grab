@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PM 에이전트 워크플로우</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;">
+<div style="width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 36pt 40pt 32pt 40pt;">
+
+  <!-- Title -->
+  <h1 style="font-size: 28pt; font-weight: 700; margin: 0 0 32pt 0; letter-spacing: -0.5pt;">PM 에이전트 워크플로우</h1>
+
+  <!-- Pipeline diagram -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 12pt;">
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt; text-align: center;">
+      <p style="font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;">GitHub Issue</p>
+    </div>
+    <p style="margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;">→</p>
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt; text-align: center;">
+      <p style="font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;">에이전트가 판단</p>
+    </div>
+    <p style="margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;">→</p>
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 12pt; text-align: center;">
+      <p style="font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;">Codex 서브에이전트</p>
+    </div>
+    <p style="margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;">→</p>
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 14pt; text-align: center;">
+      <p style="font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;">구현+테스트</p>
+    </div>
+    <p style="margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;">→</p>
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt; text-align: center;">
+      <p style="font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;">PR 생성</p>
+    </div>
+  </div>
+
+  <!-- Below pipeline -->
+  <p style="font-size: 14pt; text-align: center; color: #b0b0b0; margin: 0 0 36pt 0;">사람은 리뷰만 하면 됨!</p>
+
+  <!-- Two feature cards -->
+  <div style="display: flex; gap: 20pt;">
+    <!-- Card 1 -->
+    <div style="flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 20pt;">
+      <h3 style="font-size: 15pt; font-weight: 700; margin: 0 0 8pt 0;">Snippet Gate 폴링</h3>
+      <p style="font-size: 12pt; color: #b0b0b0; margin: 0;">15분마다 놓친 이벤트 자동 체크</p>
+      <div style="margin-top: 12pt; display: flex; align-items: center; gap: 6pt;">
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;">
+          <p style="font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;">cron</p>
+        </div>
+        <p style="margin: 0; font-size: 12pt; color: #6366f1;">→</p>
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;">
+          <p style="font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;">snippet</p>
+        </div>
+        <p style="margin: 0; font-size: 12pt; color: #6366f1;">→</p>
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;">
+          <p style="font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;">agent</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div style="flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 20pt;">
+      <h3 style="font-size: 15pt; font-weight: 700; margin: 0 0 8pt 0;">Webhook 트리거</h3>
+      <p style="font-size: 12pt; color: #b0b0b0; margin: 0;">GitHub Event 구독으로 실시간 트리거</p>
+      <div style="margin-top: 12pt; display: flex; align-items: center; gap: 6pt;">
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;">
+          <p style="font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;">event</p>
+        </div>
+        <p style="margin: 0; font-size: 12pt; color: #6366f1;">→</p>
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;">
+          <p style="font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;">webhook</p>
+        </div>
+        <p style="margin: 0; font-size: 12pt; color: #6366f1;">→</p>
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;">
+          <p style="font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;">agent</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page number -->
+  <p style="position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;">22</p>
+
+</div>
+
+</body></html>

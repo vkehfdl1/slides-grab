@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  .slide {
+    width: 720pt; height: 405pt;
+    background: #0D0D0D;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+  }
+
+  /* dot grid */
+  .slide::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(0,240,255,0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  /* corner brackets */
+  .corner { position: absolute; width: 24px; height: 24px; }
+  .corner::before, .corner::after {
+    content: ''; position: absolute; background: #00F0FF;
+  }
+  .corner::before { width: 24px; height: 2px; }
+  .corner::after  { width: 2px; height: 24px; }
+
+  .corner.tl { top: 20px; left: 20px; }
+  .corner.tl::before { top: 0; left: 0; }
+  .corner.tl::after  { top: 0; left: 0; }
+
+  .corner.tr { top: 20px; right: 20px; }
+  .corner.tr::before { top: 0; right: 0; }
+  .corner.tr::after  { top: 0; right: 0; }
+
+  .corner.bl { bottom: 20px; left: 20px; }
+  .corner.bl::before { bottom: 0; left: 0; }
+  .corner.bl::after  { bottom: 0; left: 0; }
+
+  .corner.br { bottom: 20px; right: 20px; }
+  .corner.br::before { bottom: 0; right: 0; }
+  .corner.br::after  { bottom: 0; right: 0; }
+
+  /* left content area */
+  .content {
+    position: relative;
+    z-index: 1;
+    padding-left: 64px;
+    max-width: 420px;
+  }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40pt;
+    letter-spacing: 6pt;
+    color: transparent;
+    -webkit-text-stroke: 1.5px #00F0FF;
+    line-height: 1.25;
+    margin-bottom: 24px;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    font-family: 'Space Mono', monospace;
+    font-size: 10pt;
+    color: #C0C0C0;
+    line-height: 1.8;
+    padding-left: 16px;
+    position: relative;
+  }
+
+  li::before {
+    content: '>';
+    position: absolute;
+    left: 0;
+    color: #00F0FF;
+    font-weight: 700;
+  }
+
+  /* right HUD panel */
+  .hud-panel {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 180px;
+    z-index: 1;
+  }
+
+  .hud-box {
+    border: 1px solid rgba(0,240,255,0.2);
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+
+  .hud-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 7pt;
+    letter-spacing: 3pt;
+    color: rgba(0,240,255,0.4);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .hud-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 18pt;
+    letter-spacing: 3pt;
+    color: #00F0FF;
+  }
+
+  .hud-value.magenta {
+    color: #FF2975;
+  }
+
+  /* vertical divider line */
+  .divider {
+    position: absolute;
+    left: 50%;
+    top: 60px;
+    bottom: 60px;
+    width: 1px;
+    background: rgba(0,240,255,0.1);
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+  <div class="divider"></div>
+
+  <div class="content">
+    <h1>THE STORY</h1>
+    <ul>
+      <li>K(Ryan Gosling), 새로운 블레이드 러너</li>
+      <li>묻힌 비밀 하나가 남은 인류의 질서를 위협한다</li>
+      <li>진짜와 가짜, 기억과 정체성의 경계</li>
+    </ul>
+  </div>
+
+  <div class="hud-panel">
+    <div class="hud-box">
+      <p class="hud-label">Subject</p>
+      <p class="hud-value">KD6-3.7</p>
+    </div>
+    <div class="hud-box">
+      <p class="hud-label">Status</p>
+      <p class="hud-value magenta">REPLICANT</p>
+    </div>
+    <div class="hud-box">
+      <p class="hud-label">Mission</p>
+      <p class="hud-value">RETIRE</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>

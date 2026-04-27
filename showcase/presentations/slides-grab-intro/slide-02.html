@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000000;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 24pt 24pt;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Content wrapper -->
+    <div style="position: relative; z-index: 1; padding: 48pt 64pt 44pt; display: flex; flex-direction: column; height: 100%;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28pt;">
+      <div style="display: flex; align-items: center; gap: 12pt;">
+        <p style="display: inline-block; padding: 4pt 12pt; background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 999pt; font-size: 9pt; font-weight: 600; color: #EF4444; letter-spacing: 0.04em;">PROBLEM</p>
+        <h2 style="font-size: 28pt; font-weight: 700; color: #FAFAFA; letter-spacing: -0.02em;">The Gap</h2>
+      </div>
+      <p style="font-size: 10pt; color: rgba(255,255,255,0.2); font-weight: 500;">01</p>
+    </div>
+
+    <!-- Main content: two columns -->
+    <div style="flex: 1; display: grid; grid-template-columns: 1fr 1.2fr; gap: 44pt; align-items: center;">
+
+      <!-- Left: headline -->
+      <div>
+        <h3 style="font-size: 36pt; font-weight: 800; color: #FAFAFA; letter-spacing: -0.03em; line-height: 1.15;">
+          Generate.<br>Then what?
+        </h3>
+        <p style="font-size: 14pt; font-weight: 400; color: rgba(255,255,255,0.35); margin-top: 16pt; line-height: 1.7;">
+          AI tools create a first draft — then leave you alone with a clunky editor.
+        </p>
+      </div>
+
+      <!-- Right: pain points -->
+      <div style="display: flex; flex-direction: column; gap: 10pt;">
+        <!-- Pain point 1 -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12pt; padding: 16pt 20pt; display: flex; align-items: flex-start; gap: 12pt;">
+          <div style="width: 26pt; height: 26pt; background: rgba(239,68,68,0.1); border-radius: 8pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1pt;">
+            <p style="font-size: 12pt; color: #EF4444;">&#x2717;</p>
+          </div>
+          <div>
+            <h4 style="font-size: 12pt; font-weight: 600; color: #FAFAFA; margin-bottom: 3pt;">No visual selection</h4>
+            <p style="font-size: 10.5pt; color: rgba(255,255,255,0.35); line-height: 1.45;">You can't point at an element and say "change this" — you must describe it in abstract text.</p>
+          </div>
+        </div>
+
+        <!-- Pain point 2 -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12pt; padding: 16pt 20pt; display: flex; align-items: flex-start; gap: 12pt;">
+          <div style="width: 26pt; height: 26pt; background: rgba(239,68,68,0.1); border-radius: 8pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1pt;">
+            <p style="font-size: 12pt; color: #EF4444;">&#x2717;</p>
+          </div>
+          <div>
+            <h4 style="font-size: 12pt; font-weight: 600; color: #FAFAFA; margin-bottom: 3pt;">Disconnected workflows</h4>
+            <p style="font-size: 10.5pt; color: rgba(255,255,255,0.35); line-height: 1.45;">Generation and editing are separate tools. Re-prompting means starting over.</p>
+          </div>
+        </div>
+
+        <!-- Pain point 3 -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 12pt; padding: 16pt 20pt; display: flex; align-items: flex-start; gap: 12pt;">
+          <div style="width: 26pt; height: 26pt; background: rgba(239,68,68,0.1); border-radius: 8pt; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1pt;">
+            <p style="font-size: 12pt; color: #EF4444;">&#x2717;</p>
+          </div>
+          <div>
+            <h4 style="font-size: 12pt; font-weight: 600; color: #FAFAFA; margin-bottom: 3pt;">Humans do the hard part</h4>
+            <p style="font-size: 10.5pt; color: rgba(255,255,255,0.35); line-height: 1.45;">AI does the easy work (first draft). You still handle the tedious in-place iteration.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>

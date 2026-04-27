@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Anatomy of Claude's Design System Prompt — Cover</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Serif+KR:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #1A1208;
+      color: #F2EFE8;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+      position: relative;
+    }
+    .masthead {
+      border-top: 1pt solid #F2EFE8;
+      border-bottom: 1pt solid #F2EFE8;
+      padding: 6pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+    }
+    .masthead-top { margin-top: 18pt; }
+    .dateline {
+      border-bottom: 1pt solid #3A3020;
+      padding: 4pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1pt;
+      color: #BBB5A8;
+      display: flex;
+      justify-content: space-between;
+    }
+    .hero {
+      flex: 1;
+      padding: 28pt 32pt 18pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 3pt;
+      color: #BBB5A8;
+      margin: 0 0 14pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 52pt;
+      line-height: 1.18;
+      letter-spacing: -1pt;
+      margin: 0 0 14pt;
+      padding-bottom: 6pt;
+      color: #F2EFE8;
+    }
+    .headline em {
+      font-style: italic;
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 700;
+      color: #F2EFE8;
+    }
+    .dek {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-weight: 400;
+      font-size: 16pt;
+      line-height: 1.45;
+      max-width: 520pt;
+      margin: 0;
+      color: #E6DFD0;
+    }
+    .footer-bar {
+      border-top: 1pt solid #3A3020;
+      padding: 8pt 32pt 14pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1pt;
+      color: #BBB5A8;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <article class="slide">
+    <div class="masthead masthead-top">
+      <p style="margin:0;">SLIDES-GRAB RESEARCH</p>
+      <p style="margin:0;">VOL. I · ISSUE 01</p>
+      <p style="margin:0;">APR 2026</p>
+    </div>
+    <div class="dateline">
+      <p style="margin:0;">2026년 4월 20일 월요일 · 서울판</p>
+      <p style="margin:0;">PR #67 · FEATURE/#66</p>
+    </div>
+    <div class="hero">
+      <p class="eyebrow">A FORENSIC BREAKDOWN · 특집 해부</p>
+      <h1 class="headline">Claude 디자인 시스템<br>프롬프트의 <em>해부</em></h1>
+      <p class="dek">Anthropic이 에이전트에게 건넨 400줄짜리 아트 디렉션 매뉴얼을 한 줄씩 뜯어보다. HTML을 디자인 매체로 다루는 첫 공개 시스템 프롬프트에서, slides-grab는 무엇을 가져오고 무엇을 버렸는가.</p>
+    </div>
+    <div class="footer-bar">
+      <p style="margin:0;">BY SLIDES-GRAB</p>
+      <p style="margin:0;">8 SLIDES · 약 4분 분량</p>
+      <p style="margin:0;">01 / 08</p>
+    </div>
+  </article>
+</body>
+</html>

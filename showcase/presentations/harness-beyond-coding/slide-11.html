@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 11 — Thanks</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #F5F500;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    border: 6pt solid #000000;
+    box-sizing: border-box;
+    padding: 22pt 28pt;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+  }
+  .top {
+    display: flex; justify-content: space-between;
+    align-items: flex-start;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase;
+  }
+  .badge {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 70pt; line-height: 1.1;
+    letter-spacing: -2.5pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    color: #FF2D55; font-style: italic;
+  }
+  .links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6pt; align-self: stretch;
+  }
+  .link {
+    background: #FFFFFF;
+    border: 3pt solid #000000;
+    padding: 5pt 8pt;
+    display: flex; align-items: center;
+    gap: 8pt;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .link-name {
+    font-weight: 900; font-size: 11pt;
+    background: #000000; color: #F5F500;
+    padding: 2pt 5pt;
+    flex-shrink: 0; min-width: 70pt;
+    text-align: center;
+  }
+  .link-url {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bottom {
+    display: flex; justify-content: space-between;
+    align-items: flex-end;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase;
+  }
+  .speaker {
+    background: #FFFFFF;
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .meta-right {
+    text-align: right; line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="top">
+      <div class="badge">Q&amp;A 환영</div>
+      <div>// END</div>
+    </div>
+    <div>
+      <h1>감사합<span class="accent">니다</span>.</h1>
+    </div>
+    <div class="links">
+      <div class="link">
+        <span class="link-name">K-skill</span>
+        <span class="link-url">github.com/NomaDamas/k-skill</span>
+      </div>
+      <div class="link">
+        <span class="link-name">Dani</span>
+        <span class="link-url">github.com/NomaDamas/dani</span>
+      </div>
+      <div class="link">
+        <span class="link-name">slides-grab</span>
+        <span class="link-url">github.com/vkehfdl1/slides-grab</span>
+      </div>
+      <div class="link">
+        <span class="link-name">openclone</span>
+        <span class="link-url">github.com/open-clone/openclone</span>
+      </div>
+    </div>
+    <div class="bottom">
+      <div class="speaker">김동규 / Kim Dong-Kyu</div>
+      <div class="meta-right">OMOCON SEOUL<br>2024.04.25</div>
+    </div>
+  </div>
+</body>
+</html>

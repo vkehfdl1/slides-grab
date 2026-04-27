@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slack-First 디자인 — Socket Mode</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;">
+<div style="width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 46pt 40pt 22pt 40pt;">
+
+  <!-- Title -->
+  <h1 style="font-size: 28pt; font-weight: 700; margin: 0 0 28pt 0; letter-spacing: -0.5pt;">Socket Mode - 이거 하나면 Slack은 충분</h1>
+
+  <!-- Two columns -->
+  <div style="display: flex; gap: 28pt; margin-bottom: 28pt;">
+
+    <!-- Left: Diagram -->
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="display: flex; align-items: center; gap: 16pt; margin-bottom: 16pt;">
+        <!-- Mac Mini box -->
+        <div style="background: #141419; border: 1.5pt solid #2a2a3a; border-radius: 8pt; padding: 14pt 20pt; text-align: center;">
+          <p style="font-size: 14pt; font-weight: 600; margin: 0;">맥미니</p>
+          <p style="font-size: 9pt; color: #b0b0b0; margin: 4pt 0 0 0;">NanoClaw</p>
+        </div>
+        <!-- Arrow -->
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 2pt;">
+          <p style="font-size: 10pt; color: #6366f1; margin: 0;">WebSocket</p>
+          <svg width="80" height="20" style="display: block;">
+            <line x1="0" y1="8" x2="72" y2="8" stroke="#6366f1" stroke-width="1.5"></line>
+            <polygon points="72,4 80,8 72,12" fill="#6366f1"></polygon>
+            <line x1="80" y1="12" x2="8" y2="12" stroke="#6366f1" stroke-width="1.5"></line>
+            <polygon points="8,16 0,12 8,8" fill="#6366f1"></polygon>
+          </svg>
+        </div>
+        <!-- Slack API box -->
+        <div style="background: #141419; border: 1.5pt solid #2a2a3a; border-radius: 8pt; padding: 14pt 20pt; text-align: center;">
+          <p style="font-size: 14pt; font-weight: 600; margin: 0;">메신저 API</p>
+          <p style="font-size: 9pt; color: #b0b0b0; margin: 4pt 0 0 0;">Cloud</p>
+        </div>
+      </div>
+      <p style="font-size: 11pt; color: #b0b0b0; margin: 0; text-align: center;">Socket Mode = WebSocket 상시 연결</p>
+    </div>
+
+    <!-- Right: Benefits -->
+    <div style="flex: 1; display: flex; align-items: center;">
+      <ul style="list-style: none; padding: 0; margin: 0;">
+        <li style="font-size: 14pt; margin-bottom: 14pt; padding-left: 18pt; position: relative;">
+          <span style="position: absolute; left: 0; color: #6366f1;">+</span>
+          <p style="margin: 0;">공개 URL 불필요</p>
+        </li>
+        <li style="font-size: 14pt; margin-bottom: 14pt; padding-left: 18pt; position: relative;">
+          <span style="position: absolute; left: 0; color: #6366f1;">+</span>
+          <p style="margin: 0;">웹훅 서버 불필요</p>
+        </li>
+        <li style="font-size: 14pt; padding-left: 18pt; position: relative;">
+          <span style="position: absolute; left: 0; color: #6366f1;">+</span>
+          <p style="margin: 0;">개인 맥미니에서 바로 실행</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bottom flow -->
+  <div style="display: flex; align-items: center; justify-content: center; gap: 0;">
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;">
+      <p style="font-size: 11pt; margin: 0; white-space: nowrap;">메시지 수신</p>
+    </div>
+    <p style="margin: 0; padding: 0 8pt; font-size: 14pt; color: #6366f1;">→</p>
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;">
+      <p style="font-size: 11pt; margin: 0; white-space: nowrap;">SQLite 저장</p>
+    </div>
+    <p style="margin: 0; padding: 0 8pt; font-size: 14pt; color: #6366f1;">→</p>
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;">
+      <p style="font-size: 11pt; margin: 0; white-space: nowrap;">라우터 판단</p>
+    </div>
+    <p style="margin: 0; padding: 0 8pt; font-size: 14pt; color: #6366f1;">→</p>
+    <div style="background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;">
+      <p style="font-size: 11pt; margin: 0; white-space: nowrap;">컨테이너 호출</p>
+    </div>
+  </div>
+
+  <!-- Page number -->
+  <p style="position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;">15</p>
+
+</div>
+
+
+</body></html>

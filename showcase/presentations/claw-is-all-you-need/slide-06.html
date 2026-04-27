@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Slide 06 — Pivot</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Barlow+Condensed:wght@400;600;800&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 240pt at 15% 20%, rgba(59,143,245,0.28), transparent 70%),
+      radial-gradient(360pt 240pt at 85% 80%, rgba(255,45,94,0.28), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:6pt; top:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:48pt 60pt; display:flex; flex-direction:column; justify-content:center;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:34pt; line-height:1.45; letter-spacing:-1pt; margin:14pt 0 0; color:#E8E8F5;}
+  h1 .q{background:linear-gradient(100deg,#FF2D5E 0%,#ffffff 50%,#3B8FF5 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sub{margin:20pt 0 0; font-family:'Barlow Condensed',sans-serif; font-weight:400; font-size:17pt; letter-spacing:2pt; color:#8a8ab0;}
+  .legs{display:grid; grid-template-columns:1fr 34pt 1fr; align-items:center; margin-top:22pt; gap:14pt;}
+  .leg{border:1pt solid rgba(255,255,255,0.15); border-radius:10pt; padding:10pt 12pt;
+    font-family:'Bebas Neue',sans-serif; font-size:20pt; letter-spacing:3pt; text-align:center;
+    background:rgba(10,10,30,0.55); margin:0;}
+  .leg.bad{color:#FF2D5E; border-color:rgba(255,45,94,0.45); box-shadow:0 0 14pt rgba(255,45,94,0.25) inset;}
+  .leg.good{color:#7FC0FF; border-color:rgba(59,143,245,0.45); box-shadow:0 0 14pt rgba(59,143,245,0.25) inset;}
+  .vs{font-family:'Bebas Neue',sans-serif; font-size:18pt; text-align:center; color:#D0D0F0; letter-spacing:3pt; margin:0;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// Pivot</p>
+    <h1>How do we bridge existing systems<br><span class="q">with Claw?</span></h1>
+    <p class="sub">BE AGENT-NATIVE</p>
+    <div class="legs">
+      <p class="leg bad">ANTI-AGENT</p>
+      <p class="vs">VS</p>
+      <p class="leg good">AGENT-NATIVE</p>
+    </div>
+  </div>
+</div>
+
+
+</body></html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecondBrain — 에이전트의 공통 작업장</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;">
+<div style="width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 32pt 40pt 28pt 40pt;">
+
+  <!-- Title -->
+  <h1 style="font-size: 28pt; font-weight: 700; margin: 0 0 20pt 0; letter-spacing: -0.5pt;">SecondBrain — 에이전트의 공통 작업장</h1>
+
+  <!-- Two columns -->
+  <div style="display: flex; gap: 24pt; margin-bottom: 16pt;">
+
+    <!-- Left: SecondBrain structure -->
+    <div style="flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 16pt;">
+      <h3 style="font-size: 13pt; font-weight: 600; margin: 0 0 14pt 0;">SecondBrain 구조</h3>
+
+      <!-- Center vault -->
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 8pt;">
+        <!-- Agent -->
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 14pt;">
+          <p style="font-size: 10pt; margin: 0;">Main Agent</p>
+        </div>
+        <p style="font-size: 12pt; color: #6366f1; margin: 0;">↓ Read &amp; Write</p>
+        <!-- Vault box -->
+        <div style="background: #1e1e2a; border: 1.5pt solid #6366f1; border-radius: 8pt; padding: 10pt 20pt; text-align: center;">
+          <p style="font-size: 12pt; font-weight: 700; margin: 0;">.md Files Vault</p>
+        </div>
+        <!-- Connected items -->
+        <div style="display: flex; gap: 8pt; width: 100%; justify-content: center; margin-top: 4pt;">
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;">
+            <p style="font-size: 8pt; margin: 0;">정리 Agent</p>
+            <p style="font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;">메타데이터</p>
+          </div>
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;">
+            <p style="font-size: 8pt; margin: 0;">taxonomy</p>
+            <p style="font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;">.yaml</p>
+          </div>
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;">
+            <p style="font-size: 8pt; margin: 0;">git</p>
+            <p style="font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;">버전관리</p>
+          </div>
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;">
+            <p style="font-size: 8pt; margin: 0;">MinSync</p>
+            <p style="font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;">→ Zvec</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Noise-Cancel -->
+    <div style="flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 16pt;">
+      <h3 style="font-size: 13pt; font-weight: 600; margin: 0 0 10pt 0;">Noise-Cancel</h3>
+
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4pt;">
+        <!-- Sources -->
+        <div style="display: flex; gap: 5pt; flex-wrap: wrap; justify-content: center;">
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;">
+            <p style="font-size: 9pt; margin: 0;">LinkedIn</p>
+          </div>
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;">
+            <p style="font-size: 9pt; margin: 0;">Facebook</p>
+          </div>
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;">
+            <p style="font-size: 9pt; margin: 0;">Bookmarks</p>
+          </div>
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;">
+            <p style="font-size: 9pt; margin: 0;">Links</p>
+          </div>
+        </div>
+        <p style="font-size: 11pt; color: #6366f1; margin: 0;">↓</p>
+        <!-- Webhook server -->
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 14pt; text-align: center;">
+          <p style="font-size: 10pt; font-weight: 600; margin: 0;">Webhook Server</p>
+        </div>
+        <p style="font-size: 11pt; color: #6366f1; margin: 0;">↓</p>
+        <!-- Vault -->
+        <div style="background: #1e1e2a; border: 1.5pt solid #6366f1; border-radius: 6pt; padding: 6pt 14pt; text-align: center;">
+          <p style="font-size: 10pt; font-weight: 600; margin: 0;">.md Vault</p>
+        </div>
+        <p style="font-size: 9pt; color: #b0b0b0; margin: 0;">inbox에 자동 저장</p>
+        <p style="font-size: 11pt; color: #6366f1; margin: 0;">↓</p>
+        <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 5pt 11pt;">
+          <p style="font-size: 9pt; margin: 0;">어느 에이전트나 활용</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key distinction -->
+  <div style="position: absolute; left: 40pt; right: 40pt; bottom: 32pt; background: #141419; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 10pt 16pt; text-align: center;">
+    <p style="font-size: 12pt; color: #b0b0b0; margin: 0;">메모리 ≠ SecondBrain: 메모리 = 자동 기억 | SecondBrain = 노션/옵시디언처럼 자료 의도적 저장</p>
+  </div>
+
+  <!-- Page number -->
+  <p style="position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;">21</p>
+
+</div>
+
+</body></html>

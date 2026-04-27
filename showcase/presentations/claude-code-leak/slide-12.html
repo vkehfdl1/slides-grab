@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="margin-bottom: 24pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #FF6B6B; letter-spacing: 0.15em; margin-bottom: 6pt;">10 // CHAIN REACTION</p>
+    <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;">보안 부실의 연쇄</h2>
+  </div>
+
+  <!-- Timeline -->
+  <div style="flex: 1; display: flex; align-items: center; gap: 0; position: relative;">
+    <!-- Connecting line -->
+    <div style="position: absolute; top: 50%; left: 60pt; right: 60pt; height: 2pt; background: rgba(255,107,107,0.3);"></div>
+
+    <!-- Event 1 -->
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; z-index: 1;">
+      <div style="position: relative; width: 80pt; height: 80pt; margin-bottom: 16pt;">
+        <div style="position: absolute; width: 80pt; height: 46pt; top: 0; left: 0; background: #E05555; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <div style="position: absolute; width: 40pt; height: 63pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <div style="position: absolute; width: 40pt; height: 63pt; bottom: 0; right: 0; background: #DD5555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+      </div>
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 22pt; font-weight: 700; color: #FF6B6B;">3/26</p>
+      <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF; text-align: center; margin-top: 8pt;">CMS 설정 오류</p>
+      <p style="font-size: 9pt; color: #8888AA; text-align: center; margin-top: 4pt; line-height: 1.4;">내부 파일 ~3,000개 유출<br>Mythos 모델 정보 노출</p>
+    </div>
+
+    <!-- Arrow -->
+    <div style="z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4pt;">
+      <p style="font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #FF6B6B;">5일</p>
+      <div style="width: 40pt; height: 2pt; background: #FF6B6B;"></div>
+    </div>
+
+    <!-- Event 2 -->
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; z-index: 1;">
+      <div style="position: relative; width: 100pt; height: 100pt; margin-bottom: 16pt;">
+        <div style="position: absolute; width: 100pt; height: 58pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <div style="position: absolute; width: 50pt; height: 78pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <div style="position: absolute; width: 50pt; height: 78pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+      </div>
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 22pt; font-weight: 700; color: #FF6B6B;">3/31</p>
+      <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF; text-align: center; margin-top: 8pt;">npm 패키징 실수</p>
+      <p style="font-size: 9pt; color: #8888AA; text-align: center; margin-top: 4pt; line-height: 1.4;">소스코드 512K줄 유출<br>$2.5B 제품 전체 공개</p>
+    </div>
+
+    <!-- Arrow -->
+    <div style="z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4pt;">
+      <p style="font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #8888AA;">?</p>
+      <div style="width: 40pt; height: 2pt; background: #8888AA;"></div>
+    </div>
+
+    <!-- Event 3 (question) -->
+    <div style="flex: 1; display: flex; flex-direction: column; align-items: center; z-index: 1;">
+      <div style="position: relative; width: 80pt; height: 80pt; margin-bottom: 16pt; opacity: 0.5;">
+        <div style="position: absolute; width: 80pt; height: 46pt; top: 0; left: 0; background: #8888AA; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <div style="position: absolute; width: 40pt; height: 63pt; bottom: 0; left: 0; background: #666688; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <div style="position: absolute; width: 40pt; height: 63pt; bottom: 0; right: 0; background: #777799; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+      </div>
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 22pt; font-weight: 700; color: #8888AA;">IPO</p>
+      <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF; text-align: center; margin-top: 8pt;">운영 성숙도</p>
+      <p style="font-size: 9pt; color: #8888AA; text-align: center; margin-top: 4pt; line-height: 1.4;">IPO 준비 기업에<br>이 수준의 보안?</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation bar */
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    /* Slide viewport */
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    /* Slide frames (iframes) */
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <!-- Navigation -->
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 7</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <!-- Slide viewport -->
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 01</title>
+<style>
+  * { box-sizing: border-box; }
+  body { width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; background: #FFF8FC; color: #171217; }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #FFF8FC; }
+  .kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF5FA2; margin: 0; }
+  .title { display:block; font-size: 25pt; line-height: 1.18; letter-spacing: -0.03em; font-weight: 800; margin: 0; color: #171217; padding-bottom: 4pt; }
+  .subtitle { font-size: 11pt; line-height: 1.45; color: #6E6371; margin: 0; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; padding: 5pt 11pt; border-radius: 999pt; background: #FFFFFF; border: 1pt solid #F1D7E4; }
+  .chip p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #6A5260; }
+  .footer-note { position: absolute; left: 28pt; bottom: 16pt; font-size: 7.5pt; color: #8A7A85; margin: 0; }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dot { width: 7pt; height: 7pt; border-radius: 50%; background: #FF5FA2; }
+</style>
+</head>
+<body>
+
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute; inset:0; background:#FFF8FC;&quot;></div>
+  <div style=&quot;position:absolute; width:96pt; height:96pt; border-radius:50%; background:#FFE5F1; top:18pt; left:18pt;&quot;></div>
+  <div style=&quot;position:absolute; width:88pt; height:88pt; border-radius:50%; background:#EEE9FF; right:286pt; bottom:20pt;&quot;></div>
+
+  <div style=&quot;position:absolute; left:34pt; top:34pt; width:290pt; display:flex; flex-direction:column; gap:12pt; z-index:2;&quot;>
+    <p class=&quot;kicker&quot;>Hearts2Hearts Guide</p>
+    <h1 class=&quot;title&quot; style=&quot;font-size:31pt;&quot;>Hearts2Hearts</h1>
+    <p style=&quot;margin:0; font-size:16pt; font-weight:700; color:#FF5FA2;&quot;>하츠투하츠</p>
+    <p class=&quot;subtitle&quot; style=&quot;font-size:12pt; max-width:250pt;&quot;>신비로운 데뷔 무드와 밝은 팀 케미를 함께 가진 SM 8인조 걸그룹.</p>
+    <div style=&quot;display:flex; flex-wrap:wrap; gap:7pt; margin-top:6pt; max-width:250pt;&quot;>
+      <div class=&quot;chip&quot;><p>카르멘</p></div><div class=&quot;chip&quot;><p>지우</p></div><div class=&quot;chip&quot;><p>유하</p></div><div class=&quot;chip&quot;><p>스텔라</p></div><div class=&quot;chip&quot;><p>주은</p></div><div class=&quot;chip&quot;><p>에이나</p></div><div class=&quot;chip&quot;><p>이안</p></div><div class=&quot;chip&quot;><p>예온</p></div>
+    </div>
+  </div>
+
+  <div style=&quot;position:absolute; right:28pt; top:24pt; width:360pt; height:357pt; border-radius:26pt; overflow:hidden; box-shadow:0 18pt 40pt rgba(147,86,120,0.16); border:1pt solid rgba(255,255,255,0.8);&quot;>
+    <img class=&quot;photo&quot; src=&quot;./assets/style-group.jpg&quot; alt=&quot;Hearts2Hearts 단체 사진&quot; style=&quot;object-position:center 35%;&quot;>
+  </div>
+
+  <div style=&quot;position:absolute; left:34pt; bottom:28pt; width:298pt; padding:14pt 16pt; border-radius:18pt; background:rgba(255,255,255,0.78); backdrop-filter: blur(8px); border:1pt solid #F3DCE8; z-index:2;&quot;>
+    <p style=&quot;margin:0 0 6pt 0; font-size:8pt; font-weight:700; letter-spacing:0.12em; color:#8B7CFF; text-transform:uppercase;&quot;>Deck Focus</p>
+    <p style=&quot;margin:0; font-size:10.5pt; line-height:1.55; color:#4E434D;&quot;>멤버 전원 얼굴, 입문용 대표곡, 그리고 에이나·이안의 유쾌한 분위기까지 빠르게 훑는 팬 가이드.</p>
+  </div>
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 02</title>
+<style>
+  * { box-sizing: border-box; }
+  body { width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; background: #FFF8FC; color: #171217; }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #FFF8FC; }
+  .kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF5FA2; margin: 0; }
+  .title { display:block; font-size: 25pt; line-height: 1.18; letter-spacing: -0.03em; font-weight: 800; margin: 0; color: #171217; padding-bottom: 4pt; }
+  .subtitle { font-size: 11pt; line-height: 1.45; color: #6E6371; margin: 0; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; padding: 5pt 11pt; border-radius: 999pt; background: #FFFFFF; border: 1pt solid #F1D7E4; }
+  .chip p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #6A5260; }
+  .footer-note { position: absolute; left: 28pt; bottom: 16pt; font-size: 7.5pt; color: #8A7A85; margin: 0; }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dot { width: 7pt; height: 7pt; border-radius: 50%; background: #FF5FA2; }
+</style>
+</head>
+<body>
+
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute; inset:0; background:#FFF8FC;&quot;></div>
+  <div style=&quot;position:absolute; left:28pt; top:28pt; width:300pt; display:flex; flex-direction:column; gap:12pt; z-index:2;&quot;>
+    <p class=&quot;kicker&quot;>Overview</p>
+    <h1 class=&quot;title&quot;>하츠투하츠는 어떤 팀인가</h1>
+    <p class=&quot;subtitle&quot; style=&quot;max-width:255pt;&quot;>2025년 2월 24일 데뷔한 SM Entertainment 8인조 걸그룹. 팀명은 팬들과 더 큰 마음을 연결하겠다는 메시지를 담고 있다.</p>
+
+    <div style=&quot;display:flex; flex-direction:column; gap:10pt; margin-top:2pt;&quot;>
+      
+        <div style=&quot;display:flex; gap:10pt; align-items:flex-start;&quot;>
+          <div class=&quot;dot&quot; style=&quot;margin-top:6pt; flex:0 0 auto;&quot;></div>
+          <div style=&quot;flex:1;&quot;>
+            <p style=&quot;margin:0 0 2pt 0; font-size:9pt; font-weight:700; color:#AA7B94; text-transform:uppercase; letter-spacing:0.08em;&quot;>데뷔</p>
+            <p style=&quot;margin:0; font-size:10.5pt; line-height:1.5; color:#3E333A;&quot;>2025.02.24 / 첫 싱글 The Chase</p>
+          </div>
+        </div>
+        <div style=&quot;display:flex; gap:10pt; align-items:flex-start;&quot;>
+          <div class=&quot;dot&quot; style=&quot;margin-top:6pt; flex:0 0 auto;&quot;></div>
+          <div style=&quot;flex:1;&quot;>
+            <p style=&quot;margin:0 0 2pt 0; font-size:9pt; font-weight:700; color:#AA7B94; text-transform:uppercase; letter-spacing:0.08em;&quot;>구성</p>
+            <p style=&quot;margin:0; font-size:10.5pt; line-height:1.5; color:#3E333A;&quot;>카르멘 · 지우 · 유하 · 스텔라 · 주은 · 에이나 · 이안 · 예온</p>
+          </div>
+        </div>
+        <div style=&quot;display:flex; gap:10pt; align-items:flex-start;&quot;>
+          <div class=&quot;dot&quot; style=&quot;margin-top:6pt; flex:0 0 auto;&quot;></div>
+          <div style=&quot;flex:1;&quot;>
+            <p style=&quot;margin:0 0 2pt 0; font-size:9pt; font-weight:700; color:#AA7B94; text-transform:uppercase; letter-spacing:0.08em;&quot;>키워드</p>
+            <p style=&quot;margin:0; font-size:10.5pt; line-height:1.5; color:#3E333A;&quot;>mysterious · bright · chemistry</p>
+          </div>
+        </div>
+    </div>
+  </div>
+
+  <div style=&quot;position:absolute; right:24pt; top:24pt; width:356pt; height:208pt; border-radius:24pt; overflow:hidden; box-shadow:0 18pt 32pt rgba(143, 103, 126, 0.14);&quot;>
+    <img class=&quot;photo&quot; src=&quot;./assets/the-chase-group-1.jpg&quot; alt=&quot;Hearts2Hearts The Chase 단체 이미지&quot; style=&quot;object-position:center 35%;&quot;>
+  </div>
+
+  <div style=&quot;position:absolute; left:28pt; right:28pt; bottom:24pt; padding:14pt 14pt 12pt; background:#FFFFFF; border-radius:22pt; border:1pt solid #F2DDE7; box-shadow:0 10pt 24pt rgba(180, 124, 152, 0.08);&quot;>
+    <p style=&quot;margin:0 0 10pt 0; font-size:8pt; font-weight:700; color:#8B7CFF; letter-spacing:0.12em; text-transform:uppercase;&quot;>Member Index</p>
+    <div style=&quot;display:grid; grid-template-columns: repeat(8, 1fr); gap:10pt; align-items:start;&quot;>
+      
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/jiwoo.jpg&quot; alt=&quot;지우 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>지우</p>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/carmen.jpg&quot; alt=&quot;카르멘 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>카르멘</p>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/yuha.jpg&quot; alt=&quot;유하 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>유하</p>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/stella.jpg&quot; alt=&quot;스텔라 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>스텔라</p>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/juun.jpg&quot; alt=&quot;주은 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>주은</p>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/a-na.jpg&quot; alt=&quot;에이나 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>에이나</p>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/ian.jpg&quot; alt=&quot;이안 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>이안</p>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; align-items:center; gap:5pt;&quot;>
+          <div style=&quot;width:48pt; height:48pt; border-radius:50%; overflow:hidden; border:2pt solid #F5E4EC; box-shadow:0 6pt 14pt rgba(139,124,255,0.08);&quot;>
+            <img class=&quot;photo&quot; src=&quot;./assets/ye-on.jpg&quot; alt=&quot;예온 사진&quot; style=&quot;object-position:center 20%;&quot;>
+          </div>
+          <p style=&quot;margin:0; font-size:7.7pt; font-weight:700; color:#564C53;&quot;>예온</p>
+        </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 03</title>
+<style>
+  * { box-sizing: border-box; }
+  body { width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; background: #FFF8FC; color: #171217; }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #FFF8FC; }
+  .kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF5FA2; margin: 0; }
+  .title { display:block; font-size: 25pt; line-height: 1.18; letter-spacing: -0.03em; font-weight: 800; margin: 0; color: #171217; padding-bottom: 4pt; }
+  .subtitle { font-size: 11pt; line-height: 1.45; color: #6E6371; margin: 0; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; padding: 5pt 11pt; border-radius: 999pt; background: #FFFFFF; border: 1pt solid #F1D7E4; }
+  .chip p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #6A5260; }
+  .footer-note { position: absolute; left: 28pt; bottom: 16pt; font-size: 7.5pt; color: #8A7A85; margin: 0; }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dot { width: 7pt; height: 7pt; border-radius: 50%; background: #FF5FA2; }
+</style>
+</head>
+<body>
+
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute; inset:0; background:#FFF8FC;&quot;></div>
+  <div style=&quot;position:absolute; left:30pt; top:28pt; right:30pt; display:flex; justify-content:space-between; align-items:end;&quot;>
+    <div style=&quot;max-width:410pt; display:flex; flex-direction:column; gap:8pt;&quot;>
+      <p class=&quot;kicker&quot;>Music Snapshot</p>
+      <h1 class=&quot;title&quot;>입문용 대표곡 3트랙</h1>
+      <p class=&quot;subtitle&quot;>신비로운 데뷔 분위기 → 따뜻한 보컬 무드 → 밝고 사랑스러운 에너지로 이어지는 초반 팀 컬러.</p>
+    </div>
+    <div class=&quot;chip&quot; style=&quot;background:#FF5FA2; border:none;&quot;><p style=&quot;color:#ffffff;&quot;>SM 공식 공개 곡 기준</p></div>
+  </div>
+
+  <div style=&quot;position:absolute; left:30pt; right:30pt; top:108pt; bottom:32pt; display:grid; grid-template-columns: repeat(3, 1fr); gap:14pt;&quot;>
+    
+      <div style=&quot;display:flex; flex-direction:column; background:#FFFFFF; border-radius:24pt; overflow:hidden; border:1pt solid #F1DCE6; box-shadow:0 12pt 24pt rgba(167, 118, 145, 0.10);&quot;>
+        <div style=&quot;height:134pt; overflow:hidden;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/the-chase-group-2.jpg&quot; alt=&quot;The Chase 이미지&quot; style=&quot;object-position:center 34%;&quot;>
+        </div>
+        <div style=&quot;padding:14pt 14pt 12pt; display:flex; flex-direction:column; gap:7pt; flex:1;&quot;>
+          <div class=&quot;chip&quot; style=&quot;align-self:flex-start; background:#FFF0F7;&quot;><p style=&quot;color:#C54B86;&quot;>데뷔 타이틀</p></div>
+          <h2 style=&quot;margin:0; font-size:16pt; line-height:1.15; font-weight:800; color:#181318;&quot;>The Chase</h2>
+          <p style=&quot;margin:0; font-size:9.6pt; line-height:1.55; color:#51444D;&quot;>몽환적이고 모험적인 첫인상. 하츠투하츠의 세계관 문을 여는 곡.</p>
+        </div>
+      </div>
+      <div style=&quot;display:flex; flex-direction:column; background:#FFFFFF; border-radius:24pt; overflow:hidden; border:1pt solid #F1DCE6; box-shadow:0 12pt 24pt rgba(167, 118, 145, 0.10);&quot;>
+        <div style=&quot;height:134pt; overflow:hidden;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/carmen-yuha-yeon-collage.jpg&quot; alt=&quot;Butterflies 이미지&quot; style=&quot;object-position:center 34%;&quot;>
+        </div>
+        <div style=&quot;padding:14pt 14pt 12pt; display:flex; flex-direction:column; gap:7pt; flex:1;&quot;>
+          <div class=&quot;chip&quot; style=&quot;align-self:flex-start; background:#FFF0F7;&quot;><p style=&quot;color:#C54B86;&quot;>수록곡</p></div>
+          <h2 style=&quot;margin:0; font-size:16pt; line-height:1.15; font-weight:800; color:#181318;&quot;>Butterflies</h2>
+          <p style=&quot;margin:0; font-size:9.6pt; line-height:1.55; color:#51444D;&quot;>따뜻한 보컬 하모니가 중심. 데뷔 싱글의 감정선과 서정성을 보여준다.</p>
+        </div>
+      </div>
+      <div style=&quot;display:flex; flex-direction:column; background:#FFFFFF; border-radius:24pt; overflow:hidden; border:1pt solid #F1DCE6; box-shadow:0 12pt 24pt rgba(167, 118, 145, 0.10);&quot;>
+        <div style=&quot;height:134pt; overflow:hidden;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/style-web.jpg&quot; alt=&quot;STYLE 이미지&quot; style=&quot;object-position:center 34%;&quot;>
+        </div>
+        <div style=&quot;padding:14pt 14pt 12pt; display:flex; flex-direction:column; gap:7pt; flex:1;&quot;>
+          <div class=&quot;chip&quot; style=&quot;align-self:flex-start; background:#FFF0F7;&quot;><p style=&quot;color:#C54B86;&quot;>새 싱글</p></div>
+          <h2 style=&quot;margin:0; font-size:16pt; line-height:1.15; font-weight:800; color:#181318;&quot;>STYLE</h2>
+          <p style=&quot;margin:0; font-size:9.6pt; line-height:1.55; color:#51444D;&quot;>톡톡 튀는 러블리 에너지. 더 가볍고 캐주얼한 팀 매력을 입문용으로 보여준다.</p>
+        </div>
+      </div>
+  </div>
+  <p class=&quot;footer-note&quot;>자료: SM Entertainment newsroom — 2025.02.11, 2025.02.12, 2025.06.09 공개 내용 기준.</p>
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>멤버 소개 ①</title>
+<style>
+  * { box-sizing: border-box; }
+  body { width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; background: #FFF8FC; color: #171217; }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #FFF8FC; }
+  .kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF5FA2; margin: 0; }
+  .title { display:block; font-size: 25pt; line-height: 1.18; letter-spacing: -0.03em; font-weight: 800; margin: 0; color: #171217; padding-bottom: 4pt; }
+  .subtitle { font-size: 11pt; line-height: 1.45; color: #6E6371; margin: 0; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; padding: 5pt 11pt; border-radius: 999pt; background: #FFFFFF; border: 1pt solid #F1D7E4; }
+  .chip p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #6A5260; }
+  .footer-note { position: absolute; left: 28pt; bottom: 16pt; font-size: 7.5pt; color: #8A7A85; margin: 0; }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dot { width: 7pt; height: 7pt; border-radius: 50%; background: #FF5FA2; }
+</style>
+</head>
+<body>
+
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute; inset:0; background:#FFF8FC;&quot;></div>
+  <div style=&quot;position:absolute; left:30pt; top:28pt; right:30pt; display:flex; flex-direction:column; gap:8pt;&quot;>
+    <p class=&quot;kicker&quot;>Members A</p>
+    <h1 class=&quot;title&quot;>멤버 소개 ①</h1>
+    <p class=&quot;subtitle&quot;>얼굴과 분위기를 함께 기억하기 쉽게, 4명씩 나눠 빠르게 보는 멤버 카드.</p>
+  </div>
+  <div style=&quot;position:absolute; left:30pt; right:30pt; top:108pt; bottom:30pt; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:14pt;&quot;>
+    
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/carmen.jpg&quot; alt=&quot;카르멘 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>카르멘</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>햇살 같은 미소와 따뜻한 에너지가 강점인 멤버. 팀에 밝은 온도를 더한다.</p>
+        </div>
+      </div>
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/jiwoo.jpg&quot; alt=&quot;지우 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>지우</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>리더. 팀의 중심을 차분하게 잡아 주는 안정감 있는 존재.</p>
+        </div>
+      </div>
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/yuha.jpg&quot; alt=&quot;유하 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>유하</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>맑고 섬세한 무드가 돋보이는 멤버. 서정적인 곡 분위기와 잘 어울린다.</p>
+        </div>
+      </div>
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/stella.jpg&quot; alt=&quot;스텔라 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>스텔라</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>세련된 비주얼에 장난기까지 겸한 스타일. 팀 텐션을 띄우는 축 중 하나.</p>
+        </div>
+      </div>
+  </div>
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>멤버 소개 ②</title>
+<style>
+  * { box-sizing: border-box; }
+  body { width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; background: #FFF8FC; color: #171217; }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #FFF8FC; }
+  .kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF5FA2; margin: 0; }
+  .title { display:block; font-size: 25pt; line-height: 1.18; letter-spacing: -0.03em; font-weight: 800; margin: 0; color: #171217; padding-bottom: 4pt; }
+  .subtitle { font-size: 11pt; line-height: 1.45; color: #6E6371; margin: 0; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; padding: 5pt 11pt; border-radius: 999pt; background: #FFFFFF; border: 1pt solid #F1D7E4; }
+  .chip p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #6A5260; }
+  .footer-note { position: absolute; left: 28pt; bottom: 16pt; font-size: 7.5pt; color: #8A7A85; margin: 0; }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dot { width: 7pt; height: 7pt; border-radius: 50%; background: #FF5FA2; }
+</style>
+</head>
+<body>
+
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute; inset:0; background:#FFF8FC;&quot;></div>
+  <div style=&quot;position:absolute; left:30pt; top:28pt; right:30pt; display:flex; flex-direction:column; gap:8pt;&quot;>
+    <p class=&quot;kicker&quot;>Members B</p>
+    <h1 class=&quot;title&quot;>멤버 소개 ②</h1>
+    <p class=&quot;subtitle&quot;>얼굴과 분위기를 함께 기억하기 쉽게, 4명씩 나눠 빠르게 보는 멤버 카드.</p>
+  </div>
+  <div style=&quot;position:absolute; left:30pt; right:30pt; top:108pt; bottom:30pt; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:14pt;&quot;>
+    
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/juun.jpg&quot; alt=&quot;주은 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>주은</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>단단하고 또렷한 인상이 매력. 무대에서도 안정감을 기대하게 만든다.</p>
+        </div>
+      </div>
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/a-na.jpg&quot; alt=&quot;에이나 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>에이나</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>처음엔 시크하지만 친해질수록 반전 매력이 드러나는 멤버.</p>
+        </div>
+      </div>
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/ian.jpg&quot; alt=&quot;이안 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>이안</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>차분한 첫인상과 달리 웃음을 잘 만드는 유쾌한 에너지의 소유자.</p>
+        </div>
+      </div>
+      <div style=&quot;display:grid; grid-template-columns:108pt 1fr; gap:12pt; align-items:center; background:#FFFFFF; border:1pt solid #F0DDE6; border-radius:22pt; padding:12pt; box-shadow:0 10pt 22pt rgba(173, 123, 151, 0.09);&quot;>
+        <div style=&quot;width:108pt; height:108pt; border-radius:18pt; overflow:hidden; background:#F7EEF3;&quot;>
+          <img class=&quot;photo&quot; src=&quot;./assets/ye-on.jpg&quot; alt=&quot;예온 사진&quot; style=&quot;object-position:center 18%;&quot;>
+        </div>
+        <div style=&quot;display:flex; flex-direction:column; gap:6pt; justify-content:center;&quot;>
+          <p style=&quot;margin:0; font-size:8pt; letter-spacing:0.12em; font-weight:700; color:#8B7CFF; text-transform:uppercase;&quot;>Member</p>
+          <h2 style=&quot;margin:0; font-size:15pt; line-height:1.15; font-weight:800; color:#171217;&quot;>예온</h2>
+          <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#51444D;&quot;>막내다운 사랑스러움과 눈웃음이 돋보이는 밝은 무드 메이커.</p>
+        </div>
+      </div>
+  </div>
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-06.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 06</title>
+<style>
+  * { box-sizing: border-box; }
+  body { width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; background: #FFF8FC; color: #171217; }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #FFF8FC; }
+  .kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF5FA2; margin: 0; }
+  .title { display:block; font-size: 25pt; line-height: 1.18; letter-spacing: -0.03em; font-weight: 800; margin: 0; color: #171217; padding-bottom: 4pt; }
+  .subtitle { font-size: 11pt; line-height: 1.45; color: #6E6371; margin: 0; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; padding: 5pt 11pt; border-radius: 999pt; background: #FFFFFF; border: 1pt solid #F1D7E4; }
+  .chip p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #6A5260; }
+  .footer-note { position: absolute; left: 28pt; bottom: 16pt; font-size: 7.5pt; color: #8A7A85; margin: 0; }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dot { width: 7pt; height: 7pt; border-radius: 50%; background: #FF5FA2; }
+</style>
+</head>
+<body>
+
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute; inset:0; background:#FFF8FC;&quot;></div>
+  <div style=&quot;position:absolute; width:120pt; height:120pt; border-radius:50%; background:#FFE3EF; top:6pt; right:18pt;&quot;></div>
+  <div style=&quot;position:absolute; width:96pt; height:96pt; border-radius:50%; background:#EDE8FF; left:246pt; bottom:8pt;&quot;></div>
+
+  <div style=&quot;position:absolute; left:30pt; top:28pt; right:30pt; display:flex; flex-direction:column; gap:8pt; z-index:2;&quot;>
+    <p class=&quot;kicker&quot;>Character Highlight</p>
+    <h1 class=&quot;title&quot;>에이나와 이안, 왜 자꾸 웃기냐면</h1>
+    <p class=&quot;subtitle&quot; style=&quot;max-width:520pt;&quot;>무대 밖에서는 반전 매력과 리액션으로 팀 분위기를 끌어올리는 조합. 스텔라도 이안·에이나와 비슷한 장난기 스타일이라고 언급했다.</p>
+  </div>
+
+  <div style=&quot;position:absolute; left:30pt; top:112pt; width:188pt; height:220pt; border-radius:26pt; overflow:hidden; box-shadow:0 16pt 28pt rgba(170,119,145,0.12);&quot;>
+    <img class=&quot;photo&quot; src=&quot;./assets/a-na.jpg&quot; alt=&quot;에이나 사진&quot; style=&quot;object-position:center 18%;&quot;>
+  </div>
+  <div style=&quot;position:absolute; right:30pt; top:112pt; width:188pt; height:220pt; border-radius:26pt; overflow:hidden; box-shadow:0 16pt 28pt rgba(170,119,145,0.12);&quot;>
+    <img class=&quot;photo&quot; src=&quot;./assets/ian.jpg&quot; alt=&quot;이안 사진&quot; style=&quot;object-position:center 18%;&quot;>
+  </div>
+
+  <div style=&quot;position:absolute; left:234pt; right:234pt; top:120pt; display:flex; flex-direction:column; gap:10pt; z-index:2;&quot;>
+    <div style=&quot;padding:12pt 14pt; border-radius:18pt; background:#FFFFFF; border:1pt solid #F1DCE6; box-shadow:0 10pt 18pt rgba(170,119,145,0.08);&quot;>
+      <p style=&quot;margin:0 0 5pt 0; font-size:8pt; font-weight:700; color:#FF5FA2; letter-spacing:0.1em; text-transform:uppercase;&quot;>A-na</p>
+      <p style=&quot;margin:0; font-size:9.5pt; line-height:1.55; color:#4D4048;&quot;>처음엔 차갑고 시크해 보여도, 익숙해질수록 강아지 같은 반전 매력이 풀리는 스타일.</p>
+    </div>
+    <div style=&quot;padding:12pt 14pt; border-radius:18pt; background:#FFFFFF; border:1pt solid #F1DCE6; box-shadow:0 10pt 18pt rgba(170,119,145,0.08);&quot;>
+      <p style=&quot;margin:0 0 5pt 0; font-size:8pt; font-weight:700; color:#8B7CFF; letter-spacing:0.1em; text-transform:uppercase;&quot;>Ian</p>
+      <p style=&quot;margin:0; font-size:9.5pt; line-height:1.55; color:#4D4048;&quot;>어색한 순간에도 표정과 리액션으로 웃음을 만드는 타입. 팀의 긴장을 푸는 역할이 잘 보인다.</p>
+    </div>
+    <div style=&quot;display:flex; flex-wrap:wrap; gap:8pt; margin-top:2pt;&quot;>
+      <div class=&quot;chip&quot; style=&quot;background:#FFF0F6;&quot;><p style=&quot;color:#A84D7E;&quot;>반전 매력</p></div><div class=&quot;chip&quot; style=&quot;background:#FFF0F6;&quot;><p style=&quot;color:#A84D7E;&quot;>표정 개그</p></div><div class=&quot;chip&quot; style=&quot;background:#FFF0F6;&quot;><p style=&quot;color:#A84D7E;&quot;>팀 텐션 업</p></div><div class=&quot;chip&quot; style=&quot;background:#FFF0F6;&quot;><p style=&quot;color:#A84D7E;&quot;>예능 기대주</p></div>
+    </div>
+  </div>
+
+  <p class=&quot;footer-note&quot;>참고: SM 공식 리얼리티/뉴스룸 소개 + Dazed Korea 인터뷰 2차 정리 기사 기반 캐릭터 요약.</p>
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 07</title>
+<style>
+  * { box-sizing: border-box; }
+  body { width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; background: #FFF8FC; color: #171217; }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #FFF8FC; }
+  .kicker { font-size: 8.5pt; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: #FF5FA2; margin: 0; }
+  .title { display:block; font-size: 25pt; line-height: 1.18; letter-spacing: -0.03em; font-weight: 800; margin: 0; color: #171217; padding-bottom: 4pt; }
+  .subtitle { font-size: 11pt; line-height: 1.45; color: #6E6371; margin: 0; }
+  .chip { display: inline-flex; align-items: center; justify-content: center; padding: 5pt 11pt; border-radius: 999pt; background: #FFFFFF; border: 1pt solid #F1D7E4; }
+  .chip p { margin: 0; font-size: 8.5pt; font-weight: 600; color: #6A5260; }
+  .footer-note { position: absolute; left: 28pt; bottom: 16pt; font-size: 7.5pt; color: #8A7A85; margin: 0; }
+  .photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .dot { width: 7pt; height: 7pt; border-radius: 50%; background: #FF5FA2; }
+</style>
+</head>
+<body>
+
+<div class=&quot;slide&quot;>
+  <div style=&quot;position:absolute; inset:0; background:#FFF8FC;&quot;></div>
+  <div style=&quot;position:absolute; left:30pt; top:28pt; width:300pt; display:flex; flex-direction:column; gap:10pt; z-index:2;&quot;>
+    <p class=&quot;kicker&quot;>Why Watch</p>
+    <h1 class=&quot;title&quot;>지금 하츠투하츠를 보면 좋은 이유</h1>
+    <p class=&quot;subtitle&quot; style=&quot;max-width:260pt;&quot;>비주얼 톤, 초반 대표곡의 결, 그리고 멤버 케미가 이미 선명하게 보이기 시작한 팀.</p>
+
+    <div style=&quot;display:flex; flex-direction:column; gap:12pt; margin-top:8pt;&quot;>
+      
+        <div style=&quot;display:grid; grid-template-columns:32pt 1fr; gap:10pt; align-items:start;&quot;>
+          <div style=&quot;width:30pt; height:30pt; border-radius:50%; background:#FF5FA2; display:flex; align-items:center; justify-content:center;&quot;><p style=&quot;margin:0; font-size:8pt; font-weight:800; color:#ffffff;&quot;>01</p></div>
+          <div>
+            <p style=&quot;margin:0 0 4pt 0; font-size:10pt; font-weight:800; color:#181318;&quot;>단체 컷만 봐도 톤이 분명하다</p>
+            <p style=&quot;margin:0; font-size:9.3pt; line-height:1.55; color:#51444D;&quot;>몽환적인 데뷔 무드와 밝은 소녀적 에너지가 함께 간다.</p>
+          </div>
+        </div>
+        <div style=&quot;display:grid; grid-template-columns:32pt 1fr; gap:10pt; align-items:start;&quot;>
+          <div style=&quot;width:30pt; height:30pt; border-radius:50%; background:#FF5FA2; display:flex; align-items:center; justify-content:center;&quot;><p style=&quot;margin:0; font-size:8pt; font-weight:800; color:#ffffff;&quot;>02</p></div>
+          <div>
+            <p style=&quot;margin:0 0 4pt 0; font-size:10pt; font-weight:800; color:#181318;&quot;>대표곡 3곡만 들어도 결이 읽힌다</p>
+            <p style=&quot;margin:0; font-size:9.3pt; line-height:1.55; color:#51444D;&quot;>The Chase → Butterflies → STYLE 순서로 들으면 팀 폭이 잘 보인다.</p>
+          </div>
+        </div>
+        <div style=&quot;display:grid; grid-template-columns:32pt 1fr; gap:10pt; align-items:start;&quot;>
+          <div style=&quot;width:30pt; height:30pt; border-radius:50%; background:#FF5FA2; display:flex; align-items:center; justify-content:center;&quot;><p style=&quot;margin:0; font-size:8pt; font-weight:800; color:#ffffff;&quot;>03</p></div>
+          <div>
+            <p style=&quot;margin:0 0 4pt 0; font-size:10pt; font-weight:800; color:#181318;&quot;>멤버 케미가 빠르게 잡힌다</p>
+            <p style=&quot;margin:0; font-size:9.3pt; line-height:1.55; color:#51444D;&quot;>에이나·이안 같은 무드메이커 라인이 팀 텐션을 더욱 또렷하게 만든다.</p>
+          </div>
+        </div>
+    </div>
+
+    <div style=&quot;margin-top:8pt; padding:12pt 14pt; border-radius:18pt; background:#FFFFFF; border:1pt solid #F1DCE6;&quot;>
+      <p style=&quot;margin:0 0 5pt 0; font-size:8pt; font-weight:700; color:#8B7CFF; letter-spacing:0.12em; text-transform:uppercase;&quot;>추천 감상 루트</p>
+      <p style=&quot;margin:0; font-size:9.4pt; line-height:1.55; color:#4D4048;&quot;>단체 사진 → 대표곡 3트랙 → 멤버별 직캠/리얼리티 콘텐츠 순서로 보면 입문 속도가 빨라진다.</p>
+    </div>
+  </div>
+
+  <div style=&quot;position:absolute; right:26pt; top:22pt; width:348pt; height:361pt; border-radius:26pt; overflow:hidden; box-shadow:0 20pt 34pt rgba(170,119,145,0.14);&quot;>
+    <img class=&quot;photo&quot; src=&quot;./assets/style-web.jpg&quot; alt=&quot;Hearts2Hearts STYLE 이미지&quot; style=&quot;object-position:center center;&quot;>
+  </div>
+
+  <p class=&quot;footer-note&quot;>자료: SM Entertainment newsroom / Dazed Korea 인터뷰 정리 기반. 2026-03-27 기준.</p>
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 7;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    // Fullscreen
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    // Auto-scale to fit viewport (95% fit)
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 5</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>LightRAG — Slide 1</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 12% 18%, rgba(167, 139, 250, 0.55) 0%, transparent 38%),
+      radial-gradient(circle at 88% 82%, rgba(96, 165, 250, 0.55) 0%, transparent 38%),
+      radial-gradient(circle at 65% 50%, rgba(236, 72, 153, 0.32) 0%, transparent 25%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide {
+    width: 720pt;
+    height: 405pt;
+    position: relative;
+    overflow: hidden;
+  }
+  .topbar {
+    position: absolute;
+    top: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+  }
+  .topbar p {
+    font-size: 11pt;
+    color: #E0E0F0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6pt 14pt;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1pt solid rgba(255, 255, 255, 0.25);
+    border-radius: 999pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    font-size: 10pt;
+    color: #E0E0F0;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .center {
+    position: absolute;
+    top: 50%;
+    left: 48pt;
+    right: 48pt;
+    transform: translateY(-50%);
+    z-index: 5;
+  }
+  h1 {
+    font-size: 92pt;
+    font-weight: 200;
+    letter-spacing: -0.04em;
+    line-height: 1.2;
+    margin-bottom: 14pt;
+    background: linear-gradient(90deg, #FFFFFF 0%, #C4B5FD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  h1 .accent { font-weight: 700; }
+  .subtitle {
+    font-size: 22pt;
+    font-weight: 400;
+    color: #E0E0F0;
+    margin-bottom: 18pt;
+    letter-spacing: -0.01em;
+  }
+  .tagline {
+    display: inline-flex;
+    gap: 10pt;
+    align-items: center;
+    padding: 10pt 22pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 14pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .tagline p {
+    font-size: 14pt;
+    color: #FFFFFF;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .tagline .dot {
+    width: 6pt;
+    height: 6pt;
+    border-radius: 50%;
+    background: #A78BFA;
+  }
+  .footer {
+    position: absolute;
+    bottom: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 5;
+  }
+  .authors p {
+    font-size: 11pt;
+    color: #E0E0F0;
+    line-height: 1.5;
+  }
+  .authors .name { font-weight: 600; color: #FFFFFF; }
+  .authors .org { color: #B8B8D0; font-size: 10pt; }
+  .links {
+    display: flex;
+    flex-direction: column;
+    gap: 6pt;
+    align-items: flex-end;
+  }
+</style>
+</head>
+<body>
+<div class=&quot;slide&quot;>
+  <div class=&quot;topbar&quot;>
+    <p>Paper Walkthrough · 2024</p>
+    <span class=&quot;badge&quot;>arXiv 2410.05779v3</span>
+  </div>
+
+  <div class=&quot;center&quot;>
+    <h1><span class=&quot;accent&quot;>Light</span>RAG</h1>
+    <p class=&quot;subtitle&quot;>Simple and Fast Retrieval-Augmented Generation</p>
+    <div class=&quot;tagline&quot;>
+      <span class=&quot;dot&quot;></span>
+      <p>그래프 구조로 RAG의 한계를 넘다 · Simple. Fast. Graph-empowered.</p>
+    </div>
+  </div>
+
+  <div class=&quot;footer&quot;>
+    <div class=&quot;authors&quot;>
+      <p class=&quot;name&quot;>Zirui Guo · Lianghao Xia · Yanhua Yu · Tu Ao · Chao Huang</p>
+      <p class=&quot;org&quot;>Beijing University of Posts and Telecommunications · University of Hong Kong</p>
+    </div>
+    <div class=&quot;links&quot;>
+      <span class=&quot;badge&quot;>github.com/HKUDS/LightRAG</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>LightRAG — Slide 2</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 92% 12%, rgba(167, 139, 250, 0.5) 0%, transparent 35%),
+      radial-gradient(circle at 38% 88%, rgba(244, 114, 182, 0.32) 0%, transparent 30%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; }
+
+  .header {
+    position: absolute;
+    top: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+  }
+  .pagenum {
+    font-size: 10pt;
+    color: #B8B8D0;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .section {
+    font-size: 10pt;
+    color: #C4B5FD;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  h2 {
+    position: absolute;
+    top: 56pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 32pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+    line-height: 1.3;
+    z-index: 5;
+  }
+  h2 strong { font-weight: 700; }
+
+  .lede {
+    position: absolute;
+    top: 122pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 14pt;
+    color: #C4B5FD;
+    font-weight: 400;
+    line-height: 1.5;
+    font-style: italic;
+    z-index: 5;
+  }
+
+  .grid {
+    position: absolute;
+    top: 168pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16pt;
+    z-index: 5;
+  }
+  .card {
+    padding: 16pt 20pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 14pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .card .label {
+    font-size: 10pt;
+    color: #A78BFA;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 12pt;
+  }
+  .limit {
+    margin-bottom: 10pt;
+  }
+  .limit p:first-child {
+    font-size: 13pt;
+    color: #FFFFFF;
+    font-weight: 600;
+    margin-bottom: 3pt;
+  }
+  .limit p:last-child {
+    font-size: 11pt;
+    color: #E0E0F0;
+    line-height: 1.45;
+  }
+  .quote-block {
+    padding-left: 12pt;
+    border-left: 2pt solid #A78BFA;
+    margin-top: 10pt;
+  }
+  .quote-block p {
+    font-size: 12pt;
+    color: #E0E0F0;
+    font-style: italic;
+    line-height: 1.5;
+    margin-bottom: 8pt;
+  }
+  .verdict {
+    font-size: 11pt;
+    color: #F472B6;
+    font-weight: 600;
+    margin-top: 10pt;
+  }
+  .verdict::before { content: &quot;→ &quot;; }
+
+  .challenges {
+    position: absolute;
+    bottom: 32pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    align-items: center;
+    gap: 10pt;
+    z-index: 5;
+  }
+  .challenges .label-tag {
+    font-size: 9pt;
+    color: #B8B8D0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-right: 6pt;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6pt;
+    padding: 6pt 12pt;
+    background: rgba(167, 139, 250, 0.12);
+    border: 1pt solid rgba(167, 139, 250, 0.35);
+    border-radius: 999pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    font-size: 10pt;
+    color: #FFFFFF;
+    font-weight: 500;
+  }
+  .chip .num {
+    color: #A78BFA;
+    font-weight: 700;
+    font-size: 9pt;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;slide&quot;>
+  <div class=&quot;header&quot;>
+    <p class=&quot;pagenum&quot;>02 / 05</p>
+    <p class=&quot;section&quot;>Problem</p>
+  </div>
+
+  <h2>왜 기존 RAG로는 <strong>부족한가?</strong></h2>
+  <p class=&quot;lede&quot;>&quot;Flat 데이터 표현 + 컨텍스트 부족 = 단편적이고 분산된 답변&quot;</p>
+
+  <div class=&quot;grid&quot;>
+    <div class=&quot;card&quot;>
+      <p class=&quot;label&quot;>두 가지 핵심 한계</p>
+      <div class=&quot;limit&quot;>
+        <p>① Flat Data Representations</p>
+        <p>청크 간 관계를 모델링하지 못해 엔티티 상호의존성을 잃음</p>
+      </div>
+      <div class=&quot;limit&quot;>
+        <p>② Inadequate Contextual Awareness</p>
+        <p>여러 엔티티의 상호 관계를 일관성 있게 유지하지 못함</p>
+      </div>
+    </div>
+
+    <div class=&quot;card&quot;>
+      <p class=&quot;label&quot;>실제 시나리오 (논문 인용)</p>
+      <div class=&quot;quote-block&quot;>
+        <p>&quot;전기차 보급이 도시 대기질과 대중교통 인프라에 어떻게 영향을 미치는가?&quot;</p>
+      </div>
+      <p class=&quot;verdict&quot;>전기차 / 대기오염 / 대중교통 문서를 따로 검색 → 통합 응답 실패</p>
+    </div>
+  </div>
+
+  <div class=&quot;challenges&quot;>
+    <span class=&quot;label-tag&quot;>3가지 도전 과제</span>
+    <span class=&quot;chip&quot;><span class=&quot;num&quot;>01</span> Comprehensive Retrieval</span>
+    <span class=&quot;chip&quot;><span class=&quot;num&quot;>02</span> Enhanced Efficiency</span>
+    <span class=&quot;chip&quot;><span class=&quot;num&quot;>03</span> Rapid Adaptation</span>
+  </div>
+</div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>LightRAG — Slide 3</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(96, 165, 250, 0.5) 0%, transparent 36%),
+      radial-gradient(circle at 92% 88%, rgba(167, 139, 250, 0.5) 0%, transparent 32%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; }
+
+  .header {
+    position: absolute;
+    top: 24pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .pagenum { font-size: 10pt; color: #B8B8D0; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .section { font-size: 10pt; color: #C4B5FD; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+
+  h2 {
+    position: absolute;
+    top: 50pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 26pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    z-index: 5;
+  }
+  h2 .marker {
+    display: inline-block;
+    padding: 3pt 10pt;
+    margin-right: 10pt;
+    font-size: 13pt;
+    background: rgba(167, 139, 250, 0.25);
+    border: 1pt solid rgba(167, 139, 250, 0.5);
+    border-radius: 8pt;
+    color: #DDD6FE;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  h2 strong { font-weight: 700; }
+
+  .caption {
+    position: absolute;
+    top: 92pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 11pt;
+    color: #C4B5FD;
+    font-style: italic;
+    line-height: 1.4;
+    z-index: 5;
+  }
+  .caption .figref {
+    font-style: normal;
+    font-weight: 700;
+    color: #DDD6FE;
+    margin-right: 6pt;
+  }
+
+  /* Figure container */
+  .figure-wrap {
+    position: absolute;
+    top: 122pt;
+    left: 48pt;
+    right: 48pt;
+    padding: 10pt 12pt;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1pt solid rgba(255, 255, 255, 0.4);
+    border-radius: 10pt;
+    box-shadow: 0 6pt 18pt rgba(0, 0, 0, 0.25);
+    z-index: 5;
+  }
+  .figure-wrap img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Annotation overlay strip — sits below figure */
+  .annotations {
+    position: absolute;
+    bottom: 56pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12pt;
+    z-index: 5;
+  }
+  .anno {
+    padding: 9pt 12pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 10pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+  .anno .anno-tag {
+    display: inline-block;
+    padding: 2pt 7pt;
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    border-radius: 5pt;
+    margin-right: 6pt;
+    vertical-align: middle;
+  }
+  .anno.left .anno-tag { background: rgba(96, 165, 250, 0.3); color: #BFDBFE; }
+  .anno.right .anno-tag { background: rgba(167, 139, 250, 0.3); color: #DDD6FE; }
+  .anno .anno-title {
+    display: inline-block;
+    font-size: 12pt;
+    color: #FFFFFF;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+  .anno .anno-body {
+    margin-top: 4pt;
+    font-size: 9.5pt;
+    color: #E0E0F0;
+    line-height: 1.5;
+  }
+  .anno .anno-body code {
+    color: #DDD6FE;
+    font-family: 'Pretendard', monospace;
+    font-weight: 600;
+    background: rgba(167, 139, 250, 0.15);
+    padding: 1pt 4pt;
+    border-radius: 3pt;
+    font-size: 9pt;
+  }
+
+  /* Bottom highlight */
+  .highlight {
+    position: absolute;
+    bottom: 18pt;
+    left: 48pt;
+    right: 48pt;
+    padding: 6pt 14pt;
+    background: linear-gradient(90deg, rgba(167, 139, 250, 0.18) 0%, rgba(96, 165, 250, 0.12) 100%);
+    border: 1pt solid rgba(167, 139, 250, 0.4);
+    border-radius: 10pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    gap: 10pt;
+    z-index: 5;
+  }
+  .highlight .ic {
+    width: 20pt;
+    height: 20pt;
+    background: rgba(167, 139, 250, 0.3);
+    border-radius: 5pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11pt;
+    flex-shrink: 0;
+  }
+  .highlight p {
+    font-size: 10pt;
+    color: #FFFFFF;
+    line-height: 1.4;
+  }
+  .highlight p strong { color: #DDD6FE; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class=&quot;slide&quot;>
+  <div class=&quot;header&quot;>
+    <p class=&quot;pagenum&quot;>03 / 05</p>
+    <p class=&quot;section&quot;>LightRAG Architecture</p>
+  </div>
+
+  <h2><span class=&quot;marker&quot;>전체 흐름</span><strong>그래프 인덱싱</strong> + <strong>Dual-Level 검색</strong></h2>
+  <p class=&quot;caption&quot;><span class=&quot;figref&quot;>Figure 1</span>Overall architecture of the proposed LightRAG framework — Graph-based Text Indexing (좌) + Dual-level Retrieval Paradigm (우)</p>
+
+  <div class=&quot;figure-wrap&quot;>
+    <img src=&quot;./assets/figure1-architecture.png&quot; alt=&quot;LightRAG overall architecture&quot;>
+  </div>
+
+  <div class=&quot;annotations&quot;>
+    <div class=&quot;anno left&quot;>
+      <span class=&quot;anno-tag&quot;>Left Half</span>
+      <span class=&quot;anno-title&quot;>Graph-based Text Indexing</span>
+      <p class=&quot;anno-body&quot;><code>R(·)</code> Entity·Rel 추출 → <code>P(·)</code> LLM Profiling → <code>D(·)</code> Dedupe → Index Graph 생성</p>
+    </div>
+    <div class=&quot;anno right&quot;>
+      <span class=&quot;anno-tag&quot;>Right Half</span>
+      <span class=&quot;anno-title&quot;>Dual-Level Retrieval</span>
+      <p class=&quot;anno-body&quot;>Query → Low-level Keys + High-level Keys → Entities · Relations · Contexts → LLM Response</p>
+    </div>
+  </div>
+
+  <div class=&quot;highlight&quot;>
+    <div class=&quot;ic&quot;>⚡</div>
+    <p><strong>Incremental Update:</strong> 신규 문서가 들어와도 전체 인덱스 재구축 불필요 — 노드/엣지 합집합으로 즉시 통합</p>
+  </div>
+</div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>LightRAG — Slide 4</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 35% 12%, rgba(96, 165, 250, 0.45) 0%, transparent 32%),
+      radial-gradient(circle at 65% 88%, rgba(167, 139, 250, 0.45) 0%, transparent 32%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; }
+
+  .header {
+    position: absolute;
+    top: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .pagenum { font-size: 10pt; color: #B8B8D0; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .section { font-size: 10pt; color: #C4B5FD; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+
+  h2 {
+    position: absolute;
+    top: 54pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 28pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+    z-index: 5;
+  }
+  h2 .marker {
+    display: inline-block;
+    padding: 3pt 10pt;
+    margin-right: 10pt;
+    font-size: 14pt;
+    background: rgba(167, 139, 250, 0.25);
+    border: 1pt solid rgba(167, 139, 250, 0.5);
+    border-radius: 8pt;
+    color: #DDD6FE;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  h2 strong { font-weight: 700; }
+
+  .lede {
+    position: absolute;
+    top: 110pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 13pt;
+    color: #C4B5FD;
+    font-style: italic;
+    line-height: 1.4;
+    z-index: 5;
+  }
+
+  /* Two big cards */
+  .duo {
+    position: absolute;
+    top: 152pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14pt;
+    z-index: 5;
+  }
+  .level-card {
+    padding: 14pt 18pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 14pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+  }
+  .level-card.low {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.18) 0%, rgba(96, 165, 250, 0.06) 100%);
+    border-color: rgba(96, 165, 250, 0.4);
+  }
+  .level-card.high {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.18) 0%, rgba(167, 139, 250, 0.06) 100%);
+    border-color: rgba(167, 139, 250, 0.4);
+  }
+  .level-card .head {
+    display: flex;
+    align-items: center;
+    gap: 10pt;
+    margin-bottom: 10pt;
+  }
+  .level-card .level-tag {
+    font-size: 9pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 3pt 8pt;
+    border-radius: 6pt;
+  }
+  .low .level-tag { background: rgba(96, 165, 250, 0.3); color: #BFDBFE; }
+  .high .level-tag { background: rgba(167, 139, 250, 0.3); color: #DDD6FE; }
+  .level-card h3 {
+    font-size: 16pt;
+    color: #FFFFFF;
+    font-weight: 700;
+    margin-bottom: 0;
+  }
+  .level-card .purpose {
+    font-size: 11pt;
+    color: #E0E0F0;
+    line-height: 1.45;
+    margin-bottom: 10pt;
+  }
+  .example-block {
+    padding: 8pt 11pt;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 8pt;
+    border-left: 2pt solid rgba(255, 255, 255, 0.4);
+    margin-bottom: 8pt;
+  }
+  .example-block .ex-label {
+    font-size: 8pt;
+    color: #B8B8D0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 3pt;
+  }
+  .example-block p:not(.ex-label) {
+    font-size: 11pt;
+    color: #FFFFFF;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .level-card .mechanism {
+    font-size: 10pt;
+    color: #C4B5FD;
+    line-height: 1.4;
+  }
+  .level-card .mechanism strong { color: #FFFFFF; font-weight: 600; }
+
+  /* Bottom flow */
+  .retrieval-flow {
+    position: absolute;
+    bottom: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    align-items: center;
+    gap: 6pt;
+    padding: 9pt 14pt;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1pt solid rgba(255, 255, 255, 0.15);
+    border-radius: 10pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 5;
+  }
+  .retrieval-flow .flow-label {
+    font-size: 9pt;
+    color: #A78BFA;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-right: 8pt;
+    white-space: nowrap;
+  }
+  .step-pill {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6pt;
+    font-size: 10pt;
+    color: #FFFFFF;
+  }
+  .step-pill .step-num {
+    width: 16pt;
+    height: 16pt;
+    border-radius: 50%;
+    background: rgba(167, 139, 250, 0.3);
+    border: 1pt solid rgba(167, 139, 250, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    color: #DDD6FE;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-arrow { color: #A78BFA; font-weight: 700; font-size: 11pt; }
+  .step-pill .step-text { font-size: 10pt; color: #FFFFFF; }
+  .step-pill .step-text strong { color: #DDD6FE; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class=&quot;slide&quot;>
+  <div class=&quot;header&quot;>
+    <p class=&quot;pagenum&quot;>04 / 05</p>
+    <p class=&quot;section&quot;>Architecture · Retrieval</p>
+  </div>
+
+  <h2><span class=&quot;marker&quot;>핵심 ②</span><strong>Dual-Level</strong> 검색 패러다임</h2>
+  <p class=&quot;lede&quot;>구체적 질문은 Low-Level, 추상적 질문은 High-Level — 두 가지 검색을 모두 활용</p>
+
+  <div class=&quot;duo&quot;>
+    <div class=&quot;level-card low&quot;>
+      <div class=&quot;head&quot;>
+        <span class=&quot;level-tag&quot;>Low-Level</span>
+        <h3>Specific · 정밀</h3>
+      </div>
+      <p class=&quot;purpose&quot;>특정 엔티티·속성·관계를 정밀하게 검색. 디테일 지향.</p>
+      <div class=&quot;example-block&quot;>
+        <p class=&quot;ex-label&quot;>Example Query</p>
+        <p>&quot;Who wrote 'Pride and Prejudice'?&quot;</p>
+      </div>
+      <p class=&quot;mechanism&quot;><strong>동작:</strong> Local keywords → 후보 엔티티 매칭</p>
+    </div>
+
+    <div class=&quot;level-card high&quot;>
+      <div class=&quot;head&quot;>
+        <span class=&quot;level-tag&quot;>High-Level</span>
+        <h3>Abstract · 통합</h3>
+      </div>
+      <p class=&quot;purpose&quot;>광범위한 주제·테마 통합. 다중 엔티티를 가로지르는 개념적 검색.</p>
+      <div class=&quot;example-block&quot;>
+        <p class=&quot;ex-label&quot;>Example Query</p>
+        <p>&quot;How does AI influence modern education?&quot;</p>
+      </div>
+      <p class=&quot;mechanism&quot;><strong>동작:</strong> Global keywords → 관계 + 다중 엔티티 통합</p>
+    </div>
+  </div>
+
+  <div class=&quot;retrieval-flow&quot;>
+    <span class=&quot;flow-label&quot;>Retrieval Flow</span>
+    <div class=&quot;step-pill&quot;>
+      <span class=&quot;step-num&quot;>i</span>
+      <span class=&quot;step-text&quot;><strong>Keyword Extraction</strong> · local + global 분리</span>
+    </div>
+    <span class=&quot;step-arrow&quot;>→</span>
+    <div class=&quot;step-pill&quot;>
+      <span class=&quot;step-num&quot;>ii</span>
+      <span class=&quot;step-text&quot;><strong>Vector Matching</strong> · 그래프 요소 매칭</span>
+    </div>
+    <span class=&quot;step-arrow&quot;>→</span>
+    <div class=&quot;step-pill&quot;>
+      <span class=&quot;step-num&quot;>iii</span>
+      <span class=&quot;step-text&quot;><strong>Higher-Order</strong> · 1-hop 이웃 확장</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>LightRAG — Slide 5</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 92% 8%, rgba(167, 139, 250, 0.5) 0%, transparent 36%),
+      radial-gradient(circle at 8% 92%, rgba(96, 165, 250, 0.5) 0%, transparent 34%),
+      radial-gradient(circle at 60% 45%, rgba(244, 114, 182, 0.25) 0%, transparent 24%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; }
+
+  .header {
+    position: absolute;
+    top: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .pagenum { font-size: 10pt; color: #B8B8D0; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .section { font-size: 10pt; color: #C4B5FD; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+
+  h2 {
+    position: absolute;
+    top: 54pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 28pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    z-index: 5;
+  }
+  h2 strong { font-weight: 700; }
+
+  .lede {
+    position: absolute;
+    top: 95pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 12pt;
+    color: #C4B5FD;
+    font-style: italic;
+    line-height: 1.4;
+    z-index: 5;
+  }
+
+  /* Top stats */
+  .stats {
+    position: absolute;
+    top: 130pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12pt;
+    z-index: 5;
+  }
+  .stat {
+    padding: 12pt 14pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 12pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .stat .stat-label {
+    font-size: 9pt;
+    color: #B8B8D0;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4pt;
+  }
+  .stat .stat-value {
+    font-size: 32pt;
+    font-weight: 700;
+    line-height: 1.2;
+    background: linear-gradient(90deg, #FFFFFF 0%, #C4B5FD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4pt;
+  }
+  .stat .stat-value.small { font-size: 22pt; line-height: 1.2; }
+  .stat .stat-desc {
+    font-size: 9pt;
+    color: #E0E0F0;
+    line-height: 1.35;
+  }
+
+  /* Eval dimensions */
+  .dims {
+    position: absolute;
+    top: 232pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+    z-index: 5;
+  }
+  .dims .dim-label {
+    font-size: 9pt;
+    color: #B8B8D0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-right: 6pt;
+  }
+  .dim {
+    padding: 4pt 11pt;
+    background: rgba(167, 139, 250, 0.15);
+    border: 1pt solid rgba(167, 139, 250, 0.35);
+    border-radius: 999pt;
+    font-size: 9pt;
+    color: #DDD6FE;
+    font-weight: 500;
+  }
+
+  /* Strengths */
+  .strengths {
+    position: absolute;
+    top: 270pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10pt;
+    z-index: 5;
+  }
+  .strength {
+    padding: 10pt 12pt;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1pt solid rgba(255, 255, 255, 0.18);
+    border-radius: 10pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+  .strength .check {
+    color: #34D399;
+    font-size: 11pt;
+    font-weight: 700;
+    margin-right: 4pt;
+  }
+  .strength .strength-title {
+    font-size: 11pt;
+    color: #FFFFFF;
+    font-weight: 700;
+    margin-bottom: 3pt;
+  }
+  .strength .strength-desc {
+    font-size: 9pt;
+    color: #E0E0F0;
+    line-height: 1.4;
+  }
+
+  /* Footer CTA */
+  .closing {
+    position: absolute;
+    bottom: 24pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+  }
+  .closing-msg {
+    font-size: 13pt;
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+  .closing-msg .accent {
+    background: linear-gradient(90deg, #C4B5FD 0%, #93C5FD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+  }
+  .links {
+    display: flex;
+    gap: 8pt;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5pt 12pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.25);
+    border-radius: 999pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    font-size: 9pt;
+    color: #E0E0F0;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;slide&quot;>
+  <div class=&quot;header&quot;>
+    <p class=&quot;pagenum&quot;>05 / 05</p>
+    <p class=&quot;section&quot;>Results · Conclusion</p>
+  </div>
+
+  <h2>결과: <strong>GraphRAG·NaiveRAG 대비 압도적 우위</strong></h2>
+  <p class=&quot;lede&quot;>4개 도메인 × 4개 평가 차원에서 일관된 우위 + 빠른 적응 + 낮은 비용</p>
+
+  <div class=&quot;stats&quot;>
+    <div class=&quot;stat&quot;>
+      <p class=&quot;stat-label&quot;>vs NaiveRAG (Legal)</p>
+      <p class=&quot;stat-value&quot;>84.8<span style=&quot;font-size: 18pt;&quot;>%</span></p>
+      <p class=&quot;stat-desc&quot;>Overall Win Rate · LightRAG가 압승한 도메인</p>
+    </div>
+    <div class=&quot;stat&quot;>
+      <p class=&quot;stat-label&quot;>vs GraphRAG</p>
+      <p class=&quot;stat-value&quot;>4 / 4</p>
+      <p class=&quot;stat-desc&quot;>Agriculture · CS · Legal · Mix 모든 도메인 우위 (특히 Diversity)</p>
+    </div>
+    <div class=&quot;stat&quot;>
+      <p class=&quot;stat-label&quot;>UltraDomain Benchmark</p>
+      <p class=&quot;stat-value small&quot;>600K~5M</p>
+      <p class=&quot;stat-desc&quot;>tokens · 도메인당 데이터 규모, 125 questions per dataset</p>
+    </div>
+  </div>
+
+  <div class=&quot;dims&quot;>
+    <span class=&quot;dim-label&quot;>평가 차원</span>
+    <span class=&quot;dim&quot;>Comprehensiveness</span>
+    <span class=&quot;dim&quot;>Diversity</span>
+    <span class=&quot;dim&quot;>Empowerment</span>
+    <span class=&quot;dim&quot;>Overall</span>
+  </div>
+
+  <div class=&quot;strengths&quot;>
+    <div class=&quot;strength&quot;>
+      <p class=&quot;strength-title&quot;><span class=&quot;check&quot;>✓</span>Effectiveness</p>
+      <p class=&quot;strength-desc&quot;>다양한 쿼리 타입에서 일관된 성능 우위</p>
+    </div>
+    <div class=&quot;strength&quot;>
+      <p class=&quot;strength-title&quot;><span class=&quot;check&quot;>✓</span>Efficiency</p>
+      <p class=&quot;strength-desc&quot;>커뮤니티 트래버설 대비 검색 오버헤드 대폭 감소</p>
+    </div>
+    <div class=&quot;strength&quot;>
+      <p class=&quot;strength-title&quot;><span class=&quot;check&quot;>✓</span>Adaptability</p>
+      <p class=&quot;strength-desc&quot;>Incremental update로 신규 데이터 즉시 반영</p>
+    </div>
+  </div>
+
+  <div class=&quot;closing&quot;>
+    <p class=&quot;closing-msg&quot;><span class=&quot;accent&quot;>Simple</span>하면서 <span class=&quot;accent&quot;>Fast</span>하고, <span class=&quot;accent&quot;>Graph</span>로 더 풍부한 RAG.</p>
+    <div class=&quot;links&quot;>
+      <span class=&quot;badge&quot;>github.com/HKUDS/LightRAG</span>
+      <span class=&quot;badge&quot;>arXiv 2410.05779v3</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 5;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

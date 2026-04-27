@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation bar */
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    /* Slide viewport */
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    /* Slide frames (iframes) */
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <!-- Navigation -->
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 13</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <!-- Slide viewport -->
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 01</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 0 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 16pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Open Source Software Factory</p>
+
+  <h1 style=&quot;margin: 0; font-size: 56pt; font-weight: 800; color: #ffffff; letter-spacing: -0.03em; line-height: 1.2;&quot;>gstack</h1>
+
+  <p style=&quot;margin: 14pt 0 0 0; font-size: 22pt; font-weight: 400; color: #a0a0a0; line-height: 1.4;&quot;>Turn Claude Code into<br>an engineering team.</p>
+
+  <div style=&quot;display: flex; align-items: center; gap: 16pt; margin-top: 40pt;&quot;>
+    <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #666666;&quot;>by Garry Tan</p>
+    <div style=&quot;width: 4pt; height: 4pt; background: #333333; border-radius: 50%;&quot;></div>
+    <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #666666;&quot;>Y Combinator CEO</p>
+    <div style=&quot;width: 4pt; height: 4pt; background: #333333; border-radius: 50%;&quot;></div>
+    <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #666666;&quot;>MIT License</p>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 02</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <h1 style=&quot;margin: 0 0 32pt 0; font-size: 32pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; line-height: 1.3;&quot;>Shipping production code solo<br>is brutally hard.</h1>
+
+  <div style=&quot;display: flex; flex-direction: column; gap: 18pt;&quot;>
+    <div style=&quot;display: flex; align-items: flex-start; gap: 14pt;&quot;>
+      <div style=&quot;min-width: 6pt; height: 6pt; background: #ef4444; border-radius: 50%; margin-top: 8pt;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 16pt; font-weight: 400; color: #a0a0a0; line-height: 1.5;&quot;>Code review, security audits, QA testing — each one demands a specialist.</p>
+    </div>
+    <div style=&quot;display: flex; align-items: flex-start; gap: 14pt;&quot;>
+      <div style=&quot;min-width: 6pt; height: 6pt; background: #ef4444; border-radius: 50%; margin-top: 8pt;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 16pt; font-weight: 400; color: #a0a0a0; line-height: 1.5;&quot;>Architecture decisions pile up with no one to challenge them.</p>
+    </div>
+    <div style=&quot;display: flex; align-items: flex-start; gap: 14pt;&quot;>
+      <div style=&quot;min-width: 6pt; height: 6pt; background: #ef4444; border-radius: 50%; margin-top: 8pt;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 16pt; font-weight: 400; color: #a0a0a0; line-height: 1.5;&quot;>The bottleneck isn't coding — it's everything else around it.</p>
+    </div>
+  </div>
+
+  <p style=&quot;margin: 36pt 0 0 0; font-size: 14pt; font-weight: 600; color: #6366f1;&quot;>You need a team. Or something that acts like one.</p>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 03</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 12pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>What is gstack?</p>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em; line-height: 1.3;&quot;>28 slash commands that turn Claude Code<br>into a virtual engineering team.</h1>
+
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20pt;&quot;>
+    <div style=&quot;border: 1px solid #1f1f1f; border-radius: 10pt; padding: 20pt;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 24pt;&quot;>&amp;#x1F3AF;</p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 13pt; font-weight: 600; color: #ffffff;&quot;>Specialized Roles</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>CEO, Designer, QA Lead, Security Officer, Eng Manager, and more.</p>
+    </div>
+    <div style=&quot;border: 1px solid #1f1f1f; border-radius: 10pt; padding: 20pt;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 24pt;&quot;>&amp;#x26A1;</p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 13pt; font-weight: 600; color: #ffffff;&quot;>30-Second Install</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>One git clone, one setup script. Nothing touches your PATH or runs backgrounded.</p>
+    </div>
+    <div style=&quot;border: 1px solid #1f1f1f; border-radius: 10pt; padding: 20pt;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 24pt;&quot;>&amp;#x1F513;</p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 13pt; font-weight: 600; color: #ffffff;&quot;>Fully Open Source</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>MIT licensed, free forever. No premium tier, no waitlist.</p>
+    </div>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 04</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 12pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Core Philosophy</p>
+
+  <h1 style=&quot;margin: 0 0 36pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>The Sprint Loop</h1>
+
+  <div style=&quot;display: flex; align-items: center; gap: 0;&quot;>
+    <div style=&quot;background: #6366f1; border-radius: 8pt; padding: 12pt 16pt; text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 700; color: #ffffff;&quot;>Think</p>
+    </div>
+    <div style=&quot;width: 24pt; height: 2pt; background: #2a2a2a;&quot;></div>
+    <div style=&quot;background: #4f46e5; border-radius: 8pt; padding: 12pt 16pt; text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 700; color: #ffffff;&quot;>Plan</p>
+    </div>
+    <div style=&quot;width: 24pt; height: 2pt; background: #2a2a2a;&quot;></div>
+    <div style=&quot;background: #4338ca; border-radius: 8pt; padding: 12pt 16pt; text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 700; color: #ffffff;&quot;>Build</p>
+    </div>
+    <div style=&quot;width: 24pt; height: 2pt; background: #2a2a2a;&quot;></div>
+    <div style=&quot;background: #3730a3; border-radius: 8pt; padding: 12pt 16pt; text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 700; color: #ffffff;&quot;>Review</p>
+    </div>
+    <div style=&quot;width: 24pt; height: 2pt; background: #2a2a2a;&quot;></div>
+    <div style=&quot;background: #312e81; border-radius: 8pt; padding: 12pt 16pt; text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 700; color: #ffffff;&quot;>Test</p>
+    </div>
+    <div style=&quot;width: 24pt; height: 2pt; background: #2a2a2a;&quot;></div>
+    <div style=&quot;background: #1e1b4b; border-radius: 8pt; padding: 12pt 16pt; text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 700; color: #ffffff;&quot;>Ship</p>
+    </div>
+    <div style=&quot;width: 24pt; height: 2pt; background: #2a2a2a;&quot;></div>
+    <div style=&quot;background: #171533; border-radius: 8pt; padding: 12pt 16pt; text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 700; color: #e0e0e0;&quot;>Reflect</p>
+    </div>
+  </div>
+
+  <div style=&quot;margin-top: 36pt; display: flex; gap: 40pt;&quot;>
+    <div>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 12pt; font-weight: 600; color: #ffffff;&quot;>Chained Stages</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Each stage feeds into the next.<br>Nothing falls through the cracks.</p>
+    </div>
+    <div>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 12pt; font-weight: 600; color: #ffffff;&quot;>Assumptions First</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Challenge product assumptions<br>before writing a single line of code.</p>
+    </div>
+    <div>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 12pt; font-weight: 600; color: #ffffff;&quot;>Full Cycle</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>From idea validation to<br>post-deploy monitoring.</p>
+    </div>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 05</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Stage 1</p>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>Think &amp;amp; Plan</h1>
+
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr; gap: 20pt;&quot;>
+    <div style=&quot;border-left: 3pt solid #6366f1; padding: 14pt 18pt; background: #111111; border-radius: 0 8pt 8pt 0;&quot;>
+      <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/office-hours</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Validate ideas through 6 forcing questions. Reframes vague concepts into actionable specs.</p>
+    </div>
+    <div style=&quot;border-left: 3pt solid #6366f1; padding: 14pt 18pt; background: #111111; border-radius: 0 8pt 8pt 0;&quot;>
+      <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/autoplan</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Auto-runs CEO, Design, and Engineering review in sequence with encoded decision principles.</p>
+    </div>
+    <div style=&quot;border-left: 3pt solid #6366f1; padding: 14pt 18pt; background: #111111; border-radius: 0 8pt 8pt 0;&quot;>
+      <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/plan-ceo-review</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Four scope modes — Expand, Selective, Hold, or Reduce — to calibrate what you're building.</p>
+    </div>
+    <div style=&quot;border-left: 3pt solid #6366f1; padding: 14pt 18pt; background: #111111; border-radius: 0 8pt 8pt 0;&quot;>
+      <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/plan-eng-review</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Architecture review with data flow diagrams, edge cases, and test matrices.</p>
+    </div>
+  </div>
+
+  <p style=&quot;margin: 22pt 0 0 0; font-size: 12pt; font-weight: 500; color: #555555;&quot;>Challenge every assumption before writing a single line of code.</p>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-06.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 06</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Stage 2</p>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>Build &amp;amp; Review</h1>
+
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18pt;&quot;>
+    <div style=&quot;background: #111111; border-radius: 10pt; padding: 22pt 18pt;&quot;>
+      <p style=&quot;margin: 0 0 10pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/review</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Staff-engineer-level code audit. Auto-fixes obvious issues and flags completeness gaps.</p>
+    </div>
+    <div style=&quot;background: #111111; border-radius: 10pt; padding: 22pt 18pt;&quot;>
+      <p style=&quot;margin: 0 0 10pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/investigate</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Systematic root-cause debugging with hypothesis testing. Finds bugs before users do.</p>
+    </div>
+    <div style=&quot;background: #111111; border-radius: 10pt; padding: 22pt 18pt;&quot;>
+      <p style=&quot;margin: 0 0 10pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/design-review</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Design audit with atomic commits and before/after screenshots for every change.</p>
+    </div>
+  </div>
+
+  <div style=&quot;margin-top: 28pt; background: #111111; border-radius: 8pt; padding: 14pt 20pt; display: flex; align-items: center; gap: 12pt;&quot;>
+    <div style=&quot;min-width: 8pt; height: 8pt; background: #22c55e; border-radius: 50%;&quot;></div>
+    <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0;&quot;>Auto-fix + completeness check on every pass. Catches production bugs that pass CI.</p>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 07</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Stage 3</p>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>Test &amp;amp; Secure</h1>
+
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr; gap: 18pt;&quot;>
+    <div style=&quot;background: #111111; border-radius: 10pt; padding: 20pt 18pt;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/qa</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Real browser testing with Chromium. Finds bugs, then auto-generates regression tests for every fix.</p>
+    </div>
+    <div style=&quot;background: #111111; border-radius: 10pt; padding: 20pt 18pt;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/browse</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Direct Chromium control at ~100ms per command. Import browser cookies for authenticated testing.</p>
+    </div>
+    <div style=&quot;background: #111111; border-radius: 10pt; padding: 20pt 18pt;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/cso</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Chief Security Officer. OWASP Top 10 + STRIDE threat modeling. 8/10+ confidence gate, 17 false-positive exclusions.</p>
+    </div>
+    <div style=&quot;background: #111111; border-radius: 10pt; padding: 20pt 18pt;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/benchmark</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Baseline page load times, Core Web Vitals, and resource sizes before shipping.</p>
+    </div>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="8" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-08.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 08</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Stage 4</p>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>Ship &amp;amp; Reflect</h1>
+
+  <div style=&quot;display: flex; flex-direction: column; gap: 16pt;&quot;>
+    <div style=&quot;display: flex; align-items: center; gap: 16pt;&quot;>
+      <div style=&quot;min-width: 100pt;&quot;>
+        <p style=&quot;margin: 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/ship</p>
+      </div>
+      <div style=&quot;width: 1pt; height: 32pt; background: #1f1f1f;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Syncs main, runs tests, audits coverage, opens PR. Bootstraps test frameworks if missing.</p>
+    </div>
+    <div style=&quot;width: 100%; height: 1pt; background: #141414;&quot;></div>
+    <div style=&quot;display: flex; align-items: center; gap: 16pt;&quot;>
+      <div style=&quot;min-width: 100pt;&quot;>
+        <p style=&quot;margin: 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/land-and-deploy</p>
+      </div>
+      <div style=&quot;width: 1pt; height: 32pt; background: #1f1f1f;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Merges PR, waits for CI, deploys, verifies production health automatically.</p>
+    </div>
+    <div style=&quot;width: 100%; height: 1pt; background: #141414;&quot;></div>
+    <div style=&quot;display: flex; align-items: center; gap: 16pt;&quot;>
+      <div style=&quot;min-width: 100pt;&quot;>
+        <p style=&quot;margin: 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/canary</p>
+      </div>
+      <div style=&quot;width: 1pt; height: 32pt; background: #1f1f1f;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Post-deploy monitoring for console errors, performance regressions, and failures.</p>
+    </div>
+    <div style=&quot;width: 100%; height: 1pt; background: #141414;&quot;></div>
+    <div style=&quot;display: flex; align-items: center; gap: 16pt;&quot;>
+      <div style=&quot;min-width: 100pt;&quot;>
+        <p style=&quot;margin: 0; font-size: 14pt; font-weight: 700; color: #ffffff; font-family: monospace;&quot;>/retro</p>
+      </div>
+      <div style=&quot;width: 1pt; height: 32pt; background: #1f1f1f;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 400; color: #888888; line-height: 1.5;&quot;>Weekly team-aware retrospectives with per-person breakdowns and shipping streaks.</p>
+    </div>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="9" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-09.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 09</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #f59e0b; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Safety</p>
+
+  <h1 style=&quot;margin: 0 0 12pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>Safety Rails</h1>
+
+  <p style=&quot;margin: 0 0 28pt 0; font-size: 14pt; font-weight: 400; color: #666666;&quot;>Move fast, but safely.</p>
+
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20pt;&quot;>
+    <div style=&quot;border: 1px solid #2a2215; border-radius: 10pt; padding: 24pt 18pt; background: #12100a;&quot;>
+      <p style=&quot;margin: 0 0 10pt 0; font-size: 14pt; font-weight: 700; color: #f59e0b; font-family: monospace;&quot;>/careful</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Warns before destructive commands like <strong style=&quot;font-family: monospace; color: #a0a0a0; font-size: 11pt; font-weight: 500;&quot;>rm -rf</strong> or force push. Override when you're sure.</p>
+    </div>
+    <div style=&quot;border: 1px solid #2a2215; border-radius: 10pt; padding: 24pt 18pt; background: #12100a;&quot;>
+      <p style=&quot;margin: 0 0 10pt 0; font-size: 14pt; font-weight: 700; color: #f59e0b; font-family: monospace;&quot;>/freeze</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Restricts file edits to a single directory. Prevents accidental changes to the rest of the codebase.</p>
+    </div>
+    <div style=&quot;border: 1px solid #2a2215; border-radius: 10pt; padding: 24pt 18pt; background: #12100a;&quot;>
+      <p style=&quot;margin: 0 0 10pt 0; font-size: 14pt; font-weight: 700; color: #f59e0b; font-family: monospace;&quot;>/guard</p>
+      <p style=&quot;margin: 0; font-size: 11pt; font-weight: 400; color: #888888; line-height: 1.6;&quot;>Combines /careful + /freeze for maximum protection. Best for critical production work.</p>
+    </div>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="10" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<script>
+(() => {
+  const slideFile = &quot;slide-10.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<base href=&quot;/slides/&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-10.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 10</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #22c55e; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Results</p>
+
+  <h1 style=&quot;margin: 0 0 36pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>Real Output, Real Numbers</h1>
+
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 18pt;&quot;>
+    <div style=&quot;text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 36pt; font-weight: 800; color: #22c55e; letter-spacing: -0.02em;&quot;>600K+</p>
+      <p style=&quot;margin: 6pt 0 0 0; font-size: 11pt; font-weight: 500; color: #666666; line-height: 1.4;&quot;>lines of code<br>in 60 days</p>
+    </div>
+    <div style=&quot;text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 36pt; font-weight: 800; color: #22c55e; letter-spacing: -0.02em;&quot;>362</p>
+      <p style=&quot;margin: 6pt 0 0 0; font-size: 11pt; font-weight: 500; color: #666666; line-height: 1.4;&quot;>commits<br>per week</p>
+    </div>
+    <div style=&quot;text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 36pt; font-weight: 800; color: #22c55e; letter-spacing: -0.02em;&quot;>140K</p>
+      <p style=&quot;margin: 6pt 0 0 0; font-size: 11pt; font-weight: 500; color: #666666; line-height: 1.4;&quot;>lines added<br>per week</p>
+    </div>
+    <div style=&quot;text-align: center;&quot;>
+      <p style=&quot;margin: 0; font-size: 36pt; font-weight: 800; color: #22c55e; letter-spacing: -0.02em;&quot;>35%</p>
+      <p style=&quot;margin: 6pt 0 0 0; font-size: 11pt; font-weight: 500; color: #666666; line-height: 1.4;&quot;>of output<br>is tests</p>
+    </div>
+  </div>
+
+  <p style=&quot;margin: 32pt 0 0 0; font-size: 12pt; font-weight: 400; color: #555555;&quot;>Garry's amazing part-time output while running Y Combinator as CEO.</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="11" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-11.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 11</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 44pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Example</p>
+
+  <h1 style=&quot;margin: 0 0 6pt 0; font-size: 24pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>&quot;Build me a daily briefing app&quot;</h1>
+
+  <p style=&quot;margin: 0 0 22pt 0; font-size: 13pt; font-weight: 400; color: #666666;&quot;>8 commands. 2,400 lines. 11 files. ~8 minutes to deploy.</p>
+
+  <div style=&quot;display: flex; align-items: center; gap: 0; flex-wrap: wrap;&quot;>
+    <div style=&quot;background: #1a1a2e; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>/office-hours</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 12pt; color: #333333;&quot;>&amp;#x2192;</p>
+    <div style=&quot;background: #1a1a2e; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>/autoplan</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 12pt; color: #333333;&quot;>&amp;#x2192;</p>
+    <div style=&quot;background: #1a1a2e; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>build</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 12pt; color: #333333;&quot;>&amp;#x2192;</p>
+    <div style=&quot;background: #1a1a2e; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>/review</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 12pt; color: #333333;&quot;>&amp;#x2192;</p>
+    <div style=&quot;background: #1a1a2e; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>/qa</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 12pt; color: #333333;&quot;>&amp;#x2192;</p>
+    <div style=&quot;background: #1a1a2e; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>/ship</p>
+    </div>
+  </div>
+
+  <div style=&quot;margin-top: 24pt; background: #111111; border-radius: 8pt; padding: 16pt 20pt;&quot;>
+    <div style=&quot;display: flex; gap: 32pt;&quot;>
+      <div>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;&quot;>Input</p>
+        <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0;&quot;>&quot;daily briefing app&quot;</p>
+      </div>
+      <div>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;&quot;>Reframed</p>
+        <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0;&quot;>&quot;personal chief of staff AI&quot;</p>
+      </div>
+      <div>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;&quot;>Output</p>
+        <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0;&quot;>Deployed app + regression tests</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="12" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-12.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 12</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;&quot;>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>Get Started</p>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;&quot;>Up and running in 30 seconds</h1>
+
+  <div style=&quot;background: #111111; border-radius: 10pt; padding: 22pt 24pt; margin-bottom: 24pt;&quot;>
+    <p style=&quot;margin: 0 0 14pt 0; font-size: 13pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>$ git clone https://github.com/garrytan/gstack ~/.claude/skills/gstack</p>
+    <p style=&quot;margin: 0; font-size: 13pt; font-weight: 600; color: #a5b4fc; font-family: monospace;&quot;>$ ~/.claude/skills/gstack/setup.sh</p>
+  </div>
+
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20pt;&quot;>
+    <div>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;&quot;>Requirements</p>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0; line-height: 1.6;&quot;>Claude Code<br>Git<br>Bun v1.0+</p>
+    </div>
+    <div>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;&quot;>License</p>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0; line-height: 1.6;&quot;>MIT<br>Free forever<br>No premium tier</p>
+    </div>
+    <div>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;&quot;>Compatibility</p>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0; line-height: 1.6;&quot;>macOS / Linux / Windows<br>Codex, Gemini CLI, Cursor</p>
+    </div>
+  </div>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="13" srcdoc="<!DOCTYPE html>
+<html lang=&quot;en&quot;><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-13.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 13</title>
+</head>
+<body style=&quot;width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center;&quot;>
+
+  <h1 style=&quot;margin: 0; font-size: 40pt; font-weight: 800; color: #ffffff; letter-spacing: -0.02em; text-align: center;&quot;>Build like a team of one.</h1>
+
+  <div style=&quot;background: #6366f1; height: 3pt; width: 60pt; margin-top: 20pt; border-radius: 2pt;&quot;></div>
+
+  <p style=&quot;margin: 28pt 0 0 0; font-size: 14pt; font-weight: 500; color: #a5b4fc; font-family: monospace;&quot;>github.com/garrytan/gstack</p>
+
+  <p style=&quot;margin: 14pt 0 0 0; font-size: 12pt; font-weight: 400; color: #666666;&quot;>Garry Tan &amp;middot; @garrytan</p>
+
+</div>
+</body></html>
+" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 13;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    // Fullscreen
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    // Auto-scale to fit viewport (95% fit)
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

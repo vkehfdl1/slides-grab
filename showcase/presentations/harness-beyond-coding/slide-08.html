@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 08 — Claude Design</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 20pt 28pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 10pt;
+    justify-content: space-between;
+  }
+  .signal-tag {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+    background: #FF2D55; color: #FFFFFF;
+    padding: 3pt 8pt;
+    align-self: flex-start;
+    border: 2.5pt solid #000000;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 38pt; line-height: 1.2;
+    letter-spacing: -1pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #F5F500; padding: 0 6pt;
+    border: 3pt solid #000000;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .equation {
+    display: flex; align-items: stretch;
+    gap: 6pt; flex: 1;
+  }
+  .term {
+    flex: 1; border: 3pt solid #000000;
+    padding: 10pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    gap: 4pt; background: #FFFFFF;
+  }
+  .term.alt { background: #F5F500; }
+  .term-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+  .term-headline {
+    font-weight: 900; font-size: 16pt;
+    line-height: 1.2; letter-spacing: -0.5pt;
+    margin: 0;
+  }
+  .term-body {
+    font-size: 9.5pt; line-height: 1.4;
+    margin: 0;
+  }
+  .op {
+    align-self: center;
+    font-weight: 900; font-size: 24pt;
+    line-height: 1;
+  }
+  .punch {
+    border: 3pt solid #000000;
+    background: #000000; color: #FFFFFF;
+    padding: 8pt 12pt;
+    font-size: 11pt; font-weight: 700;
+    box-shadow: 4pt 4pt 0 #FF2D55;
+    line-height: 1.5;
+  }
+  .punch b {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <span class="signal-tag">Real-world Signal</span>
+    <h1>Claude Design은 <span class="accent">이미</span> 시작됐다</h1>
+    <div class="equation">
+      <div class="term">
+        <span class="term-label">Same</span>
+        <p class="term-headline">같은 모델</p>
+        <p class="term-body">Claude (코딩에서 검증된 LLM)</p>
+      </div>
+      <div class="op">+</div>
+      <div class="term alt">
+        <span class="term-label">Different</span>
+        <p class="term-headline">다른 하네스</p>
+        <p class="term-body">UI/UX 디자인 워크플로우</p>
+      </div>
+      <div class="op">=</div>
+      <div class="term">
+        <span class="term-label">New</span>
+        <p class="term-headline">다른 직업</p>
+        <p class="term-body">디자인 도메인의 에이전트</p>
+      </div>
+    </div>
+    <div class="punch">슬라이드 디자인은 slides-grab, UI/UX는 Claude Design — <b>디자인 도메인에 하네스 침공 중</b>. 미래 가설이 아니라 <b>현재</b>다.</div>
+  </div>
+</body>
+</html>

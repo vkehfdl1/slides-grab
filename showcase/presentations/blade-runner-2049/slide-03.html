@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  .slide {
+    width: 720pt; height: 405pt;
+    background: #0D0D0D;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* dot grid */
+  .slide::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(0,240,255,0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  /* corner brackets */
+  .corner { position: absolute; width: 24px; height: 24px; }
+  .corner::before, .corner::after {
+    content: ''; position: absolute; background: #00F0FF;
+  }
+  .corner::before { width: 24px; height: 2px; }
+  .corner::after  { width: 2px; height: 24px; }
+
+  .corner.tl { top: 20px; left: 20px; }
+  .corner.tl::before { top: 0; left: 0; }
+  .corner.tl::after  { top: 0; left: 0; }
+
+  .corner.tr { top: 20px; right: 20px; }
+  .corner.tr::before { top: 0; right: 0; }
+  .corner.tr::after  { top: 0; right: 0; }
+
+  .corner.bl { bottom: 20px; left: 20px; }
+  .corner.bl::before { bottom: 0; left: 0; }
+  .corner.bl::after  { bottom: 0; left: 0; }
+
+  .corner.br { bottom: 20px; right: 20px; }
+  .corner.br::before { bottom: 0; right: 0; }
+  .corner.br::after  { bottom: 0; right: 0; }
+
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 40pt;
+    letter-spacing: 6pt;
+    color: transparent;
+    -webkit-text-stroke: 1.5px #00F0FF;
+    line-height: 1.25;
+    margin-bottom: 28px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+
+  .points {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 520px;
+  }
+
+  .point {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .point-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20pt;
+    color: transparent;
+    -webkit-text-stroke: 1px #FF2975;
+    flex-shrink: 0;
+    line-height: 1.3;
+  }
+
+  p {
+    font-family: 'Space Mono', monospace;
+    font-size: 9.5pt;
+    color: #C0C0C0;
+    line-height: 1.6;
+    text-align: left;
+  }
+
+  /* bottom award bar */
+  .award-bar {
+    position: absolute;
+    bottom: 28px;
+    left: 60px;
+    right: 60px;
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    z-index: 1;
+  }
+
+  .award {
+    font-family: 'Space Mono', monospace;
+    font-size: 7pt;
+    letter-spacing: 2pt;
+    color: rgba(255,41,117,0.6);
+    text-transform: uppercase;
+    border: 1px solid rgba(255,41,117,0.2);
+    padding: 4px 10px;
+  }
+
+  /* horizontal accent line */
+  .accent-line {
+    width: 60px;
+    height: 1px;
+    background: #00F0FF;
+    margin-bottom: 28px;
+    position: relative;
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <h1>WHY IT MATTERS</h1>
+  <div class="accent-line"></div>
+
+  <div class="points">
+    <div class="point">
+      <p class="point-num">01</p>
+      <p>로저 디킨스의 압도적 시네마토그래피 — 아카데미 촬영상 수상</p>
+    </div>
+    <div class="point">
+      <p class="point-num">02</p>
+      <p>한스 짐머 + 벤저민 월피쉬가 빚어낸 몰입형 사운드스케이프</p>
+    </div>
+    <div class="point">
+      <p class="point-num">03</p>
+      <p>"인간다움이란 무엇인가" — 원작의 질문을 30년 뒤로 확장</p>
+    </div>
+  </div>
+
+  <div class="award-bar">
+    <p class="award">Academy Award — Cinematography</p>
+    <p class="award">Academy Award — Visual Effects</p>
+    <p class="award">BAFTA — Best Cinematography</p>
+  </div>
+</div>
+</body>
+</html>

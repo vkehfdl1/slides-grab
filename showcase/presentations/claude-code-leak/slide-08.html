@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="margin-bottom: 24pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;">06 // RESPONSE</p>
+    <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;">Anthropic의 대응: DMCA Takedown</h2>
+  </div>
+
+  <!-- Main content -->
+  <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 32pt; align-items: center;">
+    <!-- Left: Timeline -->
+    <div style="display: flex; flex-direction: column; gap: 18pt;">
+      <!-- Time marker 1 -->
+      <div style="display: flex; align-items: flex-start; gap: 14pt;">
+        <div style="min-width: 56pt; text-align: right;">
+          <p style="font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #7C6FFF;">T+0h</p>
+        </div>
+        <div style="min-width: 2pt; background: #7C6FFF; align-self: stretch;"></div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF;">소스맵 발견</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 2pt;">Chaofan Shou, X에 공개</p>
+        </div>
+      </div>
+      <!-- Time marker 2 -->
+      <div style="display: flex; align-items: flex-start; gap: 14pt;">
+        <div style="min-width: 56pt; text-align: right;">
+          <p style="font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #FF6B6B;">T+2h</p>
+        </div>
+        <div style="min-width: 2pt; background: #FF6B6B; align-self: stretch;"></div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF;">DMCA Takedown 요청</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 2pt;">GitHub에 저작권 삭제 요청 제출</p>
+        </div>
+      </div>
+      <!-- Time marker 3 -->
+      <div style="display: flex; align-items: flex-start; gap: 14pt;">
+        <div style="min-width: 56pt; text-align: right;">
+          <p style="font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #FF6B6B;">T+6h</p>
+        </div>
+        <div style="min-width: 2pt; background: #FF6B6B; align-self: stretch;"></div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF;">대규모 레포 삭제 시작</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 2pt;">미러, 포크, 무관 레포까지 광범위 적용</p>
+        </div>
+      </div>
+      <!-- Time marker 4 -->
+      <div style="display: flex; align-items: flex-start; gap: 14pt;">
+        <div style="min-width: 56pt; text-align: right;">
+          <p style="font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #8888AA;">T+24h</p>
+        </div>
+        <div style="min-width: 2pt; background: #8888AA; align-self: stretch;"></div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF;">공식 해명</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 2pt;">"패키징 과정의 인적 실수, 보안 침해 아님"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: DMCA document visual -->
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <!-- Isometric document stack -->
+      <div style="position: relative; width: 140pt; height: 160pt;">
+        <!-- Bottom doc (shadow) -->
+        <div style="position: absolute; bottom: 10pt; left: 10pt; width: 120pt; height: 140pt;">
+          <div style="position: absolute; width: 120pt; height: 69pt; top: 0; left: 0; background: #3A2FAA; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%); opacity: 0.3;"></div>
+          <div style="position: absolute; width: 60pt; height: 95pt; bottom: 0; left: 0; background: #2A1F88; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%); opacity: 0.3;"></div>
+          <div style="position: absolute; width: 60pt; height: 95pt; bottom: 0; right: 0; background: #3A2FAA; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%); opacity: 0.3;"></div>
+        </div>
+        <!-- Top doc -->
+        <div style="position: absolute; bottom: 20pt; left: 0; width: 120pt; height: 140pt;">
+          <div style="position: absolute; width: 120pt; height: 69pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+          <div style="position: absolute; width: 60pt; height: 95pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+          <div style="position: absolute; width: 60pt; height: 95pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+        </div>
+        <p style="position: absolute; top: 22pt; left: 50%; transform: translateX(-50%); font-family: 'Space Mono', monospace; font-size: 9pt; color: #FFFFFF; font-weight: 700; z-index: 2;">DMCA</p>
+      </div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA; text-align: center; margin-top: 8pt;">github/dmca<br>2026-03-31-anthropic.md</p>
+    </div>
+  </div>
+</body>
+</html>

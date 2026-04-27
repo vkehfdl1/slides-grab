@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>멘션 & 게이트웨이 라우팅</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;">
+<div style="width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 36pt 40pt 32pt 40pt;">
+
+  <!-- Title -->
+  <h1 style="font-size: 28pt; font-weight: 700; margin: 0 0 28pt 0; letter-spacing: -0.5pt;">멘션 & 게이트웨이 라우팅</h1>
+
+  <!-- Two columns -->
+  <div style="display: flex; gap: 28pt; margin-bottom: 24pt;">
+
+    <!-- Left: Agent aliases -->
+    <div style="flex: 1;">
+      <h3 style="font-size: 13pt; font-weight: 600; color: #6366f1; margin: 0 0 14pt 0; text-transform: uppercase; letter-spacing: 0.08em;">에이전트 별칭</h3>
+      <div style="display: flex; flex-direction: column; gap: 10pt;">
+        <!-- Dobby -->
+        <div style="background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 8pt; padding: 12pt 16pt; display: flex; justify-content: space-between; align-items: center;">
+          <p style="font-size: 14pt; font-weight: 600; margin: 0;">도비</p>
+          <p style="font-size: 10pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; margin: 0;">dobby · 도비</p>
+        </div>
+        <!-- Young-Gu -->
+        <div style="background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 8pt; padding: 12pt 16pt; display: flex; justify-content: space-between; align-items: center;">
+          <p style="font-size: 14pt; font-weight: 600; margin: 0;">영구</p>
+          <p style="font-size: 10pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; margin: 0;">young-gu · 영구</p>
+        </div>
+        <!-- Marketer -->
+        <div style="background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #f59e0b; border-radius: 8pt; padding: 12pt 16pt; display: flex; justify-content: space-between; align-items: center;">
+          <p style="font-size: 14pt; font-weight: 600; margin: 0;">홍명보</p>
+          <p style="font-size: 10pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; margin: 0;">marketer · 홍명보</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Gateway rules -->
+    <div style="flex: 1;">
+      <h3 style="font-size: 13pt; font-weight: 600; color: #6366f1; margin: 0 0 14pt 0; text-transform: uppercase; letter-spacing: 0.08em;">게이트웨이 규칙</h3>
+      <div style="display: flex; flex-direction: column; gap: 10pt;">
+        <!-- self_mention -->
+        <div style="background: #141419; border: 1pt solid #2a2a3a; border-radius: 8pt; padding: 12pt 16pt;">
+          <p style="font-size: 12pt; font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: #22d3ee; margin: 0 0 4pt 0;">self_mention</p>
+          <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">명시적 @멘션 필요</p>
+        </div>
+        <!-- any_message -->
+        <div style="background: #141419; border: 1pt solid #2a2a3a; border-radius: 8pt; padding: 12pt 16pt;">
+          <p style="font-size: 12pt; font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: #22d3ee; margin: 0 0 4pt 0;">any_message</p>
+          <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">채널의 모든 메시지에 반응</p>
+        </div>
+        <!-- keywords -->
+        <div style="background: #141419; border: 1pt solid #2a2a3a; border-radius: 8pt; padding: 12pt 16pt;">
+          <p style="font-size: 12pt; font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: #22d3ee; margin: 0 0 4pt 0;">keywords</p>
+          <p style="font-size: 11pt; color: #b0b0b0; margin: 0;">특정 키워드 포함 시 반응</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom note -->
+  <p style="font-size: 12pt; color: #b0b0b0; text-align: center; margin: 0;">규칙은 OR 조합 · 셀프루프 방지: 같은 에이전트의 봇 메시지 차단</p>
+
+  <!-- Page number -->
+  <p style="position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;">17</p>
+
+</div>
+</body>
+</html>

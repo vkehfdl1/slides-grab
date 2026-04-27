@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 01 — Title</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 240pt at 20% 28%, rgba(255,45,94,0.28), transparent 70%),
+      radial-gradient(380pt 260pt at 82% 72%, rgba(59,143,245,0.32), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:4pt; top:4pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:4pt; bottom:4pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:40pt 52pt; display:flex; flex-direction:column;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  .taegeuk{display:inline-block; width:16pt; height:16pt; border-radius:50%; margin-right:8pt; vertical-align:-3pt;
+    background: conic-gradient(from 0deg, #FF2D5E 0 50%, #3B8FF5 50% 100%);
+    box-shadow:0 0 10pt rgba(255,45,94,0.6), 0 0 10pt rgba(59,143,245,0.6);}
+  .title{font-family:'Bebas Neue','Barlow Condensed',sans-serif;
+    font-size:88pt; line-height:1.4; letter-spacing:2pt; margin:14pt 0 0;
+    background:linear-gradient(100deg,#FF2D5E 0%,#ffffff 48%,#3B8FF5 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 30pt rgba(255,45,94,0.15);}
+  .sub{font-family:'Barlow Condensed',sans-serif; font-weight:400; font-size:20pt; color:#D0D0F0; letter-spacing:2pt; margin:14pt 0 0;}
+  .foot{margin-top:auto; display:flex; justify-content:space-between; align-items:flex-end; font-size:10pt; letter-spacing:3pt; color:#8a8ab0; text-transform:uppercase;}
+  .foot b{color:#E8E8F5; font-weight:600;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker"><span class="taegeuk"></span>Ironclaw Meetup · Keynote</p>
+    <h1 class="title">CLAW IS<br>ALL YOU NEED.</h1>
+    <p class="sub">How products survive in the age of agents</p>
+    <div class="foot">
+      <span>Jeffrey · <b>NomaDamas</b></span>
+      <span>2026 · Seoul</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

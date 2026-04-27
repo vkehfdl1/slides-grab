@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Content Discipline — Anatomy of Claude's Design System Prompt</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Serif+KR:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .body-area {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.35fr 1pt 1fr;
+      gap: 0;
+    }
+    .statement {
+      padding: 28pt 28pt 22pt 32pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 14pt;
+      text-transform: uppercase;
+    }
+    .big-statement {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 30pt;
+      line-height: 1.32;
+      color: #1A1208;
+      margin: 0 0 12pt;
+      letter-spacing: -0.4pt;
+    }
+    .big-statement strong {
+      font-style: normal;
+      font-weight: 900;
+      color: #1A1208;
+    }
+    .original {
+      font-family: 'Playfair Display', serif;
+      font-size: 14pt;
+      font-style: italic;
+      color: #6E6550;
+      margin: 0 0 8pt;
+      padding-top: 10pt;
+      border-top: 1pt solid #1A1208;
+      max-width: 340pt;
+    }
+    .attribution {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .rule-v {
+      background: #1A1208;
+      width: 1pt;
+    }
+    .rules {
+      padding: 24pt 32pt 22pt 24pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .rules-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 2pt;
+      color: #1A1208;
+      margin: 0 0 10pt;
+      padding-bottom: 4pt;
+      border-bottom: 1pt solid #1A1208;
+      text-transform: uppercase;
+    }
+    .rules-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .rules-list li {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.45;
+      color: #3A3020;
+      padding: 8pt 0 8pt 22pt;
+      border-bottom: 1pt dotted #9A9080;
+      position: relative;
+    }
+    .rules-list li:last-child { border-bottom: none; }
+    .rules-list li::before {
+      content: "§";
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 16pt;
+      color: #1A1208;
+      position: absolute;
+      left: 0;
+      top: 6pt;
+    }
+  </style>
+</head>
+<body>
+  <article class="slide">
+    <header class="masthead">
+      <p style="margin:0;">CONTENT DISCIPLINE</p>
+      <p style="margin:0;">§ 4 · 콘텐츠 규율</p>
+      <p style="margin:0;">05 / 08</p>
+    </header>
+    <div class="body-area">
+      <section class="statement">
+        <p class="kicker">THE MANIFESTO · 프롬프트의 콘텐츠 선언</p>
+        <h1 class="big-statement">하나의 '예'를 위해<br><strong>천 번의 '아니오'를.</strong></h1>
+        <p class="original">"One thousand no's for every yes."</p>
+        <p class="attribution">— CLAUDE-DESIGN-SYS-PROMPT.TXT · CONTENT GUIDELINES</p>
+      </section>
+      <div class="rule-v"></div>
+      <aside class="rules">
+        <p class="rules-label">네 가지 규율</p>
+        <ul class="rules-list">
+          <li>슬라이드가 비어 보인다고 더미 통계나 장식 아이콘으로 채우지 않는다. 레이아웃과 스케일로 풀어라.</li>
+          <li>브리프에 없는 섹션·페이지·카피를 추가하려면 먼저 사용자에게 물어라.</li>
+          <li>데이터 슬롭 — 정보로 보이지만 의미 없는 숫자와 아이콘 — 을 금한다.</li>
+          <li>잘라내는 것 자체가 디자인 도구다. 덜어냄을 두려워하지 마라.</li>
+        </ul>
+      </aside>
+    </div>
+  </article>
+</body>
+</html>

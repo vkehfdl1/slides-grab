@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt; height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    background: #0f0f0f; color: #ededed;
+    padding: 14pt 22pt;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .mono { font-family: 'Space Mono', monospace; letter-spacing: 1.5px; }
+  .head { display: flex; justify-content: space-between; align-items: center; color: #9a9a9a; font-size: 7pt; }
+  .head .tag { padding: 2pt 7pt; border: 1px solid #333; border-radius: 10pt; color: #d0d0d0; font-size: 7pt; }
+  .title-row { display: flex; align-items: baseline; gap: 10pt; margin-top: 6pt; }
+  h1 { font-size: 18pt; font-weight: 800; color: #fff; letter-spacing: -0.01em; line-height: 1.25; padding-bottom: 2pt; }
+  .title-row .kicker { font-size: 7pt; color: #7ad0ff; padding: 1pt 6pt; border: 1px solid #7ad0ff; border-radius: 8pt; }
+  .sub { margin-top: 1pt; font-size: 7.5pt; color: #a8a8a8; line-height: 1.3; }
+  .body { display: grid; grid-template-columns: 300pt 1fr; gap: 10pt; margin-top: 6pt; flex: 1; min-height: 0; }
+  .fig-wrap {
+    background: #151515; border: 1px solid #2a2a2a; border-radius: 6pt;
+    padding: 6pt; display: flex; flex-direction: column; min-height: 0;
+  }
+  .fig-label { font-size: 6.5pt; color: #9a9a9a; margin-bottom: 3pt; letter-spacing: 1.5px; }
+  .fig-img { flex: 1; background: #fff; border-radius: 3pt; overflow: hidden; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  .fig-img img { width: 100%; height: 100%; object-fit: contain; }
+  .fig-cap { font-size: 6.5pt; color: #909090; margin-top: 3pt; line-height: 1.3; }
+  .right { display: flex; flex-direction: column; gap: 5pt; min-height: 0; }
+  .steps { display: flex; flex-direction: column; gap: 3pt; }
+  .step {
+    background: #1a1a1a; border: 1px solid #2a2a2a; border-left: 2pt solid #7ad0ff;
+    border-radius: 4pt; padding: 4pt 8pt;
+    display: grid; grid-template-columns: 14pt 1fr; gap: 6pt; align-items: start;
+  }
+  .step .num { font-family: 'Space Mono', monospace; font-size: 11pt; color: #7ad0ff; font-weight: 700; line-height: 1; margin-top: 1pt; }
+  .step h4 { font-size: 8pt; color: #fff; font-weight: 700; margin-bottom: 1pt; }
+  .step p { font-size: 7pt; color: #b8b8b8; line-height: 1.3; }
+  .extras {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 6pt;
+  }
+  .extra {
+    background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4pt; padding: 4pt 8pt;
+  }
+  .extra .l { font-size: 6pt; color: #7ad0ff; font-weight: 700; letter-spacing: 1.3px; margin-bottom: 1pt; }
+  .extra p { font-size: 6.8pt; color: #c0c0c0; line-height: 1.25; }
+</style>
+</head>
+<body>
+  <div class="head">
+    <div style="display:flex; gap:8pt; align-items:center;">
+      <span class="mono tag">METHOD · 5-STAGE PIPELINE</span>
+      <span class="mono">THOUGHT-RETRIEVER</span>
+    </div>
+    <span class="mono">02 / 03</span>
+  </div>
+
+  <div class="title-row">
+    <h1>A Self-Evolving Memory of Thoughts</h1>
+    <span class="kicker mono">FIG. 2</span>
+  </div>
+  <p class="sub">Each answer spawns a confidence-scored thought; low-quality & duplicate thoughts are filtered before write-back to memory.</p>
+
+  <div class="body">
+    <div class="fig-wrap">
+      <div class="fig-label mono">FIGURE 2 — END-TO-END PIPELINE</div>
+      <div class="fig-img"><img src="./assets/fig2.png" alt="Figure 2"></div>
+      <div class="fig-cap">Retrieval → answer → thought + confidence → merge → memory update, with recursive root-source mapping for traceability.</div>
+    </div>
+
+    <div class="right">
+      <div class="steps">
+        <div class="step"><div class="num">1</div><div><h4>Thought Retrieval</h4><p>Embedding similarity over (external KB ∪ thought memory) — unifies raw data and prior reasoning in one search.</p></div></div>
+        <div class="step"><div class="num">2</div><div><h4>Answer Generation</h4><p>LLM answers the query conditioned on retrieved raw context + relevant thoughts.</p></div></div>
+        <div class="step"><div class="num">3</div><div><h4>Thought + Confidence</h4><p>LLM abstracts Q/A into a persistent cognitive unit with a self-reported quality score for gating.</p></div></div>
+        <div class="step"><div class="num">4</div><div><h4>Thought Merge</h4><p>Embedding-based redundancy detection collapses near-duplicates to keep memory compact.</p></div></div>
+        <div class="step"><div class="num">5</div><div><h4>Memory Update</h4><p>Low-confidence and duplicate thoughts filtered out; survivors written back for future retrieval.</p></div></div>
+      </div>
+
+      <div class="extras">
+        <div class="extra">
+          <div class="l mono">ROOT-SOURCE MAPPING</div>
+          <p>Recursive linkage preserves factual traceability across thought chains.</p>
+        </div>
+        <div class="extra">
+          <div class="l mono">MULTI-EXPERT LEARNING</div>
+          <p>Primary LLM ingests thoughts from specialized expert models.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

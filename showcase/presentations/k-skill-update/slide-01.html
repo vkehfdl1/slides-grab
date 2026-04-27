@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html><head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 태극기 배경 */
+    .bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #0047A0 0%, #1a1a3e 40%, #2a1020 60%, #CD2E3A 100%);
+    }
+
+    /* 태극 원 (중앙 장식) */
+    .taegeuk {
+      position: absolute;
+      width: 320pt; height: 320pt;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      overflow: hidden;
+      opacity: 0.18;
+    }
+    .taegeuk-top {
+      position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 160pt 160pt 0 0;
+    }
+    .taegeuk-bottom {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+      background: #0047A0;
+      border-radius: 0 0 160pt 160pt;
+    }
+    .taegeuk-inner-red {
+      position: absolute; top: 25%; left: 0;
+      width: 50%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 50%;
+    }
+    .taegeuk-inner-blue {
+      position: absolute; top: 25%; right: 0;
+      width: 50%; height: 50%;
+      background: #0047A0;
+      border-radius: 50%;
+    }
+
+    /* 펄럭이는 장식 리본 */
+    .ribbon {
+      position: absolute;
+      width: 500pt; height: 80pt;
+      top: 0; left: 0;
+      background: linear-gradient(90deg, rgba(205,46,58,0.3), rgba(0,71,160,0.3), rgba(205,46,58,0.2));
+      filter: blur(2pt);
+      opacity: 0.5;
+      animation: flutter 4s ease-in-out infinite alternate;
+    }
+    .ribbon2 {
+      position: absolute;
+      width: 400pt; height: 60pt;
+      bottom: 0; right: 0;
+      background: linear-gradient(90deg, rgba(0,71,160,0.25), rgba(205,46,58,0.25));
+      filter: blur(3pt);
+      opacity: 0.4;
+      animation: flutter2 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes flutter {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8pt); }
+    }
+    @keyframes flutter2 {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-10pt); }
+    }
+
+    /* 글래스 패널 */
+    .glass-main {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 520pt; height: 280pt;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32pt;
+      box-shadow: 0 8pt 32pt rgba(0, 0, 0, 0.3);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6pt 18pt;
+      background: rgba(255, 215, 0, 0.2);
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      border-radius: 20pt;
+      font-size: 11pt;
+      font-weight: 700;
+      color: #FFD700;
+      letter-spacing: 0.1em;
+      margin-bottom: 16pt;
+    }
+
+    .star-count {
+      font-size: 50pt;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      text-shadow: 0 2pt 16pt rgba(255, 215, 0, 0.3);
+    }
+    .star-count span {
+      color: #FFD700;
+    }
+
+    .subtitle {
+      font-size: 20pt;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 16pt;
+      letter-spacing: 0.02em;
+    }
+
+    .desc {
+      font-size: 13pt;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 12pt;
+      line-height: 1.6;
+    }
+
+    /* 별 장식 */
+    .sparkle {
+      position: absolute;
+      width: 6pt; height: 6pt;
+      background: #FFD700;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: sparkle 2s ease-in-out infinite;
+    }
+    .sparkle:nth-child(1) { top: 60pt; left: 80pt; animation-delay: 0s; }
+    .sparkle:nth-child(2) { top: 100pt; right: 120pt; animation-delay: 0.5s; }
+    .sparkle:nth-child(3) { bottom: 80pt; left: 200pt; animation-delay: 1s; }
+    .sparkle:nth-child(4) { top: 150pt; left: 160pt; animation-delay: 1.5s; width: 4pt; height: 4pt; }
+    .sparkle:nth-child(5) { bottom: 120pt; right: 100pt; animation-delay: 0.8s; width: 5pt; height: 5pt; }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="taegeuk">
+    <div class="taegeuk-top"></div>
+    <div class="taegeuk-bottom"></div>
+    <div class="taegeuk-inner-red"></div>
+    <div class="taegeuk-inner-blue"></div>
+  </div>
+  <div class="ribbon"></div>
+  <div class="ribbon2"></div>
+
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+  <div class="sparkle"></div>
+
+  <div class="glass-main">
+    <div class="badge">🎉 경 축</div>
+    <p class="star-count">GitHub <span>★</span> 3K</p>
+    <p class="subtitle">한국인을 위한 스킬 모음집</p>
+    <p class="desc">K-Skill — Claude Code를 더 한국적으로</p>
+  </div>
+
+
+</body></html>

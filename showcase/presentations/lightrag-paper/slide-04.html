@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>LightRAG — Slide 4</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 35% 12%, rgba(96, 165, 250, 0.45) 0%, transparent 32%),
+      radial-gradient(circle at 65% 88%, rgba(167, 139, 250, 0.45) 0%, transparent 32%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; }
+
+  .header {
+    position: absolute;
+    top: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .pagenum { font-size: 10pt; color: #B8B8D0; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .section { font-size: 10pt; color: #C4B5FD; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+
+  h2 {
+    position: absolute;
+    top: 54pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 28pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.35;
+    z-index: 5;
+  }
+  h2 .marker {
+    display: inline-block;
+    padding: 3pt 10pt;
+    margin-right: 10pt;
+    font-size: 14pt;
+    background: rgba(167, 139, 250, 0.25);
+    border: 1pt solid rgba(167, 139, 250, 0.5);
+    border-radius: 8pt;
+    color: #DDD6FE;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  h2 strong { font-weight: 700; }
+
+  .lede {
+    position: absolute;
+    top: 110pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 13pt;
+    color: #C4B5FD;
+    font-style: italic;
+    line-height: 1.4;
+    z-index: 5;
+  }
+
+  /* Two big cards */
+  .duo {
+    position: absolute;
+    top: 152pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14pt;
+    z-index: 5;
+  }
+  .level-card {
+    padding: 14pt 18pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 14pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    position: relative;
+  }
+  .level-card.low {
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.18) 0%, rgba(96, 165, 250, 0.06) 100%);
+    border-color: rgba(96, 165, 250, 0.4);
+  }
+  .level-card.high {
+    background: linear-gradient(135deg, rgba(167, 139, 250, 0.18) 0%, rgba(167, 139, 250, 0.06) 100%);
+    border-color: rgba(167, 139, 250, 0.4);
+  }
+  .level-card .head {
+    display: flex;
+    align-items: center;
+    gap: 10pt;
+    margin-bottom: 10pt;
+  }
+  .level-card .level-tag {
+    font-size: 9pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 3pt 8pt;
+    border-radius: 6pt;
+  }
+  .low .level-tag { background: rgba(96, 165, 250, 0.3); color: #BFDBFE; }
+  .high .level-tag { background: rgba(167, 139, 250, 0.3); color: #DDD6FE; }
+  .level-card h3 {
+    font-size: 16pt;
+    color: #FFFFFF;
+    font-weight: 700;
+    margin-bottom: 0;
+  }
+  .level-card .purpose {
+    font-size: 11pt;
+    color: #E0E0F0;
+    line-height: 1.45;
+    margin-bottom: 10pt;
+  }
+  .example-block {
+    padding: 8pt 11pt;
+    background: rgba(0, 0, 0, 0.18);
+    border-radius: 8pt;
+    border-left: 2pt solid rgba(255, 255, 255, 0.4);
+    margin-bottom: 8pt;
+  }
+  .example-block .ex-label {
+    font-size: 8pt;
+    color: #B8B8D0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 3pt;
+  }
+  .example-block p:not(.ex-label) {
+    font-size: 11pt;
+    color: #FFFFFF;
+    font-style: italic;
+    line-height: 1.4;
+  }
+  .level-card .mechanism {
+    font-size: 10pt;
+    color: #C4B5FD;
+    line-height: 1.4;
+  }
+  .level-card .mechanism strong { color: #FFFFFF; font-weight: 600; }
+
+  /* Bottom flow */
+  .retrieval-flow {
+    position: absolute;
+    bottom: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    align-items: center;
+    gap: 6pt;
+    padding: 9pt 14pt;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1pt solid rgba(255, 255, 255, 0.15);
+    border-radius: 10pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 5;
+  }
+  .retrieval-flow .flow-label {
+    font-size: 9pt;
+    color: #A78BFA;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-right: 8pt;
+    white-space: nowrap;
+  }
+  .step-pill {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 6pt;
+    font-size: 10pt;
+    color: #FFFFFF;
+  }
+  .step-pill .step-num {
+    width: 16pt;
+    height: 16pt;
+    border-radius: 50%;
+    background: rgba(167, 139, 250, 0.3);
+    border: 1pt solid rgba(167, 139, 250, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9pt;
+    color: #DDD6FE;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-arrow { color: #A78BFA; font-weight: 700; font-size: 11pt; }
+  .step-pill .step-text { font-size: 10pt; color: #FFFFFF; }
+  .step-pill .step-text strong { color: #DDD6FE; font-weight: 600; }
+</style>
+</head>
+<body>
+  <div class="slide">
+  <div class="header">
+    <p class="pagenum">04 / 05</p>
+    <p class="section">Architecture · Retrieval</p>
+  </div>
+
+  <h2><span class="marker">핵심 ②</span><strong>Dual-Level</strong> 검색 패러다임</h2>
+  <p class="lede">구체적 질문은 Low-Level, 추상적 질문은 High-Level — 두 가지 검색을 모두 활용</p>
+
+  <div class="duo">
+    <div class="level-card low">
+      <div class="head">
+        <span class="level-tag">Low-Level</span>
+        <h3>Specific · 정밀</h3>
+      </div>
+      <p class="purpose">특정 엔티티·속성·관계를 정밀하게 검색. 디테일 지향.</p>
+      <div class="example-block">
+        <p class="ex-label">Example Query</p>
+        <p>"Who wrote 'Pride and Prejudice'?"</p>
+      </div>
+      <p class="mechanism"><strong>동작:</strong> Local keywords → 후보 엔티티 매칭</p>
+    </div>
+
+    <div class="level-card high">
+      <div class="head">
+        <span class="level-tag">High-Level</span>
+        <h3>Abstract · 통합</h3>
+      </div>
+      <p class="purpose">광범위한 주제·테마 통합. 다중 엔티티를 가로지르는 개념적 검색.</p>
+      <div class="example-block">
+        <p class="ex-label">Example Query</p>
+        <p>"How does AI influence modern education?"</p>
+      </div>
+      <p class="mechanism"><strong>동작:</strong> Global keywords → 관계 + 다중 엔티티 통합</p>
+    </div>
+  </div>
+
+  <div class="retrieval-flow">
+    <span class="flow-label">Retrieval Flow</span>
+    <div class="step-pill">
+      <span class="step-num">i</span>
+      <span class="step-text"><strong>Keyword Extraction</strong> · local + global 분리</span>
+    </div>
+    <span class="step-arrow">→</span>
+    <div class="step-pill">
+      <span class="step-num">ii</span>
+      <span class="step-text"><strong>Vector Matching</strong> · 그래프 요소 매칭</span>
+    </div>
+    <span class="step-arrow">→</span>
+    <div class="step-pill">
+      <span class="step-num">iii</span>
+      <span class="step-text"><strong>Higher-Order</strong> · 1-hop 이웃 확장</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

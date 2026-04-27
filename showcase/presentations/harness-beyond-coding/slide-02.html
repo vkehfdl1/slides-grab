@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 02 — K-skill</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 14pt 26pt;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 180pt;
+    grid-template-rows: auto auto 1fr auto auto;
+    column-gap: 18pt;
+    row-gap: 10pt;
+    align-content: stretch;
+  }
+  .case-tag {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 10pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .case-num {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt; border: 2pt solid #000000;
+  }
+  h1 {
+    grid-column: 1 / 2; grid-row: 2 / 3;
+    margin: 0; font-weight: 900; font-size: 32pt;
+    line-height: 1.2; letter-spacing: -0.8pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 2.5pt solid #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .stat-card {
+    grid-column: 2 / 3; grid-row: 2 / 4;
+    background: #F5F500;
+    border: 3pt solid #000000;
+    box-shadow: 5pt 5pt 0 #000000;
+    padding: 12pt 10pt;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+  }
+  .stat-num {
+    font-weight: 900; font-size: 44pt;
+    line-height: 1; letter-spacing: -2pt;
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase; margin-top: 4pt;
+  }
+  .stat-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; margin-top: 8pt;
+    border-top: 2pt solid #000000;
+    padding-top: 5pt; width: 100%;
+  }
+  .body-block {
+    grid-column: 1 / 2; grid-row: 3 / 4;
+    display: flex; flex-direction: column;
+    gap: 8pt; justify-content: center;
+  }
+  .quote {
+    border-left: 4pt solid #000000;
+    padding: 3pt 0 3pt 8pt;
+    font-size: 10pt; line-height: 1.45;
+    font-weight: 500; margin: 0;
+  }
+  .quote b {
+    background: #F5F500; padding: 0 3pt;
+    font-weight: 800;
+  }
+  .examples-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt; margin: 0 0 4pt;
+  }
+  .chips {
+    display: flex; flex-wrap: wrap; gap: 4pt;
+  }
+  .chip {
+    border: 2pt solid #000000;
+    padding: 2pt 5pt;
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt; font-weight: 700;
+    background: #FFFFFF;
+  }
+  .insight {
+    grid-column: 1 / -1; grid-row: 4 / 5;
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    font-size: 11pt; font-weight: 700;
+    background: #FFFFFF;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .insight b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 4pt;
+  }
+  .footer {
+    grid-column: 1 / -1; grid-row: 5 / 6;
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="case-tag">
+      <span class="case-num">Case 01</span>
+      <span>일상생활용 하네스</span>
+    </div>
+    <h1>K-skill — <span class="accent">한국인용</span> 스킬 묶음</h1>
+    <div class="stat-card">
+      <div class="stat-num">4,044</div>
+      <div class="stat-label">★ Stars</div>
+      <div class="stat-sub">40+ 한국 생활 스킬</div>
+    </div>
+    <div class="body-block">
+      <p class="quote">"SRT, KTX, KBO, 로또, 당근, 카톡, 정부24, 홈택스··· <b>귀찮은 것을 AI 에이전트에게 다 시켜버리세요</b>" — README</p>
+      <div>
+        <p class="examples-label">번들된 스킬 (일부)</p>
+        <div class="chips">
+          <span class="chip">SRT 예매</span>
+          <span class="chip">지하철 도착</span>
+          <span class="chip">학교 급식</span>
+          <span class="chip">실거래가</span>
+          <span class="chip">미세먼지</span>
+          <span class="chip">로또</span>
+          <span class="chip">한강 수위</span>
+          <span class="chip">+ 30개 더</span>
+        </div>
+      </div>
+    </div>
+    <div class="insight">코딩용 하네스 + SKILL.md = <b>일상생활용 하네스</b></div>
+    <div class="footer">
+      <span>github.com/NomaDamas/k-skill</span>
+      <span>02 / 11</span>
+    </div>
+  </div>
+</body>
+</html>

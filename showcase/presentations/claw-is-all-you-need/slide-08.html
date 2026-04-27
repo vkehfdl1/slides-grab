@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Slide 08 — Agent-native</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Barlow+Condensed:wght@400;600;800&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(480pt 320pt at 50% 50%, rgba(59,143,245,0.32), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:26pt 44pt; display:flex; flex-direction:column;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8FC0FF; text-transform:uppercase; margin:0;}
+  h1{font-family:'Bebas Neue',sans-serif; font-size:44pt; line-height:1.4; letter-spacing:3pt; margin:4pt 0 4pt;
+    background:linear-gradient(100deg,#3B8FF5 0%,#ffffff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sub{font-family:'Noto Sans KR',sans-serif; font-weight:400; font-size:12pt; color:#D0D0F0; margin:0 0 14pt;}
+  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:8pt;}
+  .item{border:1pt solid rgba(59,143,245,0.40); border-radius:10pt; padding:12pt 14pt;
+    background:rgba(10,20,45,0.55); display:flex; align-items:center; gap:12pt;
+    box-shadow:0 0 14pt rgba(59,143,245,0.18) inset;}
+  .ck{font-family:'Bebas Neue',sans-serif; font-size:22pt; color:#3B8FF5; text-shadow:0 0 8pt rgba(59,143,245,0.8); line-height:1.3; margin:0;}
+  .t{font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:12pt; color:#E8E8F5; line-height:1.4; margin:0;}
+  .t small{display:block; font-family:'DM Mono',monospace; font-weight:400; font-size:9pt; color:#8a8ab0; margin-top:2pt; letter-spacing:1pt;}
+  .verdict{margin-top:auto; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:18pt; letter-spacing:2pt; color:#7FC0FF; text-align:center;
+    text-shadow:0 0 12pt rgba(59,143,245,0.6);}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// AGENT-NATIVE DESIGN</p>
+    <h1>DESIGNS WHERE AGENTS FLOW THROUGH</h1>
+    <p class="sub">The points agents choose as the "easier" trajectory.</p>
+    <div class="grid">
+      <div class="item"><p class="ck">✓</p><p class="t">Official API or CLI<small>A machine-facing entry point, not a human GUI</small></p></div>
+      <div class="item"><p class="ck">✓</p><p class="t">RSS · structured feeds<small>Subscribable, parsable data streams</small></p></div>
+      <div class="item"><p class="ck">✓</p><p class="t">A clear README.md<small>A manual the agent reads instantly</small></p></div>
+      <div class="item"><p class="ck">✓</p><p class="t">Accessible resource files<small>Public assets left open, not blocked by robots</small></p></div>
+      <div class="item"><p class="ck">✓</p><p class="t">A stable frontend<small>A DOM where selectors stay alive</small></p></div>
+      <div class="item"><p class="ck">✓</p><p class="t">Predictable URL patterns<small>Direct path access, readable without a session</small></p></div>
+    </div>
+    <p class="verdict">→ Claw is comfortable. Claw shines!!</p>
+  </div>
+</div>
+
+
+</body></html>
