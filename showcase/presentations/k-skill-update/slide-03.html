@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html><head>
+<base href="/slides/">
+<script>
+(() => {
+  const slideFile = "slide-03.html";
+  const localAssetPrefix = "./assets/";
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current && current.nodeType === Node.ELEMENT_NODE && current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement && target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 350pt; height: 350pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(95, 39, 205, 0.25), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 200pt; height: 200pt;
+      bottom: 0; left: 40pt;
+      background: radial-gradient(circle, rgba(205, 46, 58, 0.15), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left {
+      display: flex;
+      flex-direction: column;
+      gap: 16pt;
+    }
+
+    .emoji-large {
+      font-size: 56pt;
+      line-height: 1;
+    }
+
+    .skill-title {
+      font-size: 32pt;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .skill-desc {
+      font-size: 14pt;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.7;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 28pt;
+      display: flex;
+      flex-direction: column;
+      gap: 16pt;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12pt;
+    }
+    .feature-dot {
+      width: 8pt; height: 8pt;
+      background: #8B5CF6;
+      border-radius: 50%;
+      margin-top: 5pt;
+      flex-shrink: 0;
+    }
+    .feature-text {
+      font-size: 12pt;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.6;
+    }
+    .feature-text strong {
+      color: #fff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="blob"></div>
+  <div class="blob2"></div>
+
+  <div class="header">
+    <span class="header-badge">SKILL 01</span>
+    <span class="page-num">03</span>
+  </div>
+
+  <div class="content">
+    <div class="left">
+      <div class="emoji-large">🚚</div>
+      <h1 class="skill-title">마켓컬리<br>스킬</h1>
+      <p class="skill-desc">에이전트로 마켓컬리 상품을 바로 조회하세요</p>
+    </div>
+
+    <div class="glass-panel">
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        <p class="feature-text">상품 검색 — 키워드로 마켓컬리 상품 조회</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        <p class="feature-text"><strong>가격 확인</strong> — 현재 가격 및 할인 정보 파악</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        <p class="feature-text"><strong>품절 체크</strong> — 재고 상태 실시간 확인</p>
+      </div>
+      <div class="feature-item">
+        <div class="feature-dot"></div>
+        <p class="feature-text"><strong>로그인 불필요</strong> — API Key 없이 바로 사용</p>
+      </div>
+    </div>
+  </div>
+
+
+</body></html>

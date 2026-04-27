@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 05 — slides-grab 하네스 3종</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 10pt 20pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 6pt;
+    justify-content: space-between;
+  }
+  .header {
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2.5pt solid #000000;
+    padding-bottom: 5pt;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 22pt; line-height: 1.25;
+    letter-spacing: -0.6pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    border: 2.5pt solid #000000;
+  }
+  .subhead {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10pt; flex: 1;
+  }
+  .card {
+    border: 3pt solid #000000;
+    box-shadow: 4pt 4pt 0 #000000;
+    padding: 10pt 12pt 11pt;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    background: #FFFFFF;
+    position: relative;
+  }
+  .card.alt { background: #F5F500; }
+  .card-head {
+    display: flex; align-items: center;
+    justify-content: space-between;
+    gap: 6pt;
+    padding-bottom: 6pt;
+    border-bottom: 2pt solid #000000;
+    margin-bottom: 8pt;
+  }
+  .card-num {
+    font-weight: 900; font-size: 22pt;
+    line-height: 1.15; letter-spacing: -1.2pt;
+    margin: 0;
+  }
+  .card-tag {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    background: #000000; color: #F5F500;
+    padding: 3pt 6pt;
+  }
+  .card.alt .card-tag {
+    background: #000000; color: #FFFFFF;
+  }
+  .card-title {
+    font-weight: 900; font-size: 14pt;
+    line-height: 1.2; letter-spacing: -0.4pt;
+    margin: 0 0 6pt;
+  }
+  .card-body {
+    font-size: 9.5pt; line-height: 1.5;
+    margin: 0;
+  }
+  .card-body b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 3pt;
+    font-weight: 700;
+  }
+  .card.alt .card-body b {
+    background: #000000; color: #F5F500;
+  }
+  .core {
+    border: 3pt solid #000000;
+    background: #000000; color: #F5F500;
+    padding: 7pt 12pt;
+    font-size: 11pt; font-weight: 700;
+    box-shadow: 4pt 4pt 0 #FF2D55;
+  }
+  .core b {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+  .footer {
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="header">
+      <h1>slides-grab의 <span class="accent">하네스 3종</span></h1>
+      <span class="subhead">How LLM is bound</span>
+    </div>
+    <div class="grid">
+      <div class="card">
+        <div class="card-head">
+          <p class="card-num">01</p>
+          <span class="card-tag">Validator</span>
+        </div>
+        <p class="card-title">Playwright 린터</p>
+        <p class="card-body">오버플로우, 텍스트 클리핑, 누락 asset 등 7가지 critical 감지. <b>통과 못하면 Export 차단</b>.</p>
+      </div>
+      <div class="card alt">
+        <div class="card-head">
+          <p class="card-num">02</p>
+          <span class="card-tag">Editor</span>
+        </div>
+        <p class="card-title">BBox 셀렉션</p>
+        <p class="card-body">브라우저에서 영역을 드래그 → "여기 고쳐" → 에이전트가 수정. <b>LLM에게 눈을 달아주는 셈</b>.</p>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <p class="card-num">03</p>
+          <span class="card-tag">Style System</span>
+        </div>
+        <p class="card-title">35개 디자인 토큰</p>
+        <p class="card-body">"glassmorphism은 흰 배경 금지" 같은 명시적 가드레일. <b>출력 공간의 선을 미리 그어둠</b>.</p>
+      </div>
+    </div>
+    <div class="core">"무엇이 좋은 출력인가"를 코드로 정의해두면, <b>LLM은 그 안에서 자유롭게</b> 움직인다.</div>
+    <div class="footer">
+      <span>VALIDATOR + EDITOR + STYLE = HARNESS</span>
+      <span>05 / 11</span>
+    </div>
+  </div>
+</body>
+</html>

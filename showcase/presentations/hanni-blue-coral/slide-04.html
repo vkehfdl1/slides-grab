@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=720, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>무대의 탄생</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+    background: #000000;
+  }
+  .bg img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.35);
+  }
+  .content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    padding: 44pt 52pt;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 20pt;
+  }
+  h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #89CFF0;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: auto;
+  }
+  h1 {
+    font-size: 28pt;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+  .stats-row {
+    display: flex;
+    gap: 32pt;
+  }
+  p.stat-value {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #FF69B4;
+  }
+  p.stat-label {
+    font-size: 10pt;
+    font-weight: 400;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4pt;
+  }
+</style>
+</head>
+<body>
+  <div class="bg">
+    <img src="./assets/hanni-hankyung.jpg" alt="도쿄돔 공연 전경">
+  </div>
+  <div class="content">
+    <h2>Bunnies Camp 2024</h2>
+    <h1>도쿄돔,<br>9만 관중 앞에 서다</h1>
+    <div class="stats-row">
+      <div>
+        <p class="stat-value">2024. 6. 26–27</p>
+        <p class="stat-label">도쿄돔 팬미팅</p>
+      </div>
+      <div>
+        <p class="stat-value">1년 11개월</p>
+        <p class="stat-label">데뷔 후 도쿄돔 최단 기록</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

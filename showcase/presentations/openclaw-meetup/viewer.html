@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Navigation bar */
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    /* Slide viewport */
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    /* Slide frames (iframes) */
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <!-- Navigation -->
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 26</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <!-- Slide viewport -->
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 01</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center;&quot;>
+
+  <h1 style=&quot;margin: 0 0 0 0; padding: 0 40pt; font-size: 50pt; font-weight: 700; color: #ffffff; text-align: center; line-height: 1.3;&quot;>Andrej Karpathy가 추천한<br>NanoClaw 사용기</h1>
+
+  <div style=&quot;background: #6366f1; height: 3pt; width: 80pt; margin-top: 16pt; border-radius: 2pt;&quot;></div>
+
+  <p style=&quot;margin: 20pt 0 6pt 0; font-size: 16pt; font-weight: 400; color: #b0b0b0; text-align: center;&quot;>OpenClaw Builder Meetup in Seoul</p>
+
+  <p style=&quot;margin: 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; text-align: center;&quot;>김동규</p>
+
+  <p style=&quot;position: absolute; bottom: 24pt; left: 0; right: 0; margin: 0; font-size: 12pt; font-weight: 400; color: #b0b0b0; text-align: center;&quot;>2026.03.14</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 02</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: row;&quot;>
+
+  <!-- Left: Profile Image -->
+  <div style=&quot;width: 280pt; height: 405pt; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 28pt 18pt; box-sizing: border-box;&quot;>
+    <div style=&quot;width: 220pt; height: 220pt; border-radius: 50%; overflow: hidden; border: 3pt solid #6366f1; box-shadow: 0 0 0 12pt #141419;&quot;>
+      <img src=&quot;profile.jpeg&quot; style=&quot;width: 100%; height: 100%; object-fit: cover; object-position: center 24%;&quot;>
+    </div>
+  </div>
+
+  <!-- Right: Info -->
+  <div style=&quot;flex: 1; padding: 48pt 36pt 36pt 36pt; display: flex; flex-direction: column; justify-content: center; box-sizing: border-box;&quot;>
+
+    <h1 style=&quot;margin: 0 0 20pt 0; font-size: 32pt; font-weight: 700; color: #ffffff;&quot;>김동규</h1>
+
+    <ul style=&quot;margin: 0 0 28pt 0; padding: 0 0 0 18pt; list-style: disc;&quot;>
+      <li style=&quot;font-size: 14pt; color: #ffffff; margin-bottom: 10pt; line-height: 1.5;&quot;>
+        <p style=&quot;margin: 0; font-size: 14pt; color: #ffffff;&quot;>AutoRAG 개발자 (GitHub ⭐ 4.6k+)</p>
+      </li>
+      <li style=&quot;font-size: 14pt; color: #ffffff; margin-bottom: 10pt; line-height: 1.5;&quot;>
+        <p style=&quot;margin: 0; font-size: 14pt; color: #ffffff;&quot;>AI 오픈소스 해커하우스 NomaDamas 리더</p>
+      </li>
+      <li style=&quot;font-size: 14pt; color: #ffffff; margin-bottom: 0; line-height: 1.5;&quot;>
+        <p style=&quot;margin: 0; font-size: 14pt; color: #ffffff;&quot;>오픈소스 프로젝트 10개+ 관리</p>
+      </li>
+    </ul>
+
+    <!-- Project badges -->
+    <div style=&quot;display: flex; flex-wrap: wrap; gap: 8pt;&quot;>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 500; color: #ffffff; background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 12pt; padding: 4pt 12pt;&quot;>AutoRAG</p>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 500; color: #ffffff; background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 12pt; padding: 4pt 12pt;&quot;>AutoRAG-Research</p>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 500; color: #ffffff; background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 12pt; padding: 4pt 12pt;&quot;>ios-moaki</p>
+      <p style=&quot;margin: 0; font-size: 10pt; font-weight: 500; color: #ffffff; background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 12pt; padding: 4pt 12pt;&quot;>slides-grab</p>
+    </div>
+
+  </div>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 03</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 56pt;&quot;>
+
+  <!-- Section badge -->
+  <p style=&quot;margin: 0 0 16pt 0; font-size: 10pt; font-weight: 600; color: #ffffff; background: #6366f1; border-radius: 4pt; padding: 4pt 10pt; display: inline-block; width: fit-content; letter-spacing: 0.08em; text-transform: uppercase;&quot;>PROLOGUE</p>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; line-height: 1.3;&quot;>오늘의 이야기</h1>
+
+  <p style=&quot;margin: 0 0 14pt 0; font-size: 18pt; font-weight: 500; color: #ffffff; line-height: 1.5;&quot;>Peter Steinberger는 좋아하지만 OpenClaw는 싫은 한 남자</p>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; line-height: 1.6;&quot;>Peter Steinberger 좋아하는 이유 — 그냥 즐거워서 오픈소스 40+개를 만들었다니!</p>
+
+  <p style=&quot;margin: 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; line-height: 1.6;&quot;>10개 넘는 오픈소스 프로젝트의 개발 및 관리를 자동화하려는 처절한 몸부림</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 04</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center;&quot;>
+
+  <!-- Section tag -->
+  <p style=&quot;margin: 0 0 20pt 0; font-size: 10pt; font-weight: 600; color: #ffffff; background: #6366f1; border-radius: 4pt; padding: 4pt 10pt; letter-spacing: 0.08em; text-transform: uppercase;&quot;>ACT 1</p>
+
+  <h1 style=&quot;margin: 0 0 16pt 0; font-size: 56pt; font-weight: 700; color: #ffffff; text-align: center; line-height: 1.2;&quot;>OpenClaw와의 사투</h1>
+
+  <div style=&quot;background: #6366f1; height: 2pt; width: 60pt; margin-bottom: 16pt; border-radius: 1pt;&quot;></div>
+
+  <p style=&quot;margin: 0; font-size: 16pt; font-weight: 400; color: #b0b0b0; text-align: center;&quot;>OpenClaw 핫하다길래 써보려고 했다</p>
+
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 05</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: row; align-items: center; padding: 48pt 56pt;&quot;>
+
+  <!-- Left: Content -->
+  <div style=&quot;flex: 1;&quot;>
+
+    <p style=&quot;margin: 0 0 16pt 0; font-size: 10pt; font-weight: 600; color: #ffffff; background: #6366f1; border-radius: 4pt; padding: 4pt 10pt; display: inline-block; width: fit-content; letter-spacing: 0.08em; text-transform: uppercase;&quot;>ATTEMPT 1</p>
+
+    <h1 style=&quot;margin: 0 0 24pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; line-height: 1.3;&quot;>첫 번째 실패 — WSL2</h1>
+
+    <p style=&quot;margin: 0 0 12pt 0; font-size: 16pt; font-weight: 500; color: #ffffff; line-height: 1.5;&quot;>Windows + WSL2에 OpenClaw 설치 시도</p>
+
+    <p style=&quot;margin: 0 0 8pt 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; line-height: 1.6;&quot;>Slack 연동 중 도저히 안 됨</p>
+
+  </div>
+
+  <!-- Right: Failure indicator -->
+  <div style=&quot;flex-shrink: 0; margin-left: 40pt;&quot;>
+    <svg width=&quot;120&quot; height=&quot;120&quot; viewBox=&quot;0 0 120 120&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;>
+      <circle cx=&quot;60&quot; cy=&quot;60&quot; r=&quot;56&quot; fill=&quot;none&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;4&quot;/>
+      <line x1=&quot;38&quot; y1=&quot;38&quot; x2=&quot;82&quot; y2=&quot;82&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;5&quot; stroke-linecap=&quot;round&quot;/>
+      <line x1=&quot;82&quot; y1=&quot;38&quot; x2=&quot;38&quot; y2=&quot;82&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;5&quot; stroke-linecap=&quot;round&quot;/>
+    </svg>
+  </div>
+
+</div>
+
+<!-- Page number -->
+<p style=&quot;position: absolute; bottom: 18pt; right: 28pt; margin: 0; font-size: 10pt; font-weight: 400; color: #4a4a5a;&quot;>05</p>
+
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 06</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: row; align-items: center; padding: 48pt 56pt;&quot;>
+
+  <!-- Left: Content -->
+  <div style=&quot;flex: 1;&quot;>
+
+    <p style=&quot;margin: 0 0 16pt 0; font-size: 10pt; font-weight: 600; color: #ffffff; background: #6366f1; border-radius: 4pt; padding: 4pt 10pt; display: inline-block; width: fit-content; letter-spacing: 0.08em; text-transform: uppercase;&quot;>ATTEMPT 2</p>
+
+    <h1 style=&quot;margin: 0 0 24pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; line-height: 1.3;&quot;>두 번째 실패 — 리눅스</h1>
+
+    <p style=&quot;margin: 0 0 12pt 0; font-size: 16pt; font-weight: 500; color: #ffffff; line-height: 1.5;&quot;>그냥 리눅스 서버에 깔았음</p>
+
+    <p style=&quot;margin: 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; line-height: 1.6;&quot;>user 권한이 꼬여서 skill/extension 줄줄이 설치 실패</p>
+
+  </div>
+
+  <!-- Right: Failure indicator -->
+  <div style=&quot;flex-shrink: 0; margin-left: 40pt;&quot;>
+    <svg width=&quot;120&quot; height=&quot;120&quot; viewBox=&quot;0 0 120 120&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;>
+      <circle cx=&quot;60&quot; cy=&quot;60&quot; r=&quot;56&quot; fill=&quot;none&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;4&quot;/>
+      <line x1=&quot;38&quot; y1=&quot;38&quot; x2=&quot;82&quot; y2=&quot;82&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;5&quot; stroke-linecap=&quot;round&quot;/>
+      <line x1=&quot;82&quot; y1=&quot;38&quot; x2=&quot;38&quot; y2=&quot;82&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;5&quot; stroke-linecap=&quot;round&quot;/>
+    </svg>
+  </div>
+
+</div>
+
+<!-- Page number -->
+<p style=&quot;position: absolute; bottom: 18pt; right: 28pt; margin: 0; font-size: 10pt; font-weight: 400; color: #4a4a5a;&quot;>06</p>
+
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 07</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: row; align-items: center; padding: 48pt 56pt;&quot;>
+
+  <!-- Left: Content -->
+  <div style=&quot;flex: 1;&quot;>
+
+    <p style=&quot;margin: 0 0 16pt 0; font-size: 10pt; font-weight: 600; color: #ffffff; background: #6366f1; border-radius: 4pt; padding: 4pt 10pt; display: inline-block; width: fit-content; letter-spacing: 0.08em; text-transform: uppercase;&quot;>ATTEMPT 3</p>
+
+    <h1 style=&quot;margin: 0 0 24pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; line-height: 1.3;&quot;>세 번째 실패 — 컴퓨터가 죽다</h1>
+
+    <p style=&quot;margin: 0 0 12pt 0; font-size: 16pt; font-weight: 500; color: #ffffff; line-height: 1.5;&quot;>1080ti 2장 + RAM 32GB 데스크탑</p>
+
+    <p style=&quot;margin: 0 0 8pt 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; line-height: 1.6;&quot;>OpenClaw 실행 중 갑자기 컴퓨터가 뻗어버림</p>
+
+    <p style=&quot;margin: 0 0 16pt 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; line-height: 1.6;&quot;>원인 불명</p>
+
+    <p style=&quot;margin: 0; font-size: 20pt; font-weight: 700; color: #ef4444; line-height: 1.4;&quot;>아직도 안 켜짐 ㅋㅋㅋ</p>
+
+  </div>
+
+  <!-- Right: Failure indicator (skull/dead) -->
+  <div style=&quot;flex-shrink: 0; margin-left: 40pt;&quot;>
+    <svg width=&quot;120&quot; height=&quot;120&quot; viewBox=&quot;0 0 120 120&quot; xmlns=&quot;http://www.w3.org/2000/svg&quot;>
+      <circle cx=&quot;60&quot; cy=&quot;60&quot; r=&quot;56&quot; fill=&quot;none&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;4&quot;/>
+      <line x1=&quot;38&quot; y1=&quot;38&quot; x2=&quot;82&quot; y2=&quot;82&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;5&quot; stroke-linecap=&quot;round&quot;/>
+      <line x1=&quot;82&quot; y1=&quot;38&quot; x2=&quot;38&quot; y2=&quot;82&quot; stroke=&quot;#ef4444&quot; stroke-width=&quot;5&quot; stroke-linecap=&quot;round&quot;/>
+    </svg>
+  </div>
+
+</div>
+
+<!-- Page number -->
+<p style=&quot;position: absolute; bottom: 18pt; right: 28pt; margin: 0; font-size: 10pt; font-weight: 400; color: #4a4a5a;&quot;>07</p>
+
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="8" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 08</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40pt;&quot;>
+
+  <h1 style=&quot;margin: 0 0 36pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; text-align: center;&quot;>400K Lines of Vibe Coded Monster</h1>
+
+  <div style=&quot;display: flex; gap: 24pt; margin: 0 0 36pt 0;&quot;>
+
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 12pt; padding: 28pt 32pt; text-align: center; min-width: 160pt; border-top: 2pt solid #6366f1;&quot;>
+      <h2 style=&quot;margin: 0 0 8pt 0; font-size: 42pt; font-weight: 700; color: #6366f1;&quot;>52+</h2>
+      <p style=&quot;margin: 0 0 4pt 0; font-size: 16pt; font-weight: 600; color: #ffffff;&quot;>모듈</p>
+      <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #b0b0b0;&quot;>modules</p>
+    </div>
+
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 12pt; padding: 28pt 32pt; text-align: center; min-width: 160pt; border-top: 2pt solid #6366f1;&quot;>
+      <h2 style=&quot;margin: 0 0 8pt 0; font-size: 42pt; font-weight: 700; color: #6366f1;&quot;>8</h2>
+      <p style=&quot;margin: 0 0 4pt 0; font-size: 16pt; font-weight: 600; color: #ffffff;&quot;>설정파일</p>
+      <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #b0b0b0;&quot;>config files</p>
+    </div>
+
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 12pt; padding: 28pt 32pt; text-align: center; min-width: 160pt; border-top: 2pt solid #6366f1;&quot;>
+      <h2 style=&quot;margin: 0 0 8pt 0; font-size: 42pt; font-weight: 700; color: #6366f1;&quot;>400K</h2>
+      <p style=&quot;margin: 0 0 4pt 0; font-size: 16pt; font-weight: 600; color: #ffffff;&quot;>LOC</p>
+      <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #b0b0b0;&quot;>Lines of Code</p>
+    </div>
+
+  </div>
+
+  <p style=&quot;margin: 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; text-align: center;&quot;>디버깅이 불가능. 화가 나서 대안 탐색 시작</p>
+
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;&quot;>08</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="9" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 09</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 48pt 60pt;&quot;>
+
+  <div style=&quot;position: absolute; top: 28pt; left: 40pt;&quot;>
+    <p style=&quot;margin: 0; display: inline-block; background: #6366f1; border-radius: 6pt; padding: 4pt 14pt; font-size: 12pt; font-weight: 600; color: #ffffff; letter-spacing: 0.08em; text-transform: uppercase;&quot;>ACT 2</p>
+  </div>
+
+  <p style=&quot;margin: 0 0 4pt 0; font-size: 48pt; font-weight: 400; color: #6366f1; text-align: center; line-height: 1;&quot;>&quot;</p>
+
+  <p style=&quot;margin: 0 0 10pt 0; font-size: 22pt; font-weight: 400; color: #ffffff; text-align: center; line-height: 1.6; font-style: italic;&quot;>on a quick skim NanoClaw looks really interesting<br>in that the core engine is ~4000 lines of code<br>(fits into both my head and that of AI agents)</p>
+
+  <p style=&quot;margin: 0 0 18pt 0; font-size: 15pt; font-weight: 400; color: #a8a8a8; text-align: center; line-height: 1.6;&quot;>빠르게 훑어봐도 NanoClaw는 꽤 흥미로워 보인다<br>핵심 엔진이 약 4,000줄 정도라서<br>(내 머리에도, AI 에이전트의 머리에도 들어올 정도다)</p>
+
+  <p style=&quot;margin: 0 0 8pt 0; font-size: 18pt; font-weight: 400; color: #b0b0b0; text-align: center; line-height: 1.5; font-style: italic;&quot;>&quot;runs everything in containers by default&quot;</p>
+
+  <p style=&quot;margin: 0 0 24pt 0; font-size: 14pt; font-weight: 400; color: #8f8f8f; text-align: center; line-height: 1.5;&quot;>&quot;기본적으로 모든 것을 컨테이너에서 실행한다&quot;</p>
+
+  <div style=&quot;text-align: center;&quot;>
+    <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 700; color: #ffffff;&quot;>Andrej Karpathy</p>
+    <p style=&quot;margin: 0; font-size: 12pt; font-weight: 400; color: #4a4a5a;&quot;>February 2026</p>
+  </div>
+
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;&quot;>09</p>
+
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="10" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 10</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40pt 56pt;&quot;>
+
+  <p style=&quot;margin: 0 0 4pt 0; font-size: 48pt; font-weight: 400; color: #6366f1; text-align: center; line-height: 1;&quot;>&quot;</p>
+
+  <p style=&quot;margin: 0 0 8pt 0; font-size: 22pt; font-weight: 400; color: #ffffff; text-align: center; line-height: 1.6; font-style: italic;&quot;>I also love their approach to configurability —<br>it's not done via config files, it's done via skills!</p>
+
+  <p style=&quot;margin: 0 0 12pt 0; font-size: 13pt; font-weight: 500; color: #a8a8a8; text-align: center; line-height: 1.6;&quot;>저는 그들의 '설정법'에 대한 접근 방식도 정말 좋습니다.<br>설정 파일로 하는 게 아니라, 스킬로 구현하니까요!</p>
+
+  <p style=&quot;margin: 0 0 32pt 0; font-size: 14pt; font-weight: 700; color: #ffffff; text-align: center;&quot;>Andrej Karpathy</p>
+
+  <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 12pt; padding: 24pt 32pt; width: 100%; box-sizing: border-box;&quot;>
+    <p style=&quot;margin: 0 0 12pt 0; display: inline-block; background: #6366f1; border-radius: 6pt; padding: 3pt 12pt; font-size: 11pt; font-weight: 600; color: #ffffff; letter-spacing: 0.08em; text-transform: uppercase;&quot;>핵심 논리</p>
+    <h3 style=&quot;margin: 0 0 8pt 0; font-size: 20pt; font-weight: 700; color: #ffffff; line-height: 1.4;&quot;>가장 많이 fork된 레포가 히트작이 될 것이다</h3>
+    <p style=&quot;margin: 0; font-size: 14pt; font-weight: 400; color: #b0b0b0; line-height: 1.5;&quot;>설정 파일 대신 코드 변경 → fork가 곧 제품</p>
+  </div>
+
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;&quot;>10</p>
+
+</div>
+
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="11" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 11</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40pt 48pt;&quot;>
+
+  <h1 style=&quot;margin: 0 0 48pt 0; font-size: 32pt; font-weight: 700; color: #ffffff; text-align: center;&quot;>그 자리에서 fork</h1>
+
+  <div style=&quot;display: flex; align-items: center; gap: 0;&quot;>
+
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 12pt; padding: 24pt 20pt; text-align: center; min-width: 160pt; min-height: 92pt; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>STEP 1</p>
+      <p style=&quot;margin: 0; font-size: 15pt; font-weight: 500; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; font-family: 'SF Mono', 'Fira Code', monospace;&quot;>nanoclaw fork</p>
+    </div>
+
+    <p style=&quot;margin: 0; padding: 0 12pt; font-size: 24pt; font-weight: 400; color: #6366f1;&quot;>→</p>
+
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 12pt; padding: 24pt 20pt; text-align: center; min-width: 160pt; min-height: 92pt; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>STEP 2</p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 15pt; font-weight: 500; color: #ffffff;&quot;>당근에서 맥미니 구매</p>
+      <p style=&quot;margin: 0; font-size: 12pt; font-weight: 400; color: #b0b0b0;&quot;>(하드웨어 안정성!)</p>
+    </div>
+
+    <p style=&quot;margin: 0; padding: 0 12pt; font-size: 24pt; font-weight: 400; color: #6366f1;&quot;>→</p>
+
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 12pt; padding: 24pt 20pt; text-align: center; min-width: 160pt; min-height: 92pt; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center;&quot;>
+      <p style=&quot;margin: 0 0 8pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;&quot;>STEP 3</p>
+      <p style=&quot;margin: 0; font-size: 15pt; font-weight: 700; color: #ffffff;&quot;>본격 마개조 시작!</p>
+    </div>
+
+  </div>
+
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;&quot;>11</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="12" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 12</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; padding: 32pt 48pt;&quot;>
+
+  <div style=&quot;display: flex; align-items: center; gap: 12pt; margin: 0 0 8pt 0;&quot;>
+    <p style=&quot;margin: 0; display: inline-block; background: #6366f1; border-radius: 6pt; padding: 3pt 12pt; font-size: 11pt; font-weight: 600; color: #ffffff; letter-spacing: 0.08em; text-transform: uppercase;&quot;>ACT 3</p>
+    <p style=&quot;margin: 0; font-size: 14pt; font-weight: 400; color: #b0b0b0;&quot;>NanoClaw 뜯어보기</p>
+  </div>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff;&quot;>NanoClaw 아키텍처</h1>
+
+  <div style=&quot;display: flex; flex-direction: column; align-items: center; gap: 0;&quot;>
+
+    <div style=&quot;display: flex; align-items: center; gap: 0;&quot;>
+
+      <div style=&quot;background: #4A154B; border: 1pt solid #6b2d6c; border-radius: 10pt; padding: 16pt 22pt; text-align: center;&quot;>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 600; color: #ffffff;&quot;>Whatsapp</p>
+        <p style=&quot;margin: 0; font-size: 10pt; font-weight: 400; color: #d4a0d4;&quot;>Socket Mode</p>
+      </div>
+
+      <p style=&quot;margin: 0; padding: 0 10pt; font-size: 20pt; font-weight: 400; color: #6366f1;&quot;>→</p>
+
+      <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 10pt; padding: 16pt 26pt; text-align: center;&quot;>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 600; color: #ffffff;&quot;>Host Process</p>
+        <p style=&quot;margin: 0; font-size: 10pt; font-weight: 400; color: #b0b0b0;&quot;>Node.js</p>
+      </div>
+
+      <p style=&quot;margin: 0; padding: 0 10pt; font-size: 20pt; font-weight: 400; color: #6366f1;&quot;>→</p>
+
+      <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 10pt; padding: 16pt 22pt; text-align: center;&quot;>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 600; color: #ffffff;&quot;>Container Runner</p>
+        <p style=&quot;margin: 0; font-size: 10pt; font-weight: 400; color: #b0b0b0;&quot;>Spawn &amp;amp; Mount</p>
+      </div>
+
+      <p style=&quot;margin: 0; padding: 0 10pt; font-size: 20pt; font-weight: 400; color: #6366f1;&quot;>→</p>
+
+      <div style=&quot;background: #0c2d3f; border: 1pt solid #0db7ed; border-radius: 10pt; padding: 16pt 22pt; text-align: center;&quot;>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 600; color: #0db7ed;&quot;>Docker</p>
+        <p style=&quot;margin: 0; font-size: 10pt; font-weight: 400; color: #b0b0b0;&quot;>Container</p>
+      </div>
+
+    </div>
+
+    <div style=&quot;display: flex; align-items: flex-start; gap: 0; margin: 12pt 0 0 0;&quot;>
+      <div style=&quot;width: 136pt;&quot;></div>
+      <p style=&quot;margin: 0; font-size: 18pt; font-weight: 400; color: #6366f1;&quot;>↑</p>
+    </div>
+
+    <div style=&quot;display: flex; align-items: flex-start; gap: 0;&quot;>
+      <div style=&quot;width: 90pt;&quot;></div>
+      <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 10pt; padding: 14pt 24pt; text-align: center;&quot;>
+        <p style=&quot;margin: 0 0 4pt 0; font-size: 14pt; font-weight: 600; color: #ffffff;&quot;>SQLite DB</p>
+        <p style=&quot;margin: 0; font-size: 10pt; font-weight: 400; color: #b0b0b0;&quot;>Messages, Tasks, State</p>
+      </div>
+    </div>
+
+  </div>
+
+  <p style=&quot;margin: 20pt 0 0 0; font-size: 12pt; font-weight: 400; color: #b0b0b0; text-align: center;&quot;>단일 Node.js 프로세스 (모놀리식)</p>
+
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;&quot;>12</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="13" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 13</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; padding: 32pt 40pt;&quot;>
+
+  <h1 style=&quot;margin: 0 0 24pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; text-align: center;&quot;>OpenClaw vs NanoClaw</h1>
+
+  <table style=&quot;width: 100%; border-collapse: collapse; border: 1pt solid #2a2a3a; border-radius: 8pt;&quot;>
+    <thead>
+      <tr>
+        <th style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; padding: 12pt 14pt; text-align: left; width: 20%;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 600; color: #b0b0b0;&quot;>항목</p>
+        </th>
+        <th style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; padding: 12pt 14pt; text-align: left; width: 40%;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 600; color: #b0b0b0;&quot;>OpenClaw</p>
+        </th>
+        <th style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; padding: 12pt 14pt; text-align: left; width: 40%;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 600; color: #6366f1;&quot;>NanoClaw</p>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style=&quot;background: #141419; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 500; color: #b0b0b0;&quot;>코드 규모</p>
+        </td>
+        <td style=&quot;background: #141419; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>400K LOC, 52+ 모듈</p>
+        </td>
+        <td style=&quot;background: #141419; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>~15K LOC, 단일 프로세스</p>
+        </td>
+      </tr>
+      <tr>
+        <td style=&quot;background: #111116; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 500; color: #b0b0b0;&quot;>격리 방식</p>
+        </td>
+        <td style=&quot;background: #111116; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>앱 레벨 권한 체크</p>
+        </td>
+        <td style=&quot;background: #111116; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>OS 레벨 컨테이너 격리</p>
+        </td>
+      </tr>
+      <tr>
+        <td style=&quot;background: #141419; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 500; color: #b0b0b0;&quot;>설정</p>
+        </td>
+        <td style=&quot;background: #141419; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>8개 설정파일</p>
+        </td>
+        <td style=&quot;background: #141419; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>코드 변경 (fork!)</p>
+        </td>
+      </tr>
+      <tr>
+        <td style=&quot;background: #111116; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 500; color: #b0b0b0;&quot;>채널</p>
+        </td>
+        <td style=&quot;background: #111116; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>15+ 채널 추상화</p>
+        </td>
+        <td style=&quot;background: #111116; border: 1pt solid #2a2a3a; padding: 12pt 14pt;&quot;>
+          <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; color: #ffffff;&quot;>기본 Whatsapp, 알아서 변경하세요</p>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;&quot;>13</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="14" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<title>Slide 14</title>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; box-sizing: border-box; padding: 32pt 40pt;&quot;>
+
+  <h1 style=&quot;margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff;&quot;>진짜 격리 — 컨테이너 마운트</h1>
+
+  <div style=&quot;display: flex; gap: 24pt;&quot;>
+
+    <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 12pt; padding: 20pt 22pt;&quot;>
+      <p style=&quot;margin: 0 0 16pt 0; font-size: 13pt; font-weight: 600; color: #b0b0b0;&quot;>마운트 구조</p>
+      <p style=&quot;margin: 0 0 10pt 0; font-size: 15pt; font-weight: 600; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; font-family: 'SF Mono', 'Fira Code', monospace; display: inline-block;&quot;>/workspace/</p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;&quot;><span style=&quot;color: #b0b0b0;&quot;>├── group/</span>        <span style=&quot;color: #10b981;&quot;>← 에이전트 전용 메모리 (RW)</span></p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;&quot;><span style=&quot;color: #b0b0b0;&quot;>├── ipc/</span>          <span style=&quot;color: #10b981;&quot;>← 호스트 통신 채널 (RW)</span></p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;&quot;><span style=&quot;color: #b0b0b0;&quot;>├── codebase/</span>     <span style=&quot;color: #f59e0b;&quot;>← 프로젝트 코드 (RO)</span></p>
+      <p style=&quot;margin: 0 0 6pt 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;&quot;><span style=&quot;color: #b0b0b0;&quot;>├── secondbrain/</span>  <span style=&quot;color: #10b981;&quot;>← 공유 지식 저장소 (RW)</span></p>
+      <p style=&quot;margin: 0; font-size: 13pt; font-weight: 400; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6;&quot;><span style=&quot;color: #b0b0b0;&quot;>└── extra/</span>        <span style=&quot;color: #f59e0b;&quot;>← 추가 마운트 (RO)</span></p>
+    </div>
+
+    <div style=&quot;flex: 0 0 200pt; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #ef4444; border-radius: 12pt; padding: 20pt 22pt;&quot;>
+      <p style=&quot;margin: 0 0 16pt 0; font-size: 13pt; font-weight: 600; color: #b0b0b0;&quot;>자동 차단 패턴</p>
+      <ul style=&quot;margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8pt;&quot;>
+        <li style=&quot;margin: 0;&quot;>
+          <p style=&quot;margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;&quot;>.ssh</p>
+        </li>
+        <li style=&quot;margin: 0;&quot;>
+          <p style=&quot;margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;&quot;>.gnupg</p>
+        </li>
+        <li style=&quot;margin: 0;&quot;>
+          <p style=&quot;margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;&quot;>.aws</p>
+        </li>
+        <li style=&quot;margin: 0;&quot;>
+          <p style=&quot;margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;&quot;>.env</p>
+        </li>
+        <li style=&quot;margin: 0;&quot;>
+          <p style=&quot;margin: 0; display: inline-block; background: #141419; border: 1pt solid #ef4444; border-radius: 6pt; padding: 4pt 12pt; font-size: 12pt; font-weight: 500; color: #ef4444; font-family: 'SF Mono', 'Fira Code', monospace;&quot;>credentials</p>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; margin: 0; font-size: 11pt; font-weight: 400; color: #4a4a5a;&quot;>14</p>
+
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="15" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>Slack-First 디자인 — Socket Mode</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 46pt 40pt 22pt 40pt;&quot;>
+
+  <!-- Title -->
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; margin: 0 0 28pt 0; letter-spacing: -0.5pt;&quot;>Socket Mode - 이거 하나면 Slack은 충분</h1>
+
+  <!-- Two columns -->
+  <div style=&quot;display: flex; gap: 28pt; margin-bottom: 28pt;&quot;>
+
+    <!-- Left: Diagram -->
+    <div style=&quot;flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;&quot;>
+      <div style=&quot;display: flex; align-items: center; gap: 16pt; margin-bottom: 16pt;&quot;>
+        <!-- Mac Mini box -->
+        <div style=&quot;background: #141419; border: 1.5pt solid #2a2a3a; border-radius: 8pt; padding: 14pt 20pt; text-align: center;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; margin: 0;&quot;>맥미니</p>
+          <p style=&quot;font-size: 9pt; color: #b0b0b0; margin: 4pt 0 0 0;&quot;>NanoClaw</p>
+        </div>
+        <!-- Arrow -->
+        <div style=&quot;display: flex; flex-direction: column; align-items: center; gap: 2pt;&quot;>
+          <p style=&quot;font-size: 10pt; color: #6366f1; margin: 0;&quot;>WebSocket</p>
+          <svg width=&quot;80&quot; height=&quot;20&quot; style=&quot;display: block;&quot;>
+            <line x1=&quot;0&quot; y1=&quot;8&quot; x2=&quot;72&quot; y2=&quot;8&quot; stroke=&quot;#6366f1&quot; stroke-width=&quot;1.5&quot;></line>
+            <polygon points=&quot;72,4 80,8 72,12&quot; fill=&quot;#6366f1&quot;></polygon>
+            <line x1=&quot;80&quot; y1=&quot;12&quot; x2=&quot;8&quot; y2=&quot;12&quot; stroke=&quot;#6366f1&quot; stroke-width=&quot;1.5&quot;></line>
+            <polygon points=&quot;8,16 0,12 8,8&quot; fill=&quot;#6366f1&quot;></polygon>
+          </svg>
+        </div>
+        <!-- Slack API box -->
+        <div style=&quot;background: #141419; border: 1.5pt solid #2a2a3a; border-radius: 8pt; padding: 14pt 20pt; text-align: center;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; margin: 0;&quot;>메신저 API</p>
+          <p style=&quot;font-size: 9pt; color: #b0b0b0; margin: 4pt 0 0 0;&quot;>Cloud</p>
+        </div>
+      </div>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0; text-align: center;&quot;>Socket Mode = WebSocket 상시 연결</p>
+    </div>
+
+    <!-- Right: Benefits -->
+    <div style=&quot;flex: 1; display: flex; align-items: center;&quot;>
+      <ul style=&quot;list-style: none; padding: 0; margin: 0;&quot;>
+        <li style=&quot;font-size: 14pt; margin-bottom: 14pt; padding-left: 18pt; position: relative;&quot;>
+          <span style=&quot;position: absolute; left: 0; color: #6366f1;&quot;>+</span>
+          <p style=&quot;margin: 0;&quot;>공개 URL 불필요</p>
+        </li>
+        <li style=&quot;font-size: 14pt; margin-bottom: 14pt; padding-left: 18pt; position: relative;&quot;>
+          <span style=&quot;position: absolute; left: 0; color: #6366f1;&quot;>+</span>
+          <p style=&quot;margin: 0;&quot;>웹훅 서버 불필요</p>
+        </li>
+        <li style=&quot;font-size: 14pt; padding-left: 18pt; position: relative;&quot;>
+          <span style=&quot;position: absolute; left: 0; color: #6366f1;&quot;>+</span>
+          <p style=&quot;margin: 0;&quot;>개인 맥미니에서 바로 실행</p>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Bottom flow -->
+  <div style=&quot;display: flex; align-items: center; justify-content: center; gap: 0;&quot;>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 11pt; margin: 0; white-space: nowrap;&quot;>메시지 수신</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 8pt; font-size: 14pt; color: #6366f1;&quot;>→</p>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 11pt; margin: 0; white-space: nowrap;&quot;>SQLite 저장</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 8pt; font-size: 14pt; color: #6366f1;&quot;>→</p>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 11pt; margin: 0; white-space: nowrap;&quot;>라우터 판단</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 8pt; font-size: 14pt; color: #6366f1;&quot;>→</p>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 6pt; padding: 10pt 14pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 11pt; margin: 0; white-space: nowrap;&quot;>컨테이너 호출</p>
+    </div>
+  </div>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;&quot;>15</p>
+
+</div>
+
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="16" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>스레드 단위 세션 격리</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 36pt 40pt 32pt 40pt;&quot;>
+
+  <!-- Title -->
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; margin: 0 0 20pt 0; letter-spacing: -0.5pt;&quot;>스레드 단위 세션 격리</h1>
+
+  <!-- Key concept -->
+  <div style=&quot;margin-bottom: 24pt;&quot;>
+    <p style=&quot;font-size: 13pt; color: #b0b0b0; margin: 0 0 8pt 0;&quot;>세션 키:</p>
+    <p style=&quot;font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14pt; background: #1e1e2a; color: #22d3ee; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 8pt 14pt; display: inline-block; margin: 0;&quot;>(group_folder, chat_jid, thread_ts)</p>
+  </div>
+
+  <!-- Two scenario cards -->
+  <div style=&quot;display: flex; gap: 24pt; margin-bottom: 24pt;&quot;>
+
+    <!-- Card 1: Channel message -->
+    <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 20pt;&quot;>
+      <h3 style=&quot;font-size: 14pt; font-weight: 600; margin: 0 0 16pt 0;&quot;>채널 메시지</h3>
+      <!-- Thread visual -->
+      <div style=&quot;display: flex; flex-direction: column; gap: 8pt;&quot;>
+        <div style=&quot;background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt; border-left: 3pt solid #6366f1;&quot;>
+          <p style=&quot;font-size: 11pt; margin: 0;&quot;>@나노클로 이거 해줘</p>
+        </div>
+        <p style=&quot;font-size: 12pt; color: #6366f1; margin: 0; text-align: center;&quot;>↓ 새 스레드 생성</p>
+        <div style=&quot;margin-left: 20pt; border-left: 2pt solid #2a2a3a; padding-left: 12pt;&quot;>
+          <div style=&quot;background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+            <p style=&quot;font-size: 10pt; color: #b0b0b0; margin: 0 0 2pt 0;&quot;>bot</p>
+            <p style=&quot;font-size: 11pt; margin: 0;&quot;>스레드에서 답장합니다</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Thread message -->
+    <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 20pt;&quot;>
+      <h3 style=&quot;font-size: 14pt; font-weight: 600; margin: 0 0 16pt 0;&quot;>스레드 메시지</h3>
+      <!-- Thread visual -->
+      <div style=&quot;display: flex; flex-direction: column; gap: 8pt;&quot;>
+        <div style=&quot;margin-left: 20pt; border-left: 2pt solid #2a2a3a; padding-left: 12pt;&quot;>
+          <div style=&quot;background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt; margin-bottom: 8pt;&quot;>
+            <p style=&quot;font-size: 10pt; color: #b0b0b0; margin: 0 0 2pt 0;&quot;>user</p>
+            <p style=&quot;font-size: 11pt; margin: 0;&quot;>추가 질문이 있어</p>
+          </div>
+          <p style=&quot;font-size: 12pt; color: #22d3ee; margin: 0 0 8pt 0; text-align: center;&quot;>↓ 같은 스레드</p>
+          <div style=&quot;background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt;&quot;>
+            <p style=&quot;font-size: 10pt; color: #b0b0b0; margin: 0 0 2pt 0;&quot;>bot</p>
+            <p style=&quot;font-size: 11pt; margin: 0;&quot;>같은 컨텍스트로 답장</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom note -->
+  <p style=&quot;position: absolute; left: 40pt; right: 40pt; bottom: 22pt; font-size: 12pt; color: #b0b0b0; text-align: center; margin: 0;&quot;>한 채널에서 여러 대화 동시 진행 가능 · 세션 자동 압축</p>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;&quot;>16</p>
+
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="17" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>멘션 &amp; 게이트웨이 라우팅</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 36pt 40pt 32pt 40pt;&quot;>
+
+  <!-- Title -->
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; margin: 0 0 28pt 0; letter-spacing: -0.5pt;&quot;>멘션 &amp; 게이트웨이 라우팅</h1>
+
+  <!-- Two columns -->
+  <div style=&quot;display: flex; gap: 28pt; margin-bottom: 24pt;&quot;>
+
+    <!-- Left: Agent aliases -->
+    <div style=&quot;flex: 1;&quot;>
+      <h3 style=&quot;font-size: 13pt; font-weight: 600; color: #6366f1; margin: 0 0 14pt 0; text-transform: uppercase; letter-spacing: 0.08em;&quot;>에이전트 별칭</h3>
+      <div style=&quot;display: flex; flex-direction: column; gap: 10pt;&quot;>
+        <!-- Dobby -->
+        <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 8pt; padding: 12pt 16pt; display: flex; justify-content: space-between; align-items: center;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; margin: 0;&quot;>도비</p>
+          <p style=&quot;font-size: 10pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; margin: 0;&quot;>dobby · 도비</p>
+        </div>
+        <!-- Young-Gu -->
+        <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 8pt; padding: 12pt 16pt; display: flex; justify-content: space-between; align-items: center;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; margin: 0;&quot;>영구</p>
+          <p style=&quot;font-size: 10pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; margin: 0;&quot;>young-gu · 영구</p>
+        </div>
+        <!-- Marketer -->
+        <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #f59e0b; border-radius: 8pt; padding: 12pt 16pt; display: flex; justify-content: space-between; align-items: center;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; margin: 0;&quot;>홍명보</p>
+          <p style=&quot;font-size: 10pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; background: #1e1e2a; padding: 2pt 8pt; border-radius: 4pt; margin: 0;&quot;>marketer · 홍명보</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Gateway rules -->
+    <div style=&quot;flex: 1;&quot;>
+      <h3 style=&quot;font-size: 13pt; font-weight: 600; color: #6366f1; margin: 0 0 14pt 0; text-transform: uppercase; letter-spacing: 0.08em;&quot;>게이트웨이 규칙</h3>
+      <div style=&quot;display: flex; flex-direction: column; gap: 10pt;&quot;>
+        <!-- self_mention -->
+        <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 8pt; padding: 12pt 16pt;&quot;>
+          <p style=&quot;font-size: 12pt; font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: #22d3ee; margin: 0 0 4pt 0;&quot;>self_mention</p>
+          <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>명시적 @멘션 필요</p>
+        </div>
+        <!-- any_message -->
+        <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 8pt; padding: 12pt 16pt;&quot;>
+          <p style=&quot;font-size: 12pt; font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: #22d3ee; margin: 0 0 4pt 0;&quot;>any_message</p>
+          <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>채널의 모든 메시지에 반응</p>
+        </div>
+        <!-- keywords -->
+        <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 8pt; padding: 12pt 16pt;&quot;>
+          <p style=&quot;font-size: 12pt; font-family: 'SF Mono', 'Fira Code', monospace; font-weight: 600; color: #22d3ee; margin: 0 0 4pt 0;&quot;>keywords</p>
+          <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>특정 키워드 포함 시 반응</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom note -->
+  <p style=&quot;font-size: 12pt; color: #b0b0b0; text-align: center; margin: 0;&quot;>규칙은 OR 조합 · 셀프루프 방지: 같은 에이전트의 봇 메시지 차단</p>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;&quot;>17</p>
+
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="18" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', sans-serif; }
+</style>
+</head>
+<body>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; padding: 32pt 40pt;&quot;>
+
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>에이전트 간 소통 — 파일 기반 IPC</h1>
+  <p style=&quot;font-size: 14pt; color: #b0b0b0; margin-bottom: 24pt;&quot;>IPC = Inter-Process Communication (프로세스 간 통신)</p>
+
+  <div style=&quot;display: flex; gap: 24pt;&quot;>
+
+    <!-- Main diagram -->
+    <div style=&quot;flex: 1;&quot;>
+
+      <!-- Step 1 -->
+      <div style=&quot;display: flex; align-items: flex-start; margin-bottom: 6pt;&quot;>
+        <div style=&quot;width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;&quot;>
+          <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff;&quot;>1</p>
+        </div>
+        <div style=&quot;margin-left: 12pt;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; color: #ffffff; margin-bottom: 4pt;&quot;>에이전트가 JSON 파일 작성</p>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 10pt;&quot;>
+            <p style=&quot;font-size: 11pt; font-family: 'SF Mono', 'Menlo', monospace; color: #22d3ee;&quot;>/ipc/{group}/messages/{id}.json</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div style=&quot;margin-left: 11pt; width: 2pt; height: 14pt; background: #2a2a3a;&quot;></div>
+
+      <!-- Step 2 -->
+      <div style=&quot;display: flex; align-items: flex-start; margin-bottom: 6pt;&quot;>
+        <div style=&quot;width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;&quot;>
+          <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff;&quot;>2</p>
+        </div>
+        <div style=&quot;margin-left: 12pt;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; color: #ffffff;&quot;>호스트가 폴링으로 감지</p>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div style=&quot;margin-left: 11pt; width: 2pt; height: 14pt; background: #2a2a3a;&quot;></div>
+
+      <!-- Step 3 -->
+      <div style=&quot;display: flex; align-items: flex-start; margin-bottom: 6pt;&quot;>
+        <div style=&quot;width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;&quot;>
+          <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff;&quot;>3</p>
+        </div>
+        <div style=&quot;margin-left: 12pt;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; color: #ffffff; margin-bottom: 3pt;&quot;>권한 검증</p>
+          <p style=&quot;font-size: 11pt; color: #b0b0b0;&quot;>메인 = 아무 채널 | 나머지 = 자기 채널만</p>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div style=&quot;margin-left: 11pt; width: 2pt; height: 14pt; background: #2a2a3a;&quot;></div>
+
+      <!-- Step 4 -->
+      <div style=&quot;display: flex; align-items: flex-start;&quot;>
+        <div style=&quot;width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;&quot;>
+          <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff;&quot;>4</p>
+        </div>
+        <div style=&quot;margin-left: 12pt;&quot;>
+          <p style=&quot;font-size: 14pt; font-weight: 600; color: #ffffff;&quot;>Slack으로 전송 후 파일 삭제</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 28pt; font-size: 10pt; color: #4a4a5a;&quot;>18</p>
+
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="19" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>Snippet-Gated 스케줄 태스크</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 32pt 40pt 28pt 40pt;&quot;>
+
+  <!-- Title -->
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; margin: 0 0 4pt 0; letter-spacing: -0.5pt;&quot;>Snippet-Gated 스케줄 태스크</h1>
+  <p style=&quot;font-size: 14pt; color: #b0b0b0; margin: 0 0 22pt 0;&quot;>cron 스케줄링은 OpenClaw에도 있다. 뭐가 다른가?</p>
+
+  <!-- Flow diagram -->
+  <div style=&quot;display: flex; align-items: flex-start; justify-content: center; gap: 0; margin-bottom: 20pt;&quot;>
+    <!-- Step 1: Code snippet -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 12pt 16pt; text-align: center; min-width: 100pt;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 600; margin: 0;&quot;>코드 스니펫</p>
+      <p style=&quot;font-size: 10pt; color: #b0b0b0; margin: 4pt 0 0 0;&quot;>JS / Bash</p>
+    </div>
+    <p style=&quot;margin: 12pt 8pt 0 8pt; font-size: 16pt; color: #6366f1;&quot;>→</p>
+    <!-- Decision -->
+    <div style=&quot;text-align: center; min-width: 90pt;&quot;>
+      <div style=&quot;background: #141419; border: 1.5pt solid #6366f1; border-radius: 8pt; padding: 10pt 14pt; transform: rotate(0deg);&quot;>
+        <p style=&quot;font-size: 11pt; font-weight: 600; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;&quot;>return false?</p>
+      </div>
+      <!-- Two branches -->
+      <div style=&quot;display: flex; gap: 12pt; margin-top: 8pt;&quot;>
+        <div style=&quot;flex: 1; text-align: center;&quot;>
+          <p style=&quot;font-size: 9pt; color: #b0b0b0; margin: 0 0 4pt 0;&quot;>Yes</p>
+          <p style=&quot;margin: 0; font-size: 14pt; color: #6366f1;&quot;>↓</p>
+        </div>
+        <div style=&quot;flex: 1; text-align: center;&quot;>
+          <p style=&quot;font-size: 9pt; color: #b0b0b0; margin: 0 0 4pt 0;&quot;>No</p>
+          <p style=&quot;margin: 0; font-size: 14pt; color: #6366f1;&quot;>↓</p>
+        </div>
+      </div>
+      <div style=&quot;display: flex; gap: 12pt;&quot;>
+        <div style=&quot;flex: 1; background: #0a2e1f; border: 1pt solid #10b981; border-radius: 6pt; padding: 8pt 6pt;&quot;>
+          <p style=&quot;font-size: 10pt; color: #10b981; margin: 0;&quot;>에이전트 호출 X</p>
+          <p style=&quot;font-size: 9pt; color: #10b981; margin: 2pt 0 0 0; font-weight: 600;&quot;>비용 절약!</p>
+        </div>
+        <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 8pt 6pt;&quot;>
+          <p style=&quot;font-size: 10pt; margin: 0;&quot;>페이로드 주입</p>
+          <p style=&quot;font-size: 10pt; margin: 2pt 0 0 0;&quot;>→ 에이전트 <br>호출</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Example card -->
+  <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 8pt; padding: 14pt 20pt; margin-bottom: 10pt;&quot;>
+    <h4 style=&quot;font-size: 12pt; font-weight: 600; margin: 0 0 8pt 0;&quot;>예시: GitHub API로 새 이슈 확인</h4>
+    <ul style=&quot;list-style: none; padding: 0; margin: 0;&quot;>
+      <li style=&quot;font-size: 11pt; color: #b0b0b0; margin-bottom: 4pt; padding-left: 14pt; position: relative;&quot;>
+        <span style=&quot;position: absolute; left: 0;&quot;>·</span>
+        <p style=&quot;margin: 0;&quot;>없으면 → <span style=&quot;color: #10b981; font-weight: 600;&quot;>skip (비용 $0)</span></p>
+      </li>
+      <li style=&quot;font-size: 11pt; color: #b0b0b0; padding-left: 14pt; position: relative;&quot;>
+        <span style=&quot;position: absolute; left: 0;&quot;>·</span>
+        <p style=&quot;margin: 0;&quot;>있으면 → 이슈 내용과 함께 PM 에이전트 호출</p>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Small note -->
+  <p style=&quot;font-size: 10pt; color: #4a4a5a; text-align: center; margin: 0;&quot;>45초 타임아웃 · 에러 시 자동 수정 에이전트 실행</p>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;&quot;>19</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="20" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>Agent Swarm — 4개의 에이전트</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 32pt 40pt 28pt 40pt;&quot;>
+
+  <!-- Section badge -->
+  <div style=&quot;display: flex; align-items: center; gap: 10pt; margin-bottom: 6pt;&quot;>
+    <div style=&quot;background: #6366f1; color: #ffffff; font-size: 9pt; font-weight: 700; padding: 3pt 8pt; border-radius: 4pt; letter-spacing: 0.08em; text-transform: uppercase;&quot;>
+      <p style=&quot;margin: 0;&quot;>ACT 4</p>
+    </div>
+    <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>마개조 결과물</p>
+  </div>
+
+  <!-- Title -->
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; margin: 0 0 24pt 0; letter-spacing: -0.5pt;&quot;>Agent Swarm — 4개의 에이전트</h1>
+
+  <!-- 2x2 grid -->
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 14pt;&quot;>
+
+    <!-- Card 1: Dobby -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;&quot;>
+      <div style=&quot;display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;&quot;>
+        <h3 style=&quot;font-size: 16pt; font-weight: 700; margin: 0;&quot;>도비 (Dobby)</h3>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #6366f1; border-radius: 4pt; padding: 2pt 8pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-weight: 600; margin: 0; color: #6366f1;&quot;>Opus</p>
+        </div>
+      </div>
+      <p style=&quot;font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;&quot;>오케스트레이터</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>최고 권한, 모든 그룹 관리</p>
+    </div>
+
+    <!-- Card 2: Young-Gu -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;&quot;>
+      <div style=&quot;display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;&quot;>
+        <h3 style=&quot;font-size: 16pt; font-weight: 700; margin: 0;&quot;>영구 (Young-Gu)</h3>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #6366f1; border-radius: 4pt; padding: 2pt 8pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-weight: 600; margin: 0; color: #6366f1;&quot;>Opus</p>
+        </div>
+      </div>
+      <p style=&quot;font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;&quot;>PM 에이전트</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>AutoRAG GitHub 이슈/PR 자동화</p>
+    </div>
+
+    <!-- Card 3: Marketer -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #f59e0b; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;&quot;>
+      <div style=&quot;display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;&quot;>
+        <h3 style=&quot;font-size: 16pt; font-weight: 700; margin: 0;&quot;>홍명보</h3>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #22d3ee; border-radius: 4pt; padding: 2pt 8pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-weight: 600; margin: 0; color: #22d3ee;&quot;>Sonnet</p>
+        </div>
+      </div>
+      <p style=&quot;font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;&quot;>마케터</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>SNS 트렌드/콘텐츠/댓글 관리</p>
+    </div>
+
+    <!-- Card 4: Todomon -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #10b981; border-radius: 10pt; padding: 16pt 18pt; display: flex; flex-direction: column;&quot;>
+      <div style=&quot;display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6pt;&quot;>
+        <h3 style=&quot;font-size: 16pt; font-weight: 700; margin: 0;&quot;>투두몬 (Todomon)</h3>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #22d3ee; border-radius: 4pt; padding: 2pt 8pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-weight: 600; margin: 0; color: #22d3ee;&quot;>Sonnet</p>
+        </div>
+      </div>
+      <p style=&quot;font-size: 12pt; color: #ffffff; font-weight: 600; margin: 0 0 4pt 0;&quot;>태스크 관리</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0; margin: 0;&quot;>할 일 추적 및 리마인더</p>
+    </div>
+
+  </div>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;&quot;>20</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="21" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>SecondBrain — 에이전트의 공통 작업장</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 32pt 40pt 28pt 40pt;&quot;>
+
+  <!-- Title -->
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; margin: 0 0 20pt 0; letter-spacing: -0.5pt;&quot;>SecondBrain — 에이전트의 공통 작업장</h1>
+
+  <!-- Two columns -->
+  <div style=&quot;display: flex; gap: 24pt; margin-bottom: 16pt;&quot;>
+
+    <!-- Left: SecondBrain structure -->
+    <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 16pt;&quot;>
+      <h3 style=&quot;font-size: 13pt; font-weight: 600; margin: 0 0 14pt 0;&quot;>SecondBrain 구조</h3>
+
+      <!-- Center vault -->
+      <div style=&quot;display: flex; flex-direction: column; align-items: center; gap: 8pt;&quot;>
+        <!-- Agent -->
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 14pt;&quot;>
+          <p style=&quot;font-size: 10pt; margin: 0;&quot;>Main Agent</p>
+        </div>
+        <p style=&quot;font-size: 12pt; color: #6366f1; margin: 0;&quot;>↓ Read &amp;amp; Write</p>
+        <!-- Vault box -->
+        <div style=&quot;background: #1e1e2a; border: 1.5pt solid #6366f1; border-radius: 8pt; padding: 10pt 20pt; text-align: center;&quot;>
+          <p style=&quot;font-size: 12pt; font-weight: 700; margin: 0;&quot;>.md Files Vault</p>
+        </div>
+        <!-- Connected items -->
+        <div style=&quot;display: flex; gap: 8pt; width: 100%; justify-content: center; margin-top: 4pt;&quot;>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;&quot;>
+            <p style=&quot;font-size: 8pt; margin: 0;&quot;>정리 Agent</p>
+            <p style=&quot;font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;&quot;>메타데이터</p>
+          </div>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;&quot;>
+            <p style=&quot;font-size: 8pt; margin: 0;&quot;>taxonomy</p>
+            <p style=&quot;font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;&quot;>.yaml</p>
+          </div>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;&quot;>
+            <p style=&quot;font-size: 8pt; margin: 0;&quot;>git</p>
+            <p style=&quot;font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;&quot;>버전관리</p>
+          </div>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 5pt 8pt; text-align: center;&quot;>
+            <p style=&quot;font-size: 8pt; margin: 0;&quot;>MinSync</p>
+            <p style=&quot;font-size: 7pt; color: #b0b0b0; margin: 2pt 0 0 0;&quot;>→ Zvec</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Noise-Cancel -->
+    <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 16pt;&quot;>
+      <h3 style=&quot;font-size: 13pt; font-weight: 600; margin: 0 0 10pt 0;&quot;>Noise-Cancel</h3>
+
+      <div style=&quot;display: flex; flex-direction: column; align-items: center; gap: 4pt;&quot;>
+        <!-- Sources -->
+        <div style=&quot;display: flex; gap: 5pt; flex-wrap: wrap; justify-content: center;&quot;>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;&quot;>
+            <p style=&quot;font-size: 9pt; margin: 0;&quot;>LinkedIn</p>
+          </div>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;&quot;>
+            <p style=&quot;font-size: 9pt; margin: 0;&quot;>Facebook</p>
+          </div>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;&quot;>
+            <p style=&quot;font-size: 9pt; margin: 0;&quot;>Bookmarks</p>
+          </div>
+          <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 9pt;&quot;>
+            <p style=&quot;font-size: 9pt; margin: 0;&quot;>Links</p>
+          </div>
+        </div>
+        <p style=&quot;font-size: 11pt; color: #6366f1; margin: 0;&quot;>↓</p>
+        <!-- Webhook server -->
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 14pt; text-align: center;&quot;>
+          <p style=&quot;font-size: 10pt; font-weight: 600; margin: 0;&quot;>Webhook Server</p>
+        </div>
+        <p style=&quot;font-size: 11pt; color: #6366f1; margin: 0;&quot;>↓</p>
+        <!-- Vault -->
+        <div style=&quot;background: #1e1e2a; border: 1.5pt solid #6366f1; border-radius: 6pt; padding: 6pt 14pt; text-align: center;&quot;>
+          <p style=&quot;font-size: 10pt; font-weight: 600; margin: 0;&quot;>.md Vault</p>
+        </div>
+        <p style=&quot;font-size: 9pt; color: #b0b0b0; margin: 0;&quot;>inbox에 자동 저장</p>
+        <p style=&quot;font-size: 11pt; color: #6366f1; margin: 0;&quot;>↓</p>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 5pt 11pt;&quot;>
+          <p style=&quot;font-size: 9pt; margin: 0;&quot;>어느 에이전트나 활용</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key distinction -->
+  <div style=&quot;position: absolute; left: 40pt; right: 40pt; bottom: 32pt; background: #141419; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 10pt 16pt; text-align: center;&quot;>
+    <p style=&quot;font-size: 12pt; color: #b0b0b0; margin: 0;&quot;>메모리 ≠ SecondBrain: 메모리 = 자동 기억 | SecondBrain = 노션/옵시디언처럼 자료 의도적 저장</p>
+  </div>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;&quot;>21</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="22" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<title>PM 에이전트 워크플로우</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style=&quot;margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;&quot;>
+<div style=&quot;width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 36pt 40pt 32pt 40pt;&quot;>
+
+  <!-- Title -->
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; margin: 0 0 32pt 0; letter-spacing: -0.5pt;&quot;>PM 에이전트 워크플로우</h1>
+
+  <!-- Pipeline diagram -->
+  <div style=&quot;display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 12pt;&quot;>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;&quot;>GitHub Issue</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;&quot;>→</p>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;&quot;>에이전트가 판단</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;&quot;>→</p>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 12pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;&quot;>Codex 서브에이전트</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;&quot;>→</p>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 14pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;&quot;>구현+테스트</p>
+    </div>
+    <p style=&quot;margin: 0; padding: 0 6pt; font-size: 16pt; color: #6366f1;&quot;>→</p>
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-top: 2pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt; text-align: center;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 600; margin: 0; white-space: nowrap;&quot;>PR 생성</p>
+    </div>
+  </div>
+
+  <!-- Below pipeline -->
+  <p style=&quot;font-size: 14pt; text-align: center; color: #b0b0b0; margin: 0 0 36pt 0;&quot;>사람은 리뷰만 하면 됨!</p>
+
+  <!-- Two feature cards -->
+  <div style=&quot;display: flex; gap: 20pt;&quot;>
+    <!-- Card 1 -->
+    <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 20pt;&quot;>
+      <h3 style=&quot;font-size: 15pt; font-weight: 700; margin: 0 0 8pt 0;&quot;>Snippet Gate 폴링</h3>
+      <p style=&quot;font-size: 12pt; color: #b0b0b0; margin: 0;&quot;>15분마다 놓친 이벤트 자동 체크</p>
+      <div style=&quot;margin-top: 12pt; display: flex; align-items: center; gap: 6pt;&quot;>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;&quot;>cron</p>
+        </div>
+        <p style=&quot;margin: 0; font-size: 12pt; color: #6366f1;&quot;>→</p>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;&quot;>snippet</p>
+        </div>
+        <p style=&quot;margin: 0; font-size: 12pt; color: #6366f1;&quot;>→</p>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;&quot;>agent</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div style=&quot;flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 20pt;&quot;>
+      <h3 style=&quot;font-size: 15pt; font-weight: 700; margin: 0 0 8pt 0;&quot;>Webhook 트리거</h3>
+      <p style=&quot;font-size: 12pt; color: #b0b0b0; margin: 0;&quot;>GitHub Event 구독으로 실시간 트리거</p>
+      <div style=&quot;margin-top: 12pt; display: flex; align-items: center; gap: 6pt;&quot;>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;&quot;>event</p>
+        </div>
+        <p style=&quot;margin: 0; font-size: 12pt; color: #6366f1;&quot;>→</p>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;&quot;>webhook</p>
+        </div>
+        <p style=&quot;margin: 0; font-size: 12pt; color: #6366f1;&quot;>→</p>
+        <div style=&quot;background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 5pt; padding: 4pt 10pt;&quot;>
+          <p style=&quot;font-size: 9pt; font-family: 'SF Mono', 'Fira Code', monospace; color: #22d3ee; margin: 0;&quot;>agent</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;&quot;>22</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="23" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', sans-serif; }
+</style>
+</head>
+<body>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; padding: 32pt 40pt;&quot;>
+
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; color: #ffffff; margin-bottom: 28pt;&quot;>마케터 에이전트 (홍명보) 일과</h1>
+
+  <!-- Timeline -->
+  <div style=&quot;display: flex; flex-direction: column; gap: 18pt;&quot;>
+
+    <!-- Row 1 -->
+    <div style=&quot;display: flex; align-items: center; gap: 14pt;&quot;>
+      <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 12pt; flex-shrink: 0; width: 100pt; text-align: center;&quot;>
+        <p style=&quot;font-size: 13pt; font-weight: 600; color: #6366f1;&quot;>매일 09:00</p>
+      </div>
+      <div style=&quot;width: 2pt; height: 36pt; background: #6366f1; flex-shrink: 0;&quot;></div>
+      <div>
+        <p style=&quot;font-size: 16pt; font-weight: 700; color: #ffffff; margin-bottom: 3pt;&quot;>SNS 트렌드 체크</p>
+        <p style=&quot;font-size: 13pt; color: #b0b0b0;&quot;>웹 검색 + X/LinkedIn/Threads 리서치</p>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div style=&quot;display: flex; align-items: center; gap: 14pt;&quot;>
+      <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 12pt; flex-shrink: 0; width: 100pt; text-align: center;&quot;>
+        <p style=&quot;font-size: 13pt; font-weight: 600; color: #6366f1;&quot;>월요일 10:00</p>
+      </div>
+      <div style=&quot;width: 2pt; height: 36pt; background: #6366f1; flex-shrink: 0;&quot;></div>
+      <div>
+        <p style=&quot;font-size: 16pt; font-weight: 700; color: #ffffff; margin-bottom: 3pt;&quot;>주간 콘텐츠 플래닝</p>
+        <p style=&quot;font-size: 13pt; color: #b0b0b0;&quot;>플랫폼별 콘텐츠 기획</p>
+      </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div style=&quot;display: flex; align-items: center; gap: 14pt;&quot;>
+      <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 12pt; flex-shrink: 0; width: 100pt; text-align: center;&quot;>
+        <p style=&quot;font-size: 13pt; font-weight: 600; color: #6366f1;&quot;>6시간마다</p>
+      </div>
+      <div style=&quot;width: 2pt; height: 36pt; background: #6366f1; flex-shrink: 0;&quot;></div>
+      <div>
+        <p style=&quot;font-size: 16pt; font-weight: 700; color: #ffffff; margin-bottom: 3pt;&quot;>댓글 순회</p>
+        <p style=&quot;font-size: 13pt; color: #b0b0b0;&quot;>분류 → 답글 초안 → Slack에서 사람 승인 후 게시</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom note -->
+  <p style=&quot;position: absolute; bottom: 36pt; left: 40pt; right: 40pt; font-size: 12pt; color: #b0b0b0;&quot;>SecondBrain에 캠페인 인사이트, 배운 점 등을 자동 저장</p>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 28pt; font-size: 10pt; color: #4a4a5a;&quot;>23</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="24" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', sans-serif; }
+</style>
+</head>
+<body>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; padding: 32pt 40pt;&quot;>
+
+  <h1 style=&quot;font-size: 32pt; font-weight: 700; color: #ffffff; margin-bottom: 28pt;&quot;>얻은 교훈</h1>
+
+  <div style=&quot;display: flex; flex-direction: column; gap: 16pt;&quot;>
+
+    <!-- Lesson 1 -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 18pt 22pt; display: flex; align-items: flex-start; gap: 18pt;&quot;>
+      <p style=&quot;font-size: 28pt; font-weight: 800; color: #6366f1; flex-shrink: 0; line-height: 1;&quot;>01</p>
+      <div>
+        <p style=&quot;font-size: 16pt; font-weight: 700; color: #ffffff; margin-bottom: 5pt;&quot;>에이전트가 쉽게 이해할 수 있는 코드베이스</p>
+        <p style=&quot;font-size: 13pt; color: #b0b0b0;&quot;>4000줄이면 Claude의 머리에도, 내 머리에도 들어간다</p>
+      </div>
+    </div>
+
+    <!-- Lesson 2 -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 18pt 22pt; display: flex; align-items: flex-start; gap: 18pt;&quot;>
+      <p style=&quot;font-size: 28pt; font-weight: 800; color: #22d3ee; flex-shrink: 0; line-height: 1;&quot;>02</p>
+      <div>
+        <p style=&quot;font-size: 16pt; font-weight: 700; color: #ffffff; margin-bottom: 5pt;&quot;>무엇을 어떻게 만들지 명확히!</p>
+        <p style=&quot;font-size: 13pt; color: #b0b0b0;&quot;>무작정 마개조를 시작했다가 큰 낭패를 보았습니다...</p>
+      </div>
+    </div>
+
+    <!-- Lesson 3 -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #f59e0b; border-radius: 10pt; padding: 18pt 22pt; display: flex; align-items: flex-start; gap: 18pt;&quot;>
+      <p style=&quot;font-size: 28pt; font-weight: 800; color: #f59e0b; flex-shrink: 0; line-height: 1;&quot;>03</p>
+      <div>
+        <p style=&quot;font-size: 16pt; font-weight: 700; color: #ffffff; margin-bottom: 5pt;&quot;>fork가 곧 제품</p>
+        <p style=&quot;font-size: 13pt; color: #b0b0b0;&quot;>기능은 skill로 기여 → 모든 사람이 자기만의 제품을 만든다</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 28pt; font-size: 10pt; color: #4a4a5a;&quot;>24</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="25" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;><head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', sans-serif; }
+</style>
+</head>
+<body>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; padding: 28pt 36pt;&quot;>
+
+  <h1 style=&quot;font-size: 28pt; font-weight: 700; color: #ffffff; margin-bottom: 22pt;&quot;>NanoClaw로 이만큼 하고 있다!</h1>
+
+  <!-- Grid: 2 rows x 3 columns -->
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12pt; margin-bottom: 16pt;&quot;>
+
+    <!-- AutoRAG -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt;&quot;>
+      <p style=&quot;font-size: 15pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>AutoRAG</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0; margin-bottom: 6pt;&quot;>RAG 자동 최적화 프레임워크</p>
+      <p style=&quot;font-size: 12pt; color: #f59e0b; font-weight: 600;&quot;>⭐ 4.6k+</p>
+    </div>
+
+    <!-- AutoRAG-Research -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 8pt; padding: 14pt 16pt;&quot;>
+      <p style=&quot;font-size: 15pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>AutoRAG-Research</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0;&quot;>RAG 연구 프레임워크</p>
+    </div>
+
+    <!-- SecondBrain -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 8pt; padding: 14pt 16pt;&quot;>
+      <p style=&quot;font-size: 15pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>SecondBrain</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0;&quot;>지식 관리 시스템</p>
+    </div>
+
+    <!-- ios-moaki -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #f59e0b; border-radius: 8pt; padding: 14pt 16pt;&quot;>
+      <p style=&quot;font-size: 15pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>ios-moaki</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0;&quot;>iOS용 모아키 키보드</p>
+    </div>
+
+    <!-- slides-grab -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #10b981; border-radius: 8pt; padding: 14pt 16pt;&quot;>
+      <p style=&quot;font-size: 15pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>slides-grab</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0;&quot;>HTML slides editor</p>
+    </div>
+
+    <!-- Noise-Cancel -->
+    <div style=&quot;background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 8pt; padding: 14pt 16pt;&quot;>
+      <p style=&quot;font-size: 15pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>Noise-Cancel</p>
+      <p style=&quot;font-size: 11pt; color: #b0b0b0;&quot;>SNS semantic filter</p>
+    </div>
+
+  </div>
+
+  <!-- Bottom text -->
+  <p style=&quot;font-size: 14pt; color: #b0b0b0;&quot;>에이전트가 이슈 분류, PR 생성, SNS 관리, 태스크 추적까지 전부 자동화</p>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 28pt; font-size: 10pt; color: #4a4a5a;&quot;>25</p>
+
+</div>
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="26" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<meta charset=&quot;UTF-8&quot;>
+<meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', sans-serif; }
+</style>
+</head>
+<body>
+<div style=&quot;width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;&quot;>
+
+  <h1 style=&quot;font-size: 48pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;&quot;>감사합니다</h1>
+  <div style=&quot;background: #6366f1; height: 3pt; width: 60pt; margin-bottom: 8pt; border-radius: 2pt;&quot;></div>
+  <p style=&quot;font-size: 20pt; color: #b0b0b0; margin-bottom: 36pt;&quot;>Q&amp;amp;A</p>
+
+  <!-- Contact links grid -->
+  <div style=&quot;display: grid; grid-template-columns: 1fr 1fr; gap: 8pt 40pt; margin-bottom: 36pt;&quot;>
+
+    <div style=&quot;display: flex; align-items: center; gap: 10pt;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff; width: 60pt; text-align: right;&quot;>GitHub</p>
+      <p style=&quot;font-size: 12pt; color: #22d3ee;&quot;>github.com/vkehfdl1</p>
+    </div>
+
+    <div style=&quot;display: flex; align-items: center; gap: 10pt;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff; width: 60pt; text-align: right;&quot;>LinkedIn</p>
+      <p style=&quot;font-size: 12pt; color: #22d3ee;&quot;>linkedin.com/in/jeffrey-dongkyu</p>
+    </div>
+
+    <div style=&quot;display: flex; align-items: center; gap: 10pt;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff; width: 60pt; text-align: right;&quot;>NanoClaw</p>
+      <p style=&quot;font-size: 12pt; color: #22d3ee;&quot;>github.com/vkehfdl1/nanoclaw</p>
+    </div>
+
+    <div style=&quot;display: flex; align-items: center; gap: 10pt;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff; width: 60pt; text-align: right;&quot;>X</p>
+      <p style=&quot;font-size: 12pt; color: #22d3ee;&quot;>x.com/jeffreykim0711</p>
+    </div>
+
+    <div style=&quot;display: flex; align-items: center; gap: 10pt;&quot;>
+      <p style=&quot;font-size: 12pt; font-weight: 700; color: #ffffff; width: 60pt; text-align: right;&quot;>AutoRAG</p>
+      <p style=&quot;font-size: 12pt; color: #22d3ee;&quot;>github.com/Marker-Inc-Korea/AutoRAG</p>
+    </div>
+
+  </div>
+
+  <!-- Final quote -->
+  <p style=&quot;position: absolute; bottom: 24pt; left: 40pt; right: 40pt; text-align: center; font-size: 14pt; font-style: italic; color: #4a4a5a;&quot;>가장 많이 fork된 레포가 히트작이 된다</p>
+
+  <!-- Page number -->
+  <p style=&quot;position: absolute; bottom: 16pt; right: 28pt; font-size: 10pt; color: #4a4a5a;&quot;>26</p>
+
+</div>
+</body>
+</html>" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 26;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    // Fullscreen
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    // Auto-scale to fit viewport (95% fit)
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

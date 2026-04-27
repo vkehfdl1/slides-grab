@@ -1,0 +1,3440 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 13</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      overflow: hidden;
+      position: relative;
+    }
+    .iso-grid {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(124,111,255,0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,111,255,0.06) 1px, transparent 1px);
+      background-size: 40pt 40pt;
+    }
+    .iso-cube {
+      position: absolute;
+      width: 80pt; height: 80pt;
+    }
+    .iso-top {
+      position: absolute; width: 80pt; height: 46pt; top: 0; left: 0;
+      background: #7C6FFF;
+      clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);
+    }
+    .iso-left {
+      position: absolute; width: 40pt; height: 63pt; bottom: 0; left: 0;
+      background: #4A3FCC;
+      clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);
+    }
+    .iso-right {
+      position: absolute; width: 40pt; height: 63pt; bottom: 0; right: 0;
+      background: #6254E8;
+      clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);
+    }
+    .cube-lg .iso-top { width: 120pt; height: 69pt; }
+    .cube-lg .iso-left { width: 60pt; height: 95pt; }
+    .cube-lg .iso-right { width: 60pt; height: 95pt; }
+    .cube-lg { width: 120pt; height: 120pt; }
+    .cube-sm { width: 50pt; height: 50pt; }
+    .cube-sm .iso-top { width: 50pt; height: 29pt; }
+    .cube-sm .iso-left { width: 25pt; height: 39pt; }
+    .cube-sm .iso-right { width: 25pt; height: 39pt; }
+    .leak-line {
+      position: absolute;
+      width: 2pt;
+      background: #A594FF;
+      opacity: 0.4;
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;iso-grid&quot;></div>
+
+  <!-- Isometric cubes scattered -->
+  <div class=&quot;iso-cube cube-lg&quot; style=&quot;bottom: 40pt; left: 60pt; opacity: 0.7;&quot;>
+    <div class=&quot;iso-top&quot;></div>
+    <div class=&quot;iso-left&quot;></div>
+    <div class=&quot;iso-right&quot;></div>
+  </div>
+  <div class=&quot;iso-cube&quot; style=&quot;bottom: 80pt; left: 160pt; opacity: 0.5;&quot;>
+    <div class=&quot;iso-top&quot;></div>
+    <div class=&quot;iso-left&quot;></div>
+    <div class=&quot;iso-right&quot;></div>
+  </div>
+  <div class=&quot;iso-cube cube-sm&quot; style=&quot;bottom: 30pt; left: 250pt; opacity: 0.3;&quot;>
+    <div class=&quot;iso-top&quot;></div>
+    <div class=&quot;iso-left&quot;></div>
+    <div class=&quot;iso-right&quot;></div>
+  </div>
+
+  <!-- Leak lines streaming from cubes -->
+  <div class=&quot;leak-line&quot; style=&quot;left: 120pt; top: 80pt; height: 180pt; transform: rotate(15deg);&quot;></div>
+  <div class=&quot;leak-line&quot; style=&quot;left: 150pt; top: 60pt; height: 220pt; transform: rotate(10deg); opacity: 0.25;&quot;></div>
+  <div class=&quot;leak-line&quot; style=&quot;left: 200pt; top: 40pt; height: 200pt; transform: rotate(20deg); opacity: 0.15;&quot;></div>
+
+  <!-- Title area -->
+  <div style=&quot;position: absolute; top: 64pt; right: 56pt; text-align: right; max-width: 420pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #A594FF; letter-spacing: 0.15em; margin-bottom: 16pt;&quot;>2026.03.31 INCIDENT REPORT</p>
+    <h1 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 44pt; font-weight: 700; color: #FFFFFF; line-height: 1.2; letter-spacing: -0.01em;&quot;>
+      CLAUDE CODE<br>SOURCE LEAK
+    </h1>
+    <p style=&quot;font-family: 'Pretendard', sans-serif; font-size: 14pt; color: #8888AA; margin-top: 20pt; line-height: 1.6;&quot;>
+      .npmignore 하나가 불러온<br>GitHub 역사상 최대의 폭풍
+    </p>
+  </div>
+
+  <!-- Bottom tag -->
+  <div style=&quot;position: absolute; bottom: 32pt; right: 56pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC; letter-spacing: 0.1em;&quot;>512,000 LINES // 1,906 FILES // 59.8 MB</p>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 40pt 48pt;
+      display: flex;
+      overflow: hidden;
+    }
+    .toc-item {
+      display: flex; align-items: center; gap: 14pt;
+      padding: 9pt 0;
+      border-bottom: 1px solid rgba(124,111,255,0.15);
+    }
+    .toc-item:last-child { border-bottom: none; }
+    .toc-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 9pt; color: #7C6FFF;
+      min-width: 24pt;
+    }
+    .toc-label {
+      font-size: 13pt; font-weight: 500; color: #FFFFFF;
+    }
+    .toc-dot {
+      flex: 1;
+      border-bottom: 1px dotted rgba(124,111,255,0.25);
+      margin: 0 8pt;
+    }
+  </style>
+</head>
+<body>
+  <!-- Left title -->
+  <div style=&quot;min-width: 180pt; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 8pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 12pt;&quot;>TABLE OF CONTENTS</p>
+    <h1 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 34pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;&quot;>
+      INDEX
+    </h1>
+    <!-- Small isometric cube -->
+    <div style=&quot;position: relative; width: 40pt; height: 40pt; margin-top: 20pt;&quot;>
+      <div style=&quot;position: absolute; width: 40pt; height: 23pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+      <div style=&quot;position: absolute; width: 20pt; height: 32pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+      <div style=&quot;position: absolute; width: 20pt; height: 32pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+    </div>
+  </div>
+
+  <!-- Right TOC list -->
+  <div style=&quot;flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 32pt;&quot;>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>01</p>
+      <p class=&quot;toc-label&quot;>유출은 어떻게 일어났나</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>02</p>
+      <p class=&quot;toc-label&quot;>드러난 것들</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>03</p>
+      <p class=&quot;toc-label&quot;>claw-code의 탄생</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>04</p>
+      <p class=&quot;toc-label&quot;>GitHub 역사를 다시 쓰다</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>05</p>
+      <p class=&quot;toc-label&quot;>Anthropic의 대응</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>06</p>
+      <p class=&quot;toc-label&quot;>8,100개 레포 삭제 사태</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>07</p>
+      <p class=&quot;toc-label&quot;>커뮤니티의 반격</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>08</p>
+      <p class=&quot;toc-label&quot;>오픈소스 vs 클로즈드 소스</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>09</p>
+      <p class=&quot;toc-label&quot;>보안 부실의 연쇄</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+    <div class=&quot;toc-item&quot;>
+      <p class=&quot;toc-num&quot;>10</p>
+      <p class=&quot;toc-label&quot;>K-빌더, 세계를 흔들다</p>
+      <div class=&quot;toc-dot&quot;></div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .step-box {
+      display: flex; align-items: flex-start; gap: 14pt;
+      margin-bottom: 10pt;
+    }
+    .step-icon {
+      min-width: 28pt; height: 28pt;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .step-diamond {
+      width: 20pt; height: 20pt;
+      background: #4A3FCC;
+      transform: rotate(45deg);
+    }
+    .step-diamond.active { background: #7C6FFF; }
+    .connector {
+      position: absolute; left: 13pt; top: 28pt;
+      width: 2pt; height: 28pt;
+      background: rgba(124,111,255,0.25);
+    }
+    .flow-arrow {
+      position: absolute;
+      border-left: 2pt solid #7C6FFF;
+      border-bottom: 2pt solid #7C6FFF;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;display: flex; justify-content: space-between; align-items: center; margin-bottom: 24pt;&quot;>
+    <div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>01 // INCIDENT</p>
+      <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;&quot;>사건 발생: 2026.03.31</h2>
+    </div>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #4A3FCC;&quot;>npm v2.1.88</p>
+  </div>
+
+  <!-- Main content: flow diagram -->
+  <div style=&quot;flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;&quot;>
+    <!-- Left: cause chain -->
+    <div style=&quot;display: flex; flex-direction: column; justify-content: center;&quot;>
+      <div class=&quot;step-box&quot;>
+        <div class=&quot;step-icon&quot;>
+          <div class=&quot;step-diamond active&quot;></div>
+          <div class=&quot;connector&quot;></div>
+        </div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF;&quot;>Bun 빌더 버그</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 3pt;&quot;>프로덕션에서도 .map 파일 자동 생성</p>
+        </div>
+      </div>
+      <div class=&quot;step-box&quot;>
+        <div class=&quot;step-icon&quot;>
+          <div class=&quot;step-diamond active&quot;></div>
+          <div class=&quot;connector&quot;></div>
+        </div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF;&quot;>.npmignore 누락</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 3pt;&quot;>*.map 패턴 미등록 — 기본적인 실수</p>
+        </div>
+      </div>
+      <div class=&quot;step-box&quot;>
+        <div class=&quot;step-icon&quot;>
+          <div class=&quot;step-diamond active&quot;></div>
+          <div class=&quot;connector&quot;></div>
+        </div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF;&quot;>소스맵 공개 배포</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 3pt;&quot;>비보호 클라우드 스토리지 zip 직접 참조</p>
+        </div>
+      </div>
+      <div class=&quot;step-box&quot;>
+        <div class=&quot;step-icon&quot;>
+          <div class=&quot;step-diamond&quot; style=&quot;background: #FF6B6B;&quot;></div>
+        </div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FF6B6B;&quot;>전체 소스코드 노출</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 3pt;&quot;>512,000줄 TypeScript 완전 공개</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: isometric npm package visualization -->
+    <div style=&quot;display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;&quot;>
+      <!-- Large isometric box representing npm package -->
+      <div style=&quot;position: relative; width: 160pt; height: 160pt;&quot;>
+        <!-- Top face -->
+        <div style=&quot;position: absolute; width: 160pt; height: 92pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <!-- Left face -->
+        <div style=&quot;position: absolute; width: 80pt; height: 126pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <!-- Right face -->
+        <div style=&quot;position: absolute; width: 80pt; height: 126pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+        <!-- npm label on top face -->
+        <p style=&quot;position: absolute; top: 14pt; left: 50%; transform: translateX(-50%); font-family: 'Space Mono', monospace; font-size: 10pt; color: #FFFFFF; font-weight: 700; z-index: 2;&quot;>npm</p>
+        <!-- Leak streams from right face -->
+        <div style=&quot;position: absolute; right: -30pt; top: 60pt; display: flex; flex-direction: column; gap: 4pt;&quot;>
+          <div style=&quot;width: 24pt; height: 2pt; background: #A594FF; opacity: 0.8;&quot;></div>
+          <div style=&quot;width: 36pt; height: 2pt; background: #A594FF; opacity: 0.6;&quot;></div>
+          <div style=&quot;width: 18pt; height: 2pt; background: #A594FF; opacity: 0.4;&quot;></div>
+          <div style=&quot;width: 30pt; height: 2pt; background: #A594FF; opacity: 0.5;&quot;></div>
+          <div style=&quot;width: 20pt; height: 2pt; background: #A594FF; opacity: 0.3;&quot;></div>
+        </div>
+      </div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA; margin-top: 12pt; text-align: center;&quot;>@anthropic/claude-code@2.1.88<br>+ source maps leaked</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style=&quot;display: flex; justify-content: space-between; align-items: center; margin-top: 12pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC;&quot;>FIRST DISCLOSED BY CHAOFAN SHOU ON X</p>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC;&quot;>32M+ VIEWS</p>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background grid -->
+  <div style=&quot;position: absolute; inset: 0; background-image: linear-gradient(rgba(124,111,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,111,255,0.04) 1px, transparent 1px); background-size: 40pt 40pt;&quot;></div>
+
+  <!-- Header -->
+  <div style=&quot;position: absolute; top: 36pt; left: 48pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em;&quot;>02 // SCALE</p>
+  </div>
+
+  <!-- Main stats -->
+  <div style=&quot;display: flex; gap: 48pt; align-items: flex-end; z-index: 1;&quot;>
+    <!-- Stat 1: Files -->
+    <div style=&quot;text-align: center;&quot;>
+      <!-- Isometric bar -->
+      <div style=&quot;position: relative; width: 80pt; height: 100pt; margin: 0 auto 12pt;&quot;>
+        <div style=&quot;position: absolute; width: 80pt; height: 46pt; top: 0; left: 0; background: #A594FF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <div style=&quot;position: absolute; width: 40pt; height: 76pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <div style=&quot;position: absolute; width: 40pt; height: 76pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 34pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;&quot;>1,906</p>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 6pt;&quot;>FILES</p>
+    </div>
+
+    <!-- Stat 2: Lines (tallest) -->
+    <div style=&quot;text-align: center;&quot;>
+      <div style=&quot;position: relative; width: 100pt; height: 140pt; margin: 0 auto 12pt;&quot;>
+        <div style=&quot;position: absolute; width: 100pt; height: 58pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <div style=&quot;position: absolute; width: 50pt; height: 110pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <div style=&quot;position: absolute; width: 50pt; height: 110pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 44pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;&quot;>512K</p>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 6pt;&quot;>LINES OF CODE</p>
+    </div>
+
+    <!-- Stat 3: Size -->
+    <div style=&quot;text-align: center;&quot;>
+      <div style=&quot;position: relative; width: 70pt; height: 80pt; margin: 0 auto 12pt;&quot;>
+        <div style=&quot;position: absolute; width: 70pt; height: 40pt; top: 0; left: 0; background: #A594FF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <div style=&quot;position: absolute; width: 35pt; height: 60pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <div style=&quot;position: absolute; width: 35pt; height: 60pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;&quot;>59.8</p>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 6pt;&quot;>MB SOURCE MAP</p>
+    </div>
+  </div>
+
+  <!-- Subtitle -->
+  <p style=&quot;font-size: 14pt; color: #8888AA; margin-top: 32pt; z-index: 1; text-align: center;&quot;>
+    TypeScript 전체 소스코드가 그대로 세상에 풀렸다
+  </p>
+
+  <!-- Footer -->
+  <div style=&quot;position: absolute; bottom: 28pt; right: 48pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC;&quot;>FULL SOURCE // NOT A PARTIAL LEAK</p>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .grid-card {
+      background: rgba(124,111,255,0.08);
+      border: 1px solid rgba(124,111,255,0.2);
+      padding: 14pt 16pt;
+      display: flex; flex-direction: column; gap: 6pt;
+    }
+    .card-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 7pt; color: #A594FF;
+      letter-spacing: 0.12em;
+    }
+    .card-title {
+      font-size: 12pt; font-weight: 600; color: #FFFFFF;
+    }
+    .card-desc {
+      font-size: 9pt; color: #8888AA; line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;display: flex; justify-content: space-between; align-items: center; margin-bottom: 20pt;&quot;>
+    <div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>03 // EXPOSED</p>
+      <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 30pt; font-weight: 700; color: #FFFFFF;&quot;>코드에서 드러난 것들</h2>
+    </div>
+    <p style=&quot;font-size: 10pt; color: #8888AA;&quot;>미공개 기능과 논란의 내부 시스템</p>
+  </div>
+
+  <!-- Bento grid -->
+  <div style=&quot;flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10pt;&quot;>
+    <!-- KAIROS -->
+    <div class=&quot;grid-card&quot; style=&quot;grid-column: 1 / 2; grid-row: 1 / 3; justify-content: center;&quot;>
+      <!-- Mini isometric cube -->
+      <div style=&quot;position: relative; width: 36pt; height: 36pt; margin-bottom: 6pt;&quot;>
+        <div style=&quot;position: absolute; width: 36pt; height: 21pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <div style=&quot;position: absolute; width: 18pt; height: 28pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <div style=&quot;position: absolute; width: 18pt; height: 28pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+      </div>
+      <p class=&quot;card-label&quot;>CRITICAL</p>
+      <p class=&quot;card-title&quot;>KAIROS 모드</p>
+      <p class=&quot;card-desc&quot;>24/7 자율 에이전트 모드.<br>백그라운드에서 수 초마다<br>&quot;할 일이 있는가?&quot; 하트비트를<br>받으며 자율 실행</p>
+    </div>
+
+    <!-- Undercover Mode -->
+    <div class=&quot;grid-card&quot;>
+      <p class=&quot;card-label&quot;>STEALTH</p>
+      <p class=&quot;card-title&quot;>Undercover Mode</p>
+      <p class=&quot;card-desc&quot;>커밋/PR에서 AI 귀속 표시를 숨기는 기능</p>
+    </div>
+
+    <!-- Anti-Distillation -->
+    <div class=&quot;grid-card&quot;>
+      <p class=&quot;card-label&quot;>DEFENSE</p>
+      <p class=&quot;card-title&quot;>Anti-Distillation</p>
+      <p class=&quot;card-desc&quot;>경쟁사 모델 증류 방해용 가짜 도구를 시스템 프롬프트에 주입</p>
+    </div>
+
+    <!-- Model Codenames -->
+    <div class=&quot;grid-card&quot;>
+      <p class=&quot;card-label&quot;>UNRELEASED</p>
+      <p class=&quot;card-title&quot;>미공개 모델 코드명</p>
+      <p class=&quot;card-desc&quot;>Capybara, Fennec, Numbat 등</p>
+    </div>
+
+    <!-- Feature Flags -->
+    <div class=&quot;grid-card&quot;>
+      <p class=&quot;card-label&quot;>44 FLAGS</p>
+      <p class=&quot;card-title&quot;>미공개 기능 플래그</p>
+      <p class=&quot;card-desc&quot;>멀티 에이전트, 음성 명령, 브라우저 제어 등</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style=&quot;margin-top: 10pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 7pt; color: #4A3FCC; letter-spacing: 0.08em;&quot;>+ autoDream MEMORY SYSTEM // BUDDY PET SYSTEM (18 SPECIES) // VOICE COMMANDS</p>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-06.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;margin-bottom: 20pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>04 // CLAW-CODE</p>
+    <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;&quot;>Sigrid Jin과 claw-code의 탄생</h2>
+  </div>
+
+  <!-- Main content -->
+  <div style=&quot;flex: 1; display: grid; grid-template-columns: 1.2fr 1fr; gap: 36pt; align-items: center;&quot;>
+    <!-- Left: Info -->
+    <div style=&quot;display: flex; flex-direction: column; gap: 18pt;&quot;>
+      <!-- Quote badge -->
+      <div style=&quot;background: rgba(124,111,255,0.1); border-left: 3pt solid #7C6FFF; padding: 12pt 16pt;&quot;>
+        <p style=&quot;font-size: 11pt; color: #A594FF; font-style: italic; line-height: 1.5;&quot;>
+          &quot;세계에서 Claude Code를 가장 많이 쓰는 개발자&quot;
+        </p>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA; margin-top: 6pt;&quot;>— WALL STREET JOURNAL</p>
+      </div>
+
+      <!-- Key points -->
+      <div style=&quot;display: flex; flex-direction: column; gap: 12pt;&quot;>
+        <div style=&quot;display: flex; align-items: flex-start; gap: 10pt;&quot;>
+          <div style=&quot;min-width: 6pt; height: 6pt; background: #7C6FFF; margin-top: 5pt; transform: rotate(45deg);&quot;></div>
+          <p style=&quot;font-size: 11pt; color: #FFFFFF; line-height: 1.5;&quot;>유출 코드를 <span style=&quot;color: #A594FF; font-weight: 600;&quot;>복사하지 않고</span> 아키텍처만 분석</p>
+        </div>
+        <div style=&quot;display: flex; align-items: flex-start; gap: 10pt;&quot;>
+          <div style=&quot;min-width: 6pt; height: 6pt; background: #7C6FFF; margin-top: 5pt; transform: rotate(45deg);&quot;></div>
+          <p style=&quot;font-size: 11pt; color: #FFFFFF; line-height: 1.5;&quot;>OpenAI Codex로 <span style=&quot;color: #A594FF; font-weight: 600;&quot;>하룻밤 만에</span> Python 재작성</p>
+        </div>
+        <div style=&quot;display: flex; align-items: flex-start; gap: 10pt;&quot;>
+          <div style=&quot;min-width: 6pt; height: 6pt; background: #7C6FFF; margin-top: 5pt; transform: rotate(45deg);&quot;></div>
+          <p style=&quot;font-size: 11pt; color: #FFFFFF; line-height: 1.5;&quot;><span style=&quot;color: #A594FF; font-weight: 600;&quot;>클린룸 재구현</span> — 법적으로 보호받는 역공학</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Clean Room visualization -->
+    <div style=&quot;display: flex; flex-direction: column; align-items: center; gap: 16pt;&quot;>
+      <!-- TypeScript cube (source) -->
+      <div style=&quot;display: flex; align-items: center; gap: 16pt;&quot;>
+        <div style=&quot;position: relative; width: 60pt; height: 60pt;&quot;>
+          <div style=&quot;position: absolute; width: 60pt; height: 35pt; top: 0; left: 0; background: #4A3FCC; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%); opacity: 0.5;&quot;></div>
+          <div style=&quot;position: absolute; width: 30pt; height: 47pt; bottom: 0; left: 0; background: #3A2FAA; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%); opacity: 0.5;&quot;></div>
+          <div style=&quot;position: absolute; width: 30pt; height: 47pt; bottom: 0; right: 0; background: #4A3FCC; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%); opacity: 0.5;&quot;></div>
+        </div>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;&quot;>TypeScript<br>512K lines</p>
+      </div>
+
+      <!-- Arrow -->
+      <div style=&quot;display: flex; align-items: center; gap: 8pt;&quot;>
+        <div style=&quot;width: 2pt; height: 24pt; background: #7C6FFF;&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 7pt; color: #7C6FFF; letter-spacing: 0.1em;&quot;>CLEAN ROOM</p>
+      <div style=&quot;display: flex; align-items: center; gap: 8pt;&quot;>
+        <div style=&quot;width: 2pt; height: 24pt; background: #7C6FFF;&quot;></div>
+      </div>
+
+      <!-- Python cube (output) -->
+      <div style=&quot;display: flex; align-items: center; gap: 16pt;&quot;>
+        <div style=&quot;position: relative; width: 60pt; height: 60pt;&quot;>
+          <div style=&quot;position: absolute; width: 60pt; height: 35pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+          <div style=&quot;position: absolute; width: 30pt; height: 47pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+          <div style=&quot;position: absolute; width: 30pt; height: 47pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+        </div>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #FFFFFF;&quot;>Python<br>claw-code</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style=&quot;margin-top: 12pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 7pt; color: #4A3FCC; letter-spacing: 0.08em;&quot;>SIGRID JIN (@sigridjineth) // instructkr/claw-code // 250B+ TOKENS PROCESSED</p>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!DOCTYPE html>
+<html><head>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<base href=&quot;/slides/&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;amp;family=Barlow+Condensed:wght@600;700&amp;amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .stat-row {
+      display: flex; align-items: center; gap: 20pt;
+      padding: 12pt 0;
+      border-bottom: 1px solid rgba(124,111,255,0.12);
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; color: #FFFFFF;
+      min-width: 120pt; text-align: right;
+    }
+    .stat-bar {
+      height: 8pt; background: #7C6FFF;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16pt;&quot;>
+    <div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>05 // RECORDS</p>
+      <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;&quot;>GitHub 역사를 다시 쓰다</h2>
+    </div>
+    <div style=&quot;text-align: right;&quot;>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 40pt; font-weight: 700; color: #7C6FFF; line-height: 1.2;&quot;>170K+</p>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;&quot;>GITHUB STARS</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style=&quot;flex: 1; display: flex; flex-direction: column; justify-content: center;&quot;>
+    <div class=&quot;stat-row&quot;>
+      <p class=&quot;stat-value&quot; style=&quot;font-size: 28pt;&quot;>170,000+</p>
+      <div style=&quot;flex: 1; position: relative; height: 8pt;&quot;>
+        <div class=&quot;stat-bar&quot; style=&quot;width: 100%;&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;&quot;>Stars</p>
+    </div>
+    <div class=&quot;stat-row&quot;>
+      <p class=&quot;stat-value&quot; style=&quot;font-size: 28pt;&quot;>100,000+</p>
+      <div style=&quot;flex: 1; position: relative; height: 8pt;&quot;>
+        <div class=&quot;stat-bar&quot; style=&quot;width: 88%; background: #6254E8;&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;&quot;>Forks</p>
+    </div>
+    <div class=&quot;stat-row&quot;>
+      <p class=&quot;stat-value&quot; style=&quot;font-size: 28pt; color: #A594FF;&quot;>~2hrs</p>
+      <div style=&quot;flex: 1; position: relative; height: 8pt;&quot;>
+        <div class=&quot;stat-bar&quot; style=&quot;width: 45%; background: #A594FF;&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;&quot;>50K 달성</p>
+    </div>
+    <div class=&quot;stat-row&quot;>
+      <p class=&quot;stat-value&quot; style=&quot;font-size: 28pt;&quot;>5,000+</p>
+      <div style=&quot;flex: 1; position: relative; height: 8pt;&quot;>
+        <div class=&quot;stat-bar&quot; style=&quot;width: 35%; background: #4A3FCC;&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;&quot;>Discord</p>
+    </div>
+  </div>
+
+  <!-- Bottom highlight -->
+  <div style=&quot;background: rgba(124,111,255,0.1); border: 1px solid rgba(124,111,255,0.25); padding: 12pt 18pt; margin-top: 12pt; text-align: center;&quot;>
+    <p style=&quot;font-size: 13pt; font-weight: 600; color: #FFFFFF;&quot;>
+      GitHub 역사상 <span style=&quot;color: #7C6FFF;&quot;>100K Stars 최단 달성</span> 레포지토리
+    </p>
+  </div>
+
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="8" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-08.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;margin-bottom: 24pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>06 // RESPONSE</p>
+    <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;&quot;>Anthropic의 대응: DMCA Takedown</h2>
+  </div>
+
+  <!-- Main content -->
+  <div style=&quot;flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 32pt; align-items: center;&quot;>
+    <!-- Left: Timeline -->
+    <div style=&quot;display: flex; flex-direction: column; gap: 18pt;&quot;>
+      <!-- Time marker 1 -->
+      <div style=&quot;display: flex; align-items: flex-start; gap: 14pt;&quot;>
+        <div style=&quot;min-width: 56pt; text-align: right;&quot;>
+          <p style=&quot;font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #7C6FFF;&quot;>T+0h</p>
+        </div>
+        <div style=&quot;min-width: 2pt; background: #7C6FFF; align-self: stretch;&quot;></div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF;&quot;>소스맵 발견</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 2pt;&quot;>Chaofan Shou, X에 공개</p>
+        </div>
+      </div>
+      <!-- Time marker 2 -->
+      <div style=&quot;display: flex; align-items: flex-start; gap: 14pt;&quot;>
+        <div style=&quot;min-width: 56pt; text-align: right;&quot;>
+          <p style=&quot;font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #FF6B6B;&quot;>T+2h</p>
+        </div>
+        <div style=&quot;min-width: 2pt; background: #FF6B6B; align-self: stretch;&quot;></div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF;&quot;>DMCA Takedown 요청</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 2pt;&quot;>GitHub에 저작권 삭제 요청 제출</p>
+        </div>
+      </div>
+      <!-- Time marker 3 -->
+      <div style=&quot;display: flex; align-items: flex-start; gap: 14pt;&quot;>
+        <div style=&quot;min-width: 56pt; text-align: right;&quot;>
+          <p style=&quot;font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #FF6B6B;&quot;>T+6h</p>
+        </div>
+        <div style=&quot;min-width: 2pt; background: #FF6B6B; align-self: stretch;&quot;></div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF;&quot;>대규모 레포 삭제 시작</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 2pt;&quot;>미러, 포크, 무관 레포까지 광범위 적용</p>
+        </div>
+      </div>
+      <!-- Time marker 4 -->
+      <div style=&quot;display: flex; align-items: flex-start; gap: 14pt;&quot;>
+        <div style=&quot;min-width: 56pt; text-align: right;&quot;>
+          <p style=&quot;font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #8888AA;&quot;>T+24h</p>
+        </div>
+        <div style=&quot;min-width: 2pt; background: #8888AA; align-self: stretch;&quot;></div>
+        <div>
+          <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF;&quot;>공식 해명</p>
+          <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 2pt;&quot;>&quot;패키징 과정의 인적 실수, 보안 침해 아님&quot;</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: DMCA document visual -->
+    <div style=&quot;display: flex; flex-direction: column; align-items: center; justify-content: center;&quot;>
+      <!-- Isometric document stack -->
+      <div style=&quot;position: relative; width: 140pt; height: 160pt;&quot;>
+        <!-- Bottom doc (shadow) -->
+        <div style=&quot;position: absolute; bottom: 10pt; left: 10pt; width: 120pt; height: 140pt;&quot;>
+          <div style=&quot;position: absolute; width: 120pt; height: 69pt; top: 0; left: 0; background: #3A2FAA; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%); opacity: 0.3;&quot;></div>
+          <div style=&quot;position: absolute; width: 60pt; height: 95pt; bottom: 0; left: 0; background: #2A1F88; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%); opacity: 0.3;&quot;></div>
+          <div style=&quot;position: absolute; width: 60pt; height: 95pt; bottom: 0; right: 0; background: #3A2FAA; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%); opacity: 0.3;&quot;></div>
+        </div>
+        <!-- Top doc -->
+        <div style=&quot;position: absolute; bottom: 20pt; left: 0; width: 120pt; height: 140pt;&quot;>
+          <div style=&quot;position: absolute; width: 120pt; height: 69pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+          <div style=&quot;position: absolute; width: 60pt; height: 95pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+          <div style=&quot;position: absolute; width: 60pt; height: 95pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+        </div>
+        <p style=&quot;position: absolute; top: 22pt; left: 50%; transform: translateX(-50%); font-family: 'Space Mono', monospace; font-size: 9pt; color: #FFFFFF; font-weight: 700; z-index: 2;&quot;>DMCA</p>
+      </div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA; text-align: center; margin-top: 8pt;&quot;>github/dmca<br>2026-03-31-anthropic.md</p>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="9" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-09.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background: scattered small cubes (fallen repos) -->
+  <div style=&quot;position: absolute; inset: 0; overflow: hidden; opacity: 0.12;&quot;>
+    <div style=&quot;position: absolute; width: 12pt; height: 12pt; background: #FF6B6B; top: 60pt; left: 380pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 10pt; height: 10pt; background: #FF6B6B; top: 120pt; left: 420pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 14pt; height: 14pt; background: #FF6B6B; top: 180pt; left: 360pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 8pt; height: 8pt; background: #FF6B6B; top: 100pt; left: 500pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 11pt; height: 11pt; background: #FF6B6B; top: 200pt; left: 450pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 9pt; height: 9pt; background: #FF6B6B; top: 240pt; left: 520pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 13pt; height: 13pt; background: #FF6B6B; top: 150pt; left: 560pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 10pt; height: 10pt; background: #FF6B6B; top: 280pt; left: 400pt; transform: rotate(45deg);&quot;></div>
+    <div style=&quot;position: absolute; width: 7pt; height: 7pt; background: #FF6B6B; top: 80pt; left: 600pt; transform: rotate(45deg);&quot;></div>
+  </div>
+
+  <!-- Header -->
+  <div style=&quot;margin-bottom: 20pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #FF6B6B; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>07 // COLLATERAL DAMAGE</p>
+    <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;&quot;>8,100개 레포 삭제 사태</h2>
+  </div>
+
+  <!-- Main content -->
+  <div style=&quot;flex: 1; display: flex; gap: 32pt; align-items: center;&quot;>
+    <!-- Left: Big number -->
+    <div style=&quot;min-width: 200pt; text-align: center;&quot;>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 64pt; font-weight: 700; color: #FF6B6B; line-height: 1.2;&quot;>8,100+</p>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 8pt;&quot;>REPOSITORIES DELETED</p>
+
+      <!-- Reduction arrow -->
+      <div style=&quot;margin-top: 20pt; display: flex; align-items: center; justify-content: center; gap: 12pt;&quot;>
+        <div style=&quot;width: 40pt; height: 2pt; background: #8888AA;&quot;></div>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;&quot;>REDUCED TO</p>
+        <div style=&quot;width: 40pt; height: 2pt; background: #8888AA;&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 36pt; font-weight: 700; color: #7C6FFF; margin-top: 8pt;&quot;>1 + 96</p>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;&quot;>REPO + FORKS</p>
+    </div>
+
+    <!-- Right: Details -->
+    <div style=&quot;flex: 1; display: flex; flex-direction: column; gap: 14pt;&quot;>
+      <div style=&quot;background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.25); padding: 14pt 16pt;&quot;>
+        <p style=&quot;font-size: 11pt; color: #FFFFFF; line-height: 1.5;&quot;>
+          과도한 DMCA로 <span style=&quot;color: #FF6B6B; font-weight: 600;&quot;>무관한 프로젝트</span>까지 무차별 삭제
+        </p>
+      </div>
+      <div style=&quot;background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.15); padding: 14pt 16pt;&quot;>
+        <p style=&quot;font-size: 11pt; color: #FFFFFF; line-height: 1.5;&quot;>
+          Anthropic <span style=&quot;color: #FF6B6B; font-weight: 600;&quot;>자체 공식 포크 네트워크</span>도 삭제 대상에 포함
+        </p>
+      </div>
+      <div style=&quot;background: rgba(124,111,255,0.08); border: 1px solid rgba(124,111,255,0.2); padding: 14pt 16pt;&quot;>
+        <p style=&quot;font-size: 11pt; color: #FFFFFF; line-height: 1.5;&quot;>
+          Boris Cherny: <span style=&quot;color: #A594FF; font-style: italic;&quot;>&quot;의도치 않은 실수&quot;</span>
+        </p>
+        <p style=&quot;font-size: 9pt; color: #8888AA; margin-top: 4pt;&quot;>Claude Code 담당 수석 엔지니어</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="10" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-10.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .reaction-card {
+      background: rgba(124,111,255,0.06);
+      border: 1px solid rgba(124,111,255,0.15);
+      padding: 12pt 14pt;
+      display: flex; flex-direction: column; gap: 4pt;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20pt;&quot;>
+    <div>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>08 // STREISAND EFFECT</p>
+      <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;&quot;>커뮤니티의 반격</h2>
+    </div>
+    <div style=&quot;background: rgba(165,148,255,0.15); padding: 8pt 14pt;&quot;>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #A594FF;&quot;>삭제할수록 더 퍼졌다</p>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div style=&quot;flex: 1; display: flex; flex-direction: column; gap: 10pt;&quot;>
+    <!-- Key fact -->
+    <div style=&quot;background: rgba(124,111,255,0.1); border-left: 3pt solid #7C6FFF; padding: 12pt 16pt; margin-bottom: 4pt;&quot;>
+      <p style=&quot;font-size: 12pt; color: #FFFFFF; line-height: 1.5;&quot;>
+        DMCA 삭제 시작 시점, 원본 미러는 이미 <span style=&quot;color: #7C6FFF; font-weight: 700; font-size: 16pt;&quot;>84K Stars</span> 달성.
+        클린룸 재구현은 법적으로 차단 불가.
+      </p>
+    </div>
+
+    <!-- Reaction grid -->
+    <div style=&quot;flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10pt;&quot;>
+      <div class=&quot;reaction-card&quot;>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 7pt; color: #7C6FFF; letter-spacing: 0.1em;&quot;>r/LocalLLaMA</p>
+        <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 20pt; font-weight: 700; color: #FFFFFF;&quot;>3,700+</p>
+        <p style=&quot;font-size: 8pt; color: #8888AA;&quot;>upvotes</p>
+        <p style=&quot;font-size: 9pt; color: #FFFFFF; margin-top: 4pt;&quot;>아키텍처 분석으로 로컬 모델 시스템 구축</p>
+      </div>
+      <div class=&quot;reaction-card&quot;>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 7pt; color: #FF6B6B; letter-spacing: 0.1em;&quot;>HACKER NEWS</p>
+        <p style=&quot;font-size: 9pt; color: #FFFFFF; margin-top: 4pt; line-height: 1.5;&quot;>
+          <span style=&quot;color: #FF6B6B; font-weight: 600;&quot;>이중 잣대 비판</span><br>
+          남의 데이터로 훈련하면서<br>자기 IP는 DMCA로 보호?
+        </p>
+      </div>
+      <div class=&quot;reaction-card&quot; style=&quot;border-color: rgba(255,107,107,0.2); background: rgba(255,107,107,0.06);&quot;>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 7pt; color: #FF6B6B; letter-spacing: 0.1em;&quot;>WARNING</p>
+        <p style=&quot;font-size: 9pt; color: #FFFFFF; margin-top: 4pt; line-height: 1.5;&quot;>
+          가짜 claw-code 레포로<br>
+          <span style=&quot;color: #FF6B6B; font-weight: 600;&quot;>Vidar 악성코드</span> 배포<br>
+          사태까지 발생
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="11" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-11.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 40pt 48pt;
+      display: flex; flex-direction: column;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;position: absolute; top: 36pt; left: 48pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em;&quot;>09 // DEBATE</p>
+  </div>
+
+  <!-- Main quote -->
+  <div style=&quot;max-width: 560pt;&quot;>
+    <div style=&quot;display: flex; align-items: flex-start; gap: 16pt; margin-bottom: 28pt;&quot;>
+      <div style=&quot;min-width: 4pt; background: #7C6FFF; align-self: stretch;&quot;></div>
+      <div>
+        <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 30pt; font-weight: 700; color: #FFFFFF; line-height: 1.2; margin-bottom: 8pt;&quot;>
+          &quot;클로즈드 소스는<br>AI 시대의 가장 큰 실책&quot;
+        </h2>
+        <p style=&quot;font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA;&quot;>— THEO BROWNE</p>
+      </div>
+    </div>
+
+    <!-- Supporting points -->
+    <div style=&quot;display: flex; flex-direction: column; gap: 16pt; padding-left: 20pt;&quot;>
+      <div style=&quot;display: flex; gap: 24pt; align-items: center;&quot;>
+        <!-- Isometric locked cube -->
+        <div style=&quot;position: relative; width: 36pt; height: 36pt; flex-shrink: 0;&quot;>
+          <div style=&quot;position: absolute; width: 36pt; height: 21pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+          <div style=&quot;position: absolute; width: 18pt; height: 28pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+          <div style=&quot;position: absolute; width: 18pt; height: 28pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+        </div>
+        <p style=&quot;font-size: 12pt; color: #FFFFFF; line-height: 1.5;&quot;>
+          유출 코드에서 <span style=&quot;color: #FF6B6B; font-weight: 600;&quot;>토큰 10~20배 과다 소모</span> 버그 발견<br>
+          <span style=&quot;font-size: 10pt; color: #8888AA;&quot;>→ 사용자들이 직접 패치해서 공유</span>
+        </p>
+      </div>
+
+      <div style=&quot;display: flex; gap: 24pt; align-items: center;&quot;>
+        <!-- Isometric open cube -->
+        <div style=&quot;position: relative; width: 36pt; height: 36pt; flex-shrink: 0;&quot;>
+          <div style=&quot;position: absolute; width: 36pt; height: 21pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+          <div style=&quot;position: absolute; width: 18pt; height: 28pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+          <div style=&quot;position: absolute; width: 18pt; height: 28pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+        </div>
+        <p style=&quot;font-size: 12pt; color: #FFFFFF; line-height: 1.5;&quot;>
+          AI 코딩 에이전트의 <span style=&quot;color: #A594FF; font-weight: 600;&quot;>오픈소스화/감사 가능성</span> 요구 증가<br>
+          <span style=&quot;font-size: 10pt; color: #8888AA;&quot;>→ claw-code 외 수십 개 클론 프로젝트 활성화</span>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- VS visual element -->
+  <div style=&quot;position: absolute; right: 48pt; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 20pt;&quot;>
+    <!-- Closed -->
+    <div style=&quot;position: relative; width: 50pt; height: 50pt; opacity: 0.4;&quot;>
+      <div style=&quot;position: absolute; width: 50pt; height: 29pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+      <div style=&quot;position: absolute; width: 25pt; height: 39pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+      <div style=&quot;position: absolute; width: 25pt; height: 39pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+    </div>
+    <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 18pt; font-weight: 700; color: #8888AA;&quot;>VS</p>
+    <!-- Open -->
+    <div style=&quot;position: relative; width: 50pt; height: 50pt;&quot;>
+      <div style=&quot;position: absolute; width: 50pt; height: 29pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+      <div style=&quot;position: absolute; width: 25pt; height: 39pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+      <div style=&quot;position: absolute; width: 25pt; height: 39pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="12" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-12.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style=&quot;margin-bottom: 24pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #FF6B6B; letter-spacing: 0.15em; margin-bottom: 6pt;&quot;>10 // CHAIN REACTION</p>
+    <h2 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;&quot;>보안 부실의 연쇄</h2>
+  </div>
+
+  <!-- Timeline -->
+  <div style=&quot;flex: 1; display: flex; align-items: center; gap: 0; position: relative;&quot;>
+    <!-- Connecting line -->
+    <div style=&quot;position: absolute; top: 50%; left: 60pt; right: 60pt; height: 2pt; background: rgba(255,107,107,0.3);&quot;></div>
+
+    <!-- Event 1 -->
+    <div style=&quot;flex: 1; display: flex; flex-direction: column; align-items: center; z-index: 1;&quot;>
+      <div style=&quot;position: relative; width: 80pt; height: 80pt; margin-bottom: 16pt;&quot;>
+        <div style=&quot;position: absolute; width: 80pt; height: 46pt; top: 0; left: 0; background: #E05555; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <div style=&quot;position: absolute; width: 40pt; height: 63pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <div style=&quot;position: absolute; width: 40pt; height: 63pt; bottom: 0; right: 0; background: #DD5555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 22pt; font-weight: 700; color: #FF6B6B;&quot;>3/26</p>
+      <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF; text-align: center; margin-top: 8pt;&quot;>CMS 설정 오류</p>
+      <p style=&quot;font-size: 9pt; color: #8888AA; text-align: center; margin-top: 4pt; line-height: 1.4;&quot;>내부 파일 ~3,000개 유출<br>Mythos 모델 정보 노출</p>
+    </div>
+
+    <!-- Arrow -->
+    <div style=&quot;z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4pt;&quot;>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #FF6B6B;&quot;>5일</p>
+      <div style=&quot;width: 40pt; height: 2pt; background: #FF6B6B;&quot;></div>
+    </div>
+
+    <!-- Event 2 -->
+    <div style=&quot;flex: 1; display: flex; flex-direction: column; align-items: center; z-index: 1;&quot;>
+      <div style=&quot;position: relative; width: 100pt; height: 100pt; margin-bottom: 16pt;&quot;>
+        <div style=&quot;position: absolute; width: 100pt; height: 58pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <div style=&quot;position: absolute; width: 50pt; height: 78pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <div style=&quot;position: absolute; width: 50pt; height: 78pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 22pt; font-weight: 700; color: #FF6B6B;&quot;>3/31</p>
+      <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF; text-align: center; margin-top: 8pt;&quot;>npm 패키징 실수</p>
+      <p style=&quot;font-size: 9pt; color: #8888AA; text-align: center; margin-top: 4pt; line-height: 1.4;&quot;>소스코드 512K줄 유출<br>$2.5B 제품 전체 공개</p>
+    </div>
+
+    <!-- Arrow -->
+    <div style=&quot;z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 4pt;&quot;>
+      <p style=&quot;font-family: 'Space Mono', monospace; font-size: 10pt; font-weight: 700; color: #8888AA;&quot;>?</p>
+      <div style=&quot;width: 40pt; height: 2pt; background: #8888AA;&quot;></div>
+    </div>
+
+    <!-- Event 3 (question) -->
+    <div style=&quot;flex: 1; display: flex; flex-direction: column; align-items: center; z-index: 1;&quot;>
+      <div style=&quot;position: relative; width: 80pt; height: 80pt; margin-bottom: 16pt; opacity: 0.5;&quot;>
+        <div style=&quot;position: absolute; width: 80pt; height: 46pt; top: 0; left: 0; background: #8888AA; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+        <div style=&quot;position: absolute; width: 40pt; height: 63pt; bottom: 0; left: 0; background: #666688; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+        <div style=&quot;position: absolute; width: 40pt; height: 63pt; bottom: 0; right: 0; background: #777799; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+      </div>
+      <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 22pt; font-weight: 700; color: #8888AA;&quot;>IPO</p>
+      <p style=&quot;font-size: 11pt; font-weight: 600; color: #FFFFFF; text-align: center; margin-top: 8pt;&quot;>운영 성숙도</p>
+      <p style=&quot;font-size: 9pt; color: #8888AA; text-align: center; margin-top: 4pt; line-height: 1.4;&quot;>IPO 준비 기업에<br>이 수준의 보안?</p>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="13" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-13.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .glow-ring {
+      position: absolute;
+      border: 1pt solid rgba(124,111,255,0.15);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <!-- Expanding glow rings -->
+  <div class=&quot;glow-ring&quot; style=&quot;width: 200pt; height: 200pt; top: 50%; left: 50%; transform: translate(-50%,-50%);&quot;></div>
+  <div class=&quot;glow-ring&quot; style=&quot;width: 340pt; height: 340pt; top: 50%; left: 50%; transform: translate(-50%,-50%);&quot;></div>
+  <div class=&quot;glow-ring&quot; style=&quot;width: 450pt; height: 400pt; top: 50%; left: 50%; transform: translate(-50%,-50%); overflow: hidden;&quot;></div>
+
+  <!-- Isometric rocket/building emerging -->
+  <div style=&quot;position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); display: flex; flex-direction: column; align-items: center;&quot;>
+    <!-- Rocket-like isometric shape -->
+    <div style=&quot;position: relative; width: 60pt; height: 70pt;&quot;>
+      <!-- Top (bright) -->
+      <div style=&quot;position: absolute; width: 60pt; height: 35pt; top: 0; left: 0; background: #A594FF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);&quot;></div>
+      <!-- Left -->
+      <div style=&quot;position: absolute; width: 30pt; height: 52pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);&quot;></div>
+      <!-- Right -->
+      <div style=&quot;position: absolute; width: 30pt; height: 52pt; bottom: 0; right: 0; background: #7C6FFF; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);&quot;></div>
+    </div>
+    <!-- Trail lines -->
+    <div style=&quot;display: flex; flex-direction: column; align-items: center; gap: 3pt; margin-top: 4pt;&quot;>
+      <div style=&quot;width: 2pt; height: 12pt; background: #7C6FFF; opacity: 0.8;&quot;></div>
+      <div style=&quot;width: 2pt; height: 8pt; background: #7C6FFF; opacity: 0.5;&quot;></div>
+      <div style=&quot;width: 2pt; height: 5pt; background: #7C6FFF; opacity: 0.3;&quot;></div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div style=&quot;position: relative; z-index: 2; text-align: center; margin-top: 100pt;&quot;>
+    <p style=&quot;font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.2em; margin-bottom: 14pt;&quot;>CLOSING // K-BUILDERS</p>
+    <h1 style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 40pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;&quot;>
+      K-빌더, 세계를 흔들다
+    </h1>
+    <p style=&quot;font-size: 13pt; color: #A594FF; margin-top: 16pt; line-height: 1.6; max-width: 480pt;&quot;>
+      실리콘밸리가 닫은 문을 한국 개발자가 열어젖혔다
+    </p>
+  </div>
+
+  <!-- Bottom messages -->
+  <div style=&quot;position: absolute; bottom: 36pt; left: 48pt; right: 48pt;&quot;>
+    <div style=&quot;display: flex; justify-content: space-between; align-items: flex-end;&quot;>
+      <div style=&quot;display: flex; flex-direction: column; gap: 6pt;&quot;>
+        <p style=&quot;font-size: 10pt; color: #FFFFFF; line-height: 1.5;&quot;>
+          Sigrid Jin — 가장 많이 쓰는 사람이, 가장 먼저 대안을 만들었다
+        </p>
+        <p style=&quot;font-size: 10pt; color: #8888AA; line-height: 1.5;&quot;>
+          쓰기만 하는 게 아니라 만든다. 하룻밤 만에 111K Stars.
+        </p>
+      </div>
+      <div style=&quot;text-align: right;&quot;>
+        <p style=&quot;font-family: 'Barlow Condensed', sans-serif; font-size: 16pt; font-weight: 700; color: #7C6FFF; line-height: 1.3;&quot;>
+          다음 판을 뒤집을<br>K-빌더는 누구인가?
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 13;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

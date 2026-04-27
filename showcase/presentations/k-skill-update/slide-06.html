@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 300pt; height: 300pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(245,158,11,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 220pt; height: 220pt;
+      bottom: 0; left: 0;
+      background: radial-gradient(circle, rgba(239,68,68,0.15), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left { display: flex; flex-direction: column; gap: 16pt; }
+    .emoji-large { font-size: 56pt; line-height: 1; }
+    .skill-title {
+      font-size: 26pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .skill-desc {
+      font-size: 13pt; color: rgba(255,255,255,0.6); line-height: 1.7;
+    }
+    .api-badge {
+      display: inline-flex; align-items: center; gap: 6pt;
+      padding: 8pt 14pt;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 10pt;
+    }
+    .api-badge-dot {
+      width: 6pt; height: 6pt;
+      background: #F59E0B;
+      border-radius: 50%;
+    }
+    .api-badge-text {
+      font-size: 9pt; font-weight: 600;
+      color: #F59E0B; letter-spacing: 0.05em;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 24pt;
+      display: flex;
+      flex-direction: column;
+      gap: 12pt;
+    }
+
+    .chat-bubble {
+      padding: 12pt 16pt;
+      border-radius: 14pt;
+      font-size: 11pt;
+      line-height: 1.5;
+      max-width: 90%;
+    }
+    .chat-user {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: rgba(255,255,255,0.9);
+      align-self: flex-end;
+      border-bottom-right-radius: 4pt;
+    }
+    .chat-agent {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+      align-self: flex-start;
+      border-bottom-left-radius: 4pt;
+    }
+    .chat-label {
+      font-size: 8pt; font-weight: 600;
+      color: rgba(255,255,255,0.4); letter-spacing: 0.05em;
+      margin-bottom: 2pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="blob"></div>
+  <div class="blob2"></div>
+
+  <div class="header">
+    <span class="header-badge">SKILL 04</span>
+    <span class="page-num">06</span>
+  </div>
+
+  <div class="content">
+    <div class="left">
+      <div class="emoji-large">🍲</div>
+      <h1 class="skill-title">이 음식<br>먹어도 괜찮나?</h1>
+      <p class="skill-desc">식약처 공식 API 기반<br>식품 안전 정보 스킬</p>
+      <div class="api-badge">
+        <div class="api-badge-dot"></div>
+        <span class="api-badge-text">식품의약품안전처 공식 API</span>
+      </div>
+    </div>
+
+    <div class="glass-panel">
+      <p class="chat-label">USER</p>
+      <div class="chat-bubble chat-user">
+        나 당뇨인데 약과 먹어도 괜찮나? 🤔
+      </div>
+      <p class="chat-label">AGENT</p>
+      <div class="chat-bubble chat-agent">
+        약과의 영양 정보를 확인할게요.<br>
+        식약처 데이터 기준으로 답변드립니다.
+      </div>
+      <p class="chat-label">AGENT</p>
+      <div class="chat-bubble chat-agent">
+        약과 1개(40g) 기준 당류 약 12g입니다.<br>
+        당뇨 환자분은 간식 기준 1/2개 이하로<br>
+        섭취를 권장합니다. 🍯
+      </div>
+    </div>
+  </div>
+</body>
+</html>

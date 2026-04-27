@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background: scattered small cubes (fallen repos) -->
+  <div style="position: absolute; inset: 0; overflow: hidden; opacity: 0.12;">
+    <div style="position: absolute; width: 12pt; height: 12pt; background: #FF6B6B; top: 60pt; left: 380pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 10pt; height: 10pt; background: #FF6B6B; top: 120pt; left: 420pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 14pt; height: 14pt; background: #FF6B6B; top: 180pt; left: 360pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 8pt; height: 8pt; background: #FF6B6B; top: 100pt; left: 500pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 11pt; height: 11pt; background: #FF6B6B; top: 200pt; left: 450pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 9pt; height: 9pt; background: #FF6B6B; top: 240pt; left: 520pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 13pt; height: 13pt; background: #FF6B6B; top: 150pt; left: 560pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 10pt; height: 10pt; background: #FF6B6B; top: 280pt; left: 400pt; transform: rotate(45deg);"></div>
+    <div style="position: absolute; width: 7pt; height: 7pt; background: #FF6B6B; top: 80pt; left: 600pt; transform: rotate(45deg);"></div>
+  </div>
+
+  <!-- Header -->
+  <div style="margin-bottom: 20pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #FF6B6B; letter-spacing: 0.15em; margin-bottom: 6pt;">07 // COLLATERAL DAMAGE</p>
+    <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;">8,100개 레포 삭제 사태</h2>
+  </div>
+
+  <!-- Main content -->
+  <div style="flex: 1; display: flex; gap: 32pt; align-items: center;">
+    <!-- Left: Big number -->
+    <div style="min-width: 200pt; text-align: center;">
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 64pt; font-weight: 700; color: #FF6B6B; line-height: 1.2;">8,100+</p>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 8pt;">REPOSITORIES DELETED</p>
+
+      <!-- Reduction arrow -->
+      <div style="margin-top: 20pt; display: flex; align-items: center; justify-content: center; gap: 12pt;">
+        <div style="width: 40pt; height: 2pt; background: #8888AA;"></div>
+        <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;">REDUCED TO</p>
+        <div style="width: 40pt; height: 2pt; background: #8888AA;"></div>
+      </div>
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 36pt; font-weight: 700; color: #7C6FFF; margin-top: 8pt;">1 + 96</p>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;">REPO + FORKS</p>
+    </div>
+
+    <!-- Right: Details -->
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 14pt;">
+      <div style="background: rgba(255,107,107,0.1); border: 1px solid rgba(255,107,107,0.25); padding: 14pt 16pt;">
+        <p style="font-size: 11pt; color: #FFFFFF; line-height: 1.5;">
+          과도한 DMCA로 <span style="color: #FF6B6B; font-weight: 600;">무관한 프로젝트</span>까지 무차별 삭제
+        </p>
+      </div>
+      <div style="background: rgba(255,107,107,0.06); border: 1px solid rgba(255,107,107,0.15); padding: 14pt 16pt;">
+        <p style="font-size: 11pt; color: #FFFFFF; line-height: 1.5;">
+          Anthropic <span style="color: #FF6B6B; font-weight: 600;">자체 공식 포크 네트워크</span>도 삭제 대상에 포함
+        </p>
+      </div>
+      <div style="background: rgba(124,111,255,0.08); border: 1px solid rgba(124,111,255,0.2); padding: 14pt 16pt;">
+        <p style="font-size: 11pt; color: #FFFFFF; line-height: 1.5;">
+          Boris Cherny: <span style="color: #A594FF; font-style: italic;">"의도치 않은 실수"</span>
+        </p>
+        <p style="font-size: 9pt; color: #8888AA; margin-top: 4pt;">Claude Code 담당 수석 엔지니어</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

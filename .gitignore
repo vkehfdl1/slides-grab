@@ -52,6 +52,11 @@ style-preview.html
 *.pdf
 *.dmg
 
+# Showcase site: allow PDFs and viewers checked into showcase/presentations/
+!showcase/presentations/**/*.pdf
+!showcase/presentations/**/viewer.html
+!showcase/assets/manifest.json
+
 # Generated outlines and thumbnails
 slide-outline.md
 thumbnail-grid.png

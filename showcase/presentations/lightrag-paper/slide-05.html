@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>LightRAG — Slide 5</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 92% 8%, rgba(167, 139, 250, 0.5) 0%, transparent 36%),
+      radial-gradient(circle at 8% 92%, rgba(96, 165, 250, 0.5) 0%, transparent 34%),
+      radial-gradient(circle at 60% 45%, rgba(244, 114, 182, 0.25) 0%, transparent 24%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; }
+
+  .header {
+    position: absolute;
+    top: 28pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .pagenum { font-size: 10pt; color: #B8B8D0; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .section { font-size: 10pt; color: #C4B5FD; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+
+  h2 {
+    position: absolute;
+    top: 54pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 28pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    z-index: 5;
+  }
+  h2 strong { font-weight: 700; }
+
+  .lede {
+    position: absolute;
+    top: 95pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 12pt;
+    color: #C4B5FD;
+    font-style: italic;
+    line-height: 1.4;
+    z-index: 5;
+  }
+
+  /* Top stats */
+  .stats {
+    position: absolute;
+    top: 130pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12pt;
+    z-index: 5;
+  }
+  .stat {
+    padding: 12pt 14pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 12pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
+  .stat .stat-label {
+    font-size: 9pt;
+    color: #B8B8D0;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4pt;
+  }
+  .stat .stat-value {
+    font-size: 32pt;
+    font-weight: 700;
+    line-height: 1.2;
+    background: linear-gradient(90deg, #FFFFFF 0%, #C4B5FD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 4pt;
+  }
+  .stat .stat-value.small { font-size: 22pt; line-height: 1.2; }
+  .stat .stat-desc {
+    font-size: 9pt;
+    color: #E0E0F0;
+    line-height: 1.35;
+  }
+
+  /* Eval dimensions */
+  .dims {
+    position: absolute;
+    top: 232pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    align-items: center;
+    gap: 8pt;
+    z-index: 5;
+  }
+  .dims .dim-label {
+    font-size: 9pt;
+    color: #B8B8D0;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-right: 6pt;
+  }
+  .dim {
+    padding: 4pt 11pt;
+    background: rgba(167, 139, 250, 0.15);
+    border: 1pt solid rgba(167, 139, 250, 0.35);
+    border-radius: 999pt;
+    font-size: 9pt;
+    color: #DDD6FE;
+    font-weight: 500;
+  }
+
+  /* Strengths */
+  .strengths {
+    position: absolute;
+    top: 270pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10pt;
+    z-index: 5;
+  }
+  .strength {
+    padding: 10pt 12pt;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1pt solid rgba(255, 255, 255, 0.18);
+    border-radius: 10pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+  .strength .check {
+    color: #34D399;
+    font-size: 11pt;
+    font-weight: 700;
+    margin-right: 4pt;
+  }
+  .strength .strength-title {
+    font-size: 11pt;
+    color: #FFFFFF;
+    font-weight: 700;
+    margin-bottom: 3pt;
+  }
+  .strength .strength-desc {
+    font-size: 9pt;
+    color: #E0E0F0;
+    line-height: 1.4;
+  }
+
+  /* Footer CTA */
+  .closing {
+    position: absolute;
+    bottom: 24pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 5;
+  }
+  .closing-msg {
+    font-size: 13pt;
+    color: #FFFFFF;
+    font-weight: 600;
+  }
+  .closing-msg .accent {
+    background: linear-gradient(90deg, #C4B5FD 0%, #93C5FD 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+  }
+  .links {
+    display: flex;
+    gap: 8pt;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 5pt 12pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.25);
+    border-radius: 999pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    font-size: 9pt;
+    color: #E0E0F0;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+  <div class="slide">
+  <div class="header">
+    <p class="pagenum">05 / 05</p>
+    <p class="section">Results · Conclusion</p>
+  </div>
+
+  <h2>결과: <strong>GraphRAG·NaiveRAG 대비 압도적 우위</strong></h2>
+  <p class="lede">4개 도메인 × 4개 평가 차원에서 일관된 우위 + 빠른 적응 + 낮은 비용</p>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-label">vs NaiveRAG (Legal)</p>
+      <p class="stat-value">84.8<span style="font-size: 18pt;">%</span></p>
+      <p class="stat-desc">Overall Win Rate · LightRAG가 압승한 도메인</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">vs GraphRAG</p>
+      <p class="stat-value">4 / 4</p>
+      <p class="stat-desc">Agriculture · CS · Legal · Mix 모든 도메인 우위 (특히 Diversity)</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">UltraDomain Benchmark</p>
+      <p class="stat-value small">600K~5M</p>
+      <p class="stat-desc">tokens · 도메인당 데이터 규모, 125 questions per dataset</p>
+    </div>
+  </div>
+
+  <div class="dims">
+    <span class="dim-label">평가 차원</span>
+    <span class="dim">Comprehensiveness</span>
+    <span class="dim">Diversity</span>
+    <span class="dim">Empowerment</span>
+    <span class="dim">Overall</span>
+  </div>
+
+  <div class="strengths">
+    <div class="strength">
+      <p class="strength-title"><span class="check">✓</span>Effectiveness</p>
+      <p class="strength-desc">다양한 쿼리 타입에서 일관된 성능 우위</p>
+    </div>
+    <div class="strength">
+      <p class="strength-title"><span class="check">✓</span>Efficiency</p>
+      <p class="strength-desc">커뮤니티 트래버설 대비 검색 오버헤드 대폭 감소</p>
+    </div>
+    <div class="strength">
+      <p class="strength-title"><span class="check">✓</span>Adaptability</p>
+      <p class="strength-desc">Incremental update로 신규 데이터 즉시 반영</p>
+    </div>
+  </div>
+
+  <div class="closing">
+    <p class="closing-msg"><span class="accent">Simple</span>하면서 <span class="accent">Fast</span>하고, <span class="accent">Graph</span>로 더 풍부한 RAG.</p>
+    <div class="links">
+      <span class="badge">github.com/HKUDS/LightRAG</span>
+      <span class="badge">arXiv 2410.05779v3</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<base href="/slides/">
+<script>
+(() => {
+  const slideFile = "slide-12.html";
+  const localAssetPrefix = "./assets/";
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current && current.nodeType === Node.ELEMENT_NODE && current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLImageElement)) return;
+    const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+    if (!src || src.startsWith('data:')) return;
+    if (src.startsWith(localAssetPrefix)) {
+      fail('missing local asset', { src });
+      return;
+    }
+    fail('image failed to load', { src });
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      if (!src || src.startsWith('data:')) continue;
+      if (src.startsWith('https://')) {
+        warn('remote image is best-effort only', { src });
+        continue;
+      }
+      if (src.startsWith('http://')) {
+        warn('insecure remote image is discouraged', { src });
+        continue;
+      }
+      if (absolutePathRe.test(src) || src.startsWith('/')) {
+        fail('non-portable image path is unsupported', { src });
+        continue;
+      }
+      if (!src.startsWith(localAssetPrefix)) {
+        warn('noncanonical local image path should use ./assets/<file>', { src });
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>Slide 12</title>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0a0a0a; font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;">
+<div style="width: 720pt; height: 405pt; background: #0a0a0a; position: relative; overflow: hidden; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; padding: 48pt 72pt;">
+
+  <p style="margin: 0 0 10pt 0; font-size: 11pt; font-weight: 600; color: #6366f1; letter-spacing: 0.08em; text-transform: uppercase;">Get Started</p>
+
+  <h1 style="margin: 0 0 28pt 0; font-size: 28pt; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">Up and running in 30 seconds</h1>
+
+  <div style="background: #111111; border-radius: 10pt; padding: 22pt 24pt; margin-bottom: 24pt;">
+    <p style="margin: 0 0 14pt 0; font-size: 13pt; font-weight: 600; color: #a5b4fc; font-family: monospace;">$ git clone https://github.com/garrytan/gstack ~/.claude/skills/gstack</p>
+    <p style="margin: 0; font-size: 13pt; font-weight: 600; color: #a5b4fc; font-family: monospace;">$ ~/.claude/skills/gstack/setup.sh</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20pt;">
+    <div>
+      <p style="margin: 0 0 6pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;">Requirements</p>
+      <p style="margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0; line-height: 1.6;">Claude Code<br>Git<br>Bun v1.0+</p>
+    </div>
+    <div>
+      <p style="margin: 0 0 6pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;">License</p>
+      <p style="margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0; line-height: 1.6;">MIT<br>Free forever</p>
+    </div>
+    <div>
+      <p style="margin: 0 0 6pt 0; font-size: 10pt; font-weight: 500; color: #555555; text-transform: uppercase; letter-spacing: 0.04em;">Compatibility</p>
+      <p style="margin: 0; font-size: 12pt; font-weight: 500; color: #a0a0a0; line-height: 1.6;">macOS / Linux / Windows<br>Codex, Gemini CLI, Cursor</p>
+    </div>
+  </div>
+
+</div>
+
+</body></html>

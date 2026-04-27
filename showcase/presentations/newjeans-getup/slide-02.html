@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #0020C2;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .rainbow-bar {
+      width: 100%;
+      height: 7pt;
+      background: linear-gradient(90deg, #FF0000, #FF7700, #FFFF00, #00FF00, #0000FF, #8B00FF);
+      flex-shrink: 0;
+    }
+    .content {
+      flex: 1;
+      padding: 28pt 44pt;
+      display: flex;
+      flex-direction: column;
+    }
+    h2 {
+      font-family: Impact, 'Pretendard', sans-serif;
+      font-size: 30pt;
+      color: #FFFFFF;
+      text-shadow: 2px 2px 0 #00FFFF, 4px 4px 0 #FF00FF;
+      text-transform: uppercase;
+      margin-bottom: 24pt;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18pt;
+      flex: 1;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1.5pt solid rgba(255, 255, 0, 0.3);
+      border-radius: 8pt;
+      padding: 16pt 20pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .stat-number {
+      font-family: Impact, 'Pretendard', sans-serif;
+      font-size: 26pt;
+      color: #FFFF00;
+      text-shadow: 1px 1px 0 #FF00FF;
+      line-height: 1.2;
+    }
+    .stat-label {
+      font-size: 11pt;
+      color: rgba(255, 255, 255, 0.85);
+      margin-top: 6pt;
+      line-height: 1.4;
+    }
+    .tag {
+      display: inline-block;
+      padding: 3pt 10pt;
+      background: rgba(255, 255, 0, 0.15);
+      border: 1pt solid #FFFF00;
+      border-radius: 10pt;
+      font-size: 8pt;
+      color: #FFFF00;
+      font-weight: 600;
+      margin-right: 6pt;
+    }
+    .footer-tags {
+      margin-top: 14pt;
+      display: flex;
+      align-items: center;
+      gap: 4pt;
+    }
+    .star { color: #FFFF00; }
+  </style>
+</head>
+<body>
+  <div class="rainbow-bar"></div>
+  <div class="content">
+    <h2><span class="star">&#10022;</span> Album Overview</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <p class="stat-number">#1</p>
+        <p class="stat-label">Billboard 200 1위<br>K-pop 걸그룹 EP 최초</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-number">119만장</p>
+        <p class="stat-label">첫날 판매량<br>걸그룹 역대 2위</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-number">165만장</p>
+        <p class="stat-label">첫주 판매량<br>걸그룹 역대 2위</p>
+      </div>
+      <div class="stat-card">
+        <p class="stat-number">14주</p>
+        <p class="stat-label">Billboard 200 연속 차트인<br>K-pop 걸그룹 최초</p>
+      </div>
+    </div>
+    <div class="footer-tags">
+      <p class="tag">UK GARAGE</p>
+      <p class="tag">DRUM &amp; BASS</p>
+      <p class="tag">JERSEY CLUB</p>
+      <p class="tag">ADOR / HYBE</p>
+    </div>
+  </div>
+  <div class="rainbow-bar"></div>
+</body>
+</html>

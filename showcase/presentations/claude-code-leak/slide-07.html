@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html><head>
+<base href="/slides/">
+<script>
+(() => {
+  const slideFile = "slide-07.html";
+  const localAssetPrefix = "./assets/";
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current && current.nodeType === Node.ELEMENT_NODE && current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement && target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;family=Barlow+Condensed:wght@600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .stat-row {
+      display: flex; align-items: center; gap: 20pt;
+      padding: 12pt 0;
+      border-bottom: 1px solid rgba(124,111,255,0.12);
+    }
+    .stat-row:last-child { border-bottom: none; }
+    .stat-value {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-weight: 700; color: #FFFFFF;
+      min-width: 120pt; text-align: right;
+    }
+    .stat-bar {
+      height: 8pt; background: #7C6FFF;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16pt;">
+    <div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;">05 // RECORDS</p>
+      <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;">GitHub 역사를 다시 쓰다</h2>
+    </div>
+    <div style="text-align: right;">
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 40pt; font-weight: 700; color: #7C6FFF; line-height: 1.2;">170K+</p>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA;">GITHUB STARS</p>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
+    <div class="stat-row">
+      <p class="stat-value" style="font-size: 28pt;">170,000+</p>
+      <div style="flex: 1; position: relative; height: 8pt;">
+        <div class="stat-bar" style="width: 100%;"></div>
+      </div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;">Stars</p>
+    </div>
+    <div class="stat-row">
+      <p class="stat-value" style="font-size: 28pt;">100,000+</p>
+      <div style="flex: 1; position: relative; height: 8pt;">
+        <div class="stat-bar" style="width: 88%; background: #6254E8;"></div>
+      </div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;">Forks</p>
+    </div>
+    <div class="stat-row">
+      <p class="stat-value" style="font-size: 28pt; color: #A594FF;">~2hrs</p>
+      <div style="flex: 1; position: relative; height: 8pt;">
+        <div class="stat-bar" style="width: 45%; background: #A594FF;"></div>
+      </div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;">50K 달성</p>
+    </div>
+    <div class="stat-row">
+      <p class="stat-value" style="font-size: 28pt;">5,000+</p>
+      <div style="flex: 1; position: relative; height: 8pt;">
+        <div class="stat-bar" style="width: 35%; background: #4A3FCC;"></div>
+      </div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; min-width: 60pt;">Discord</p>
+    </div>
+  </div>
+
+  <!-- Bottom highlight -->
+  <div style="background: rgba(124,111,255,0.1); border: 1px solid rgba(124,111,255,0.25); padding: 12pt 18pt; margin-top: 12pt; text-align: center;">
+    <p style="font-size: 13pt; font-weight: 600; color: #FFFFFF;">
+      GitHub 역사상 <span style="color: #7C6FFF;">100K Stars 최단 달성</span> 레포지토리
+    </p>
+  </div>
+
+
+</body></html>

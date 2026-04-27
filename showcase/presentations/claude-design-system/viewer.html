@@ -1,0 +1,2712 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 8</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>Anatomy of Claude's Design System Prompt — Cover</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #1A1208;
+      color: #F2EFE8;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+      position: relative;
+    }
+    .masthead {
+      border-top: 1pt solid #F2EFE8;
+      border-bottom: 1pt solid #F2EFE8;
+      padding: 6pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+    }
+    .masthead-top { margin-top: 18pt; }
+    .dateline {
+      border-bottom: 1pt solid #3A3020;
+      padding: 4pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1pt;
+      color: #BBB5A8;
+      display: flex;
+      justify-content: space-between;
+    }
+    .hero {
+      flex: 1;
+      padding: 28pt 32pt 18pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .eyebrow {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 3pt;
+      color: #BBB5A8;
+      margin: 0 0 14pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 52pt;
+      line-height: 1.18;
+      letter-spacing: -1pt;
+      margin: 0 0 14pt;
+      padding-bottom: 6pt;
+      color: #F2EFE8;
+    }
+    .headline em {
+      font-style: italic;
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 700;
+      color: #F2EFE8;
+    }
+    .dek {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-weight: 400;
+      font-size: 16pt;
+      line-height: 1.45;
+      max-width: 520pt;
+      margin: 0;
+      color: #E6DFD0;
+    }
+    .footer-bar {
+      border-top: 1pt solid #3A3020;
+      padding: 8pt 32pt 14pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1pt;
+      color: #BBB5A8;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <div class=&quot;masthead masthead-top&quot;>
+      <p style=&quot;margin:0;&quot;>SLIDES-GRAB RESEARCH</p>
+      <p style=&quot;margin:0;&quot;>VOL. I · ISSUE 01</p>
+      <p style=&quot;margin:0;&quot;>APR 2026</p>
+    </div>
+    <div class=&quot;dateline&quot;>
+      <p style=&quot;margin:0;&quot;>2026년 4월 20일 월요일 · 서울판</p>
+      <p style=&quot;margin:0;&quot;>PR #67 · FEATURE/#66</p>
+    </div>
+    <div class=&quot;hero&quot;>
+      <p class=&quot;eyebrow&quot;>A FORENSIC BREAKDOWN · 특집 해부</p>
+      <h1 class=&quot;headline&quot;>Claude 디자인 시스템<br>프롬프트의 <em>해부</em></h1>
+      <p class=&quot;dek&quot;>Anthropic이 에이전트에게 건넨 400줄짜리 아트 디렉션 매뉴얼을 한 줄씩 뜯어보다. HTML을 디자인 매체로 다루는 첫 공개 시스템 프롬프트에서, slides-grab는 무엇을 가져오고 무엇을 버렸는가.</p>
+    </div>
+    <div class=&quot;footer-bar&quot;>
+      <p style=&quot;margin:0;&quot;>BY SLIDES-GRAB</p>
+      <p style=&quot;margin:0;&quot;>8 SLIDES · 약 4분 분량</p>
+      <p style=&quot;margin:0;&quot;>01 / 08</p>
+    </div>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>The Document — Anatomy of Claude's Design System Prompt</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 14pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 28pt;
+      line-height: 1.28;
+      letter-spacing: -0.4pt;
+      margin: 0 0 8pt;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .lede {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.45;
+      margin: 0;
+      color: #3A3020;
+      max-width: 600pt;
+    }
+    .body-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.2fr 1pt 1.2fr 1pt 0.7fr;
+      gap: 0;
+      padding: 12pt 32pt 10pt;
+    }
+    .col {
+      padding: 0 14pt;
+    }
+    .col:first-child { padding-left: 0; }
+    .col:last-child { padding-right: 0; }
+    .rule-v {
+      background: #1A1208;
+      width: 1pt;
+      height: 100%;
+    }
+    .col-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      color: #1A1208;
+      margin: 0 0 6pt;
+      padding-bottom: 3pt;
+      border-bottom: 1pt solid #1A1208;
+      text-transform: uppercase;
+    }
+    .col-body {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.45;
+      margin: 0;
+      color: #3A3020;
+    }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 44pt;
+      line-height: 1.15;
+      color: #1A1208;
+      margin: 0 0 2pt;
+      padding-bottom: 4pt;
+      letter-spacing: -1pt;
+    }
+    .stat-caption {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+    .slide-no {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <header class=&quot;masthead&quot;>
+      <p style=&quot;margin:0;&quot;>THE DOCUMENT</p>
+      <p style=&quot;margin:0;&quot;>SLIDES-GRAB RESEARCH · VOL. I</p>
+      <p style=&quot;margin:0;&quot; class=&quot;slide-no&quot;>02 / 08</p>
+    </header>
+    <div class=&quot;hero&quot;>
+      <p class=&quot;kicker&quot;>§ 1 · 이 문서는 무엇인가</p>
+      <h1 class=&quot;headline&quot;>HTML을 디자인 매체로 다루는 에이전트용 <em>매뉴얼</em></h1>
+      <p class=&quot;lede&quot;>CL4R1T4S 레포에 공개된 ~400줄 분량의 시스템 프롬프트. Anthropic이 Claude artifact 환경에서 디자인 과제를 수행시키기 위해 주입하는 지시문 전체를 담는다.</p>
+    </div>
+    <div class=&quot;body-grid&quot;>
+      <section class=&quot;col&quot;>
+        <p class=&quot;col-label&quot;>出處 · SOURCE</p>
+        <p class=&quot;col-body&quot;><strong>ANTHROPIC/Claude-Design-Sys-Prompt.txt</strong>. 공식 배포는 아니지만 실제 Claude 런타임 주입 프롬프트로 추정.</p>
+      </section>
+      <div class=&quot;rule-v&quot;></div>
+      <section class=&quot;col&quot;>
+        <p class=&quot;col-label&quot;>範圍 · COVERAGE</p>
+        <p class=&quot;col-body&quot;>역할 규정, 6단계 워크플로, 콘텐츠 규칙, AI slop 방지 리스트, Claude artifact 런타임 도구. 절반은 환경 인프라, 절반은 이식 가능한 원칙.</p>
+      </section>
+      <div class=&quot;rule-v&quot;></div>
+      <aside class=&quot;col&quot;>
+        <p class=&quot;col-label&quot;>규모</p>
+        <p class=&quot;stat-number&quot;>400</p>
+        <p class=&quot;stat-caption&quot;>줄 분량 · 5+ 빌트인 스킬</p>
+      </aside>
+    </div>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>Core Philosophy — Anatomy of Claude's Design System Prompt</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .quote-frame {
+      flex: 1;
+      padding: 18pt 48pt 12pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 14pt;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    .rule-top, .rule-bottom {
+      border-top: 2pt solid #1A1208;
+      width: 80pt;
+      margin: 0 auto 12pt;
+    }
+    .rule-bottom {
+      margin: 12pt auto 0;
+    }
+    .pullquote {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 28pt;
+      line-height: 1.3;
+      text-align: center;
+      margin: 0 auto;
+      max-width: 620pt;
+      color: #1A1208;
+      letter-spacing: -0.4pt;
+    }
+    .attribution {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 10pt 0 16pt;
+      text-align: center;
+      text-transform: uppercase;
+    }
+    .gloss {
+      display: grid;
+      grid-template-columns: 1fr 1pt 1fr;
+      gap: 0;
+      padding: 0 16pt;
+      margin-top: 8pt;
+    }
+    .gloss-col {
+      padding: 0 16pt;
+    }
+    .gloss-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      color: #1A1208;
+      margin: 0 0 6pt;
+      padding-bottom: 4pt;
+      border-bottom: 1pt solid #1A1208;
+      text-transform: uppercase;
+    }
+    .gloss-body {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.5;
+      margin: 0;
+      color: #3A3020;
+    }
+    .rule-v {
+      background: #1A1208;
+      width: 1pt;
+    }
+    .footer-bar {
+      border-top: 1pt solid #1A1208;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1pt;
+      color: #6E6550;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <header class=&quot;masthead&quot;>
+      <p style=&quot;margin:0;&quot;>CORE PHILOSOPHY</p>
+      <p style=&quot;margin:0;&quot;>§ 2 · 중심 사상</p>
+      <p style=&quot;margin:0;&quot;>03 / 08</p>
+    </header>
+    <div class=&quot;quote-frame&quot;>
+      <p class=&quot;kicker&quot;>THE THESIS · 프롬프트의 핵심 문장</p>
+      <div class=&quot;rule-top&quot;></div>
+      <blockquote class=&quot;pullquote&quot;>&quot;HTML is your tool, but your medium and output format vary.&quot;</blockquote>
+      <div class=&quot;rule-bottom&quot;></div>
+      <p class=&quot;attribution&quot;>— Claude-Design-Sys-Prompt.txt · OPENING LINES</p>
+      <div class=&quot;gloss&quot;>
+        <section class=&quot;gloss-col&quot;>
+          <p class=&quot;gloss-label&quot;>해석 · READING</p>
+          <p class=&quot;gloss-body&quot;>에이전트는 슬라이드 디자이너, 애니메이터, UX 디자이너가 될 수 있다. HTML은 렌더링 기판일 뿐, 매체는 과제마다 달라진다. 웹 페이지 관습을 기본값으로 끌어들이지 마라.</p>
+        </section>
+        <div class=&quot;rule-v&quot;></div>
+        <section class=&quot;gloss-col&quot;>
+          <p class=&quot;gloss-label&quot;>시사점 · IMPLICATION</p>
+          <p class=&quot;gloss-body&quot;>대부분의 LLM이 빠지는 &quot;웹 마크업&quot; 기본값을 명시적으로 거부한다. slides-grab는 이미 이 지점에 도달해 있다 — 슬라이드는 시맨틱 HTML이지, 웹 페이지가 아니다.</p>
+        </section>
+      </div>
+    </div>
+    <footer class=&quot;footer-bar&quot;>
+      <p style=&quot;margin:0;&quot;>SLIDES-GRAB RESEARCH</p>
+      <p style=&quot;margin:0;&quot;>VOL. I · ISSUE 01</p>
+    </footer>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>Six-Step Workflow — Anatomy of Claude's Design System Prompt</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 14pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .hero-left {
+      max-width: 520pt;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 24pt;
+      line-height: 1.3;
+      letter-spacing: -0.3pt;
+      margin: 0;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .edition {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .steps {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0;
+      padding: 0;
+    }
+    .step {
+      padding: 12pt 16pt;
+      border-right: 1pt solid #1A1208;
+      border-bottom: 1pt solid #1A1208;
+      display: flex;
+      flex-direction: column;
+    }
+    .step:nth-child(3n) { border-right: none; }
+    .step:nth-child(n+4) { border-bottom: none; }
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 30pt;
+      line-height: 1.35;
+      color: #1A1208;
+      margin: 0 0 2pt;
+      letter-spacing: -0.8pt;
+    }
+    .step-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 1.5pt;
+      color: #1A1208;
+      margin: 0 0 5pt;
+      text-transform: uppercase;
+      padding-bottom: 3pt;
+      border-bottom: 1pt solid #3A3020;
+    }
+    .step-body {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.35;
+      margin: 0;
+      color: #3A3020;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <header class=&quot;masthead&quot;>
+      <p style=&quot;margin:0;&quot;>WORKFLOW</p>
+      <p style=&quot;margin:0;&quot;>§ 3 · 여섯 단계의 규율</p>
+      <p style=&quot;margin:0;&quot;>04 / 08</p>
+    </header>
+    <div class=&quot;hero&quot;>
+      <div class=&quot;hero-left&quot;>
+        <p class=&quot;kicker&quot;>THE SIX GATES · 프롬프트가 강제하는 순서</p>
+        <h1 class=&quot;headline&quot;>여섯 개의 게이트, 건너뜀 <em>없음</em></h1>
+      </div>
+      <p class=&quot;edition&quot;>NO SKIPPING · NO SHORTCUTS</p>
+    </div>
+    <div class=&quot;steps&quot;>
+      <section class=&quot;step&quot;>
+        <p class=&quot;step-num&quot;>01</p>
+        <p class=&quot;step-title&quot;>요구 이해</p>
+        <p class=&quot;step-body&quot;>출력물·디테일 수준·제약과 투입할 디자인 시스템·UI kit을 먼저 묻는다.</p>
+      </section>
+      <section class=&quot;step&quot;>
+        <p class=&quot;step-num&quot;>02</p>
+        <p class=&quot;step-title&quot;>리소스 탐색</p>
+        <p class=&quot;step-body&quot;>디자인 시스템 정의 전체를 읽는다. 짐작으로 대체 금지.</p>
+      </section>
+      <section class=&quot;step&quot;>
+        <p class=&quot;step-num&quot;>03</p>
+        <p class=&quot;step-title&quot;>계획 · TODO</p>
+        <p class=&quot;step-body&quot;>작업을 원자 단위로 쪼개고, 필요하면 todo 리스트로 고정.</p>
+      </section>
+      <section class=&quot;step&quot;>
+        <p class=&quot;step-num&quot;>04</p>
+        <p class=&quot;step-title&quot;>폴더 · 자산</p>
+        <p class=&quot;step-body&quot;>작업 디렉터리를 만들고 리소스를 복사한다. 원격 참조 금지.</p>
+      </section>
+      <section class=&quot;step&quot;>
+        <p class=&quot;step-num&quot;>05</p>
+        <p class=&quot;step-title&quot;>완성 · 검증</p>
+        <p class=&quot;step-body&quot;>깔끔히 로드되는지 확인하고, 에러가 나면 고치고 다시 검증.</p>
+      </section>
+      <section class=&quot;step&quot;>
+        <p class=&quot;step-num&quot;>06</p>
+        <p class=&quot;step-title&quot;>간결한 요약</p>
+        <p class=&quot;step-body&quot;>주의사항과 다음 단계만. 작업 되풀이 금지.</p>
+      </section>
+    </div>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>Content Discipline — Anatomy of Claude's Design System Prompt</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .body-area {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.35fr 1pt 1fr;
+      gap: 0;
+    }
+    .statement {
+      padding: 28pt 28pt 22pt 32pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 14pt;
+      text-transform: uppercase;
+    }
+    .big-statement {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 30pt;
+      line-height: 1.32;
+      color: #1A1208;
+      margin: 0 0 12pt;
+      letter-spacing: -0.4pt;
+    }
+    .big-statement strong {
+      font-style: normal;
+      font-weight: 900;
+      color: #1A1208;
+    }
+    .original {
+      font-family: 'Playfair Display', serif;
+      font-size: 14pt;
+      font-style: italic;
+      color: #6E6550;
+      margin: 0 0 8pt;
+      padding-top: 10pt;
+      border-top: 1pt solid #1A1208;
+      max-width: 340pt;
+    }
+    .attribution {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .rule-v {
+      background: #1A1208;
+      width: 1pt;
+    }
+    .rules {
+      padding: 24pt 32pt 22pt 24pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .rules-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 2pt;
+      color: #1A1208;
+      margin: 0 0 10pt;
+      padding-bottom: 4pt;
+      border-bottom: 1pt solid #1A1208;
+      text-transform: uppercase;
+    }
+    .rules-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .rules-list li {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.45;
+      color: #3A3020;
+      padding: 8pt 0 8pt 22pt;
+      border-bottom: 1pt dotted #9A9080;
+      position: relative;
+    }
+    .rules-list li:last-child { border-bottom: none; }
+    .rules-list li::before {
+      content: &quot;§&quot;;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 16pt;
+      color: #1A1208;
+      position: absolute;
+      left: 0;
+      top: 6pt;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <header class=&quot;masthead&quot;>
+      <p style=&quot;margin:0;&quot;>CONTENT DISCIPLINE</p>
+      <p style=&quot;margin:0;&quot;>§ 4 · 콘텐츠 규율</p>
+      <p style=&quot;margin:0;&quot;>05 / 08</p>
+    </header>
+    <div class=&quot;body-area&quot;>
+      <section class=&quot;statement&quot;>
+        <p class=&quot;kicker&quot;>THE MANIFESTO · 프롬프트의 콘텐츠 선언</p>
+        <h1 class=&quot;big-statement&quot;>하나의 '예'를 위해<br><strong>천 번의 '아니오'를.</strong></h1>
+        <p class=&quot;original&quot;>&quot;One thousand no's for every yes.&quot;</p>
+        <p class=&quot;attribution&quot;>— CLAUDE-DESIGN-SYS-PROMPT.TXT · CONTENT GUIDELINES</p>
+      </section>
+      <div class=&quot;rule-v&quot;></div>
+      <aside class=&quot;rules&quot;>
+        <p class=&quot;rules-label&quot;>네 가지 규율</p>
+        <ul class=&quot;rules-list&quot;>
+          <li>슬라이드가 비어 보인다고 더미 통계나 장식 아이콘으로 채우지 않는다. 레이아웃과 스케일로 풀어라.</li>
+          <li>브리프에 없는 섹션·페이지·카피를 추가하려면 먼저 사용자에게 물어라.</li>
+          <li>데이터 슬롭 — 정보로 보이지만 의미 없는 숫자와 아이콘 — 을 금한다.</li>
+          <li>잘라내는 것 자체가 디자인 도구다. 덜어냄을 두려워하지 마라.</li>
+        </ul>
+      </aside>
+    </div>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-06.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>The AI Slop Blacklist — Anatomy of Claude's Design System Prompt</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 16pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 24pt;
+    }
+    .hero-left {
+      max-width: 470pt;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 24pt;
+      line-height: 1.36;
+      letter-spacing: -0.3pt;
+      margin: 0;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .edition {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      text-align: right;
+      margin: 0;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .blacklist {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1pt 1fr;
+      gap: 0;
+      padding: 0;
+    }
+    .col {
+      padding: 14pt 20pt 14pt 22pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+    .col-left { padding-left: 32pt; }
+    .col-right { padding-right: 32pt; }
+    .rule-v {
+      background: #1A1208;
+      width: 1pt;
+    }
+    .item {
+      display: grid;
+      grid-template-columns: 36pt 1fr;
+      gap: 12pt;
+      align-items: baseline;
+      padding: 3pt 0;
+    }
+    .item-num {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 20pt;
+      color: #1A1208;
+      margin: 0;
+      line-height: 1.3;
+      letter-spacing: -0.5pt;
+    }
+    .item-text {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.4;
+      color: #3A3020;
+      margin: 0;
+    }
+    .item-text strong {
+      font-family: 'Space Mono', monospace;
+      font-size: 12pt;
+      color: #1A1208;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <header class=&quot;masthead&quot;>
+      <p style=&quot;margin:0;&quot;>THE BLACKLIST</p>
+      <p style=&quot;margin:0;&quot;>§ 5 · AI SLOP 블랙리스트</p>
+      <p style=&quot;margin:0;&quot;>06 / 08</p>
+    </header>
+    <div class=&quot;hero&quot;>
+      <div class=&quot;hero-left&quot;>
+        <p class=&quot;kicker&quot;>SEVEN ANTI-PATTERNS · 반(反)패턴 일곱</p>
+        <h1 class=&quot;headline&quot;>순식간에 덱을 싸구려로 만드는<br>일곱 가지 <em>패턴</em></h1>
+      </div>
+      <p class=&quot;edition&quot;>AVOID EXPLICITLY<br>— UNLESS THE BRIEF DEMANDS —</p>
+    </div>
+    <div class=&quot;blacklist&quot;>
+      <section class=&quot;col col-left&quot;>
+        <div class=&quot;item&quot;>
+          <p class=&quot;item-num&quot;>01</p>
+          <p class=&quot;item-text&quot;>전면 그라디언트 배경을 메인 표면 처리로 씀</p>
+        </div>
+        <div class=&quot;item&quot;>
+          <p class=&quot;item-num&quot;>02</p>
+          <p class=&quot;item-text&quot;>둥근 컨테이너 + 좌측 border-accent 스트라이프</p>
+        </div>
+        <div class=&quot;item&quot;>
+          <p class=&quot;item-num&quot;>03</p>
+          <p class=&quot;item-text&quot;>SVG로 이미지와 아이콘을 직접 그리기</p>
+        </div>
+        <div class=&quot;item&quot;>
+          <p class=&quot;item-num&quot;>04</p>
+          <p class=&quot;item-text&quot;>범용 폰트 — <strong>Inter · Roboto · Arial · Fraunces</strong>, 시스템 스택</p>
+        </div>
+      </section>
+      <div class=&quot;rule-v&quot;></div>
+      <section class=&quot;col col-right&quot;>
+        <div class=&quot;item&quot;>
+          <p class=&quot;item-num&quot;>05</p>
+          <p class=&quot;item-text&quot;>이모지를 기본 iconography로 사용</p>
+        </div>
+        <div class=&quot;item&quot;>
+          <p class=&quot;item-num&quot;>06</p>
+          <p class=&quot;item-text&quot;>아이콘 + 헤더 + 두 줄 blurb의 3×2 feature-card 그리드</p>
+        </div>
+        <div class=&quot;item&quot;>
+          <p class=&quot;item-num&quot;>07</p>
+          <p class=&quot;item-text&quot;>빈 공간 장식용 섀도 · 그라디언트 · 보더 (faux chrome)</p>
+        </div>
+      </section>
+    </div>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>Port vs. Skip — Anatomy of Claude's Design System Prompt</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 16pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 26pt;
+      line-height: 1.38;
+      letter-spacing: -0.3pt;
+      margin: 0;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .columns {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 3pt 1fr;
+      gap: 0;
+    }
+    .rule-heavy {
+      background: #1A1208;
+      width: 3pt;
+    }
+    .col {
+      padding: 16pt 22pt 14pt;
+      display: flex;
+      flex-direction: column;
+    }
+    .col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin: 0 0 10pt;
+      padding-bottom: 6pt;
+      border-bottom: 2pt solid #1A1208;
+    }
+    .col-title {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 20pt;
+      color: #1A1208;
+      margin: 0;
+      letter-spacing: -0.3pt;
+    }
+    .col-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: 9pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .list li {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.4;
+      color: #3A3020;
+      padding: 3pt 0 3pt 18pt;
+      position: relative;
+    }
+    .list-skip li::before {
+      content: &quot;×&quot;;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 14pt;
+      color: #1A1208;
+      position: absolute;
+      left: 0;
+      top: 3pt;
+    }
+    .list-keep li::before {
+      content: &quot;§&quot;;
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      font-size: 13pt;
+      color: #1A1208;
+      position: absolute;
+      left: 0;
+      top: 3pt;
+    }
+    .list li strong {
+      font-family: 'Space Mono', monospace;
+      font-size: 11pt;
+      color: #1A1208;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <header class=&quot;masthead&quot;>
+      <p style=&quot;margin:0;&quot;>WHAT TO PORT</p>
+      <p style=&quot;margin:0;&quot;>§ 6 · 원칙과 런타임의 분리</p>
+      <p style=&quot;margin:0;&quot;>07 / 08</p>
+    </header>
+    <div class=&quot;hero&quot;>
+      <p class=&quot;kicker&quot;>PRINCIPLE VS. RUNTIME · 이식 가능성 판정</p>
+      <h1 class=&quot;headline&quot;>원칙과 런타임을 <em>분리하라</em></h1>
+    </div>
+    <div class=&quot;columns&quot;>
+      <section class=&quot;col&quot;>
+        <div class=&quot;col-header&quot;>
+          <h2 class=&quot;col-title&quot;>Skip</h2>
+          <p class=&quot;col-sub&quot;>CLAUDE-ARTIFACT 전용</p>
+        </div>
+        <ul class=&quot;list list-skip&quot;>
+          <li><strong>Tweaks</strong> postMessage 프로토콜</li>
+          <li><strong>done</strong> · <strong>fork_verifier_agent</strong> 도구</li>
+          <li><strong>window.claude.complete</strong> 런타임 호출</li>
+          <li><strong>mentioned-element</strong> DOM 핸들</li>
+          <li>React + Babel 스타터 컴포넌트</li>
+          <li>GitHub connector · napkin sketch 첨부</li>
+          <li>snip 컨텍스트 관리 · CLAUDE.md</li>
+          <li>저작권 거부 가드레일</li>
+        </ul>
+      </section>
+      <div class=&quot;rule-heavy&quot;></div>
+      <section class=&quot;col&quot;>
+        <div class=&quot;col-header&quot;>
+          <h2 class=&quot;col-title&quot;>Keep</h2>
+          <p class=&quot;col-sub&quot;>이식 가능한 디자인 원칙</p>
+        </div>
+        <ul class=&quot;list list-keep&quot;>
+          <li>역할 프레이밍 — HTML은 도구, 매체는 다양</li>
+          <li>6단계 워크플로 규율과 게이트</li>
+          <li>&quot;먼저 시스템을 선언하라&quot;</li>
+          <li>콘텐츠 규율 — 필러 금지, 허락받고 추가</li>
+          <li>AI slop 블랙리스트 (일곱 항목)</li>
+          <li>컬러·타이포 규율 — <strong>oklch</strong> 확장, 14pt 최소</li>
+          <li>Review litmus — 3-5초 파악 가능한가</li>
+        </ul>
+      </section>
+    </div>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="8" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-08.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <meta charset=&quot;UTF-8&quot;>
+  <title>Closing Note — Anatomy of Claude's Design System Prompt</title>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.googleapis.com&quot;>
+  <link rel=&quot;preconnect&quot; href=&quot;https://fonts.gstatic.com&quot; crossorigin>
+  <link href=&quot;https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&amp;family=Noto+Serif+KR:wght@400;700;900&amp;family=Space+Mono:wght@400;700&amp;display=swap&quot; rel=&quot;stylesheet&quot;>
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 12pt 32pt 8pt;
+      border-bottom: 2pt solid #1A1208;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 24pt;
+    }
+    .hero-left {
+      max-width: 520pt;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 5pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 22pt;
+      line-height: 1.3;
+      letter-spacing: -0.2pt;
+      margin: 0;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .edition {
+      font-family: 'Space Mono', monospace;
+      font-size: 9pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      text-align: right;
+      margin: 0;
+      text-transform: uppercase;
+      white-space: nowrap;
+      line-height: 1.4;
+    }
+    .five-principles {
+      flex: 1;
+      padding: 10pt 32pt 8pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6pt 28pt;
+      align-content: start;
+    }
+    .principle {
+      display: grid;
+      grid-template-columns: 28pt 1fr;
+      gap: 10pt;
+      align-items: baseline;
+      padding: 3pt 0 4pt;
+      border-bottom: 1pt dotted #9A9080;
+    }
+    .principle-num {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 20pt;
+      color: #1A1208;
+      margin: 0;
+      line-height: 1.3;
+      letter-spacing: -0.5pt;
+    }
+    .principle-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 1.5pt;
+      color: #1A1208;
+      margin: 0 0 2pt;
+      text-transform: uppercase;
+    }
+    .principle-body {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.35;
+      color: #3A3020;
+      margin: 0;
+    }
+    .colophon {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+    }
+    .colophon em {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 700;
+      font-size: 12pt;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+  </style>
+</head>
+<body>
+  <article class=&quot;slide&quot;>
+    <header class=&quot;masthead&quot;>
+      <p style=&quot;margin:0;&quot;>CLOSING NOTE</p>
+      <p style=&quot;margin:0;&quot;>§ 7 · 결산</p>
+      <p style=&quot;margin:0;&quot;>08 / 08</p>
+    </header>
+    <div class=&quot;hero&quot;>
+      <div class=&quot;hero-left&quot;>
+        <p class=&quot;kicker&quot;>WHAT SLIDES-GRAB BORROWED · 가져온 것</p>
+        <h1 class=&quot;headline&quot;>PR #67에 담긴 다섯 가지 <em>원칙</em></h1>
+      </div>
+      <p class=&quot;edition&quot;>FEATURE/#66<br>CLOSES #66</p>
+    </div>
+    <div class=&quot;five-principles&quot;>
+      <section class=&quot;principle&quot;>
+        <p class=&quot;principle-num&quot;>I</p>
+        <div>
+          <p class=&quot;principle-title&quot;>SYSTEM DECLARATION</p>
+          <p class=&quot;principle-body&quot;>디자인 시작 전 레이아웃·배경색·서체·템포를 한 문단으로 선언한다.</p>
+        </div>
+      </section>
+      <section class=&quot;principle&quot;>
+        <p class=&quot;principle-num&quot;>II</p>
+        <div>
+          <p class=&quot;principle-title&quot;>CONTENT DISCIPLINE</p>
+          <p class=&quot;principle-body&quot;>필러 카피·데이터 슬롭 금지. 범위 확장은 허락받고 한다.</p>
+        </div>
+      </section>
+      <section class=&quot;principle&quot;>
+        <p class=&quot;principle-num&quot;>III</p>
+        <div>
+          <p class=&quot;principle-title&quot;>COLOR DISCIPLINE</p>
+          <p class=&quot;principle-body&quot;>스타일 스펙에서만 색을 꺼내 쓰고, 부족하면 oklch로 harmonic 확장.</p>
+        </div>
+      </section>
+      <section class=&quot;principle&quot;>
+        <p class=&quot;principle-num&quot;>IV</p>
+        <div>
+          <p class=&quot;principle-title&quot;>TYPOGRAPHY FLOORS</p>
+          <p class=&quot;principle-body&quot;>720×405pt 슬라이드에서 본문 14pt 최소, 캡션 10pt 절대 하한.</p>
+        </div>
+      </section>
+      <section class=&quot;principle&quot; style=&quot;grid-column: span 2;&quot;>
+        <p class=&quot;principle-num&quot;>V</p>
+        <div>
+          <p class=&quot;principle-title&quot;>AI SLOP BLACKLIST</p>
+          <p class=&quot;principle-body&quot;>그라디언트·좌측 border accent·SVG 드로잉·범용 폰트·이모지·3×2 카드·faux chrome 등 일곱 반패턴을 명시적으로 금지.</p>
+        </div>
+      </section>
+    </div>
+    <footer class=&quot;colophon&quot;>
+      <p style=&quot;margin:0;&quot;>SLIDES-GRAB RESEARCH · VOL. I · ISSUE 01</p>
+      <p style=&quot;margin:0;&quot; class=&quot;colophon-title&quot;><em>—fin.</em></p>
+      <p style=&quot;margin:0;&quot;>APR 2026 · 서울</p>
+    </footer>
+  </article>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 8;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

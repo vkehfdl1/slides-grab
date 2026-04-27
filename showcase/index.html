@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>slides-grab Showcase</title>
+  <meta name="description" content="A gallery of presentations built with slides-grab — an agent-first HTML slide framework." />
+  <meta property="og:title" content="slides-grab Showcase" />
+  <meta property="og:description" content="See what slides-grab can do. Real presentations, all built from HTML by AI agents." />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230a0a0a'/%3E%3Crect x='14' y='18' width='36' height='22' rx='3' fill='none' stroke='%23ffffff' stroke-width='2.5'/%3E%3Crect x='20' y='44' width='24' height='3' rx='1.5' fill='%23ffffff'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+  <link rel="stylesheet" href="./assets/css/styles.css" />
+</head>
+<body>
+  <section class="hero">
+    <div class="container">
+      <h1>Presentations built by agents,<br />from plain HTML.</h1>
+      <p class="hero-sub">
+        A live gallery of real decks created with <a href="https://github.com/vkehfdl1/slides-grab" target="_blank" rel="noreferrer noopener">slides-grab</a>.
+        Each presentation is just <code>slide-XX.html</code> files — no proprietary format, no template engine, no lock-in.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#gallery">Browse the gallery</a>
+        <a class="btn btn-ghost" href="https://github.com/vkehfdl1/slides-grab#quick-start" target="_blank" rel="noreferrer noopener">
+          Build your own →
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <main id="gallery" class="gallery container">
+    <div class="gallery-header">
+      <h2>Featured presentations</h2>
+      <p id="gallery-count" class="gallery-count" aria-live="polite"></p>
+    </div>
+
+    <div id="gallery-grid" class="grid" aria-busy="true">
+      <div class="grid-status" role="status">Loading presentations…</div>
+    </div>
+
+    <template id="card-template">
+      <article class="card">
+        <a class="card-thumb-link" data-slot="thumb-link">
+          <div class="card-thumb" data-slot="thumb">
+            <span class="card-thumb-placeholder" data-slot="placeholder"></span>
+          </div>
+        </a>
+        <div class="card-body">
+          <h3 class="card-title" data-slot="title"></h3>
+          <p class="card-desc" data-slot="description"></p>
+          <div class="card-meta">
+            <span class="card-meta-item" data-slot="slides"></span>
+            <span class="card-meta-item card-meta-date" data-slot="date"></span>
+          </div>
+          <div class="card-tags" data-slot="tags"></div>
+          <div class="card-actions">
+            <a class="card-action card-action-primary" data-slot="primary">Open viewer →</a>
+            <a class="card-action card-action-secondary" data-slot="pdf" hidden>PDF</a>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <div id="empty-state" class="empty-state" hidden>
+      <h3>No presentations yet</h3>
+      <p>
+        Drop a deck into <code>showcase/presentations/&lt;slug&gt;/</code>
+        and run <code>npm run build:showcase</code>. See the
+        <a href="https://github.com/vkehfdl1/slides-grab/tree/main/showcase" target="_blank" rel="noreferrer noopener">README</a>
+        for the full layout.
+      </p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <p>
+        Built with <a href="https://github.com/vkehfdl1/slides-grab" target="_blank" rel="noreferrer noopener">slides-grab</a>.
+        Source on <a href="https://github.com/vkehfdl1/slides-grab/tree/main/showcase" target="_blank" rel="noreferrer noopener">GitHub</a>.
+      </p>
+      <p class="footer-meta">MIT License · <span id="footer-generated"></span></p>
+    </div>
+  </footer>
+
+  <script src="./assets/js/gallery.js" defer></script>
+</body>
+</html>

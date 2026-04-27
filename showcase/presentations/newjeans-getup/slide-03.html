@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #000080;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .rainbow-bar {
+      width: 100%;
+      height: 7pt;
+      background: linear-gradient(90deg, #FF0000, #FF7700, #FFFF00, #00FF00, #0000FF, #8B00FF);
+      flex-shrink: 0;
+    }
+    .content {
+      flex: 1;
+      padding: 28pt 44pt;
+      display: flex;
+      gap: 36pt;
+      align-items: center;
+    }
+    .left {
+      flex: 1;
+    }
+    h2 {
+      font-family: Impact, 'Pretendard', sans-serif;
+      font-size: 30pt;
+      color: #FFFFFF;
+      text-shadow: 2px 2px 0 #00FFFF, 4px 4px 0 #FF00FF;
+      text-transform: uppercase;
+      margin-bottom: 24pt;
+    }
+    .track-list {
+      list-style: none;
+    }
+    .track-list li {
+      display: flex;
+      align-items: center;
+      gap: 12pt;
+      padding: 10pt 0;
+      border-bottom: 1pt solid rgba(255, 255, 255, 0.1);
+    }
+    .track-list li:last-child {
+      border-bottom: none;
+    }
+    .track-num {
+      font-family: Impact, 'Pretendard', sans-serif;
+      font-size: 16pt;
+      color: #FFFF00;
+      width: 24pt;
+      text-align: center;
+      text-shadow: 1px 1px 0 #FF00FF;
+    }
+    .track-name {
+      font-size: 14pt;
+      color: #FFFFFF;
+      font-weight: 500;
+    }
+    .track-name.highlight {
+      color: #FFFF00;
+      font-weight: 700;
+    }
+    .right {
+      width: 230pt;
+      height: 280pt;
+      border-radius: 10pt;
+      overflow: hidden;
+      border: 2pt solid rgba(255, 255, 0, 0.4);
+      flex-shrink: 0;
+    }
+    .right img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: saturate(1.15);
+    }
+    .star { color: #FFFF00; }
+  </style>
+</head>
+<body>
+  <div class="rainbow-bar"></div>
+  <div class="content">
+    <div class="left">
+      <h2><span class="star">&#9733;</span> Tracklist</h2>
+      <ol class="track-list">
+        <li><p class="track-num">01</p><p class="track-name">New Jeans</p></li>
+        <li><p class="track-num">02</p><p class="track-name highlight">Super Shy</p></li>
+        <li><p class="track-num">03</p><p class="track-name">ETA</p></li>
+        <li><p class="track-num">04</p><p class="track-name highlight">Cool With You</p></li>
+        <li><p class="track-num">05</p><p class="track-name">Get Up</p></li>
+        <li><p class="track-num">06</p><p class="track-name">ASAP</p></li>
+      </ol>
+    </div>
+    <div class="right">
+      <img src="./assets/teaser_3.jpg" alt="NewJeans Get Up Teaser">
+    </div>
+  </div>
+  <div class="rainbow-bar"></div>
+</body>
+</html>

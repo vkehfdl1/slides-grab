@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 320pt; height: 320pt;
+      top: 0; left: 0;
+      background: radial-gradient(circle, rgba(16,185,129,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 280pt; height: 280pt;
+      bottom: 0; right: 0;
+      background: radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left { display: flex; flex-direction: column; gap: 16pt; }
+    .emoji-large { font-size: 56pt; line-height: 1; }
+    .skill-title {
+      font-size: 28pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .skill-desc {
+      font-size: 13pt; color: rgba(255,255,255,0.6); line-height: 1.7;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 24pt;
+      display: flex;
+      flex-direction: column;
+      gap: 14pt;
+    }
+
+    .check-item {
+      display: flex; align-items: flex-start; gap: 10pt;
+    }
+    .check-icon {
+      width: 20pt; height: 20pt;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 6pt;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10pt; color: #10B981;
+      flex-shrink: 0;
+    }
+    .check-text {
+      font-size: 11pt; color: rgba(255,255,255,0.8); line-height: 1.5;
+    }
+    .check-text strong { color: #fff; }
+
+    .api-badge {
+      display: inline-flex; align-items: center; gap: 6pt;
+      padding: 8pt 14pt;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.25);
+      border-radius: 10pt;
+      margin-top: 4pt;
+    }
+    .api-badge-dot {
+      width: 6pt; height: 6pt;
+      background: #10B981;
+      border-radius: 50%;
+    }
+    .api-badge-text {
+      font-size: 9pt; font-weight: 600;
+      color: #10B981; letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class="blob"></div>
+  <div class="blob2"></div>
+
+  <div class="header">
+    <span class="header-badge">SKILL 03</span>
+    <span class="page-num">05</span>
+  </div>
+
+  <div class="content">
+    <div class="left">
+      <div class="emoji-large">💊</div>
+      <h1 class="skill-title">이 약<br>먹어도 되나?</h1>
+      <p class="skill-desc">식약처 공식 API 기반<br>의약품 안전 체크 스킬</p>
+      <div class="api-badge">
+        <div class="api-badge-dot"></div>
+        <span class="api-badge-text">식품의약품안전처 공식 API</span>
+      </div>
+    </div>
+
+    <div class="glass-panel">
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <p class="check-text"><strong>의약품 정보 검색</strong><br>정확한 성분, 용법, 주의사항 조회</p>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <p class="check-text"><strong>병용 금기 확인</strong><br>"이 약이랑 저 약 같이 먹어도 되나?"</p>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <p class="check-text"><strong>환각 없는 답변</strong><br>공식 데이터 기반으로 정확하게 응답</p>
+      </div>
+      <div class="check-item">
+        <div class="check-icon">✓</div>
+        <p class="check-text"><strong>인터뷰형 체크</strong><br>증상·복용 상황을 먼저 확인 후 답변</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

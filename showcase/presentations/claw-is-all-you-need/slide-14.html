@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 14 — Galapagos flip</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(400pt 260pt at 50% 5%, rgba(59,143,245,0.24), transparent 70%),
+      radial-gradient(400pt 260pt at 50% 98%, rgba(255,45,94,0.28), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:28pt 48pt; display:flex; flex-direction:column;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  .t1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:18pt; letter-spacing:-1pt; color:#FF8FA8; margin:8pt 0 2pt;}
+  .t2{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:18pt; letter-spacing:-1pt; color:#7FC0FF; margin:0 0 12pt;}
+  .flip{display:grid; grid-template-columns:1fr 28pt 1fr; gap:12pt; align-items:center;}
+  .card{border:1pt solid rgba(255,255,255,0.15); border-radius:12pt; padding:16pt 18pt; background:rgba(10,10,30,0.6);}
+  .card.weak{border-color:rgba(255,45,94,0.4); box-shadow:0 0 16pt rgba(255,45,94,0.18) inset;}
+  .card.strong{border-color:rgba(59,143,245,0.5); box-shadow:0 0 16pt rgba(59,143,245,0.25) inset;}
+  .label{font-family:'Bebas Neue',sans-serif; font-size:18pt; letter-spacing:3pt; margin:0 0 6pt;}
+  .weak .label{color:#FF2D5E;}
+  .strong .label{color:#3B8FF5;}
+  .body{font-family:'Noto Sans KR',sans-serif; font-size:12pt; line-height:1.5; color:#E8E8F5; margin:0;}
+  .body b{color:#ffffff;}
+  .arrow{font-family:'Bebas Neue',sans-serif; font-size:24pt; text-align:center; color:#ffffff; text-shadow:0 0 10pt rgba(255,255,255,0.5); margin:0;}
+  .punch{margin-top:auto; text-align:center; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:18pt; letter-spacing:2pt;}
+  .punch b{background:linear-gradient(90deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// Flip the frame</p>
+    <p class="t1">Digital Galapagos. High-density city-state.</p>
+    <p class="t2">— Flip the frame, and it becomes the fastest possible agent transition.</p>
+    <div class="flip">
+      <div class="card weak">
+        <p class="label">AS WEAKNESS</p>
+        <p class="body">Idiosyncratic standards, a closed ecosystem, a small market. Seen as unable to keep up with global services.</p>
+      </div>
+      <p class="arrow">→</p>
+      <div class="card strong">
+        <p class="label">AS STRENGTH</p>
+        <p class="body"><b>Dense users</b>, <b>a narrow, deep stack</b>, <b>fast consensus</b>. An ideal lab for agent transition.</p>
+      </div>
+    </div>
+    <p class="punch">A weakness can become <b>the shortest path</b>.</p>
+  </div>
+</div>
+</body>
+</html>

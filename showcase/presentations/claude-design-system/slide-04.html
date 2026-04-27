@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Six-Step Workflow — Anatomy of Claude's Design System Prompt</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Serif+KR:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 14pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+    .hero-left {
+      max-width: 520pt;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 24pt;
+      line-height: 1.3;
+      letter-spacing: -0.3pt;
+      margin: 0;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .edition {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .steps {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0;
+      padding: 0;
+    }
+    .step {
+      padding: 12pt 16pt;
+      border-right: 1pt solid #1A1208;
+      border-bottom: 1pt solid #1A1208;
+      display: flex;
+      flex-direction: column;
+    }
+    .step:nth-child(3n) { border-right: none; }
+    .step:nth-child(n+4) { border-bottom: none; }
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 30pt;
+      line-height: 1.35;
+      color: #1A1208;
+      margin: 0 0 2pt;
+      letter-spacing: -0.8pt;
+    }
+    .step-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      font-weight: 700;
+      letter-spacing: 1.5pt;
+      color: #1A1208;
+      margin: 0 0 5pt;
+      text-transform: uppercase;
+      padding-bottom: 3pt;
+      border-bottom: 1pt solid #3A3020;
+    }
+    .step-body {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.35;
+      margin: 0;
+      color: #3A3020;
+    }
+  </style>
+</head>
+<body>
+  <article class="slide">
+    <header class="masthead">
+      <p style="margin:0;">WORKFLOW</p>
+      <p style="margin:0;">§ 3 · 여섯 단계의 규율</p>
+      <p style="margin:0;">04 / 08</p>
+    </header>
+    <div class="hero">
+      <div class="hero-left">
+        <p class="kicker">THE SIX GATES · 프롬프트가 강제하는 순서</p>
+        <h1 class="headline">여섯 개의 게이트, 건너뜀 <em>없음</em></h1>
+      </div>
+      <p class="edition">NO SKIPPING · NO SHORTCUTS</p>
+    </div>
+    <div class="steps">
+      <section class="step">
+        <p class="step-num">01</p>
+        <p class="step-title">요구 이해</p>
+        <p class="step-body">출력물·디테일 수준·제약과 투입할 디자인 시스템·UI kit을 먼저 묻는다.</p>
+      </section>
+      <section class="step">
+        <p class="step-num">02</p>
+        <p class="step-title">리소스 탐색</p>
+        <p class="step-body">디자인 시스템 정의 전체를 읽는다. 짐작으로 대체 금지.</p>
+      </section>
+      <section class="step">
+        <p class="step-num">03</p>
+        <p class="step-title">계획 · TODO</p>
+        <p class="step-body">작업을 원자 단위로 쪼개고, 필요하면 todo 리스트로 고정.</p>
+      </section>
+      <section class="step">
+        <p class="step-num">04</p>
+        <p class="step-title">폴더 · 자산</p>
+        <p class="step-body">작업 디렉터리를 만들고 리소스를 복사한다. 원격 참조 금지.</p>
+      </section>
+      <section class="step">
+        <p class="step-num">05</p>
+        <p class="step-title">완성 · 검증</p>
+        <p class="step-body">깔끔히 로드되는지 확인하고, 에러가 나면 고치고 다시 검증.</p>
+      </section>
+      <section class="step">
+        <p class="step-num">06</p>
+        <p class="step-title">간결한 요약</p>
+        <p class="step-body">주의사항과 다음 단계만. 작업 되풀이 금지.</p>
+      </section>
+    </div>
+  </article>
+</body>
+</html>

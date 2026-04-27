@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 03 — K-skill</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 240pt at 18% 22%, rgba(255,45,94,0.28), transparent 70%),
+      radial-gradient(400pt 260pt at 82% 82%, rgba(59,143,245,0.32), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:6pt; top:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:32pt 44pt; display:grid; grid-template-columns:1fr 220pt; gap:30pt; align-items:center;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Bebas Neue',sans-serif; font-size:58pt; line-height:1.4; letter-spacing:3pt; margin:6pt 0 8pt;
+     background:linear-gradient(100deg,#FF2D5E 0%,#ffffff 50%,#3B8FF5 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .lead{font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:17pt; color:#E8E8F5; line-height:1.4; margin:0 0 10pt;}
+  .lead b{background:linear-gradient(90deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .count{font-family:'Bebas Neue',sans-serif; font-size:40pt; letter-spacing:2pt; color:#ffffff; margin:4pt 0 10pt;
+    text-shadow:0 0 16pt rgba(59,143,245,0.6);}
+  .count small{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:3pt; color:#8a8ab0; margin-left:6pt;}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:6pt;}
+  .chip{padding:5pt 8pt; border:1pt solid rgba(255,255,255,0.12); border-radius:5pt;
+    font-family:'DM Mono',monospace; font-size:9pt; color:#D0D0F0; letter-spacing:1pt;
+    background:rgba(255,255,255,0.03); margin:0;}
+  .chip.red{border-color:rgba(255,45,94,0.45); box-shadow:0 0 10pt rgba(255,45,94,0.18) inset;}
+  .chip.blue{border-color:rgba(59,143,245,0.45); box-shadow:0 0 10pt rgba(59,143,245,0.18) inset;}
+  .thumb{width:220pt; height:220pt; object-fit:cover; border-radius:14pt; border:2pt solid rgba(255,255,255,0.12);
+    box-shadow:0 0 36pt rgba(255,45,94,0.35), 0 0 36pt rgba(59,143,245,0.35);}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <div>
+      <p class="kicker">// Made by NomaDamas</p>
+      <h1>K-SKILL</h1>
+      <p class="lead"><b>A skill bundle</b> built for Koreans</p>
+      <p class="count">40<small>+ SKILLS</small></p>
+      <div class="grid">
+        <p class="chip red">Scholarships</p>
+        <p class="chip blue">School meals</p>
+        <p class="chip red">Live subway</p>
+        <p class="chip blue">KTX · SRT booking</p>
+        <p class="chip red">Real estate prices</p>
+        <p class="chip blue">Lotto results</p>
+        <p class="chip red">Air quality</p>
+        <p class="chip blue">KBO · LCK</p>
+        <p class="chip red">and more…</p>
+      </div>
+    </div>
+    <div>
+      <img class="thumb" src="./assets/k-skill-thumbnail.png" alt="K-skill thumbnail">
+    </div>
+  </div>
+</div>
+</body>
+</html>

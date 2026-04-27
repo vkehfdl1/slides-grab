@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=720, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>공연 실황</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    background: #0A0A14;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 28pt 40pt;
+  }
+  h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #FF69B4;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 16pt;
+  }
+  .video-wrap {
+    width: 580pt;
+    height: 326pt;
+    border-radius: 8pt;
+    overflow: hidden;
+    position: relative;
+    background: #000000;
+  }
+  .video-wrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  p.caption {
+    font-size: 11pt;
+    font-weight: 400;
+    color: rgba(255,255,255,0.5);
+    margin-top: 12pt;
+    text-align: center;
+  }
+  p.caption span {
+    color: #89CFF0;
+    font-weight: 500;
+  }
+</style>
+</head>
+<body>
+  <h2>Live Performance</h2>
+  <div class="video-wrap">
+    <video poster="./assets/hanni-blue-coral-poster.jpg" controls preload="metadata">
+      <source src="./assets/hanni-blue-coral-live.mp4" type="video/mp4">
+    </video>
+  </div>
+  <p class="caption">Bunnies Camp 2024 Tokyo Dome · <span>12M+ views</span></p>
+</body>
+</html>

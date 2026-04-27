@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .reaction-card {
+      background: rgba(124,111,255,0.06);
+      border: 1px solid rgba(124,111,255,0.15);
+      padding: 12pt 14pt;
+      display: flex; flex-direction: column; gap: 4pt;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20pt;">
+    <div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;">08 // STREISAND EFFECT</p>
+      <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;">커뮤니티의 반격</h2>
+    </div>
+    <div style="background: rgba(165,148,255,0.15); padding: 8pt 14pt;">
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #A594FF;">삭제할수록 더 퍼졌다</p>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div style="flex: 1; display: flex; flex-direction: column; gap: 10pt;">
+    <!-- Key fact -->
+    <div style="background: rgba(124,111,255,0.1); border-left: 3pt solid #7C6FFF; padding: 12pt 16pt; margin-bottom: 4pt;">
+      <p style="font-size: 12pt; color: #FFFFFF; line-height: 1.5;">
+        DMCA 삭제 시작 시점, 원본 미러는 이미 <span style="color: #7C6FFF; font-weight: 700; font-size: 16pt;">84K Stars</span> 달성.
+        클린룸 재구현은 법적으로 차단 불가.
+      </p>
+    </div>
+
+    <!-- Reaction grid -->
+    <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10pt;">
+      <div class="reaction-card">
+        <p style="font-family: 'Space Mono', monospace; font-size: 7pt; color: #7C6FFF; letter-spacing: 0.1em;">r/LocalLLaMA</p>
+        <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 20pt; font-weight: 700; color: #FFFFFF;">3,700+</p>
+        <p style="font-size: 8pt; color: #8888AA;">upvotes</p>
+        <p style="font-size: 9pt; color: #FFFFFF; margin-top: 4pt;">아키텍처 분석으로 로컬 모델 시스템 구축</p>
+      </div>
+      <div class="reaction-card">
+        <p style="font-family: 'Space Mono', monospace; font-size: 7pt; color: #FF6B6B; letter-spacing: 0.1em;">HACKER NEWS</p>
+        <p style="font-size: 9pt; color: #FFFFFF; margin-top: 4pt; line-height: 1.5;">
+          <span style="color: #FF6B6B; font-weight: 600;">이중 잣대 비판</span><br>
+          남의 데이터로 훈련하면서<br>자기 IP는 DMCA로 보호?
+        </p>
+      </div>
+      <div class="reaction-card" style="border-color: rgba(255,107,107,0.2); background: rgba(255,107,107,0.06);">
+        <p style="font-family: 'Space Mono', monospace; font-size: 7pt; color: #FF6B6B; letter-spacing: 0.1em;">WARNING</p>
+        <p style="font-size: 9pt; color: #FFFFFF; margin-top: 4pt; line-height: 1.5;">
+          가짜 claw-code 레포로<br>
+          <span style="color: #FF6B6B; font-weight: 600;">Vidar 악성코드</span> 배포<br>
+          사태까지 발생
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

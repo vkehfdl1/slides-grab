@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 11 — Why</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 240pt at 20% 92%, rgba(255,45,94,0.24), transparent 70%),
+      radial-gradient(360pt 240pt at 85% 10%, rgba(59,143,245,0.28), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(55pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(55pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:26pt 40pt; display:flex; flex-direction:column;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:22pt; letter-spacing:-1pt; margin:6pt 0 14pt; color:#E8E8F5;}
+  h1 .q{background:linear-gradient(90deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .grid{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10pt; flex:1;}
+  .card{border:1pt solid rgba(255,255,255,0.15); border-radius:12pt; padding:10pt 14pt; background:rgba(10,10,30,0.55); display:flex; flex-direction:column; gap:6pt;}
+  .card .n{font-family:'Bebas Neue',sans-serif; font-size:36pt; line-height:1.2; letter-spacing:2pt; margin:0 0 2pt;
+    background:linear-gradient(100deg,#FF2D5E,#ffffff 50%,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .card .h{font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:15pt; color:#ffffff; letter-spacing:1pt; margin:0 0 6pt;}
+  .card .d{font-family:'Noto Sans KR',sans-serif; font-size:11pt; line-height:1.5; color:#D0D0F0; margin:0;}
+  .punch{margin-top:14pt; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:19pt; letter-spacing:2pt; color:#ffffff; text-align:center;
+    text-shadow:0 0 14pt rgba(255,45,94,0.5), 0 0 14pt rgba(59,143,245,0.5); margin-bottom:0;}
+  .punch b{background:linear-gradient(90deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// Why</p>
+    <h1>Why change first? <span class="q">First-mover &amp; being chosen.</span></h1>
+    <div class="grid">
+      <div class="card">
+        <div>
+          <p class="n">01</p>
+          <p class="h">Claim the new interface</p>
+        </div>
+        <p class="d">Companies who rode the early web and mobile waves survived. Claw works the same way.</p>
+      </div>
+      <div class="card">
+        <div>
+          <p class="n">02</p>
+          <p class="h">Get chosen by the agent</p>
+        </div>
+        <p class="d">Agents pick the "easier" trajectory. The product with less friction gets called.</p>
+      </div>
+      <div class="card">
+        <div>
+          <p class="n">03</p>
+          <p class="h">Distribution reshuffled</p>
+        </div>
+        <p class="d">Not users — agents discover, buy, and call. Claw takes the seat search used to hold.</p>
+      </div>
+    </div>
+    <p class="punch">Bottom line: become <b>the product agents pick</b>.</p>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 300pt; height: 300pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(236,72,153,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 220pt; height: 220pt;
+      bottom: 0; left: 0;
+      background: radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left { display: flex; flex-direction: column; gap: 16pt; }
+    .emoji-large { font-size: 56pt; line-height: 1; }
+    .skill-title {
+      font-size: 28pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .skill-desc {
+      font-size: 13pt; color: rgba(255,255,255,0.6); line-height: 1.7;
+    }
+    .highlight {
+      display: inline-block;
+      padding: 4pt 12pt;
+      background: rgba(236,72,153,0.15);
+      border: 1px solid rgba(236,72,153,0.3);
+      border-radius: 8pt;
+      font-size: 10pt; font-weight: 600;
+      color: #EC4899;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 24pt;
+      display: flex;
+      flex-direction: column;
+      gap: 12pt;
+    }
+
+    .demo-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12pt;
+      padding: 16pt;
+    }
+    .demo-text {
+      font-size: 10pt;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.6;
+    }
+    .demo-result {
+      margin-top: 12pt;
+      padding: 12pt;
+      background: rgba(236,72,153,0.08);
+      border: 1px solid rgba(236,72,153,0.15);
+      border-radius: 10pt;
+      text-align: center;
+    }
+    .result-number {
+      font-size: 36pt;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .result-unit {
+      font-size: 14pt;
+      color: rgba(255,255,255,0.5);
+      margin-left: 4pt;
+    }
+    .result-label {
+      font-size: 9pt;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4pt;
+    }
+  </style>
+</head>
+<body>
+  <div class="blob"></div>
+  <div class="blob2"></div>
+
+  <div class="header">
+    <span class="header-badge">SKILL 07</span>
+    <span class="page-num">09</span>
+  </div>
+
+  <div class="content">
+    <div class="left">
+      <div class="emoji-large">✏️</div>
+      <h1 class="skill-title">한글<br>글자수 세기</h1>
+      <p class="skill-desc">더 이상 네이버에서<br>"글자 수 세기" 검색하지 마세요</p>
+      <span class="highlight">자소서 작성 시 필수!</span>
+    </div>
+
+    <div class="glass-panel">
+      <div class="demo-box">
+        <p class="demo-text">
+          "저는 새로운 도전을 즐기는 사람입니다.
+          대학 시절 동아리 활동을 통해 팀워크의
+          중요성을 배웠고, 인턴 경험에서 실무
+          역량을 키웠습니다..."
+        </p>
+      </div>
+      <div class="demo-result">
+        <span class="result-number">247</span><span class="result-unit">자</span>
+        <p class="result-label">공백 포함 · 바이트: 741 · 라인: 4</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

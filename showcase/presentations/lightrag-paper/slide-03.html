@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>LightRAG — Slide 3</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720pt; height: 405pt; }
+  body {
+    font-family: 'Pretendard', 'Segoe UI', sans-serif;
+    background:
+      radial-gradient(circle at 8% 12%, rgba(96, 165, 250, 0.5) 0%, transparent 36%),
+      radial-gradient(circle at 92% 88%, rgba(167, 139, 250, 0.5) 0%, transparent 32%),
+      linear-gradient(135deg, #1A1A4E 0%, #6B21A8 50%, #1E3A5F 100%);
+    color: #FFFFFF;
+    overflow: hidden;
+    position: relative;
+  }
+  .slide { width: 720pt; height: 405pt; position: relative; overflow: hidden; }
+
+  .header {
+    position: absolute;
+    top: 24pt;
+    left: 48pt;
+    right: 48pt;
+    display: flex;
+    justify-content: space-between;
+    z-index: 5;
+  }
+  .pagenum { font-size: 10pt; color: #B8B8D0; letter-spacing: 0.16em; text-transform: uppercase; font-weight: 500; }
+  .section { font-size: 10pt; color: #C4B5FD; letter-spacing: 0.18em; text-transform: uppercase; font-weight: 600; }
+
+  h2 {
+    position: absolute;
+    top: 50pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 26pt;
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+    z-index: 5;
+  }
+  h2 .marker {
+    display: inline-block;
+    padding: 3pt 10pt;
+    margin-right: 10pt;
+    font-size: 13pt;
+    background: rgba(167, 139, 250, 0.25);
+    border: 1pt solid rgba(167, 139, 250, 0.5);
+    border-radius: 8pt;
+    color: #DDD6FE;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  h2 strong { font-weight: 700; }
+
+  .caption {
+    position: absolute;
+    top: 92pt;
+    left: 48pt;
+    right: 48pt;
+    font-size: 11pt;
+    color: #C4B5FD;
+    font-style: italic;
+    line-height: 1.4;
+    z-index: 5;
+  }
+  .caption .figref {
+    font-style: normal;
+    font-weight: 700;
+    color: #DDD6FE;
+    margin-right: 6pt;
+  }
+
+  /* Figure container */
+  .figure-wrap {
+    position: absolute;
+    top: 122pt;
+    left: 48pt;
+    right: 48pt;
+    padding: 10pt 12pt;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1pt solid rgba(255, 255, 255, 0.4);
+    border-radius: 10pt;
+    box-shadow: 0 6pt 18pt rgba(0, 0, 0, 0.25);
+    z-index: 5;
+  }
+  .figure-wrap img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* Annotation overlay strip — sits below figure */
+  .annotations {
+    position: absolute;
+    bottom: 56pt;
+    left: 48pt;
+    right: 48pt;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12pt;
+    z-index: 5;
+  }
+  .anno {
+    padding: 9pt 12pt;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1pt solid rgba(255, 255, 255, 0.22);
+    border-radius: 10pt;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+  }
+  .anno .anno-tag {
+    display: inline-block;
+    padding: 2pt 7pt;
+    font-size: 8pt;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 700;
+    border-radius: 5pt;
+    margin-right: 6pt;
+    vertical-align: middle;
+  }
+  .anno.left .anno-tag { background: rgba(96, 165, 250, 0.3); color: #BFDBFE; }
+  .anno.right .anno-tag { background: rgba(167, 139, 250, 0.3); color: #DDD6FE; }
+  .anno .anno-title {
+    display: inline-block;
+    font-size: 12pt;
+    color: #FFFFFF;
+    font-weight: 700;
+    vertical-align: middle;
+  }
+  .anno .anno-body {
+    margin-top: 4pt;
+    font-size: 9.5pt;
+    color: #E0E0F0;
+    line-height: 1.5;
+  }
+  .anno .anno-body code {
+    color: #DDD6FE;
+    font-family: 'Pretendard', monospace;
+    font-weight: 600;
+    background: rgba(167, 139, 250, 0.15);
+    padding: 1pt 4pt;
+    border-radius: 3pt;
+    font-size: 9pt;
+  }
+
+  /* Bottom highlight */
+  .highlight {
+    position: absolute;
+    bottom: 18pt;
+    left: 48pt;
+    right: 48pt;
+    padding: 6pt 14pt;
+    background: linear-gradient(90deg, rgba(167, 139, 250, 0.18) 0%, rgba(96, 165, 250, 0.12) 100%);
+    border: 1pt solid rgba(167, 139, 250, 0.4);
+    border-radius: 10pt;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    display: flex;
+    align-items: center;
+    gap: 10pt;
+    z-index: 5;
+  }
+  .highlight .ic {
+    width: 20pt;
+    height: 20pt;
+    background: rgba(167, 139, 250, 0.3);
+    border-radius: 5pt;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11pt;
+    flex-shrink: 0;
+  }
+  .highlight p {
+    font-size: 10pt;
+    color: #FFFFFF;
+    line-height: 1.4;
+  }
+  .highlight p strong { color: #DDD6FE; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="header">
+    <p class="pagenum">03 / 05</p>
+    <p class="section">LightRAG Architecture</p>
+  </div>
+
+  <h2><span class="marker">전체 흐름</span><strong>그래프 인덱싱</strong> + <strong>Dual-Level 검색</strong></h2>
+  <p class="caption"><span class="figref">Figure 1</span>Overall architecture of the proposed LightRAG framework — Graph-based Text Indexing (좌) + Dual-level Retrieval Paradigm (우)</p>
+
+  <div class="figure-wrap">
+    <img src="./assets/figure1-architecture.png" alt="LightRAG overall architecture">
+  </div>
+
+  <div class="annotations">
+    <div class="anno left">
+      <span class="anno-tag">Left Half</span>
+      <span class="anno-title">Graph-based Text Indexing</span>
+      <p class="anno-body"><code>R(·)</code> Entity·Rel 추출 → <code>P(·)</code> LLM Profiling → <code>D(·)</code> Dedupe → Index Graph 생성</p>
+    </div>
+    <div class="anno right">
+      <span class="anno-tag">Right Half</span>
+      <span class="anno-title">Dual-Level Retrieval</span>
+      <p class="anno-body">Query → Low-level Keys + High-level Keys → Entities · Relations · Contexts → LLM Response</p>
+    </div>
+  </div>
+
+  <div class="highlight">
+    <div class="ic">⚡</div>
+    <p><strong>Incremental Update:</strong> 신규 문서가 들어와도 전체 인덱스 재구축 불필요 — 노드/엣지 합집합으로 즉시 통합</p>
+  </div>
+</div>
+</body>
+</html>

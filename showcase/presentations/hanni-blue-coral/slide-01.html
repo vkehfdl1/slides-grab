@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=720, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>Cover</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+    background: #000000;
+  }
+  .bg img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.45);
+  }
+  .content {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 40pt;
+  }
+  h1 {
+    font-size: 52pt;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-shadow: 0 2pt 16pt rgba(0,0,0,0.4);
+  }
+  h1 span {
+    color: #89CFF0;
+  }
+  p.subtitle {
+    font-size: 16pt;
+    font-weight: 400;
+    color: rgba(255,255,255,0.85);
+    margin-top: 20pt;
+    letter-spacing: 0.08em;
+  }
+  p.tag {
+    position: absolute;
+    top: 28pt;
+    left: 40pt;
+    font-size: 10pt;
+    font-weight: 600;
+    color: #FF69B4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+  <div class="bg">
+    <img src="./assets/hanni-stage-01.jpg" alt="하니 푸른 산호초 도쿄돔 공연">
+  </div>
+  <div class="content">
+    <p class="tag">NewJeans Hanni</p>
+    <h1><span>푸른 산호초</span></h1>
+    <p class="subtitle">하니가 도쿄돔에 불러온 1980년의 여름</p>
+  </div>
+</body>
+</html>

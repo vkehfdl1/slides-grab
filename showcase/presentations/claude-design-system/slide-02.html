@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>The Document — Anatomy of Claude's Design System Prompt</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Noto+Serif+KR:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; padding: 0; }
+    body {
+      width: 720pt; height: 405pt;
+      background: #F2EFE8;
+      color: #3A3020;
+      font-family: 'Noto Serif KR', Georgia, serif;
+      overflow: hidden;
+    }
+    .slide {
+      width: 720pt; height: 405pt;
+      padding: 0; box-sizing: border-box;
+      display: flex; flex-direction: column;
+    }
+    .masthead {
+      background: #1A1208;
+      color: #F2EFE8;
+      padding: 7pt 32pt;
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      text-transform: uppercase;
+    }
+    .hero {
+      padding: 14pt 32pt 10pt;
+      border-bottom: 2pt solid #1A1208;
+    }
+    .kicker {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2.5pt;
+      color: #6E6550;
+      margin: 0 0 6pt;
+      text-transform: uppercase;
+    }
+    .headline {
+      font-family: 'Playfair Display', 'Noto Serif KR', serif;
+      font-weight: 900;
+      font-size: 28pt;
+      line-height: 1.28;
+      letter-spacing: -0.4pt;
+      margin: 0 0 8pt;
+      color: #1A1208;
+    }
+    .headline em {
+      font-style: italic;
+      font-weight: 700;
+    }
+    .lede {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.45;
+      margin: 0;
+      color: #3A3020;
+      max-width: 600pt;
+    }
+    .body-grid {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.2fr 1pt 1.2fr 1pt 0.7fr;
+      gap: 0;
+      padding: 12pt 32pt 10pt;
+    }
+    .col {
+      padding: 0 14pt;
+    }
+    .col:first-child { padding-left: 0; }
+    .col:last-child { padding-right: 0; }
+    .rule-v {
+      background: #1A1208;
+      width: 1pt;
+      height: 100%;
+    }
+    .col-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 2pt;
+      color: #1A1208;
+      margin: 0 0 6pt;
+      padding-bottom: 3pt;
+      border-bottom: 1pt solid #1A1208;
+      text-transform: uppercase;
+    }
+    .col-body {
+      font-family: 'Noto Serif KR', Georgia, serif;
+      font-size: 14pt;
+      line-height: 1.45;
+      margin: 0;
+      color: #3A3020;
+    }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 44pt;
+      line-height: 1.15;
+      color: #1A1208;
+      margin: 0 0 2pt;
+      padding-bottom: 4pt;
+      letter-spacing: -1pt;
+    }
+    .stat-caption {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+      letter-spacing: 1.5pt;
+      color: #6E6550;
+      margin: 0;
+      text-transform: uppercase;
+      line-height: 1.3;
+    }
+    .slide-no {
+      font-family: 'Space Mono', monospace;
+      font-size: 10pt;
+    }
+  </style>
+</head>
+<body>
+  <article class="slide">
+    <header class="masthead">
+      <p style="margin:0;">THE DOCUMENT</p>
+      <p style="margin:0;">SLIDES-GRAB RESEARCH · VOL. I</p>
+      <p style="margin:0;" class="slide-no">02 / 08</p>
+    </header>
+    <div class="hero">
+      <p class="kicker">§ 1 · 이 문서는 무엇인가</p>
+      <h1 class="headline">HTML을 디자인 매체로 다루는 에이전트용 <em>매뉴얼</em></h1>
+      <p class="lede">CL4R1T4S 레포에 공개된 ~400줄 분량의 시스템 프롬프트. Anthropic이 Claude artifact 환경에서 디자인 과제를 수행시키기 위해 주입하는 지시문 전체를 담는다.</p>
+    </div>
+    <div class="body-grid">
+      <section class="col">
+        <p class="col-label">出處 · SOURCE</p>
+        <p class="col-body"><strong>ANTHROPIC/Claude-Design-Sys-Prompt.txt</strong>. 공식 배포는 아니지만 실제 Claude 런타임 주입 프롬프트로 추정.</p>
+      </section>
+      <div class="rule-v"></div>
+      <section class="col">
+        <p class="col-label">範圍 · COVERAGE</p>
+        <p class="col-body">역할 규정, 6단계 워크플로, 콘텐츠 규칙, AI slop 방지 리스트, Claude artifact 런타임 도구. 절반은 환경 인프라, 절반은 이식 가능한 원칙.</p>
+      </section>
+      <div class="rule-v"></div>
+      <aside class="col">
+        <p class="col-label">규모</p>
+        <p class="stat-number">400</p>
+        <p class="stat-caption">줄 분량 · 5+ 빌트인 스킬</p>
+      </aside>
+    </div>
+  </article>
+</body>
+</html>

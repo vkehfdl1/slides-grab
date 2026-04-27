@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 40pt 48pt;
+      display: flex;
+      overflow: hidden;
+    }
+    .toc-item {
+      display: flex; align-items: center; gap: 14pt;
+      padding: 9pt 0;
+      border-bottom: 1px solid rgba(124,111,255,0.15);
+    }
+    .toc-item:last-child { border-bottom: none; }
+    .toc-num {
+      font-family: 'Space Mono', monospace;
+      font-size: 9pt; color: #7C6FFF;
+      min-width: 24pt;
+    }
+    .toc-label {
+      font-size: 13pt; font-weight: 500; color: #FFFFFF;
+    }
+    .toc-dot {
+      flex: 1;
+      border-bottom: 1px dotted rgba(124,111,255,0.25);
+      margin: 0 8pt;
+    }
+  </style>
+</head>
+<body>
+  <!-- Left title -->
+  <div style="min-width: 180pt; display: flex; flex-direction: column; justify-content: flex-end; padding-bottom: 8pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 12pt;">TABLE OF CONTENTS</p>
+    <h1 style="font-family: 'Barlow Condensed', sans-serif; font-size: 34pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;">
+      INDEX
+    </h1>
+    <!-- Small isometric cube -->
+    <div style="position: relative; width: 40pt; height: 40pt; margin-top: 20pt;">
+      <div style="position: absolute; width: 40pt; height: 23pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+      <div style="position: absolute; width: 20pt; height: 32pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+      <div style="position: absolute; width: 20pt; height: 32pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+    </div>
+  </div>
+
+  <!-- Right TOC list -->
+  <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding-left: 32pt;">
+    <div class="toc-item">
+      <p class="toc-num">01</p>
+      <p class="toc-label">유출은 어떻게 일어났나</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">02</p>
+      <p class="toc-label">드러난 것들</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">03</p>
+      <p class="toc-label">claw-code의 탄생</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">04</p>
+      <p class="toc-label">GitHub 역사를 다시 쓰다</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">05</p>
+      <p class="toc-label">Anthropic의 대응</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">06</p>
+      <p class="toc-label">8,100개 레포 삭제 사태</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">07</p>
+      <p class="toc-label">커뮤니티의 반격</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">08</p>
+      <p class="toc-label">오픈소스 vs 클로즈드 소스</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">09</p>
+      <p class="toc-label">보안 부실의 연쇄</p>
+      <div class="toc-dot"></div>
+    </div>
+    <div class="toc-item">
+      <p class="toc-num">10</p>
+      <p class="toc-label">K-빌더, 세계를 흔들다</p>
+      <div class="toc-dot"></div>
+    </div>
+  </div>
+</body>
+</html>

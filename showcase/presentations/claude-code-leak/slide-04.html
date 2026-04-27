@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background grid -->
+  <div style="position: absolute; inset: 0; background-image: linear-gradient(rgba(124,111,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(124,111,255,0.04) 1px, transparent 1px); background-size: 40pt 40pt;"></div>
+
+  <!-- Header -->
+  <div style="position: absolute; top: 36pt; left: 48pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em;">02 // SCALE</p>
+  </div>
+
+  <!-- Main stats -->
+  <div style="display: flex; gap: 48pt; align-items: flex-end; z-index: 1;">
+    <!-- Stat 1: Files -->
+    <div style="text-align: center;">
+      <!-- Isometric bar -->
+      <div style="position: relative; width: 80pt; height: 100pt; margin: 0 auto 12pt;">
+        <div style="position: absolute; width: 80pt; height: 46pt; top: 0; left: 0; background: #A594FF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <div style="position: absolute; width: 40pt; height: 76pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <div style="position: absolute; width: 40pt; height: 76pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+      </div>
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 34pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;">1,906</p>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 6pt;">FILES</p>
+    </div>
+
+    <!-- Stat 2: Lines (tallest) -->
+    <div style="text-align: center;">
+      <div style="position: relative; width: 100pt; height: 140pt; margin: 0 auto 12pt;">
+        <div style="position: absolute; width: 100pt; height: 58pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <div style="position: absolute; width: 50pt; height: 110pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <div style="position: absolute; width: 50pt; height: 110pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+      </div>
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 44pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;">512K</p>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 6pt;">LINES OF CODE</p>
+    </div>
+
+    <!-- Stat 3: Size -->
+    <div style="text-align: center;">
+      <div style="position: relative; width: 70pt; height: 80pt; margin: 0 auto 12pt;">
+        <div style="position: absolute; width: 70pt; height: 40pt; top: 0; left: 0; background: #A594FF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <div style="position: absolute; width: 35pt; height: 60pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <div style="position: absolute; width: 35pt; height: 60pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+      </div>
+      <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;">59.8</p>
+      <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #8888AA; margin-top: 6pt;">MB SOURCE MAP</p>
+    </div>
+  </div>
+
+  <!-- Subtitle -->
+  <p style="font-size: 14pt; color: #8888AA; margin-top: 32pt; z-index: 1; text-align: center;">
+    TypeScript 전체 소스코드가 그대로 세상에 풀렸다
+  </p>
+
+  <!-- Footer -->
+  <div style="position: absolute; bottom: 28pt; right: 48pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC;">FULL SOURCE // NOT A PARTIAL LEAK</p>
+  </div>
+</body>
+</html>

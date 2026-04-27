@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 03 — Dani</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .case-tag {
+    display: flex; align-items: center; gap: 10pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .case-num {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt; border: 2pt solid #000000;
+  }
+  h1 {
+    margin: 0; font-weight: 900; font-size: 30pt;
+    line-height: 1.2; letter-spacing: -0.8pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 2.5pt solid #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .layers {
+    display: flex; gap: 8pt;
+    align-items: stretch;
+  }
+  .layer {
+    flex: 1; border: 3pt solid #000000;
+    padding: 8pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: flex; flex-direction: column; gap: 4pt;
+  }
+  .layer.top { background: #F5F500; }
+  .layer.mid { background: #FFFFFF; }
+  .layer.bot { background: #000000; color: #F5F500; }
+  .layer-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt; font-weight: 700;
+    text-transform: uppercase;
+  }
+  .layer-title {
+    font-weight: 900; font-size: 15pt;
+    line-height: 1.25; letter-spacing: -0.5pt;
+    margin: 0; padding-bottom: 2pt;
+  }
+  .layer-title small {
+    font-family: 'Space Mono', monospace;
+    font-weight: 400; font-size: 9pt;
+    display: block; margin-top: 2pt;
+    letter-spacing: 0;
+  }
+  .layer-body {
+    font-size: 10pt; line-height: 1.45;
+    margin: 0;
+  }
+  .layer-body code {
+    font-family: 'Space Mono', monospace;
+    background: #FFFFFF; color: #000000;
+    padding: 1pt 3pt; font-size: 9pt;
+  }
+  .layer.top .layer-body code,
+  .layer.mid .layer-body code {
+    background: #000000; color: #F5F500;
+  }
+  .insight {
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    font-size: 11pt; font-weight: 700;
+    background: #FFFFFF;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .insight b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 4pt;
+  }
+  .footer {
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="case-tag">
+      <span class="case-num">Case 01.5</span>
+      <span>K-skill을 만든 메타 하네스</span>
+    </div>
+    <h1>Dani — <span class="accent">하네스</span>를 키운 하네스</h1>
+    <div class="layers">
+      <div class="layer top">
+        <div class="layer-num">Layer 3 — Domain</div>
+        <p class="layer-title">K-skill<small>한국 생활 스킬</small></p>
+        <p class="layer-body">SKILL.md로 정의된 일상생활 도메인 — Dani 위에서 자란다.</p>
+      </div>
+      <div class="layer mid">
+        <div class="layer-num">Layer 2 — Workflow</div>
+        <p class="layer-title">Dani<small>GitHub Issue/PR 자동화</small></p>
+        <p class="layer-body">Issue → 분석 → <code>/approve</code> → 구현 → 3라운드 리뷰 → 자동 머지</p>
+      </div>
+      <div class="layer bot">
+        <div class="layer-num">Layer 1 — Runtime</div>
+        <p class="layer-title">OMX or OMO<small>코딩 에이전트 백단</small></p>
+        <p class="layer-body"><code>DANI_AGENT_RUNTIME=omo</code> → <code>opencode serve</code> HTTP를 repo별 lazy-spawn 후 재사용</p>
+      </div>
+    </div>
+    <div class="insight">코딩 에이전트(OMX/OMO)를 한 겹 더 감싸 → <b>오픈소스 운영 자동화</b>라는 새 도메인</div>
+    <div class="footer">
+      <span>github.com/NomaDamas/dani</span>
+      <span>03 / 11</span>
+    </div>
+  </div>
+</body>
+</html>

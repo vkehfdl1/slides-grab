@@ -1,0 +1,3466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 10</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html><head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* 태극기 배경 */
+    .bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, #0047A0 0%, #1a1a3e 40%, #2a1020 60%, #CD2E3A 100%);
+    }
+
+    /* 태극 원 (중앙 장식) */
+    .taegeuk {
+      position: absolute;
+      width: 320pt; height: 320pt;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      overflow: hidden;
+      opacity: 0.18;
+    }
+    .taegeuk-top {
+      position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 160pt 160pt 0 0;
+    }
+    .taegeuk-bottom {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+      background: #0047A0;
+      border-radius: 0 0 160pt 160pt;
+    }
+    .taegeuk-inner-red {
+      position: absolute; top: 25%; left: 0;
+      width: 50%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 50%;
+    }
+    .taegeuk-inner-blue {
+      position: absolute; top: 25%; right: 0;
+      width: 50%; height: 50%;
+      background: #0047A0;
+      border-radius: 50%;
+    }
+
+    /* 펄럭이는 장식 리본 */
+    .ribbon {
+      position: absolute;
+      width: 500pt; height: 80pt;
+      top: 0; left: 0;
+      background: linear-gradient(90deg, rgba(205,46,58,0.3), rgba(0,71,160,0.3), rgba(205,46,58,0.2));
+      filter: blur(2pt);
+      opacity: 0.5;
+      animation: flutter 4s ease-in-out infinite alternate;
+    }
+    .ribbon2 {
+      position: absolute;
+      width: 400pt; height: 60pt;
+      bottom: 0; right: 0;
+      background: linear-gradient(90deg, rgba(0,71,160,0.25), rgba(205,46,58,0.25));
+      filter: blur(3pt);
+      opacity: 0.4;
+      animation: flutter2 5s ease-in-out infinite alternate;
+    }
+
+    @keyframes flutter {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8pt); }
+    }
+    @keyframes flutter2 {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-10pt); }
+    }
+
+    /* 글래스 패널 */
+    .glass-main {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 520pt; height: 280pt;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 24pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 32pt;
+      box-shadow: 0 8pt 32pt rgba(0, 0, 0, 0.3);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6pt 18pt;
+      background: rgba(255, 215, 0, 0.2);
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      border-radius: 20pt;
+      font-size: 11pt;
+      font-weight: 700;
+      color: #FFD700;
+      letter-spacing: 0.1em;
+      margin-bottom: 16pt;
+    }
+
+    .star-count {
+      font-size: 50pt;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      text-shadow: 0 2pt 16pt rgba(255, 215, 0, 0.3);
+    }
+    .star-count span {
+      color: #FFD700;
+    }
+
+    .subtitle {
+      font-size: 20pt;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 16pt;
+      letter-spacing: 0.02em;
+    }
+
+    .desc {
+      font-size: 13pt;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      margin-top: 12pt;
+      line-height: 1.6;
+    }
+
+    /* 별 장식 */
+    .sparkle {
+      position: absolute;
+      width: 6pt; height: 6pt;
+      background: #FFD700;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: sparkle 2s ease-in-out infinite;
+    }
+    .sparkle:nth-child(1) { top: 60pt; left: 80pt; animation-delay: 0s; }
+    .sparkle:nth-child(2) { top: 100pt; right: 120pt; animation-delay: 0.5s; }
+    .sparkle:nth-child(3) { bottom: 80pt; left: 200pt; animation-delay: 1s; }
+    .sparkle:nth-child(4) { top: 150pt; left: 160pt; animation-delay: 1.5s; width: 4pt; height: 4pt; }
+    .sparkle:nth-child(5) { bottom: 120pt; right: 100pt; animation-delay: 0.8s; width: 5pt; height: 5pt; }
+
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.3; transform: scale(1); }
+      50% { opacity: 1; transform: scale(1.5); }
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;bg&quot;></div>
+  <div class=&quot;taegeuk&quot;>
+    <div class=&quot;taegeuk-top&quot;></div>
+    <div class=&quot;taegeuk-bottom&quot;></div>
+    <div class=&quot;taegeuk-inner-red&quot;></div>
+    <div class=&quot;taegeuk-inner-blue&quot;></div>
+  </div>
+  <div class=&quot;ribbon&quot;></div>
+  <div class=&quot;ribbon2&quot;></div>
+
+  <div class=&quot;sparkle&quot;></div>
+  <div class=&quot;sparkle&quot;></div>
+  <div class=&quot;sparkle&quot;></div>
+  <div class=&quot;sparkle&quot;></div>
+  <div class=&quot;sparkle&quot;></div>
+
+  <div class=&quot;glass-main&quot;>
+    <div class=&quot;badge&quot;>🎉 경 축</div>
+    <p class=&quot;star-count&quot;>GitHub <span>★</span> 3K</p>
+    <p class=&quot;subtitle&quot;>한국인을 위한 스킬 모음집</p>
+    <p class=&quot;desc&quot;>K-Skill — Claude Code를 더 한국적으로</p>
+  </div>
+
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+
+    /* 배경 블롭 */
+    .blob1 {
+      position: absolute; width: 300pt; height: 300pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(0,71,160,0.3), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 250pt; height: 250pt;
+      bottom: 0; left: 0;
+      background: radial-gradient(circle, rgba(205,46,58,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .title-section {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      text-align: center; margin-top: 28pt;
+    }
+    .title-section h1 {
+      font-size: 28pt; font-weight: 700; color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .title-section p {
+      font-size: 12pt; color: rgba(255,255,255,0.5); margin-top: 6pt;
+    }
+
+    .grid {
+      position: absolute;
+      top: 120pt; left: 36pt; right: 36pt; bottom: 36pt;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: 1fr 1fr;
+      gap: 12pt;
+    }
+    /* 7개 스킬 → 4+3 배치, 마지막 줄 가운데 정렬을 위해 빈 셀 처리 */
+
+    .card {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16pt);
+      -webkit-backdrop-filter: blur(16pt);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16pt;
+      padding: 16pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .card-emoji {
+      font-size: 28pt;
+      margin-bottom: 8pt;
+    }
+    .card-title {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 8pt;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4pt;
+      line-height: 1.4;
+    }
+
+    /* 하단 3개 가운데 정렬: grid column으로 */
+    .card:nth-child(5) { grid-column: 1; }
+    .card:nth-child(6) { grid-column: 2; }
+    .card:nth-child(7) { grid-column: 3; }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob1&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>NEW UPDATE</span>
+    <span class=&quot;page-num&quot;>02</span>
+  </div>
+
+  <div class=&quot;title-section&quot;>
+    <h1>이번 업데이트 새 스킬 7종</h1>
+    <p>일상을 더 편리하게 만드는 에이전트 스킬</p>
+  </div>
+
+  <div class=&quot;grid&quot;>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-emoji&quot;>🚚</div>
+      <p class=&quot;card-title&quot;>마켓컬리</p>
+      <p class=&quot;card-desc&quot;>상품 조회</p>
+    </div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-emoji&quot;>🚆</div>
+      <p class=&quot;card-title&quot;>지하철 분실물</p>
+      <p class=&quot;card-desc&quot;>자동 조회</p>
+    </div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-emoji&quot;>💊</div>
+      <p class=&quot;card-title&quot;>의약품 안전</p>
+      <p class=&quot;card-desc&quot;>약 먹어도 되나?</p>
+    </div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-emoji&quot;>🍲</div>
+      <p class=&quot;card-title&quot;>식품 안전</p>
+      <p class=&quot;card-desc&quot;>음식 먹어도 괜찮나?</p>
+    </div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-emoji&quot;>📰</div>
+      <p class=&quot;card-title&quot;>긱뉴스</p>
+      <p class=&quot;card-desc&quot;>한국판 해커뉴스</p>
+    </div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-emoji&quot;>🗑️</div>
+      <p class=&quot;card-title&quot;>생활 쓰레기</p>
+      <p class=&quot;card-desc&quot;>배출 정보 안내</p>
+    </div>
+    <div class=&quot;card&quot;>
+      <div class=&quot;card-emoji&quot;>✏️</div>
+      <p class=&quot;card-title&quot;>글자수 세기</p>
+      <p class=&quot;card-desc&quot;>자소서 필수템</p>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html><head>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<base href=&quot;/slides/&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 350pt; height: 350pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(95, 39, 205, 0.25), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 200pt; height: 200pt;
+      bottom: 0; left: 40pt;
+      background: radial-gradient(circle, rgba(205, 46, 58, 0.15), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left {
+      display: flex;
+      flex-direction: column;
+      gap: 16pt;
+    }
+
+    .emoji-large {
+      font-size: 56pt;
+      line-height: 1;
+    }
+
+    .skill-title {
+      font-size: 32pt;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .skill-desc {
+      font-size: 14pt;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.7;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 28pt;
+      display: flex;
+      flex-direction: column;
+      gap: 16pt;
+    }
+
+    .feature-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12pt;
+    }
+    .feature-dot {
+      width: 8pt; height: 8pt;
+      background: #8B5CF6;
+      border-radius: 50%;
+      margin-top: 5pt;
+      flex-shrink: 0;
+    }
+    .feature-text {
+      font-size: 12pt;
+      color: rgba(255,255,255,0.75);
+      line-height: 1.6;
+    }
+    .feature-text strong {
+      color: #fff;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>SKILL 01</span>
+    <span class=&quot;page-num&quot;>03</span>
+  </div>
+
+  <div class=&quot;content&quot;>
+    <div class=&quot;left&quot;>
+      <div class=&quot;emoji-large&quot;>🚚</div>
+      <h1 class=&quot;skill-title&quot;>마켓컬리<br>스킬</h1>
+      <p class=&quot;skill-desc&quot;>에이전트로 마켓컬리 상품을 바로 조회하세요</p>
+    </div>
+
+    <div class=&quot;glass-panel&quot;>
+      <div class=&quot;feature-item&quot;>
+        <div class=&quot;feature-dot&quot;></div>
+        <p class=&quot;feature-text&quot;>상품 검색 — 키워드로 마켓컬리 상품 조회</p>
+      </div>
+      <div class=&quot;feature-item&quot;>
+        <div class=&quot;feature-dot&quot;></div>
+        <p class=&quot;feature-text&quot;><strong>가격 확인</strong> — 현재 가격 및 할인 정보 파악</p>
+      </div>
+      <div class=&quot;feature-item&quot;>
+        <div class=&quot;feature-dot&quot;></div>
+        <p class=&quot;feature-text&quot;><strong>품절 체크</strong> — 재고 상태 실시간 확인</p>
+      </div>
+      <div class=&quot;feature-item&quot;>
+        <div class=&quot;feature-dot&quot;></div>
+        <p class=&quot;feature-text&quot;><strong>로그인 불필요</strong> — API Key 없이 바로 사용</p>
+      </div>
+    </div>
+  </div>
+
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html><head>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<base href=&quot;/slides/&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 300pt; height: 300pt;
+      bottom: 0; right: 0;
+      background: radial-gradient(circle, rgba(0,71,160,0.3), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 250pt; height: 250pt;
+      top: 0; left: 0;
+      background: radial-gradient(circle, rgba(59,130,246,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left {
+      display: flex;
+      flex-direction: column;
+      gap: 16pt;
+    }
+
+    .emoji-large { font-size: 56pt; line-height: 1; }
+
+    .skill-title {
+      font-size: 28pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .skill-desc {
+      font-size: 14pt; color: rgba(255,255,255,0.6); line-height: 1.7;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 24pt;
+      display: flex;
+      flex-direction: column;
+      gap: 12pt;
+    }
+
+    .chat-bubble {
+      padding: 12pt 16pt;
+      border-radius: 14pt;
+      font-size: 11pt;
+      line-height: 1.5;
+      max-width: 90%;
+    }
+    .chat-user {
+      background: rgba(59, 130, 246, 0.25);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: rgba(255,255,255,0.9);
+      align-self: flex-end;
+      border-bottom-right-radius: 4pt;
+    }
+    .chat-agent {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+      align-self: flex-start;
+      border-bottom-left-radius: 4pt;
+    }
+    .chat-label {
+      font-size: 8pt;
+      font-weight: 600;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.05em;
+      margin-bottom: 4pt;
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>SKILL 02</span>
+    <span class=&quot;page-num&quot;>04</span>
+  </div>
+
+  <div class=&quot;content&quot;>
+    <div class=&quot;left&quot;>
+      <div class=&quot;emoji-large&quot;>🚆</div>
+      <h1 class=&quot;skill-title&quot;>지하철<br>분실물 조회</h1>
+      <p class=&quot;skill-desc&quot;>사용 예시)<br>두고 내린 맥북!<br>분실물 센터에 등록될 때까지<br>한 시간마다 자동 조회</p>
+    </div>
+
+    <div class=&quot;glass-panel&quot;>
+      <p class=&quot;chat-label&quot;>USER</p>
+      <div class=&quot;chat-bubble chat-user&quot;>
+        강남역에서 맥북 두고 내렸어 😭<br>한 시간마다 분실물 조회해줘
+      </div>
+      <p class=&quot;chat-label&quot;>AGENT</p>
+      <div class=&quot;chat-bubble chat-agent&quot;>
+        강남역 분실물 센터를 조회할게요.<br>1시간 간격으로 자동 반복 설정합니다 🔄
+      </div>
+      <p class=&quot;chat-label&quot;>AGENT (1시간 후)</p>
+      <div class=&quot;chat-bubble chat-agent&quot;>
+        🎉 맥북이 등록되었습니다!<br>강남역 분실물센터에서 수령 가능합니다.
+      </div>
+    </div>
+  </div>
+
+
+</body></html>" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 320pt; height: 320pt;
+      top: 0; left: 0;
+      background: radial-gradient(circle, rgba(16,185,129,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 280pt; height: 280pt;
+      bottom: 0; right: 0;
+      background: radial-gradient(circle, rgba(139,92,246,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left { display: flex; flex-direction: column; gap: 16pt; }
+    .emoji-large { font-size: 56pt; line-height: 1; }
+    .skill-title {
+      font-size: 28pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .skill-desc {
+      font-size: 13pt; color: rgba(255,255,255,0.6); line-height: 1.7;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 24pt;
+      display: flex;
+      flex-direction: column;
+      gap: 14pt;
+    }
+
+    .check-item {
+      display: flex; align-items: flex-start; gap: 10pt;
+    }
+    .check-icon {
+      width: 20pt; height: 20pt;
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 6pt;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10pt; color: #10B981;
+      flex-shrink: 0;
+    }
+    .check-text {
+      font-size: 11pt; color: rgba(255,255,255,0.8); line-height: 1.5;
+    }
+    .check-text strong { color: #fff; }
+
+    .api-badge {
+      display: inline-flex; align-items: center; gap: 6pt;
+      padding: 8pt 14pt;
+      background: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.25);
+      border-radius: 10pt;
+      margin-top: 4pt;
+    }
+    .api-badge-dot {
+      width: 6pt; height: 6pt;
+      background: #10B981;
+      border-radius: 50%;
+    }
+    .api-badge-text {
+      font-size: 9pt; font-weight: 600;
+      color: #10B981; letter-spacing: 0.05em;
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>SKILL 03</span>
+    <span class=&quot;page-num&quot;>05</span>
+  </div>
+
+  <div class=&quot;content&quot;>
+    <div class=&quot;left&quot;>
+      <div class=&quot;emoji-large&quot;>💊</div>
+      <h1 class=&quot;skill-title&quot;>이 약<br>먹어도 되나?</h1>
+      <p class=&quot;skill-desc&quot;>식약처 공식 API 기반<br>의약품 안전 체크 스킬</p>
+      <div class=&quot;api-badge&quot;>
+        <div class=&quot;api-badge-dot&quot;></div>
+        <span class=&quot;api-badge-text&quot;>식품의약품안전처 공식 API</span>
+      </div>
+    </div>
+
+    <div class=&quot;glass-panel&quot;>
+      <div class=&quot;check-item&quot;>
+        <div class=&quot;check-icon&quot;>✓</div>
+        <p class=&quot;check-text&quot;><strong>의약품 정보 검색</strong><br>정확한 성분, 용법, 주의사항 조회</p>
+      </div>
+      <div class=&quot;check-item&quot;>
+        <div class=&quot;check-icon&quot;>✓</div>
+        <p class=&quot;check-text&quot;><strong>병용 금기 확인</strong><br>&quot;이 약이랑 저 약 같이 먹어도 되나?&quot;</p>
+      </div>
+      <div class=&quot;check-item&quot;>
+        <div class=&quot;check-icon&quot;>✓</div>
+        <p class=&quot;check-text&quot;><strong>환각 없는 답변</strong><br>공식 데이터 기반으로 정확하게 응답</p>
+      </div>
+      <div class=&quot;check-item&quot;>
+        <div class=&quot;check-icon&quot;>✓</div>
+        <p class=&quot;check-text&quot;><strong>인터뷰형 체크</strong><br>증상·복용 상황을 먼저 확인 후 답변</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-06.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 300pt; height: 300pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(245,158,11,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 220pt; height: 220pt;
+      bottom: 0; left: 0;
+      background: radial-gradient(circle, rgba(239,68,68,0.15), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left { display: flex; flex-direction: column; gap: 16pt; }
+    .emoji-large { font-size: 56pt; line-height: 1; }
+    .skill-title {
+      font-size: 26pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .skill-desc {
+      font-size: 13pt; color: rgba(255,255,255,0.6); line-height: 1.7;
+    }
+    .api-badge {
+      display: inline-flex; align-items: center; gap: 6pt;
+      padding: 8pt 14pt;
+      background: rgba(245,158,11,0.1);
+      border: 1px solid rgba(245,158,11,0.25);
+      border-radius: 10pt;
+    }
+    .api-badge-dot {
+      width: 6pt; height: 6pt;
+      background: #F59E0B;
+      border-radius: 50%;
+    }
+    .api-badge-text {
+      font-size: 9pt; font-weight: 600;
+      color: #F59E0B; letter-spacing: 0.05em;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 24pt;
+      display: flex;
+      flex-direction: column;
+      gap: 12pt;
+    }
+
+    .chat-bubble {
+      padding: 12pt 16pt;
+      border-radius: 14pt;
+      font-size: 11pt;
+      line-height: 1.5;
+      max-width: 90%;
+    }
+    .chat-user {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: rgba(255,255,255,0.9);
+      align-self: flex-end;
+      border-bottom-right-radius: 4pt;
+    }
+    .chat-agent {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.8);
+      align-self: flex-start;
+      border-bottom-left-radius: 4pt;
+    }
+    .chat-label {
+      font-size: 8pt; font-weight: 600;
+      color: rgba(255,255,255,0.4); letter-spacing: 0.05em;
+      margin-bottom: 2pt;
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>SKILL 04</span>
+    <span class=&quot;page-num&quot;>06</span>
+  </div>
+
+  <div class=&quot;content&quot;>
+    <div class=&quot;left&quot;>
+      <div class=&quot;emoji-large&quot;>🍲</div>
+      <h1 class=&quot;skill-title&quot;>이 음식<br>먹어도 괜찮나?</h1>
+      <p class=&quot;skill-desc&quot;>식약처 공식 API 기반<br>식품 안전 정보 스킬</p>
+      <div class=&quot;api-badge&quot;>
+        <div class=&quot;api-badge-dot&quot;></div>
+        <span class=&quot;api-badge-text&quot;>식품의약품안전처 공식 API</span>
+      </div>
+    </div>
+
+    <div class=&quot;glass-panel&quot;>
+      <p class=&quot;chat-label&quot;>USER</p>
+      <div class=&quot;chat-bubble chat-user&quot;>
+        나 당뇨인데 약과 먹어도 괜찮나? 🤔
+      </div>
+      <p class=&quot;chat-label&quot;>AGENT</p>
+      <div class=&quot;chat-bubble chat-agent&quot;>
+        약과의 영양 정보를 확인할게요.<br>
+        식약처 데이터 기준으로 답변드립니다.
+      </div>
+      <p class=&quot;chat-label&quot;>AGENT</p>
+      <div class=&quot;chat-bubble chat-agent&quot;>
+        약과 1개(40g) 기준 당류 약 12g입니다.<br>
+        당뇨 환자분은 간식 기준 1/2개 이하로<br>
+        섭취를 권장합니다. 🍯
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 280pt; height: 280pt;
+      top: 0; left: 0;
+      background: radial-gradient(circle, rgba(251,146,60,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 240pt; height: 240pt;
+      bottom: 0; right: 0;
+      background: radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .center-content {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20pt;
+    }
+
+    .emoji-large { font-size: 48pt; line-height: 1; }
+    .skill-title {
+      font-size: 36pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .skill-desc {
+      font-size: 16pt; color: rgba(255,255,255,0.6); line-height: 1.6;
+    }
+
+    .glass-row {
+      display: flex; gap: 16pt; margin-top: 8pt;
+    }
+    .glass-chip {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16pt);
+      -webkit-backdrop-filter: blur(16pt);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14pt;
+      padding: 14pt 20pt;
+      display: flex; flex-direction: column; align-items: center; gap: 6pt;
+    }
+    .chip-icon { font-size: 20pt; }
+    .chip-text {
+      font-size: 10pt; font-weight: 600; color: rgba(255,255,255,0.8);
+    }
+    .chip-sub {
+      font-size: 8pt; color: rgba(255,255,255,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>SKILL 05</span>
+    <span class=&quot;page-num&quot;>07</span>
+  </div>
+
+  <div class=&quot;center-content&quot;>
+    <div class=&quot;emoji-large&quot;>📰</div>
+    <h1 class=&quot;skill-title&quot;>긱뉴스 조회</h1>
+    <p class=&quot;skill-desc&quot;>한국의 해커뉴스, 긱뉴스를<br>에이전트로 손쉽게 조회합니다</p>
+
+    <div class=&quot;glass-row&quot;>
+      <div class=&quot;glass-chip&quot;>
+        <span class=&quot;chip-icon&quot;>🔍</span>
+        <span class=&quot;chip-text&quot;>키워드 검색</span>
+        <span class=&quot;chip-sub&quot;>관심 주제 빠르게</span>
+      </div>
+      <div class=&quot;glass-chip&quot;>
+        <span class=&quot;chip-icon&quot;>📋</span>
+        <span class=&quot;chip-text&quot;>최신 게시물</span>
+        <span class=&quot;chip-sub&quot;>RSS 피드 기반</span>
+      </div>
+      <div class=&quot;glass-chip&quot;>
+        <span class=&quot;chip-icon&quot;>📖</span>
+        <span class=&quot;chip-text&quot;>상세 확인</span>
+        <span class=&quot;chip-sub&quot;>원문 바로 읽기</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="8" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-08.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 280pt; height: 280pt;
+      bottom: 0; left: 0;
+      background: radial-gradient(circle, rgba(34,197,94,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 200pt; height: 200pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(168,85,247,0.15), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .center-content {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20pt;
+    }
+
+    .emoji-large { font-size: 48pt; line-height: 1; }
+    .skill-title {
+      font-size: 34pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .skill-desc {
+      font-size: 15pt; color: rgba(255,255,255,0.6); line-height: 1.6;
+    }
+
+    .glass-info {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 18pt;
+      padding: 20pt 32pt;
+      display: flex;
+      gap: 40pt;
+      align-items: center;
+    }
+
+    .info-item {
+      display: flex; flex-direction: column; align-items: center; gap: 6pt;
+    }
+    .info-icon { font-size: 22pt; }
+    .info-label {
+      font-size: 10pt; font-weight: 600; color: rgba(255,255,255,0.8);
+    }
+    .info-sub {
+      font-size: 8pt; color: rgba(255,255,255,0.4);
+    }
+
+    .divider {
+      width: 1px; height: 40pt;
+      background: rgba(255,255,255,0.12);
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>SKILL 06</span>
+    <span class=&quot;page-num&quot;>08</span>
+  </div>
+
+  <div class=&quot;center-content&quot;>
+    <div class=&quot;emoji-large&quot;>🗑️</div>
+    <h1 class=&quot;skill-title&quot;>생활 쓰레기 배출 정보</h1>
+    <p class=&quot;skill-desc&quot;>우리 동네 쓰레기 배출 요일·시간·장소를<br>에이전트에게 물어보세요</p>
+
+    <div class=&quot;glass-info&quot;>
+      <div class=&quot;info-item&quot;>
+        <span class=&quot;info-icon&quot;>📅</span>
+        <span class=&quot;info-label&quot;>배출 요일</span>
+        <span class=&quot;info-sub&quot;>지역별 수거일</span>
+      </div>
+      <div class=&quot;divider&quot;></div>
+      <div class=&quot;info-item&quot;>
+        <span class=&quot;info-icon&quot;>🕐</span>
+        <span class=&quot;info-label&quot;>배출 시간</span>
+        <span class=&quot;info-sub&quot;>정확한 시간대</span>
+      </div>
+      <div class=&quot;divider&quot;></div>
+      <div class=&quot;info-item&quot;>
+        <span class=&quot;info-icon&quot;>📍</span>
+        <span class=&quot;info-label&quot;>배출 장소</span>
+        <span class=&quot;info-sub&quot;>지정 배출 위치</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="9" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-09.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+    .blob {
+      position: absolute; width: 300pt; height: 300pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(236,72,153,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 220pt; height: 220pt;
+      bottom: 0; left: 0;
+      background: radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .content {
+      position: absolute;
+      top: 80pt; left: 48pt; right: 48pt; bottom: 40pt;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32pt;
+      align-items: center;
+    }
+
+    .left { display: flex; flex-direction: column; gap: 16pt; }
+    .emoji-large { font-size: 56pt; line-height: 1; }
+    .skill-title {
+      font-size: 28pt; font-weight: 800; color: #fff;
+      letter-spacing: -0.02em; line-height: 1.2;
+    }
+    .skill-desc {
+      font-size: 13pt; color: rgba(255,255,255,0.6); line-height: 1.7;
+    }
+    .highlight {
+      display: inline-block;
+      padding: 4pt 12pt;
+      background: rgba(236,72,153,0.15);
+      border: 1px solid rgba(236,72,153,0.3);
+      border-radius: 8pt;
+      font-size: 10pt; font-weight: 600;
+      color: #EC4899;
+    }
+
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20pt);
+      -webkit-backdrop-filter: blur(20pt);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20pt;
+      padding: 24pt;
+      display: flex;
+      flex-direction: column;
+      gap: 12pt;
+    }
+
+    .demo-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12pt;
+      padding: 16pt;
+    }
+    .demo-text {
+      font-size: 10pt;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.6;
+    }
+    .demo-result {
+      margin-top: 12pt;
+      padding: 12pt;
+      background: rgba(236,72,153,0.08);
+      border: 1px solid rgba(236,72,153,0.15);
+      border-radius: 10pt;
+      text-align: center;
+    }
+    .result-number {
+      font-size: 36pt;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+    }
+    .result-unit {
+      font-size: 14pt;
+      color: rgba(255,255,255,0.5);
+      margin-left: 4pt;
+    }
+    .result-label {
+      font-size: 9pt;
+      color: rgba(255,255,255,0.4);
+      margin-top: 4pt;
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;blob&quot;></div>
+  <div class=&quot;blob2&quot;></div>
+
+  <div class=&quot;header&quot;>
+    <span class=&quot;header-badge&quot;>SKILL 07</span>
+    <span class=&quot;page-num&quot;>09</span>
+  </div>
+
+  <div class=&quot;content&quot;>
+    <div class=&quot;left&quot;>
+      <div class=&quot;emoji-large&quot;>✏️</div>
+      <h1 class=&quot;skill-title&quot;>한글<br>글자수 세기</h1>
+      <p class=&quot;skill-desc&quot;>더 이상 네이버에서<br>&quot;글자 수 세기&quot; 검색하지 마세요</p>
+      <span class=&quot;highlight&quot;>자소서 작성 시 필수!</span>
+    </div>
+
+    <div class=&quot;glass-panel&quot;>
+      <div class=&quot;demo-box&quot;>
+        <p class=&quot;demo-text&quot;>
+          &quot;저는 새로운 도전을 즐기는 사람입니다.
+          대학 시절 동아리 활동을 통해 팀워크의
+          중요성을 배웠고, 인턴 경험에서 실무
+          역량을 키웠습니다...&quot;
+        </p>
+      </div>
+      <div class=&quot;demo-result&quot;>
+        <span class=&quot;result-number&quot;>247</span><span class=&quot;result-unit&quot;>자</span>
+        <p class=&quot;result-label&quot;>공백 포함 · 바이트: 741 · 라인: 4</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="10" srcdoc="<!DOCTYPE html>
+<html>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-10.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+  <link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(135deg, #0047A0 0%, #1a1a3e 40%, #2a1020 60%, #CD2E3A 100%);
+    }
+
+    /* 태극 원 (커버와 동일) */
+    .taegeuk {
+      position: absolute;
+      width: 280pt; height: 280pt;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      overflow: hidden;
+      opacity: 0.12;
+    }
+    .taegeuk-top {
+      position: absolute; top: 0; left: 0; width: 100%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 140pt 140pt 0 0;
+    }
+    .taegeuk-bottom {
+      position: absolute; bottom: 0; left: 0; width: 100%; height: 50%;
+      background: #0047A0;
+      border-radius: 0 0 140pt 140pt;
+    }
+    .taegeuk-inner-red {
+      position: absolute; top: 25%; left: 0;
+      width: 50%; height: 50%;
+      background: #CD2E3A;
+      border-radius: 50%;
+    }
+    .taegeuk-inner-blue {
+      position: absolute; top: 25%; right: 0;
+      width: 50%; height: 50%;
+      background: #0047A0;
+      border-radius: 50%;
+    }
+
+    /* 펄럭 리본 */
+    .ribbon {
+      position: absolute;
+      width: 500pt; height: 60pt;
+      top: 10pt; left: 20pt;
+      background: linear-gradient(90deg, rgba(205,46,58,0.2), rgba(0,71,160,0.2));
+      filter: blur(3pt);
+      opacity: 0.4;
+    }
+
+    /* 글래스 패널 */
+    .glass-main {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 540pt;
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(24pt);
+      -webkit-backdrop-filter: blur(24pt);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 28pt;
+      padding: 48pt 40pt;
+      text-align: center;
+      box-shadow: 0 8pt 40pt rgba(0, 0, 0, 0.3);
+    }
+
+    .closing-text {
+      font-size: 30pt;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+      line-height: 1.4;
+    }
+    .closing-text .highlight {
+      background: linear-gradient(90deg, #FFD700, #FFA500);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .closing-sub {
+      margin-top: 20pt;
+      font-size: 14pt;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    .github-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8pt;
+      margin-top: 24pt;
+      padding: 10pt 24pt;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20pt;
+      font-size: 12pt;
+      font-weight: 600;
+      color: rgba(255,255,255,0.8);
+    }
+
+    .star { color: #FFD700; }
+
+    .page-num {
+      position: absolute; bottom: 28pt; right: 48pt;
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class=&quot;taegeuk&quot;>
+    <div class=&quot;taegeuk-top&quot;></div>
+    <div class=&quot;taegeuk-bottom&quot;></div>
+    <div class=&quot;taegeuk-inner-red&quot;></div>
+    <div class=&quot;taegeuk-inner-blue&quot;></div>
+  </div>
+  <div class=&quot;ribbon&quot;></div>
+
+  <div class=&quot;glass-main&quot;>
+    <p class=&quot;closing-text&quot;>
+      한국인 <span class=&quot;highlight&quot;>Agent-native</span>라면,<br>
+      K-Skill은 선택이 아닌 <span class=&quot;highlight&quot;>필수</span>
+    </p>
+    <p class=&quot;closing-sub&quot;>
+      더 한국적인 에이전트 경험을 만들어갑니다
+    </p>
+    <div class=&quot;github-link&quot;>
+      <span class=&quot;star&quot;>★</span> GitHub에서 K-Skill 만나기
+    </div>
+  </div>
+
+  <span class=&quot;page-num&quot;>10</span>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 10;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

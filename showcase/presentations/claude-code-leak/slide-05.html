@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .grid-card {
+      background: rgba(124,111,255,0.08);
+      border: 1px solid rgba(124,111,255,0.2);
+      padding: 14pt 16pt;
+      display: flex; flex-direction: column; gap: 6pt;
+    }
+    .card-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 7pt; color: #A594FF;
+      letter-spacing: 0.12em;
+    }
+    .card-title {
+      font-size: 12pt; font-weight: 600; color: #FFFFFF;
+    }
+    .card-desc {
+      font-size: 9pt; color: #8888AA; line-height: 1.4;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20pt;">
+    <div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;">03 // EXPOSED</p>
+      <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 30pt; font-weight: 700; color: #FFFFFF;">코드에서 드러난 것들</h2>
+    </div>
+    <p style="font-size: 10pt; color: #8888AA;">미공개 기능과 논란의 내부 시스템</p>
+  </div>
+
+  <!-- Bento grid -->
+  <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10pt;">
+    <!-- KAIROS -->
+    <div class="grid-card" style="grid-column: 1 / 2; grid-row: 1 / 3; justify-content: center;">
+      <!-- Mini isometric cube -->
+      <div style="position: relative; width: 36pt; height: 36pt; margin-bottom: 6pt;">
+        <div style="position: absolute; width: 36pt; height: 21pt; top: 0; left: 0; background: #FF6B6B; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <div style="position: absolute; width: 18pt; height: 28pt; bottom: 0; left: 0; background: #CC4444; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <div style="position: absolute; width: 18pt; height: 28pt; bottom: 0; right: 0; background: #E05555; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+      </div>
+      <p class="card-label">CRITICAL</p>
+      <p class="card-title">KAIROS 모드</p>
+      <p class="card-desc">24/7 자율 에이전트 모드.<br>백그라운드에서 수 초마다<br>"할 일이 있는가?" 하트비트를<br>받으며 자율 실행</p>
+    </div>
+
+    <!-- Undercover Mode -->
+    <div class="grid-card">
+      <p class="card-label">STEALTH</p>
+      <p class="card-title">Undercover Mode</p>
+      <p class="card-desc">커밋/PR에서 AI 귀속 표시를 숨기는 기능</p>
+    </div>
+
+    <!-- Anti-Distillation -->
+    <div class="grid-card">
+      <p class="card-label">DEFENSE</p>
+      <p class="card-title">Anti-Distillation</p>
+      <p class="card-desc">경쟁사 모델 증류 방해용 가짜 도구를 시스템 프롬프트에 주입</p>
+    </div>
+
+    <!-- Model Codenames -->
+    <div class="grid-card">
+      <p class="card-label">UNRELEASED</p>
+      <p class="card-title">미공개 모델 코드명</p>
+      <p class="card-desc">Capybara, Fennec, Numbat 등</p>
+    </div>
+
+    <!-- Feature Flags -->
+    <div class="grid-card">
+      <p class="card-label">44 FLAGS</p>
+      <p class="card-title">미공개 기능 플래그</p>
+      <p class="card-desc">멀티 에이전트, 음성 명령, 브라우저 제어 등</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="margin-top: 10pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 7pt; color: #4A3FCC; letter-spacing: 0.08em;">+ autoDream MEMORY SYSTEM // BUDDY PET SYSTEM (18 SPECIES) // VOICE COMMANDS</p>
+  </div>
+</body>
+</html>

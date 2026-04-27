@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  .slide {
+    width: 720pt; height: 405pt;
+    background: #0D0D0D;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* dot grid */
+  .slide::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(0,240,255,0.06) 1px, transparent 1px);
+    background-size: 20px 20px;
+    pointer-events: none;
+  }
+
+  /* corner brackets */
+  .corner { position: absolute; width: 24px; height: 24px; }
+  .corner::before, .corner::after {
+    content: ''; position: absolute; background: #00F0FF;
+  }
+  .corner::before { width: 24px; height: 2px; }
+  .corner::after  { width: 2px; height: 24px; }
+
+  .corner.tl { top: 20px; left: 20px; }
+  .corner.tl::before { top: 0; left: 0; }
+  .corner.tl::after  { top: 0; left: 0; }
+
+  .corner.tr { top: 20px; right: 20px; }
+  .corner.tr::before { top: 0; right: 0; }
+  .corner.tr::after  { top: 0; right: 0; }
+
+  .corner.bl { bottom: 20px; left: 20px; }
+  .corner.bl::before { bottom: 0; left: 0; }
+  .corner.bl::after  { bottom: 0; left: 0; }
+
+  .corner.br { bottom: 20px; right: 20px; }
+  .corner.br::before { bottom: 0; right: 0; }
+  .corner.br::after  { bottom: 0; right: 0; }
+
+  /* title — outline text */
+  h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 60pt;
+    letter-spacing: 8pt;
+    color: transparent;
+    -webkit-text-stroke: 2px #00F0FF;
+    text-align: center;
+    line-height: 1.25;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* year subtitle */
+  .year {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28pt;
+    letter-spacing: 6pt;
+    color: transparent;
+    -webkit-text-stroke: 1px #FF2975;
+    text-align: center;
+    margin-top: 8pt;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* bottom label */
+  .sub-label {
+    position: absolute;
+    bottom: 32px;
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt;
+    letter-spacing: 4pt;
+    color: rgba(0,240,255,0.5);
+    text-transform: uppercase;
+    text-align: center;
+    z-index: 1;
+  }
+
+  /* scanline */
+  .scanline {
+    position: absolute;
+    top: 50%;
+    left: 60px; right: 60px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(0,240,255,0.15), transparent);
+    z-index: 0;
+  }
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <div class="scanline"></div>
+
+  <h1>BLADE RUNNER<br>2049</h1>
+  <p class="year">2017</p>
+
+  <p class="sub-label">Denis Villeneuve &middot; A Sequel 30 Years in the Making</p>
+</div>
+</body>
+</html>

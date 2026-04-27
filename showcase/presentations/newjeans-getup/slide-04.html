@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #000080;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .rainbow-bar {
+      width: 100%;
+      height: 7pt;
+      background: linear-gradient(90deg, #FF0000, #FF7700, #FFFF00, #00FF00, #0000FF, #8B00FF);
+      flex-shrink: 0;
+    }
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    /* Full-bleed group photo */
+    .hero-photo {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+    }
+    .hero-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      filter: saturate(1.1);
+    }
+    .hero-photo::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(0deg, rgba(0,0,128,0.92) 0%, rgba(0,0,128,0.4) 40%, rgba(0,0,128,0.15) 100%);
+    }
+    .overlay {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 0 44pt 24pt;
+    }
+    h2 {
+      font-family: Impact, 'Pretendard', sans-serif;
+      font-size: 34pt;
+      color: #FFFFFF;
+      text-shadow: 2px 2px 0 #00FFFF, 4px 4px 0 #FF00FF;
+      text-transform: uppercase;
+      margin-bottom: 10pt;
+    }
+    .info-row {
+      display: flex;
+      gap: 20pt;
+      margin-bottom: 10pt;
+    }
+    .info-item {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1pt solid rgba(255, 255, 0, 0.3);
+      border-radius: 6pt;
+      padding: 8pt 14pt;
+    }
+    .info-item p {
+      font-size: 10pt;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 1.4;
+    }
+    .info-item p strong {
+      color: #FFFF00;
+      font-weight: 700;
+    }
+    .members {
+      display: flex;
+      gap: 10pt;
+      margin-top: 4pt;
+    }
+    .member-tag {
+      padding: 3pt 10pt;
+      background: rgba(255, 0, 255, 0.2);
+      border: 1pt solid #FF00FF;
+      border-radius: 10pt;
+      font-size: 9pt;
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+    .star { color: #FFFF00; font-size: 14pt; }
+  </style>
+</head>
+<body>
+  <div class="rainbow-bar"></div>
+  <div class="content">
+    <div class="hero-photo">
+      <img src="./assets/teaser_7.jpg" alt="NewJeans Cool With You - Minji, Hanni, Danielle, Haerin, Hyein">
+    </div>
+    <div class="overlay">
+      <h2><span class="star">&#10022;</span> Cool With You</h2>
+      <div class="info-row">
+        <div class="info-item">
+          <p><strong>UK Garage</strong> 기반 리드 싱글</p>
+        </div>
+        <div class="info-item">
+          <p><strong>Danielle</strong> &amp; Erika de Casier 공동 작곡</p>
+        </div>
+        <div class="info-item">
+          <p>MV 촬영지: <strong>Barcelona</strong></p>
+        </div>
+      </div>
+      <div class="members">
+        <p class="member-tag">MINJI</p>
+        <p class="member-tag">HANNI</p>
+        <p class="member-tag">DANIELLE</p>
+        <p class="member-tag">HAERIN</p>
+        <p class="member-tag">HYEIN</p>
+      </div>
+    </div>
+  </div>
+  <div class="rainbow-bar"></div>
+</body>
+</html>

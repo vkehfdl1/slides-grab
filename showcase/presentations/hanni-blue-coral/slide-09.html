@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=720, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>디즈니풍 하니</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+    background: #000000;
+  }
+  .bg-img {
+    position: absolute;
+    inset: 0;
+  }
+  .bg-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .text-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24pt 40pt 28pt;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.65) 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  h1 {
+    font-size: 22pt;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+  }
+  h1 span {
+    color: #FF69B4;
+    font-weight: 400;
+    font-size: 14pt;
+  }
+  p.badge {
+    font-size: 9pt;
+    font-weight: 600;
+    color: #89CFF0;
+    background: rgba(255,255,255,0.12);
+    padding: 5pt 12pt;
+    border-radius: 20pt;
+    letter-spacing: 0.06em;
+    backdrop-filter: blur(4px);
+  }
+</style>
+</head>
+<body>
+  <div class="bg-img">
+    <img src="./assets/hanni-disney-style.jpg" alt="디즈니 스타일의 하니 일러스트">
+  </div>
+  <div class="text-overlay">
+    <h1>디즈니 프린세스 하니<br><span>Disney × 푸른 산호초</span></h1>
+    <p class="badge">AI Generated</p>
+  </div>
+</body>
+</html>

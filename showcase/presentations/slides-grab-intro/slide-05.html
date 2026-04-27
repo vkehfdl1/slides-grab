@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000000;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 24pt 24pt;
+      z-index: 0;
+    }
+    /* Bottom glow */
+    body::after {
+      content: '';
+      position: absolute;
+      bottom: -80pt;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 500pt;
+      height: 250pt;
+      background: radial-gradient(ellipse, rgba(0,112,243,0.1) 0%, rgba(124,58,237,0.06) 40%, transparent 70%);
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Content wrapper -->
+  <div style="position: relative; z-index: 1; padding: 44pt 62pt 36pt; display: flex; flex-direction: column; height: 100%;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 28pt;">
+      <div style="display: flex; align-items: center; gap: 12pt;">
+        <p style="display: inline-block; padding: 4pt 12pt; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.2); border-radius: 999pt; font-size: 9pt; font-weight: 600; color: #10B981; letter-spacing: 0.04em;">GET STARTED</p>
+        <h2 style="font-size: 28pt; font-weight: 700; color: #FAFAFA; letter-spacing: -0.02em;">Start Building</h2>
+      </div>
+      <p style="font-size: 10pt; color: rgba(255,255,255,0.2); font-weight: 500;">04</p>
+    </div>
+
+    <!-- Options -->
+    <div style="flex: 1; display: flex; flex-direction: column; gap: 12pt;">
+
+      <!-- Option A: Recommended -->
+      <div style="background: rgba(0,112,243,0.04); border: 1px solid rgba(0,112,243,0.2); border-radius: 14pt; padding: 18pt 22pt; display: flex; align-items: center; gap: 16pt; flex: 0 0 auto;">
+        <div style="flex: 1 1 0; min-width: 0;">
+          <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 5pt;">
+            <p style="display: inline-block; padding: 2pt 8pt; background: rgba(0,112,243,0.15); border-radius: 4pt; font-size: 8pt; font-weight: 700; color: #0070F3; letter-spacing: 0.06em;">RECOMMENDED</p>
+            <h4 style="font-size: 15pt; font-weight: 700; color: #FAFAFA;">Paste into your coding agent</h4>
+          </div>
+          <p style="font-size: 10.5pt; color: rgba(255,255,255,0.35); line-height: 1.45;">Copy the setup prompt from the README. Paste into Claude Code or Codex. Done.</p>
+        </div>
+        <div style="flex: 0 0 188pt; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 10pt; padding: 11pt 14pt; min-width: 0;">
+          <p style="font-family: 'JetBrains Mono', monospace; font-size: 7.8pt; color: rgba(255,255,255,0.45); line-height: 1.55; word-break: break-word;">
+            Read https://raw.githubusercontent.com/<br>vkehfdl1/slides-grab/main/docs/<br>prompts/setup-claude.md<br>and follow every step.
+          </p>
+        </div>
+      </div>
+
+      <!-- Option B & C row -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; flex: 1;">
+
+        <!-- Option B: Clone -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14pt; padding: 18pt 22pt;">
+          <h4 style="font-size: 14pt; font-weight: 700; color: #FAFAFA; margin-bottom: 9pt;">Clone the repo</h4>
+          <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 10pt; padding: 11pt 14pt;">
+            <p style="font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; color: rgba(255,255,255,0.45); line-height: 1.65;">
+              <span style="color: #0070F3;">$</span> git clone github.com/vkehfdl1/slides-grab<br>
+              <span style="color: #0070F3;">$</span> cd slides-grab && npm ci
+            </p>
+          </div>
+        </div>
+
+        <!-- Option C: npm -->
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14pt; padding: 18pt 22pt;">
+          <h4 style="font-size: 14pt; font-weight: 700; color: #FAFAFA; margin-bottom: 9pt;">Install from npm</h4>
+          <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 10pt; padding: 11pt 14pt;">
+            <p style="font-family: 'JetBrains Mono', monospace; font-size: 8.5pt; color: rgba(255,255,255,0.45); line-height: 1.65;">
+              <span style="color: #0070F3;">$</span> npm install slides-grab
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

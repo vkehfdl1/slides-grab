@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000000;
+      overflow: hidden;
+      position: relative;
+    }
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 24pt 24pt;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Content wrapper -->
+  <div style="position: relative; z-index: 1; padding: 44pt 64pt 34pt; display: flex; flex-direction: column; height: 100%;">
+
+    <!-- Header -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24pt;">
+      <div style="display: flex; align-items: center; gap: 12pt;">
+        <p style="display: inline-block; padding: 4pt 12pt; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.2); border-radius: 999pt; font-size: 9pt; font-weight: 600; color: #7C3AED; letter-spacing: 0.04em;">FEATURES</p>
+        <h2 style="font-size: 28pt; font-weight: 700; color: #FAFAFA; letter-spacing: -0.02em;">Key Features</h2>
+      </div>
+      <p style="font-size: 10pt; color: rgba(255,255,255,0.2); font-weight: 500;">03</p>
+    </div>
+
+    <!-- Feature grid: 2 rows -->
+    <div style="flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: 1fr 1fr; gap: 12pt;">
+
+      <!-- Feature 1: Visual Editor -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14pt; padding: 18pt;">
+        <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 12pt;">
+          <div style="width: 28pt; height: 28pt; background: rgba(0,112,243,0.12); border-radius: 8pt; display: flex; align-items: center; justify-content: center;">
+            <p style="font-size: 14pt;">&#x1F5B1;&#xFE0F;</p>
+          </div>
+          <h4 style="font-size: 13pt; font-weight: 700; color: #FAFAFA;">Visual Bbox Editor</h4>
+        </div>
+        <p style="font-size: 10pt; color: rgba(255,255,255,0.35); line-height: 1.6;">Draw a selection box over any element. Describe your change. The agent rewrites it.</p>
+      </div>
+
+      <!-- Feature 2: Agent Support -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14pt; padding: 18pt;">
+        <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 12pt;">
+          <div style="width: 28pt; height: 28pt; background: rgba(124,58,237,0.12); border-radius: 8pt; display: flex; align-items: center; justify-content: center;">
+            <p style="font-size: 14pt;">&#x1F916;</p>
+          </div>
+          <h4 style="font-size: 13pt; font-weight: 700; color: #FAFAFA;">Multi-Agent</h4>
+        </div>
+        <p style="font-size: 10pt; color: rgba(255,255,255,0.35); line-height: 1.6;">Native support for Claude Code and OpenAI Codex. Use whichever model your team prefers.</p>
+      </div>
+
+      <!-- Feature 3: Export -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14pt; padding: 18pt;">
+        <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 12pt;">
+          <div style="width: 28pt; height: 28pt; background: rgba(16,185,129,0.12); border-radius: 8pt; display: flex; align-items: center; justify-content: center;">
+            <p style="font-size: 14pt;">&#x1F4E4;</p>
+          </div>
+          <h4 style="font-size: 13pt; font-weight: 700; color: #FAFAFA;">Export Pipeline</h4>
+        </div>
+        <p style="font-size: 10pt; color: rgba(255,255,255,0.35); line-height: 1.6;">One command to PPTX or PDF. Same HTML source, multiple output formats.</p>
+      </div>
+
+      <!-- Feature 4: Templates & Themes -->
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14pt; padding: 18pt;">
+        <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 12pt;">
+          <div style="width: 28pt; height: 28pt; background: rgba(245,158,11,0.12); border-radius: 8pt; display: flex; align-items: center; justify-content: center;">
+            <p style="font-size: 14pt;">&#x1F3AD;</p>
+          </div>
+          <h4 style="font-size: 13pt; font-weight: 700; color: #FAFAFA;">Templates & Themes</h4>
+        </div>
+        <p style="font-size: 10pt; color: rgba(255,255,255,0.35); line-height: 1.6;">12 slide templates, 5 color themes. Create custom brand kits with CSS variables.</p>
+      </div>
+
+      <!-- Feature 5: CLI -->
+      <div style="grid-column: span 2; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 14pt; padding: 18pt; display: flex; gap: 20pt; align-items: center;">
+        <div style="flex-shrink: 0;">
+          <div style="display: flex; align-items: center; gap: 10pt; margin-bottom: 12pt;">
+            <div style="width: 28pt; height: 28pt; background: rgba(0,112,243,0.12); border-radius: 8pt; display: flex; align-items: center; justify-content: center;">
+              <p style="font-size: 14pt;">&#x2318;</p>
+            </div>
+            <h4 style="font-size: 13pt; font-weight: 700; color: #FAFAFA;">CLI Workflow</h4>
+          </div>
+          <p style="font-size: 10pt; color: rgba(255,255,255,0.35); line-height: 1.6;">Full lifecycle from your terminal.</p>
+        </div>
+        <!-- Code block -->
+        <div style="flex: 1; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.06); border-radius: 10pt; padding: 12pt 16pt;">
+          <p style="font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 9pt; color: rgba(255,255,255,0.5); line-height: 1.55;">
+            <span style="color: #0070F3;">$</span> slides-grab edit<br>
+            <span style="color: #0070F3;">$</span> slides-grab validate<br>
+            <span style="color: #0070F3;">$</span> slides-grab convert<br>
+            <span style="color: #0070F3;">$</span> slides-grab pdf
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(160deg, #0a0a2e 0%, #1a1040 50%, #2a0a20 100%);
+    }
+
+    /* 배경 블롭 */
+    .blob1 {
+      position: absolute; width: 300pt; height: 300pt;
+      top: 0; right: 0;
+      background: radial-gradient(circle, rgba(0,71,160,0.3), transparent 70%);
+      border-radius: 50%;
+    }
+    .blob2 {
+      position: absolute; width: 250pt; height: 250pt;
+      bottom: 0; left: 0;
+      background: radial-gradient(circle, rgba(205,46,58,0.2), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .header {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .header-badge {
+      padding: 5pt 14pt;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(10pt);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16pt;
+      font-size: 9pt; font-weight: 600; color: rgba(255,255,255,0.7);
+      letter-spacing: 0.08em;
+    }
+    .page-num {
+      font-size: 10pt; color: rgba(255,255,255,0.3); font-weight: 500;
+    }
+
+    .title-section {
+      position: absolute; top: 32pt; left: 48pt; right: 48pt;
+      text-align: center; margin-top: 28pt;
+    }
+    .title-section h1 {
+      font-size: 28pt; font-weight: 700; color: #fff;
+      letter-spacing: -0.01em;
+    }
+    .title-section p {
+      font-size: 12pt; color: rgba(255,255,255,0.5); margin-top: 6pt;
+    }
+
+    .grid {
+      position: absolute;
+      top: 120pt; left: 36pt; right: 36pt; bottom: 36pt;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: 1fr 1fr;
+      gap: 12pt;
+    }
+    /* 7개 스킬 → 4+3 배치, 마지막 줄 가운데 정렬을 위해 빈 셀 처리 */
+
+    .card {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(16pt);
+      -webkit-backdrop-filter: blur(16pt);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16pt;
+      padding: 16pt;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .card-emoji {
+      font-size: 28pt;
+      margin-bottom: 8pt;
+    }
+    .card-title {
+      font-size: 11pt;
+      font-weight: 700;
+      color: #fff;
+      line-height: 1.3;
+    }
+    .card-desc {
+      font-size: 8pt;
+      color: rgba(255,255,255,0.5);
+      margin-top: 4pt;
+      line-height: 1.4;
+    }
+
+    /* 하단 3개 가운데 정렬: grid column으로 */
+    .card:nth-child(5) { grid-column: 1; }
+    .card:nth-child(6) { grid-column: 2; }
+    .card:nth-child(7) { grid-column: 3; }
+  </style>
+</head>
+<body>
+  <div class="blob1"></div>
+  <div class="blob2"></div>
+
+  <div class="header">
+    <span class="header-badge">NEW UPDATE</span>
+    <span class="page-num">02</span>
+  </div>
+
+  <div class="title-section">
+    <h1>이번 업데이트 새 스킬 7종</h1>
+    <p>일상을 더 편리하게 만드는 에이전트 스킬</p>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-emoji">🚚</div>
+      <p class="card-title">마켓컬리</p>
+      <p class="card-desc">상품 조회</p>
+    </div>
+    <div class="card">
+      <div class="card-emoji">🚆</div>
+      <p class="card-title">지하철 분실물</p>
+      <p class="card-desc">자동 조회</p>
+    </div>
+    <div class="card">
+      <div class="card-emoji">💊</div>
+      <p class="card-title">의약품 안전</p>
+      <p class="card-desc">약 먹어도 되나?</p>
+    </div>
+    <div class="card">
+      <div class="card-emoji">🍲</div>
+      <p class="card-title">식품 안전</p>
+      <p class="card-desc">음식 먹어도 괜찮나?</p>
+    </div>
+    <div class="card">
+      <div class="card-emoji">📰</div>
+      <p class="card-title">긱뉴스</p>
+      <p class="card-desc">한국판 해커뉴스</p>
+    </div>
+    <div class="card">
+      <div class="card-emoji">🗑️</div>
+      <p class="card-title">생활 쓰레기</p>
+      <p class="card-desc">배출 정보 안내</p>
+    </div>
+    <div class="card">
+      <div class="card-emoji">✏️</div>
+      <p class="card-title">글자수 세기</p>
+      <p class="card-desc">자소서 필수템</p>
+    </div>
+  </div>
+</body>
+</html>

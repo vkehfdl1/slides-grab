@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html><head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt;
+      height: 405pt;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #000000;
+      overflow: hidden;
+      position: relative;
+    }
+    /* Grid dot pattern */
+    body::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(circle, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 24pt 24pt;
+      z-index: 0;
+    }
+    /* Top-right glow orb */
+    body::after {
+      content: '';
+      position: absolute;
+      top: -120pt;
+      right: -80pt;
+      width: 400pt;
+      height: 400pt;
+      background: radial-gradient(circle, rgba(124,58,237,0.15) 0%, rgba(0,112,243,0.08) 40%, transparent 70%);
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <!-- Subtle bottom-left glow -->
+  <div style="position: absolute; bottom: -100pt; left: -60pt; width: 350pt; height: 350pt; background: radial-gradient(circle, rgba(0,112,243,0.12) 0%, rgba(124,58,237,0.05) 40%, transparent 70%); z-index: 0;"></div>
+
+  <!-- Content wrapper -->
+  <div style="position: relative; z-index: 1; padding: 56pt 64pt; display: flex; flex-direction: column; height: 100%;">
+
+    <!-- Top bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <p style="display: inline-block; padding: 4pt 14pt; border: 1px solid rgba(255,255,255,0.1); border-radius: 999pt; font-size: 9pt; font-weight: 500; color: rgba(255,255,255,0.4); letter-spacing: 0.05em;">OPEN SOURCE</p>
+    </div>
+
+    <!-- Center content -->
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+      <!-- Pill badge -->
+      <p style="display: inline-block; padding: 5pt 16pt; background: rgba(0,112,243,0.1); border: 1px solid rgba(0,112,243,0.2); border-radius: 999pt; font-size: 10pt; font-weight: 500; color: #0070F3; letter-spacing: 0.03em; margin-bottom: 24pt;">AGENT-FIRST FRAMEWORK</p>
+
+      <!-- Main title -->
+      <h1 style="font-size: 80pt; font-weight: 900; color: #FAFAFA; letter-spacing: -0.04em; line-height: 1.0;">
+        slides-grab
+      </h1>
+
+      <!-- Tagline with gradient effect -->
+      <p style="font-size: 22pt; font-weight: 700; color: rgba(255, 255, 255, 0.4); margin-top: 20pt; letter-spacing: -0.01em;">Best way to edit slides</p>
+
+      <!-- Subtitle -->
+      <p style="font-size: 11.5pt; font-weight: 400; color: rgba(255,255,255,0.25); margin-top: 12pt; line-height: 1.2; white-space: nowrap;">Select context from AI-generated HTML slides <br>and let your agent edit them in place.</p>
+    </div>
+
+    <!-- Bottom bar -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div style="display: flex; gap: 48pt;">
+        <div>
+          <p style="font-size: 8pt; color: rgba(255,255,255,0.25); letter-spacing: 0.05em; margin-bottom: 3pt;">BUILT FOR</p>
+          <p style="font-size: 11pt; font-weight: 500; color: rgba(255,255,255,0.6);">Claude Code &amp; Codex</p>
+        </div>
+      </div>
+      <p style="font-size: 10pt; color: rgba(255,255,255,0.2);">github.com/vkehfdl1/slides-grab</p>
+    </div>
+
+  </div>
+
+
+</body></html>

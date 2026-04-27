@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Slide 02 — About</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Barlow+Condensed:wght@400;600;800&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 240pt at 85% 18%, rgba(59,143,245,0.26), transparent 70%),
+      radial-gradient(360pt 240pt at 14% 82%, rgba(255,45,94,0.22), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(55pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(55pt); opacity:0.45; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:28pt 44pt; display:grid; grid-template-columns:200pt 1fr; gap:34pt; align-items:center;}
+  .left{display:flex; flex-direction:column; align-items:center; gap:14pt;}
+  .avatar{width:130pt; height:130pt; border-radius:50%; object-fit:cover; border:2pt solid rgba(255,255,255,0.15);
+    box-shadow:0 0 26pt rgba(255,45,94,0.4), 0 0 26pt rgba(59,143,245,0.35);}
+  .badge{width:180pt; height:auto; filter:drop-shadow(0 0 10pt rgba(255,255,255,0.25));}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Bebas Neue','Barlow Condensed',sans-serif; font-size:50pt; line-height:1.4; letter-spacing:2pt; margin:8pt 0 4pt;
+     background:linear-gradient(100deg,#FF2D5E 0%,#ffffff 50%,#3B8FF5 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .tag{font-family:'Barlow Condensed',sans-serif; font-weight:600; letter-spacing:2pt; font-size:13pt; color:#D0D0F0; margin:0;}
+  ul.works{list-style:none; padding:0; margin:14pt 0 0; display:flex; flex-direction:column; gap:6pt;}
+  ul.works li{font-family:'Barlow Condensed',sans-serif; font-size:18pt; letter-spacing:1pt; color:#D0D0F0; display:flex; align-items:center; gap:10pt;}
+  ul.works li::before{content:""; width:10pt; height:10pt; border-radius:50%; flex-shrink:0;
+    background: conic-gradient(from 0deg, #FF2D5E 0 50%, #3B8FF5 50% 100%);
+    box-shadow:0 0 8pt rgba(255,45,94,0.6), 0 0 8pt rgba(59,143,245,0.6);}
+  .team{font-family:'DM Mono',monospace; font-size:10pt; color:#8a8ab0; letter-spacing:3pt; margin:14pt 0 2pt;}
+  .nomadamas{font-family:'Bebas Neue',sans-serif; font-size:22pt; letter-spacing:4pt; margin:0;
+    background:linear-gradient(90deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <div class="left">
+      <img class="avatar" src="./assets/profile-pic.jpeg" alt="Jeffrey profile photo">
+      <img class="badge" src="./assets/github-trending-first-dev.svg" alt="GitHub Trending #1 Developer of The Day">
+    </div>
+    <div>
+      <p class="kicker">// whoami</p>
+      <h1>JEFFREY KIM</h1>
+      <p class="tag">Builder · Researcher · Agent-native evangelist</p>
+      <ul class="works">
+        <li>AutoRAG — Automatic RAG optimization (4.7k)</li>
+        <li>K-skill — Skill bundle for Koreans (3.1k)</li>
+        <li>slides-grab — The harness behind these slides (0.6k)</li>
+      </ul>
+      <p class="team">HACKER HOUSE</p>
+      <p class="nomadamas">NOMADAMAS</p>
+    </div>
+  </div>
+</div>
+
+
+</body></html>

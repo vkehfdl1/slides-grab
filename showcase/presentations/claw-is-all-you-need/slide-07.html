@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Slide 07 — Anti-Agent</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Barlow+Condensed:wght@400;600;800&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(480pt 320pt at 50% 50%, rgba(255,45,94,0.32), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; right:6pt; top:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; left:6pt; bottom:6pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.55; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:26pt 40pt; display:flex; flex-direction:column;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#FF8FA8; text-transform:uppercase; margin:0;}
+  h1{font-family:'Bebas Neue',sans-serif; font-size:42pt; line-height:1.4; letter-spacing:3pt; margin:4pt 0 4pt;
+    background:linear-gradient(100deg,#FF2D5E 0%,#ffffff 100%); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .sub{font-family:'Noto Sans KR',sans-serif; font-weight:400; font-size:12pt; color:#D0D0F0; margin:0 0 14pt;}
+  .grid{display:grid; grid-template-columns:repeat(3,1fr); gap:8pt;}
+  .item{border:1pt solid rgba(255,45,94,0.40); border-radius:8pt; padding:10pt 12pt;
+    background:rgba(40,10,20,0.5); display:flex; align-items:center; gap:10pt;
+    box-shadow:0 0 12pt rgba(255,45,94,0.18) inset;}
+  .x{font-family:'Bebas Neue',sans-serif; font-size:18pt; color:#FF2D5E; text-shadow:0 0 6pt rgba(255,45,94,0.8); line-height:1.3; margin:0;}
+  .t{font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:11pt; color:#E8E8F5; line-height:1.4; margin:0;}
+  .verdict{margin-top:auto; font-family:'Barlow Condensed',sans-serif; font-weight:600; font-size:18pt; letter-spacing:2pt; color:#FF2D5E; text-align:center;
+    text-shadow:0 0 12pt rgba(255,45,94,0.6);}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// ANTI-AGENT DESIGN</p>
+    <h1>DESIGNS THAT LOCK AGENTS OUT</h1>
+    <p class="sub">Typical patterns that block agents</p>
+    <div class="grid">
+      <div class="item"><p class="x">✕</p><p class="t">Paywalls</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">Signup · Login</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">Identity verification</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">2FA (OTP)</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">Security plugin installs</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">Cloudflare blocks</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">Excessive pagination</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">Mobile-app-only</p></div>
+      <div class="item"><p class="x">✕</p><p class="t">Short sessions · Cookie resets</p></div>
+    </div>
+    <p class="verdict">→ Claw isn't good at this kind of thing.</p>
+  </div>
+</div>
+
+
+</body></html>

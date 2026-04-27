@@ -1,0 +1,3443 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Viewer</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #111;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    .viewer-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-bar {
+      height: 48px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      flex-shrink: 0;
+      z-index: 100;
+    }
+
+    .nav-bar button {
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 16px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-bar button:hover {
+      background: #555;
+    }
+
+    .nav-bar button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    .slide-counter {
+      color: #aaa;
+      font-size: 14px;
+      font-weight: 500;
+      min-width: 60px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .btn-fullscreen {
+      position: absolute;
+      right: 16px;
+      background: transparent !important;
+      font-size: 18px;
+      padding: 6px 10px !important;
+    }
+
+    .slide-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-scaler {
+      width: 720pt;
+      height: 405pt;
+      position: relative;
+      transform-origin: center center;
+    }
+
+    .slide-frame {
+      position: absolute;
+      inset: 0;
+      width: 720pt;
+      height: 405pt;
+      border: none;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+
+    .slide-frame.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewer-container">
+    <div class="nav-bar">
+      <button id="btn-prev" title="Previous (\u2190)">Prev</button>
+      <span class="slide-counter" id="counter">1 / 11</span>
+      <button id="btn-next" title="Next (\u2192)">Next</button>
+      <button class="btn-fullscreen" id="btn-fs" title="Fullscreen (F)">&#x26F6;</button>
+    </div>
+
+    <div class="slide-viewport" id="viewport">
+      <div class="slide-scaler" id="scaler">
+        <iframe class="slide-frame active" data-slide="1" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-01.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 01 — Cover</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #F5F500;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    border: 6pt solid #000000;
+    box-sizing: border-box;
+    padding: 22pt 28pt;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-family: 'Space Mono', monospace;
+    font-size: 10pt;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+  .badge {
+    background: #000000;
+    color: #F5F500;
+    padding: 3pt 8pt;
+    border: 2pt solid #000000;
+  }
+  h1 {
+    margin: 0;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 900;
+    font-size: 56pt;
+    line-height: 1.1;
+    letter-spacing: -1.5pt;
+    padding-bottom: 4pt;
+  }
+  .accent {
+    display: inline-block;
+    background: #FF2D55;
+    color: #FFFFFF;
+    padding: 0 6pt;
+    transform: rotate(-1.5deg);
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 3pt solid #000000;
+    margin: 0 2pt;
+    line-height: 1.05;
+  }
+  .subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 11pt;
+    font-weight: 400;
+    margin: 10pt 0 0;
+  }
+  .bottom-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-family: 'Space Mono', monospace;
+    font-size: 10pt;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .speaker {
+    background: #FFFFFF;
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .meta-right {
+    text-align: right;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;top-row&quot;>
+      <div class=&quot;badge&quot;>Lightning Talk</div>
+      <div>HARNESS // BEYOND CODING</div>
+    </div>
+    <div>
+      <h1>하네스를 코딩에만<br><span class=&quot;accent&quot;>쓰고</span> 계십니까?</h1>
+      <p class=&quot;subtitle&quot;>Are you using your harness only for coding?</p>
+    </div>
+    <div class=&quot;bottom-row&quot;>
+      <div class=&quot;speaker&quot;>김동규 / Kim Dong-Kyu</div>
+      <div class=&quot;meta-right&quot;>OMOCON SEOUL<br>2024.04.25</div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="2" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-02.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 02 — K-skill</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 14pt 26pt;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: 1fr 180pt;
+    grid-template-rows: auto auto 1fr auto auto;
+    column-gap: 18pt;
+    row-gap: 10pt;
+    align-content: stretch;
+  }
+  .case-tag {
+    grid-column: 1 / -1;
+    display: flex; align-items: center; gap: 10pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .case-num {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt; border: 2pt solid #000000;
+  }
+  h1 {
+    grid-column: 1 / 2; grid-row: 2 / 3;
+    margin: 0; font-weight: 900; font-size: 32pt;
+    line-height: 1.2; letter-spacing: -0.8pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 2.5pt solid #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .stat-card {
+    grid-column: 2 / 3; grid-row: 2 / 4;
+    background: #F5F500;
+    border: 3pt solid #000000;
+    box-shadow: 5pt 5pt 0 #000000;
+    padding: 12pt 10pt;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+  }
+  .stat-num {
+    font-weight: 900; font-size: 44pt;
+    line-height: 1; letter-spacing: -2pt;
+  }
+  .stat-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase; margin-top: 4pt;
+  }
+  .stat-sub {
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; margin-top: 8pt;
+    border-top: 2pt solid #000000;
+    padding-top: 5pt; width: 100%;
+  }
+  .body-block {
+    grid-column: 1 / 2; grid-row: 3 / 4;
+    display: flex; flex-direction: column;
+    gap: 8pt; justify-content: center;
+  }
+  .quote {
+    border-left: 4pt solid #000000;
+    padding: 3pt 0 3pt 8pt;
+    font-size: 10pt; line-height: 1.45;
+    font-weight: 500; margin: 0;
+  }
+  .quote b {
+    background: #F5F500; padding: 0 3pt;
+    font-weight: 800;
+  }
+  .examples-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt; margin: 0 0 4pt;
+  }
+  .chips {
+    display: flex; flex-wrap: wrap; gap: 4pt;
+  }
+  .chip {
+    border: 2pt solid #000000;
+    padding: 2pt 5pt;
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt; font-weight: 700;
+    background: #FFFFFF;
+  }
+  .insight {
+    grid-column: 1 / -1; grid-row: 4 / 5;
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    font-size: 11pt; font-weight: 700;
+    background: #FFFFFF;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .insight b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 4pt;
+  }
+  .footer {
+    grid-column: 1 / -1; grid-row: 5 / 6;
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;case-tag&quot;>
+      <span class=&quot;case-num&quot;>Case 01</span>
+      <span>일상생활용 하네스</span>
+    </div>
+    <h1>K-skill — <span class=&quot;accent&quot;>한국인용</span> 스킬 묶음</h1>
+    <div class=&quot;stat-card&quot;>
+      <div class=&quot;stat-num&quot;>4,044</div>
+      <div class=&quot;stat-label&quot;>★ Stars</div>
+      <div class=&quot;stat-sub&quot;>40+ 한국 생활 스킬</div>
+    </div>
+    <div class=&quot;body-block&quot;>
+      <p class=&quot;quote&quot;>&quot;SRT, KTX, KBO, 로또, 당근, 카톡, 정부24, 홈택스··· <b>귀찮은 것을 AI 에이전트에게 다 시켜버리세요</b>&quot; — README</p>
+      <div>
+        <p class=&quot;examples-label&quot;>번들된 스킬 (일부)</p>
+        <div class=&quot;chips&quot;>
+          <span class=&quot;chip&quot;>SRT 예매</span>
+          <span class=&quot;chip&quot;>지하철 도착</span>
+          <span class=&quot;chip&quot;>학교 급식</span>
+          <span class=&quot;chip&quot;>실거래가</span>
+          <span class=&quot;chip&quot;>미세먼지</span>
+          <span class=&quot;chip&quot;>로또</span>
+          <span class=&quot;chip&quot;>한강 수위</span>
+          <span class=&quot;chip&quot;>+ 30개 더</span>
+        </div>
+      </div>
+    </div>
+    <div class=&quot;insight&quot;>코딩용 하네스 + SKILL.md = <b>일상생활용 하네스</b></div>
+    <div class=&quot;footer&quot;>
+      <span>github.com/NomaDamas/k-skill</span>
+      <span>02 / 11</span>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="3" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-03.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 03 — Dani</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .case-tag {
+    display: flex; align-items: center; gap: 10pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .case-num {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt; border: 2pt solid #000000;
+  }
+  h1 {
+    margin: 0; font-weight: 900; font-size: 30pt;
+    line-height: 1.2; letter-spacing: -0.8pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 2.5pt solid #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .layers {
+    display: flex; gap: 8pt;
+    align-items: stretch; flex: 1;
+  }
+  .layer {
+    flex: 1; border: 3pt solid #000000;
+    padding: 8pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: flex; flex-direction: column; gap: 4pt;
+  }
+  .layer.top { background: #F5F500; }
+  .layer.mid { background: #FFFFFF; }
+  .layer.bot { background: #000000; color: #F5F500; }
+  .layer-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt; font-weight: 700;
+    text-transform: uppercase;
+  }
+  .layer-title {
+    font-weight: 900; font-size: 15pt;
+    line-height: 1.25; letter-spacing: -0.5pt;
+    margin: 0; padding-bottom: 2pt;
+  }
+  .layer-title small {
+    font-family: 'Space Mono', monospace;
+    font-weight: 400; font-size: 9pt;
+    display: block; margin-top: 2pt;
+    letter-spacing: 0;
+  }
+  .layer-body {
+    font-size: 10pt; line-height: 1.45;
+    margin: 0;
+  }
+  .layer-body code {
+    font-family: 'Space Mono', monospace;
+    background: #FFFFFF; color: #000000;
+    padding: 1pt 3pt; font-size: 9pt;
+  }
+  .layer.top .layer-body code,
+  .layer.mid .layer-body code {
+    background: #000000; color: #F5F500;
+  }
+  .insight {
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    font-size: 11pt; font-weight: 700;
+    background: #FFFFFF;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .insight b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 4pt;
+  }
+  .footer {
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;case-tag&quot;>
+      <span class=&quot;case-num&quot;>Case 01.5</span>
+      <span>K-skill을 만든 메타 하네스</span>
+    </div>
+    <h1>Dani — <span class=&quot;accent&quot;>하네스</span>를 키운 하네스</h1>
+    <div class=&quot;layers&quot;>
+      <div class=&quot;layer top&quot;>
+        <div class=&quot;layer-num&quot;>Layer 3 — Domain</div>
+        <p class=&quot;layer-title&quot;>K-skill<small>한국 생활 스킬</small></p>
+        <p class=&quot;layer-body&quot;>SKILL.md로 정의된 일상생활 도메인 — Dani 위에서 자란다.</p>
+      </div>
+      <div class=&quot;layer mid&quot;>
+        <div class=&quot;layer-num&quot;>Layer 2 — Workflow</div>
+        <p class=&quot;layer-title&quot;>Dani<small>GitHub Issue/PR 자동화</small></p>
+        <p class=&quot;layer-body&quot;>Issue → 분석 → <code>/approve</code> → 구현 → 3라운드 리뷰 → 자동 머지</p>
+      </div>
+      <div class=&quot;layer bot&quot;>
+        <div class=&quot;layer-num&quot;>Layer 1 — Runtime</div>
+        <p class=&quot;layer-title&quot;>OMX or OMO<small>코딩 에이전트 백단</small></p>
+        <p class=&quot;layer-body&quot;><code>DANI_AGENT_RUNTIME=omo</code> → <code>opencode serve</code> HTTP를 repo별 lazy-spawn 후 재사용</p>
+      </div>
+    </div>
+    <div class=&quot;insight&quot;>코딩 에이전트(OMX/OMO)를 한 겹 더 감싸 → <b>오픈소스 운영 자동화</b>라는 새 도메인</div>
+    <div class=&quot;footer&quot;>
+      <span>github.com/NomaDamas/dani</span>
+      <span>03 / 11</span>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="4" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-04.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 04 — slides-grab</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .case-tag {
+    display: flex; align-items: center; gap: 10pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .case-num {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt; border: 2pt solid #000000;
+  }
+  h1 {
+    margin: 0; font-weight: 900; font-size: 30pt;
+    line-height: 1.2; letter-spacing: -0.8pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 2.5pt solid #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .meta-strip {
+    display: flex; align-items: center; gap: 8pt;
+  }
+  .meta-strip .arrow {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 14pt;
+  }
+  .stage {
+    background: #F5F500;
+    border: 3pt solid #000000;
+    padding: 6pt 9pt;
+    font-weight: 900; font-size: 12pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    text-transform: uppercase;
+    letter-spacing: -0.5pt;
+    line-height: 1;
+  }
+  .stage small {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-weight: 400; font-size: 8pt;
+    text-transform: none;
+    letter-spacing: 0; margin-top: 2pt;
+  }
+  .quote-block {
+    border: 3pt solid #000000;
+    background: #FFFFFF;
+    padding: 10pt 12pt;
+    box-shadow: 5pt 5pt 0 #000000;
+    flex: 1;
+    display: flex; flex-direction: column;
+    justify-content: center; gap: 4pt;
+  }
+  .quote-mark {
+    font-weight: 900; font-size: 22pt;
+    line-height: 1.2; color: #FF2D55;
+    margin: 0; padding-bottom: 2pt;
+  }
+  .quote-text {
+    font-size: 14pt; font-weight: 700;
+    line-height: 1.4; margin: 0;
+  }
+  .quote-text mark {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+  .quote-attr {
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+    text-transform: uppercase;
+    margin: 4pt 0 0;
+  }
+  .meta-callout {
+    display: flex; gap: 8pt; align-items: center;
+  }
+  .meta-callout .pill {
+    background: #000000; color: #FFFFFF;
+    padding: 5pt 8pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    border: 2.5pt solid #000000;
+  }
+  .meta-callout .pill .dot {
+    color: #FF2D55;
+  }
+  .meta-callout .note {
+    font-size: 10pt; font-weight: 600;
+  }
+  .footer {
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;case-tag&quot;>
+      <span class=&quot;case-num&quot;>Case 02</span>
+      <span>디자인용 하네스</span>
+    </div>
+    <h1>slides-grab — <span class=&quot;accent&quot;>이 슬라이드를</span> 만든 도구</h1>
+    <div class=&quot;meta-strip&quot;>
+      <div class=&quot;stage&quot;>PLAN<small>아웃라인 구조화</small></div>
+      <div class=&quot;arrow&quot;>→</div>
+      <div class=&quot;stage&quot;>DESIGN<small>HTML 슬라이드</small></div>
+      <div class=&quot;arrow&quot;>→</div>
+      <div class=&quot;stage&quot;>EXPORT<small>PDF / PNG / PPTX</small></div>
+    </div>
+    <div class=&quot;quote-block&quot;>
+      <p class=&quot;quote-mark&quot;>&quot;</p>
+      <p class=&quot;quote-text&quot;>Best <mark>harness + editor + linter</mark> for generating slides in Claude Code / Codex</p>
+      <p class=&quot;quote-attr&quot;>— slides-grab README</p>
+    </div>
+    <div class=&quot;meta-callout&quot;>
+      <span class=&quot;pill&quot;><span class=&quot;dot&quot;>●</span> LIVE DEMO</span>
+      <span class=&quot;note&quot;>지금 보고 계신 이 슬라이드 자체가 산출물입니다.</span>
+    </div>
+    <div class=&quot;footer&quot;>
+      <span>github.com/vkehfdl1/slides-grab</span>
+      <span>04 / 11</span>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="5" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-05.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 05 — slides-grab 하네스 3종</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .header {
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2.5pt solid #000000;
+    padding-bottom: 5pt;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 22pt; line-height: 1.25;
+    letter-spacing: -0.6pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    border: 2.5pt solid #000000;
+  }
+  .subhead {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8pt; flex: 1;
+  }
+  .card {
+    border: 3pt solid #000000;
+    box-shadow: 4pt 4pt 0 #000000;
+    padding: 8pt 10pt;
+    display: flex; flex-direction: column;
+    gap: 4pt; background: #FFFFFF;
+  }
+  .card.alt { background: #F5F500; }
+  .card-num {
+    font-weight: 900; font-size: 24pt;
+    line-height: 1.1; letter-spacing: -1pt;
+    margin: 0; padding-bottom: 2pt;
+  }
+  .card-title {
+    font-weight: 900; font-size: 13pt;
+    line-height: 1.2; letter-spacing: -0.3pt;
+    margin: 0;
+  }
+  .card-tag {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    background: #000000; color: #F5F500;
+    padding: 2pt 5pt;
+    align-self: flex-start;
+  }
+  .card.alt .card-tag {
+    background: #000000; color: #FFFFFF;
+  }
+  .card-body {
+    font-size: 9.5pt; line-height: 1.45;
+    margin: 0;
+  }
+  .card-body b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 3pt;
+  }
+  .card.alt .card-body b {
+    background: #000000; color: #F5F500;
+  }
+  .core {
+    border: 3pt solid #000000;
+    background: #000000; color: #F5F500;
+    padding: 7pt 12pt;
+    font-size: 11pt; font-weight: 700;
+    box-shadow: 4pt 4pt 0 #FF2D55;
+  }
+  .core b {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+  .footer {
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;header&quot;>
+      <h1>slides-grab의 <span class=&quot;accent&quot;>하네스 3종</span></h1>
+      <span class=&quot;subhead&quot;>How LLM is bound</span>
+    </div>
+    <div class=&quot;grid&quot;>
+      <div class=&quot;card&quot;>
+        <p class=&quot;card-num&quot;>01</p>
+        <span class=&quot;card-tag&quot;>Validator</span>
+        <p class=&quot;card-title&quot;>Playwright 린터</p>
+        <p class=&quot;card-body&quot;>오버플로우, 텍스트 클리핑, 누락 asset 등 7가지 critical 감지. <b>통과 못하면 Export 차단</b>.</p>
+      </div>
+      <div class=&quot;card alt&quot;>
+        <p class=&quot;card-num&quot;>02</p>
+        <span class=&quot;card-tag&quot;>Editor</span>
+        <p class=&quot;card-title&quot;>BBox 셀렉션</p>
+        <p class=&quot;card-body&quot;>브라우저에서 영역을 드래그 → &quot;여기 고쳐&quot; → 에이전트가 수정. <b>LLM에게 눈을 달아주는 셈</b>.</p>
+      </div>
+      <div class=&quot;card&quot;>
+        <p class=&quot;card-num&quot;>03</p>
+        <span class=&quot;card-tag&quot;>Style System</span>
+        <p class=&quot;card-title&quot;>35개 디자인 토큰</p>
+        <p class=&quot;card-body&quot;>&quot;glassmorphism은 흰 배경 금지&quot; 같은 명시적 가드레일. <b>출력 공간의 선을 미리 그어둠</b>.</p>
+      </div>
+    </div>
+    <div class=&quot;core&quot;>&quot;무엇이 좋은 출력인가&quot;를 코드로 정의해두면, <b>LLM은 그 안에서 자유롭게</b> 움직인다.</div>
+    <div class=&quot;footer&quot;>
+      <span>VALIDATOR + EDITOR + STYLE = HARNESS</span>
+      <span>05 / 11</span>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="6" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-06.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 06 — openclone</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .case-tag {
+    display: flex; align-items: center; gap: 10pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .case-num {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt; border: 2pt solid #000000;
+  }
+  h1 {
+    margin: 0; font-weight: 900; font-size: 30pt;
+    line-height: 1.2; letter-spacing: -0.8pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 2.5pt solid #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .body {
+    display: grid;
+    grid-template-columns: 1fr 200pt;
+    gap: 10pt; flex: 1;
+  }
+  .left {
+    display: flex; flex-direction: column;
+    gap: 6pt;
+  }
+  .formula {
+    border: 3pt solid #000000;
+    background: #F5F500;
+    padding: 7pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    font-size: 10pt; line-height: 1.5;
+    font-weight: 600;
+  }
+  .formula code {
+    font-family: 'Space Mono', monospace;
+    background: #000000; color: #F5F500;
+    padding: 1pt 4pt; font-size: 9pt;
+  }
+  .quote {
+    border-left: 4pt solid #FF2D55;
+    padding: 3pt 0 3pt 8pt;
+    font-size: 11pt; font-weight: 700;
+    line-height: 1.4; margin: 0;
+  }
+  .quote em {
+    font-style: italic;
+    background: #F5F500; padding: 0 3pt;
+  }
+  .insight {
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    font-size: 10pt; font-weight: 600;
+    box-shadow: 4pt 4pt 0 #000000;
+    line-height: 1.45;
+  }
+  .insight b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 4pt;
+  }
+  .clones {
+    border: 3pt solid #000000;
+    background: #000000; color: #F5F500;
+    padding: 8pt 10pt;
+    box-shadow: 5pt 5pt 0 #FF2D55;
+    display: flex; flex-direction: column;
+    gap: 5pt;
+  }
+  .clones-title {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    border-bottom: 2pt solid #F5F500;
+    padding-bottom: 4pt; margin: 0;
+  }
+  .clone-list {
+    list-style: none; margin: 0; padding: 0;
+    display: flex; flex-direction: column; gap: 3pt;
+  }
+  .clone-list li {
+    font-size: 9.5pt; line-height: 1.4;
+    display: flex; gap: 6pt; align-items: center;
+  }
+  .clone-list li b {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt; font-weight: 700;
+    min-width: 42pt; text-align: center;
+    flex-shrink: 0; font-size: 8pt;
+  }
+  .clone-meta {
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt; margin: 4pt 0 0;
+    border-top: 2pt solid #F5F500;
+    padding-top: 4pt; text-align: center;
+  }
+  .footer {
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;case-tag&quot;>
+      <span class=&quot;case-num&quot;>Case 03</span>
+      <span>페르소나용 하네스</span>
+    </div>
+    <h1>openclone — <span class=&quot;accent&quot;>사람을</span> 클론한다</h1>
+    <div class=&quot;body&quot;>
+      <div class=&quot;left&quot;>
+        <div class=&quot;formula&quot;><code>persona.md</code> (서사·톤·가이드라인) + <code>knowledge/</code> (날짜별 append-only 1인칭 자료) → Hook으로 매 턴 주입</div>
+        <p class=&quot;quote&quot;><em>&quot;I evaluate deals by···&quot;</em> &amp;nbsp; not &amp;nbsp; <em>&quot;Hayun evaluates deals by···&quot;</em></p>
+        <div class=&quot;insight&quot;>코딩 하네스가 타입/문법으로 묶는다면, openclone은 <b>&quot;이 사람이라면 이렇게 말한다&quot;</b>로 묶는다.</div>
+      </div>
+      <div class=&quot;clones&quot;>
+        <p class=&quot;clones-title&quot;>★ 12 Built-in Clones</p>
+        <ul class=&quot;clone-list&quot;>
+          <li><b>VC</b>장동욱 / 김철우 / Ethan</li>
+          <li><b>Founder</b>권도균 / 신재명 / 조쉬</li>
+          <li><b>Tech</b>정구봉 / 향로</li>
+          <li><b>Expert</b>이드 / Levi</li>
+        </ul>
+        <p class=&quot;clone-meta&quot;>+ 이경훈 · Chester</p>
+      </div>
+    </div>
+    <div class=&quot;footer&quot;>
+      <span>github.com/open-clone/openclone</span>
+      <span>06 / 11</span>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="7" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-07.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 07 — 패턴이 보이시나요?</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #F5F500;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 20pt 28pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 10pt;
+    justify-content: space-between;
+  }
+  .section-tag {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt;
+    align-self: flex-start;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 38pt; line-height: 1.2;
+    letter-spacing: -1pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    color: #FF2D55; font-style: italic;
+  }
+  .table {
+    border: 3pt solid #000000;
+    background: #FFFFFF;
+    box-shadow: 5pt 5pt 0 #000000;
+    flex: 1;
+    display: flex; flex-direction: column;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 100pt 1fr 1.6fr;
+    border-bottom: 2.5pt solid #000000;
+    flex: 1;
+  }
+  .row:last-child { border-bottom: none; }
+  .row.head {
+    background: #000000; color: #F5F500;
+    flex: 0 0 auto;
+  }
+  .cell {
+    padding: 6pt 10pt;
+    border-right: 2.5pt solid #000000;
+    display: flex; align-items: center;
+  }
+  .cell:last-child { border-right: none; }
+  .cell.label {
+    font-weight: 900; font-size: 12pt;
+    background: #F5F500;
+  }
+  .row.head .cell.label { background: #000000; }
+  .cell.head {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+  .cell.body {
+    font-size: 10pt; line-height: 1.4;
+    font-weight: 500;
+  }
+  .cell.body b {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 3pt;
+  }
+  .core {
+    border: 3pt solid #000000;
+    background: #000000; color: #FFFFFF;
+    padding: 8pt 12pt;
+    font-size: 12pt; font-weight: 700;
+    box-shadow: 4pt 4pt 0 #FF2D55;
+    text-align: center;
+  }
+  .core b {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <span class=&quot;section-tag&quot;>Synthesis</span>
+    <h1>패턴이 <span class=&quot;accent&quot;>보이시나요?</span></h1>
+    <div class=&quot;table&quot;>
+      <div class=&quot;row head&quot;>
+        <div class=&quot;cell label head&quot;>프로젝트</div>
+        <div class=&quot;cell head&quot;>도메인</div>
+        <div class=&quot;cell head&quot;>하네스 = 무엇이 출력 공간을 묶는가</div>
+      </div>
+      <div class=&quot;row&quot;>
+        <div class=&quot;cell label&quot;>K-skill</div>
+        <div class=&quot;cell body&quot;>한국 생활</div>
+        <div class=&quot;cell body&quot;><b>SKILL.md</b>로 &quot;한국에서 살아남는 법&quot; 구조화</div>
+      </div>
+      <div class=&quot;row&quot;>
+        <div class=&quot;cell label&quot;>slides-grab</div>
+        <div class=&quot;cell body&quot;>슬라이드 디자인</div>
+        <div class=&quot;cell body&quot;><b>Validator + Editor + Style</b>로 &quot;예쁜 슬라이드&quot; 정의</div>
+      </div>
+      <div class=&quot;row&quot;>
+        <div class=&quot;cell label&quot;>openclone</div>
+        <div class=&quot;cell body&quot;>인물 페르소나</div>
+        <div class=&quot;cell body&quot;><b>persona.md + knowledge/</b>로 &quot;이 사람&quot; 정의</div>
+      </div>
+    </div>
+    <div class=&quot;core&quot;>도메인을 <b>구조</b>로 정의하면, LLM은 그 안에서 <b>창의적</b>으로 일한다.</div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="8" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-08.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 08 — Claude Design</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 20pt 28pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 10pt;
+    justify-content: space-between;
+  }
+  .signal-tag {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+    background: #FF2D55; color: #FFFFFF;
+    padding: 3pt 8pt;
+    align-self: flex-start;
+    border: 2.5pt solid #000000;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 38pt; line-height: 1.2;
+    letter-spacing: -1pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #F5F500; padding: 0 6pt;
+    border: 3pt solid #000000;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .equation {
+    display: flex; align-items: stretch;
+    gap: 6pt; flex: 1;
+  }
+  .term {
+    flex: 1; border: 3pt solid #000000;
+    padding: 10pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: flex; flex-direction: column;
+    justify-content: center;
+    gap: 4pt; background: #FFFFFF;
+  }
+  .term.alt { background: #F5F500; }
+  .term-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+  }
+  .term-headline {
+    font-weight: 900; font-size: 16pt;
+    line-height: 1.2; letter-spacing: -0.5pt;
+    margin: 0;
+  }
+  .term-body {
+    font-size: 9.5pt; line-height: 1.4;
+    margin: 0;
+  }
+  .op {
+    align-self: center;
+    font-weight: 900; font-size: 24pt;
+    line-height: 1;
+  }
+  .punch {
+    border: 3pt solid #000000;
+    background: #000000; color: #FFFFFF;
+    padding: 8pt 12pt;
+    font-size: 11pt; font-weight: 700;
+    box-shadow: 4pt 4pt 0 #FF2D55;
+    line-height: 1.5;
+  }
+  .punch b {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <span class=&quot;signal-tag&quot;>Real-world Signal</span>
+    <h1>Claude Design은 <span class=&quot;accent&quot;>이미</span> 시작됐다</h1>
+    <div class=&quot;equation&quot;>
+      <div class=&quot;term&quot;>
+        <span class=&quot;term-label&quot;>Same</span>
+        <p class=&quot;term-headline&quot;>같은 모델</p>
+        <p class=&quot;term-body&quot;>Claude (코딩에서 검증된 LLM)</p>
+      </div>
+      <div class=&quot;op&quot;>+</div>
+      <div class=&quot;term alt&quot;>
+        <span class=&quot;term-label&quot;>Different</span>
+        <p class=&quot;term-headline&quot;>다른 하네스</p>
+        <p class=&quot;term-body&quot;>UI/UX 디자인 워크플로우</p>
+      </div>
+      <div class=&quot;op&quot;>=</div>
+      <div class=&quot;term&quot;>
+        <span class=&quot;term-label&quot;>New</span>
+        <p class=&quot;term-headline&quot;>다른 직업</p>
+        <p class=&quot;term-body&quot;>디자인 도메인의 에이전트</p>
+      </div>
+    </div>
+    <div class=&quot;punch&quot;>슬라이드 디자인은 slides-grab, UI/UX는 Claude Design — <b>디자인 도메인에 하네스 침공 중</b>. 미래 가설이 아니라 <b>현재</b>다.</div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="9" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-09.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 09 — 덕트 테이프 모델</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #F5F500;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 26pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    gap: 10pt;
+  }
+  .question-tag {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt;
+    align-self: flex-start;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 32pt; line-height: 1.2;
+    letter-spacing: -1pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 6pt;
+    border: 3pt solid #000000;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.2;
+  }
+  h1 small {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-weight: 400;
+    font-size: 11pt;
+    margin-top: 5pt;
+    letter-spacing: 0;
+  }
+  .body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10pt; flex: 1;
+  }
+  .panel {
+    border: 3pt solid #000000;
+    padding: 10pt 12pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    background: #FFFFFF;
+    display: flex; flex-direction: column;
+    gap: 5pt;
+  }
+  .panel.dark {
+    background: #000000;
+    color: #F5F500;
+    box-shadow: 4pt 4pt 0 #FF2D55;
+  }
+  .panel-label {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+    background: #000000; color: #F5F500;
+    padding: 2pt 5pt;
+    align-self: flex-start;
+  }
+  .panel.dark .panel-label {
+    background: #FF2D55; color: #FFFFFF;
+  }
+  .panel-headline {
+    font-weight: 900; font-size: 16pt;
+    line-height: 1.25; letter-spacing: -0.4pt;
+    margin: 0;
+    padding-bottom: 2pt;
+  }
+  .panel-headline mark {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 4pt;
+  }
+  .panel.dark .panel-headline mark {
+    background: #F5F500; color: #000000;
+  }
+  .panel-body {
+    font-size: 10pt; line-height: 1.5;
+    margin: 0;
+  }
+  .panel-body b {
+    background: #F5F500; color: #000000;
+    padding: 0 3pt; font-weight: 800;
+  }
+  .panel.dark .panel-body b {
+    background: #F5F500; color: #000000;
+  }
+  .examples {
+    display: flex; flex-wrap: wrap; gap: 4pt;
+    margin-top: 4pt;
+  }
+  .ex {
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+    background: #F5F500; color: #000000;
+    border: 2pt solid #F5F500;
+    padding: 2pt 5pt;
+  }
+  .closer {
+    border: 3pt solid #000000;
+    background: #FFFFFF;
+    color: #000000;
+    padding: 7pt 12pt;
+    font-size: 12pt; font-weight: 700;
+    box-shadow: 4pt 4pt 0 #000000;
+    display: flex; align-items: center;
+    gap: 10pt;
+  }
+  .closer .speak {
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt;
+    background: #FF2D55; color: #FFFFFF;
+    padding: 3pt 6pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    flex-shrink: 0;
+  }
+  .closer b {
+    background: #F5F500; padding: 0 4pt;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <span class=&quot;question-tag&quot;>Open Question</span>
+
+    <h1>덕트 테이프 모델 = <span class=&quot;accent&quot;>gpt-image-2</span><small>2026.04.21 출시 · 한글 텍스트 99%+ 렌더링 · Thinking 모드 · 캐릭터 일관성</small></h1>
+
+    <div class=&quot;body&quot;>
+      <div class=&quot;panel&quot;>
+        <span class=&quot;panel-label&quot;>왜 &quot;덕트 테이프&quot;?</span>
+        <p class=&quot;panel-headline&quot;>싸고 빠르게 <mark>다 붙여버리는</mark> 워크호스</p>
+        <p class=&quot;panel-body&quot;>화려한 연구 데모가 아니라 <b>프로덕션</b>에서 일하는 모델. 코드네임 maskingtape / gaffertape / packingtape → 커뮤니티 합의 &quot;duct-tape&quot;.</p>
+      </div>
+
+      <div class=&quot;panel dark&quot;>
+        <span class=&quot;panel-label&quot;>그래서 — 이미지 모델도?</span>
+        <p class=&quot;panel-headline&quot;>생성 ≠ <mark>프로덕션</mark>. 하네스가 필요하다.</p>
+        <p class=&quot;panel-body&quot;>레이아웃·브랜드 통제·편집 루프·QA — 텍스트 정확도 99%여도 <b>&quot;또 똑같이 뽑을 수 있냐&quot;</b>는 별개 문제.</p>
+        <div class=&quot;examples&quot;>
+          <span class=&quot;ex&quot;>ControlNet</span>
+          <span class=&quot;ex&quot;>IP-Adapter</span>
+          <span class=&quot;ex&quot;>Firefly Agent</span>
+          <span class=&quot;ex&quot;>Luma Agents</span>
+        </div>
+      </div>
+    </div>
+
+    <div class=&quot;closer&quot;>
+      <span class=&quot;speak&quot;>발표자 曰</span>
+      <span>코딩 모델만? 아니죠. <b>이미지 모델에도</b> 적절한 하네스가 필요할 때입니다 👀</span>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="10" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-10.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 10 — 메시지</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .header {
+    display: flex; align-items: baseline;
+    justify-content: space-between;
+    border-bottom: 2.5pt solid #000000;
+    padding-bottom: 5pt;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 22pt; line-height: 1.25;
+    letter-spacing: -0.6pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    border: 2.5pt solid #000000;
+  }
+  .subhead {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    letter-spacing: 1pt;
+  }
+  .map {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6pt; flex: 1;
+  }
+  .item {
+    border: 3pt solid #000000;
+    padding: 6pt 9pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    background: #FFFFFF;
+    display: flex; flex-direction: column;
+    gap: 3pt;
+  }
+  .item.next {
+    background: #F5F500;
+    grid-column: span 2;
+  }
+  .domain {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 8pt;
+    text-transform: uppercase;
+    letter-spacing: 0.5pt;
+    background: #000000; color: #F5F500;
+    padding: 2pt 5pt;
+    align-self: flex-start;
+  }
+  .item.next .domain {
+    background: #FF2D55; color: #FFFFFF;
+  }
+  .tool {
+    font-weight: 900; font-size: 13pt;
+    line-height: 1.2; letter-spacing: -0.4pt;
+    margin: 0;
+  }
+  .item.next .tool { font-size: 14pt; }
+  .item-body {
+    font-size: 9pt; line-height: 1.4;
+    margin: 0; color: #333333;
+  }
+  .next-question {
+    display: flex; flex-wrap: wrap; gap: 3pt;
+    margin-top: 2pt;
+  }
+  .next-q {
+    font-family: 'Space Mono', monospace;
+    font-size: 8pt; font-weight: 700;
+    background: #FFFFFF;
+    border: 1.5pt solid #000000;
+    padding: 2pt 4pt;
+  }
+  .punch {
+    border: 3pt solid #000000;
+    background: #000000; color: #FFFFFF;
+    padding: 9pt 12pt;
+    font-weight: 900; font-size: 16pt;
+    line-height: 1.3; letter-spacing: -0.4pt;
+    text-align: center;
+    box-shadow: 5pt 5pt 0 #FF2D55;
+  }
+  .punch b {
+    background: #F5F500; color: #000000;
+    padding: 0 5pt;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;header&quot;>
+      <h1>하네스의 <span class=&quot;accent&quot;>영토</span>를 넓히세요</h1>
+      <span class=&quot;subhead&quot;>The Message</span>
+    </div>
+    <div class=&quot;map&quot;>
+      <div class=&quot;item&quot;>
+        <span class=&quot;domain&quot;>일상생활</span>
+        <p class=&quot;tool&quot;>K-skill</p>
+        <p class=&quot;item-body&quot;>SRT, 학교급식, 부동산···</p>
+      </div>
+      <div class=&quot;item&quot;>
+        <span class=&quot;domain&quot;>오픈소스 운영</span>
+        <p class=&quot;tool&quot;>Dani</p>
+        <p class=&quot;item-body&quot;>Issue → PR → 자동 머지</p>
+      </div>
+      <div class=&quot;item&quot;>
+        <span class=&quot;domain&quot;>슬라이드 디자인</span>
+        <p class=&quot;tool&quot;>slides-grab</p>
+        <p class=&quot;item-body&quot;>이 발표가 그 산출물</p>
+      </div>
+      <div class=&quot;item&quot;>
+        <span class=&quot;domain&quot;>UI/UX 디자인</span>
+        <p class=&quot;tool&quot;>Claude Design</p>
+        <p class=&quot;item-body&quot;>코딩 모델이 디자인까지</p>
+      </div>
+      <div class=&quot;item&quot;>
+        <span class=&quot;domain&quot;>인물 페르소나</span>
+        <p class=&quot;tool&quot;>openclone</p>
+        <p class=&quot;item-body&quot;>&quot;이 사람&quot;이 말하다</p>
+      </div>
+      <div class=&quot;item next&quot;>
+        <span class=&quot;domain&quot;>다음은?</span>
+        <div class=&quot;next-question&quot;>
+          <span class=&quot;next-q&quot;>글쓰기</span>
+          <span class=&quot;next-q&quot;>음악</span>
+          <span class=&quot;next-q&quot;>회계</span>
+          <span class=&quot;next-q&quot;>법률</span>
+          <span class=&quot;next-q&quot;>교육</span>
+          <span class=&quot;next-q&quot;>의료</span>
+          <span class=&quot;next-q&quot;>이미지 생성</span>
+          <span class=&quot;next-q&quot;>···</span>
+        </div>
+      </div>
+    </div>
+    <div class=&quot;punch&quot;>코딩에만 쓰지 마세요. 당신의 <b>도메인</b>을 하네스로 묶으세요.</div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+        <iframe class="slide-frame" data-slide="11" srcdoc="<!DOCTYPE html>
+<html lang=&quot;ko&quot;>
+<head>
+<base href=&quot;./&quot;>
+<script>
+(() => {
+  const slideFile = &quot;slide-11.html&quot;;
+  const localAssetPrefix = &quot;./assets/&quot;;
+  const absolutePathRe = /^(file:\/\/|\/Users\/|\/home\/|\/var\/|\/tmp\/|\/private\/|\/Volumes\/|[A-Za-z]:[\\/]|\\\\)/i;
+  const schemeRe = /^[a-z][a-z0-9+\-.]*:/i;
+  const prefix = '[slides-grab:image]';
+
+  function describeElement(element) {
+    if (!element || element.nodeType !== Node.ELEMENT_NODE) return '';
+    if (element === document.body) return 'body';
+
+    const parts = [];
+    let current = element;
+    while (current &amp;&amp; current.nodeType === Node.ELEMENT_NODE &amp;&amp; current !== document.body) {
+      let part = current.tagName.toLowerCase();
+      if (current.id) {
+        part += '#' + current.id;
+        parts.unshift(part);
+        break;
+      }
+      if (current.classList.length > 0) {
+        part += '.' + Array.from(current.classList).slice(0, 2).join('.');
+      }
+      parts.unshift(part);
+      current = current.parentElement;
+    }
+    return 'body > ' + parts.join(' > ');
+  }
+
+  function warn(message, detail) {
+    console.warn(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function fail(message, detail) {
+    console.error(prefix + ' ' + slideFile + ': ' + message, detail);
+  }
+
+  function validateAssetSource(kind, source, { allowEmpty = true, onNoncanonical = 'warn' } = {}) {
+    const value = (source || '').trim();
+    if (!value) {
+      return allowEmpty;
+    }
+    if (value.startsWith('data:')) {
+      return true;
+    }
+    if (value.startsWith('https://')) {
+      fail('remote ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (value.startsWith('http://')) {
+      fail('remote http:// ' + kind + ' URL is unsupported in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (absolutePathRe.test(value) || value.startsWith('/')) {
+      fail('non-portable ' + kind + ' path is unsupported', { src: value });
+      return false;
+    }
+    if (schemeRe.test(value)) {
+      fail('unsupported ' + kind + ' URL scheme in saved slides; download it into ./assets/<file>', { src: value });
+      return false;
+    }
+    if (!value.startsWith(localAssetPrefix)) {
+      const report = onNoncanonical === 'fail' ? fail : warn;
+      report('noncanonical local ' + kind + ' path should use ./assets/<file>', { src: value });
+    }
+    return true;
+  }
+
+  function getVideoSources(video) {
+    const sources = [];
+    const directSrc = (video.getAttribute('src') || '').trim();
+    if (directSrc) {
+      sources.push(directSrc);
+    }
+    for (const source of video.querySelectorAll('source[src]')) {
+      const src = (source.getAttribute('src') || '').trim();
+      if (src) {
+        sources.push(src);
+      }
+    }
+    return sources;
+  }
+
+  window.addEventListener('error', (event) => {
+    const target = event.target;
+    if (target instanceof HTMLImageElement) {
+      const src = (target.getAttribute('src') || target.currentSrc || '').trim();
+      if (!src || src.startsWith('data:')) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local asset', { src });
+        return;
+      }
+      fail('image failed to load', { src });
+      return;
+    }
+
+    if (target instanceof HTMLVideoElement) {
+      const sources = getVideoSources(target);
+      if (sources.some((src) => src.startsWith(localAssetPrefix))) {
+        fail('missing local video asset', { sources });
+        return;
+      }
+      fail('video failed to load', { sources });
+      return;
+    }
+
+    if (target instanceof HTMLSourceElement &amp;&amp; target.parentElement instanceof HTMLVideoElement) {
+      const src = (target.getAttribute('src') || '').trim();
+      if (!src) return;
+      if (src.startsWith(localAssetPrefix)) {
+        fail('missing local video asset', { src });
+        return;
+      }
+      fail('video source failed to load', { src });
+    }
+  }, true);
+
+  window.addEventListener('DOMContentLoaded', () => {
+    for (const image of document.querySelectorAll('img[src]')) {
+      const src = (image.getAttribute('src') || '').trim();
+      validateAssetSource('image', src);
+    }
+
+    for (const video of document.querySelectorAll('video')) {
+      for (const src of getVideoSources(video)) {
+        validateAssetSource('video', src);
+      }
+
+      const poster = (video.getAttribute('poster') || '').trim();
+      if (poster) {
+        validateAssetSource('image', poster);
+      }
+    }
+
+    for (const element of document.body.querySelectorAll('*')) {
+      if (element === document.body) continue;
+      const backgroundImage = window.getComputedStyle(element).backgroundImage;
+      if (!backgroundImage || backgroundImage === 'none' || !backgroundImage.includes('url(')) continue;
+      fail('non-body background-image is not supported for slide content', {
+        element: describeElement(element),
+        backgroundImage,
+      });
+    }
+  });
+})();
+</script>
+<meta charset=&quot;UTF-8&quot;>
+<title>Slide 11 — Thanks</title>
+<link rel=&quot;stylesheet&quot; href=&quot;https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css&quot;>
+<link rel=&quot;stylesheet&quot; href=&quot;https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&amp;display=swap&quot;>
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #F5F500;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    border: 6pt solid #000000;
+    box-sizing: border-box;
+    padding: 22pt 28pt;
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+  }
+  .top {
+    display: flex; justify-content: space-between;
+    align-items: flex-start;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase;
+  }
+  .badge {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt;
+  }
+  h1 {
+    margin: 0; font-weight: 900;
+    font-size: 70pt; line-height: 1.1;
+    letter-spacing: -2.5pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    color: #FF2D55; font-style: italic;
+  }
+  .links {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6pt; align-self: stretch;
+  }
+  .link {
+    background: #FFFFFF;
+    border: 3pt solid #000000;
+    padding: 5pt 8pt;
+    display: flex; align-items: center;
+    gap: 8pt;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .link-name {
+    font-weight: 900; font-size: 11pt;
+    background: #000000; color: #F5F500;
+    padding: 2pt 5pt;
+    flex-shrink: 0; min-width: 70pt;
+    text-align: center;
+  }
+  .link-url {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bottom {
+    display: flex; justify-content: space-between;
+    align-items: flex-end;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase;
+  }
+  .speaker {
+    background: #FFFFFF;
+    border: 3pt solid #000000;
+    padding: 6pt 10pt;
+    box-shadow: 4pt 4pt 0 #000000;
+  }
+  .meta-right {
+    text-align: right; line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+  <div class=&quot;frame&quot;>
+    <div class=&quot;top&quot;>
+      <div class=&quot;badge&quot;>Q&amp;amp;A 환영</div>
+      <div>// END</div>
+    </div>
+    <div>
+      <h1>감사합<span class=&quot;accent&quot;>니다</span>.</h1>
+    </div>
+    <div class=&quot;links&quot;>
+      <div class=&quot;link&quot;>
+        <span class=&quot;link-name&quot;>K-skill</span>
+        <span class=&quot;link-url&quot;>github.com/NomaDamas/k-skill</span>
+      </div>
+      <div class=&quot;link&quot;>
+        <span class=&quot;link-name&quot;>Dani</span>
+        <span class=&quot;link-url&quot;>github.com/NomaDamas/dani</span>
+      </div>
+      <div class=&quot;link&quot;>
+        <span class=&quot;link-name&quot;>slides-grab</span>
+        <span class=&quot;link-url&quot;>github.com/vkehfdl1/slides-grab</span>
+      </div>
+      <div class=&quot;link&quot;>
+        <span class=&quot;link-name&quot;>openclone</span>
+        <span class=&quot;link-url&quot;>github.com/open-clone/openclone</span>
+      </div>
+    </div>
+    <div class=&quot;bottom&quot;>
+      <div class=&quot;speaker&quot;>김동규 / Kim Dong-Kyu</div>
+      <div class=&quot;meta-right&quot;>OMOCON SEOUL<br>2024.04.25</div>
+    </div>
+  </div>
+</body>
+</html>
+" sandbox="allow-same-origin"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOTAL = 11;
+    let current = 1;
+
+    const frames = document.querySelectorAll('.slide-frame');
+    const counter = document.getElementById('counter');
+    const btnPrev = document.getElementById('btn-prev');
+    const btnNext = document.getElementById('btn-next');
+    const scaler = document.getElementById('scaler');
+    const viewport = document.getElementById('viewport');
+
+    function goTo(n) {
+      n = Math.max(1, Math.min(TOTAL, n));
+      if (n === current) return;
+      frames[current - 1].classList.remove('active');
+      current = n;
+      frames[current - 1].classList.add('active');
+      counter.textContent = current + ' / ' + TOTAL;
+      btnPrev.disabled = current === 1;
+      btnNext.disabled = current === TOTAL;
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    btnPrev.addEventListener('click', prev);
+    btnNext.addEventListener('click', next);
+    btnPrev.disabled = true;
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); goTo(1); }
+      else if (e.key === 'End') { e.preventDefault(); goTo(TOTAL); }
+      else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen();
+      }
+    }
+    document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+
+    function rescale() {
+      const vw = viewport.clientWidth;
+      const vh = viewport.clientHeight;
+      const slideW = scaler.offsetWidth;
+      const slideH = scaler.offsetHeight;
+      const scale = Math.min(vw / slideW, vh / slideH) * 0.95;
+      scaler.style.transform = 'scale(' + scale + ')';
+    }
+
+    window.addEventListener('resize', rescale);
+    document.addEventListener('fullscreenchange', () => setTimeout(rescale, 100));
+    rescale();
+  </script>
+</body>
+</html>

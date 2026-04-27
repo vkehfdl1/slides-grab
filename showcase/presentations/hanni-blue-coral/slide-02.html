@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=720, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<title>원곡 소개</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    width: 720pt;
+    height: 405pt;
+    font-family: 'Pretendard', sans-serif;
+    background: #FFF8FA;
+    padding: 44pt 52pt;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 28pt;
+  }
+  h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #FF69B4;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  p.num {
+    font-size: 10pt;
+    color: #C0C0C0;
+  }
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 24pt;
+  }
+  h1 {
+    font-size: 30pt;
+    font-weight: 700;
+    color: #1A1A2E;
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+  }
+  h1 span {
+    color: #89CFF0;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20pt;
+  }
+  .info-item {
+    border-left: 3pt solid #89CFF0;
+    padding-left: 14pt;
+  }
+  .info-item.pink {
+    border-left-color: #FF69B4;
+  }
+  p.label {
+    font-size: 9pt;
+    font-weight: 600;
+    color: #8B8FA3;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6pt;
+  }
+  p.value {
+    font-size: 13pt;
+    font-weight: 500;
+    color: #1A1A2E;
+    line-height: 1.5;
+  }
+  p.desc {
+    font-size: 14pt;
+    font-weight: 400;
+    color: #4A4A5A;
+    line-height: 1.7;
+    max-width: 480pt;
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <h2>The Original</h2>
+    <p class="num">02</p>
+  </div>
+  <div class="main">
+    <h1>마쓰다 세이코의<br><span>青い珊瑚礁</span></h1>
+    <p class="desc">1980년, 쇼와 시대 아이돌 문화의 정점을 찍은 전설적 여름 노래</p>
+    <div class="info-grid">
+      <div class="info-item">
+        <p class="label">발매</p>
+        <p class="value">1980년 7월 1일<br>2nd 싱글</p>
+      </div>
+      <div class="info-item pink">
+        <p class="label">작곡 · 작사</p>
+        <p class="value">오다 유이치로<br>미우라 요시코</p>
+      </div>
+      <div class="info-item">
+        <p class="label">의미</p>
+        <p class="value">일본 아이돌 문화<br>상징적 곡</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

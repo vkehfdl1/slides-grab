@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Slide 09 — Internet evolution</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;800&family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 260pt at 25% 50%, rgba(255,45,94,0.24), transparent 70%),
+      radial-gradient(360pt 260pt at 75% 50%, rgba(59,143,245,0.28), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:6pt; top:6pt; width:180pt; height:180pt;
+    background:#FF2D5E; filter:blur(55pt); opacity:0.45; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:6pt; bottom:6pt; width:180pt; height:180pt;
+    background:#3B8FF5; filter:blur(55pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .wrap{position:absolute; inset:0; padding:22pt 44pt 20pt; display:flex; flex-direction:column;}
+  .kicker{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:4pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Noto Sans KR',sans-serif; font-weight:900; font-size:22pt; line-height:1.4; letter-spacing:-1pt; margin:4pt 0 10pt; color:#E8E8F5;}
+  h1 .hl{background:linear-gradient(100deg,#FF2D5E,#3B8FF5); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .split{display:grid; grid-template-columns:1fr 1fr; gap:16pt; flex:1;}
+  .col{border:1pt solid rgba(255,255,255,0.12); border-radius:12pt; padding:14pt 18pt; background:rgba(10,10,30,0.55); display:flex; flex-direction:column; overflow:hidden;}
+  .col-img{margin:6pt -18pt -16pt; height:80pt; flex-shrink:0;}
+  .col-img img{width:100%; height:100%; object-fit:cover; display:block; opacity:0.8; border-radius:0 0 12pt 12pt;}
+  .col.now{border-color:rgba(255,45,94,0.40); box-shadow:0 0 18pt rgba(255,45,94,0.18) inset;}
+  .col.next{border-color:rgba(59,143,245,0.45); box-shadow:0 0 18pt rgba(59,143,245,0.22) inset;}
+  .era{font-family:'DM Mono',monospace; font-size:9pt; letter-spacing:3pt; color:#8a8ab0; text-transform:uppercase; margin:0;}
+  .head{font-family:'Bebas Neue',sans-serif; font-size:26pt; letter-spacing:2pt; margin:2pt 0 6pt;}
+  .col.now .head{background:linear-gradient(90deg,#FF2D5E,#ff7a9a); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .col.next .head{background:linear-gradient(90deg,#3B8FF5,#7FC0FF); -webkit-background-clip:text; background-clip:text; color:transparent;}
+  .desc{font-family:'Noto Sans KR',sans-serif; font-size:11pt; line-height:1.45; color:#D0D0F0; margin:0;}
+  .desc b{color:#ffffff;}
+  .flow{margin:6pt 0 0; font-family:'DM Mono',monospace; font-size:9pt; color:#8a8ab0; letter-spacing:1pt;}
+  .flow span{display:block; margin:2pt 0;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="wrap">
+    <p class="kicker">// Evolution</p>
+    <h1>What will the internet look like in <span class="hl">the age of agents?</span></h1>
+    <div class="split">
+      <div class="col now">
+        <p class="era">NOW — Human web</p>
+        <p class="head">HTML FOR HUMANS</p>
+        <p class="desc">Information is exchanged <b>rendered as HTML</b> so humans can read it.</p>
+        <p class="flow">
+          <span>data → HTML → pixels</span>
+          <span>pixels → human eye</span>
+        </p>
+        <div class="col-img"><img src="./assets/nano-banana-minimalist-dark-cyberpunk-diagram-showing-data-flow-data-transforms-into-html-co.jpg" alt="Diagram of data rendered to HTML for human viewing"></div>
+      </div>
+      <div class="col next">
+        <p class="era">NEXT — Agent web</p>
+        <p class="head">DATA FOR AGENTS</p>
+        <p class="desc">Agents exchange <b>data directly</b>. A human interface is <b>generated on demand</b>.</p>
+        <p class="flow">
+          <span>data ↔ data (no rendering)</span>
+          <span>agent → UI on demand</span>
+        </p>
+        <div class="col-img"><img src="./assets/nano-banana-minimalist-dark-cyberpunk-diagram-showing-two-ai-agents-directly-exchanging-raw-.jpg" alt="Diagram of agents exchanging data directly"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

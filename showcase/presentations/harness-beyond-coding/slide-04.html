@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>Slide 04 — slides-grab</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: 720pt; height: 405pt;
+    background: #FFFFFF;
+    color: #000000;
+    font-family: 'Pretendard', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+  .frame {
+    position: absolute;
+    inset: 0;
+    padding: 16pt 24pt;
+    box-sizing: border-box;
+    display: flex; flex-direction: column;
+    gap: 8pt;
+    justify-content: space-between;
+  }
+  .case-tag {
+    display: flex; align-items: center; gap: 10pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 10pt;
+    text-transform: uppercase; letter-spacing: 1pt;
+  }
+  .case-num {
+    background: #000000; color: #F5F500;
+    padding: 3pt 8pt; border: 2pt solid #000000;
+  }
+  h1 {
+    margin: 0; font-weight: 900; font-size: 30pt;
+    line-height: 1.2; letter-spacing: -0.8pt;
+    padding-bottom: 4pt;
+  }
+  h1 .accent {
+    background: #FF2D55; color: #FFFFFF;
+    padding: 0 5pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    border: 2.5pt solid #000000;
+    display: inline-block;
+    transform: rotate(-1deg);
+    line-height: 1.15;
+  }
+  .meta-strip {
+    display: flex; align-items: center; gap: 8pt;
+  }
+  .meta-strip .arrow {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 14pt;
+  }
+  .stage {
+    background: #F5F500;
+    border: 3pt solid #000000;
+    padding: 6pt 9pt;
+    font-weight: 900; font-size: 12pt;
+    box-shadow: 4pt 4pt 0 #000000;
+    text-transform: uppercase;
+    letter-spacing: -0.5pt;
+    line-height: 1;
+  }
+  .stage small {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-weight: 400; font-size: 8pt;
+    text-transform: none;
+    letter-spacing: 0; margin-top: 2pt;
+  }
+  .quote-block {
+    border: 3pt solid #000000;
+    background: #FFFFFF;
+    padding: 10pt 12pt;
+    box-shadow: 5pt 5pt 0 #000000;
+    flex: 1;
+    display: flex; flex-direction: column;
+    justify-content: center; gap: 4pt;
+  }
+  .quote-mark {
+    font-weight: 900; font-size: 22pt;
+    line-height: 1.2; color: #FF2D55;
+    margin: 0; padding-bottom: 2pt;
+  }
+  .quote-text {
+    font-size: 14pt; font-weight: 700;
+    line-height: 1.4; margin: 0;
+  }
+  .quote-text mark {
+    background: #F5F500; color: #000000;
+    padding: 0 4pt;
+  }
+  .quote-attr {
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+    text-transform: uppercase;
+    margin: 4pt 0 0;
+  }
+  .meta-callout {
+    display: flex; gap: 8pt; align-items: center;
+  }
+  .meta-callout .pill {
+    background: #000000; color: #FFFFFF;
+    padding: 5pt 8pt;
+    font-family: 'Space Mono', monospace;
+    font-weight: 700; font-size: 9pt;
+    text-transform: uppercase;
+    border: 2.5pt solid #000000;
+  }
+  .meta-callout .pill .dot {
+    color: #FF2D55;
+  }
+  .meta-callout .note {
+    font-size: 10pt; font-weight: 600;
+  }
+  .footer {
+    border-top: 2pt solid #000000;
+    padding-top: 4pt;
+    display: flex; justify-content: space-between;
+    font-family: 'Space Mono', monospace;
+    font-size: 9pt; font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="case-tag">
+      <span class="case-num">Case 02</span>
+      <span>디자인용 하네스</span>
+    </div>
+    <h1>slides-grab — <span class="accent">이 슬라이드를</span> 만든 도구</h1>
+    <div class="meta-strip">
+      <div class="stage">PLAN<small>아웃라인 구조화</small></div>
+      <div class="arrow">→</div>
+      <div class="stage">DESIGN<small>HTML 슬라이드</small></div>
+      <div class="arrow">→</div>
+      <div class="stage">EXPORT<small>PDF / PNG / PPTX</small></div>
+    </div>
+    <div class="quote-block">
+      <p class="quote-mark">"</p>
+      <p class="quote-text">Best <mark>harness + editor + linter</mark> for generating slides in Claude Code / Codex</p>
+      <p class="quote-attr">— slides-grab README</p>
+    </div>
+    <div class="meta-callout">
+      <span class="pill"><span class="dot">●</span> LIVE DEMO</span>
+      <span class="note">지금 보고 계신 이 슬라이드 자체가 산출물입니다.</span>
+    </div>
+    <div class="footer">
+      <span>github.com/vkehfdl1/slides-grab</span>
+      <span>04 / 11</span>
+    </div>
+  </div>
+</body>
+</html>

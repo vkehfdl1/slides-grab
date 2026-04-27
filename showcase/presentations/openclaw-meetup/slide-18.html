@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Pretendard', sans-serif; }
+</style>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: Pretendard, sans-serif;">
+<div style="width: 720pt; height: 405pt; background: #0f0f0f; position: relative; overflow: hidden; padding: 32pt 40pt;">
+
+  <h1 style="font-size: 28pt; font-weight: 700; color: #ffffff; margin-bottom: 4pt;">에이전트 간 소통 — 파일 기반 IPC</h1>
+  <p style="font-size: 14pt; color: #b0b0b0; margin-bottom: 24pt;">IPC = Inter-Process Communication (프로세스 간 통신)</p>
+
+  <div style="display: flex; gap: 24pt;">
+
+    <!-- Main diagram -->
+    <div style="flex: 1;">
+
+      <!-- Step 1 -->
+      <div style="display: flex; align-items: flex-start; margin-bottom: 6pt;">
+        <div style="width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;">
+          <p style="font-size: 12pt; font-weight: 700; color: #ffffff;">1</p>
+        </div>
+        <div style="margin-left: 12pt;">
+          <p style="font-size: 14pt; font-weight: 600; color: #ffffff; margin-bottom: 4pt;">에이전트가 JSON 파일 작성</p>
+          <div style="background: #1e1e2a; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 6pt 10pt;">
+            <p style="font-size: 11pt; font-family: 'SF Mono', 'Menlo', monospace; color: #22d3ee;">/ipc/{group}/messages/{id}.json</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div style="margin-left: 11pt; width: 2pt; height: 14pt; background: #2a2a3a;"></div>
+
+      <!-- Step 2 -->
+      <div style="display: flex; align-items: flex-start; margin-bottom: 6pt;">
+        <div style="width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;">
+          <p style="font-size: 12pt; font-weight: 700; color: #ffffff;">2</p>
+        </div>
+        <div style="margin-left: 12pt;">
+          <p style="font-size: 14pt; font-weight: 600; color: #ffffff;">호스트가 폴링으로 감지</p>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div style="margin-left: 11pt; width: 2pt; height: 14pt; background: #2a2a3a;"></div>
+
+      <!-- Step 3 -->
+      <div style="display: flex; align-items: flex-start; margin-bottom: 6pt;">
+        <div style="width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;">
+          <p style="font-size: 12pt; font-weight: 700; color: #ffffff;">3</p>
+        </div>
+        <div style="margin-left: 12pt;">
+          <p style="font-size: 14pt; font-weight: 600; color: #ffffff; margin-bottom: 3pt;">권한 검증</p>
+          <p style="font-size: 11pt; color: #b0b0b0;">메인 = 아무 채널 | 나머지 = 자기 채널만</p>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div style="margin-left: 11pt; width: 2pt; height: 14pt; background: #2a2a3a;"></div>
+
+      <!-- Step 4 -->
+      <div style="display: flex; align-items: flex-start;">
+        <div style="width: 24pt; height: 24pt; border-radius: 50%; background: #6366f1; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2pt;">
+          <p style="font-size: 12pt; font-weight: 700; color: #ffffff;">4</p>
+        </div>
+        <div style="margin-left: 12pt;">
+          <p style="font-size: 14pt; font-weight: 600; color: #ffffff;">Slack으로 전송 후 파일 삭제</p>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Page number -->
+  <p style="position: absolute; bottom: 16pt; right: 28pt; font-size: 10pt; color: #4a4a5a;">18</p>
+
+</div>
+</body>
+</html>

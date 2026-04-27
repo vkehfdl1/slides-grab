@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      padding: 36pt 48pt;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+      position: relative;
+    }
+    .step-box {
+      display: flex; align-items: flex-start; gap: 14pt;
+      margin-bottom: 10pt;
+    }
+    .step-icon {
+      min-width: 28pt; height: 28pt;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .step-diamond {
+      width: 20pt; height: 20pt;
+      background: #4A3FCC;
+      transform: rotate(45deg);
+    }
+    .step-diamond.active { background: #7C6FFF; }
+    .connector {
+      position: absolute; left: 13pt; top: 28pt;
+      width: 2pt; height: 28pt;
+      background: rgba(124,111,255,0.25);
+    }
+    .flow-arrow {
+      position: absolute;
+      border-left: 2pt solid #7C6FFF;
+      border-bottom: 2pt solid #7C6FFF;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24pt;">
+    <div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.15em; margin-bottom: 6pt;">01 // INCIDENT</p>
+      <h2 style="font-family: 'Barlow Condensed', sans-serif; font-size: 32pt; font-weight: 700; color: #FFFFFF;">사건 발생: 2026.03.31</h2>
+    </div>
+    <p style="font-family: 'Space Mono', monospace; font-size: 9pt; color: #4A3FCC;">npm v2.1.88</p>
+  </div>
+
+  <!-- Main content: flow diagram -->
+  <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 32pt;">
+    <!-- Left: cause chain -->
+    <div style="display: flex; flex-direction: column; justify-content: center;">
+      <div class="step-box">
+        <div class="step-icon">
+          <div class="step-diamond active"></div>
+          <div class="connector"></div>
+        </div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF;">Bun 빌더 버그</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 3pt;">프로덕션에서도 .map 파일 자동 생성</p>
+        </div>
+      </div>
+      <div class="step-box">
+        <div class="step-icon">
+          <div class="step-diamond active"></div>
+          <div class="connector"></div>
+        </div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF;">.npmignore 누락</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 3pt;">*.map 패턴 미등록 — 기본적인 실수</p>
+        </div>
+      </div>
+      <div class="step-box">
+        <div class="step-icon">
+          <div class="step-diamond active"></div>
+          <div class="connector"></div>
+        </div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FFFFFF;">소스맵 공개 배포</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 3pt;">비보호 클라우드 스토리지 zip 직접 참조</p>
+        </div>
+      </div>
+      <div class="step-box">
+        <div class="step-icon">
+          <div class="step-diamond" style="background: #FF6B6B;"></div>
+        </div>
+        <div>
+          <p style="font-size: 11pt; font-weight: 600; color: #FF6B6B;">전체 소스코드 노출</p>
+          <p style="font-size: 9pt; color: #8888AA; margin-top: 3pt;">512,000줄 TypeScript 완전 공개</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: isometric npm package visualization -->
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+      <!-- Large isometric box representing npm package -->
+      <div style="position: relative; width: 160pt; height: 160pt;">
+        <!-- Top face -->
+        <div style="position: absolute; width: 160pt; height: 92pt; top: 0; left: 0; background: #7C6FFF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+        <!-- Left face -->
+        <div style="position: absolute; width: 80pt; height: 126pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+        <!-- Right face -->
+        <div style="position: absolute; width: 80pt; height: 126pt; bottom: 0; right: 0; background: #6254E8; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+        <!-- npm label on top face -->
+        <p style="position: absolute; top: 14pt; left: 50%; transform: translateX(-50%); font-family: 'Space Mono', monospace; font-size: 10pt; color: #FFFFFF; font-weight: 700; z-index: 2;">npm</p>
+        <!-- Leak streams from right face -->
+        <div style="position: absolute; right: -30pt; top: 60pt; display: flex; flex-direction: column; gap: 4pt;">
+          <div style="width: 24pt; height: 2pt; background: #A594FF; opacity: 0.8;"></div>
+          <div style="width: 36pt; height: 2pt; background: #A594FF; opacity: 0.6;"></div>
+          <div style="width: 18pt; height: 2pt; background: #A594FF; opacity: 0.4;"></div>
+          <div style="width: 30pt; height: 2pt; background: #A594FF; opacity: 0.5;"></div>
+          <div style="width: 20pt; height: 2pt; background: #A594FF; opacity: 0.3;"></div>
+        </div>
+      </div>
+      <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #8888AA; margin-top: 12pt; text-align: center;">@anthropic/claude-code@2.1.88<br>+ source maps leaked</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC;">FIRST DISCLOSED BY CHAOFAN SHOU ON X</p>
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #4A3FCC;">32M+ VIEWS</p>
+  </div>
+</body>
+</html>

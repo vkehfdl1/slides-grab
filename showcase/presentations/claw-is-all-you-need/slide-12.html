@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>Slide 12 — Localization chapter</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&amp;family=Barlow+Condensed:wght@400;600;800&amp;family=DM+Mono:wght@400;500&amp;family=Noto+Sans+KR:wght@400;700;900&amp;display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:#050510;}
+  .slide{position:relative; width:720pt; height:405pt; overflow:hidden;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1pt, transparent 1pt 3pt),
+      radial-gradient(360pt 240pt at 22% 50%, rgba(255,45,94,0.3), transparent 70%),
+      radial-gradient(360pt 240pt at 78% 50%, rgba(59,143,245,0.3), transparent 70%),
+      #050510;
+    color:#E8E8F5; font-family:'DM Mono','Noto Sans KR',monospace;}
+  .slide::before{content:""; position:absolute; left:6pt; top:100pt; width:200pt; height:200pt;
+    background:#FF2D5E; filter:blur(60pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .slide::after{content:""; position:absolute; right:6pt; top:100pt; width:200pt; height:200pt;
+    background:#3B8FF5; filter:blur(60pt); opacity:0.5; mix-blend-mode:screen; border-radius:50%; pointer-events:none;}
+  .taegeuk{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    width:240pt; height:240pt; border-radius:50%; opacity:0.18; pointer-events:none;
+    background:conic-gradient(from 0deg at 50% 50%, #FF2D5E 0 50%, #3B8FF5 50% 100%);
+    filter:blur(2pt);}
+  .wrap{position:absolute; inset:0; padding:54pt 60pt; display:flex; flex-direction:column; justify-content:center; text-align:center;}
+  .chapter{font-family:'DM Mono',monospace; font-size:10pt; letter-spacing:6pt; color:#D0D0F0; text-transform:uppercase; margin:0;}
+  h1{font-family:'Bebas Neue',sans-serif; font-size:82pt; line-height:1.4; letter-spacing:4pt; margin:14pt 0 0;
+    background:linear-gradient(100deg,#FF2D5E 0%,#ffffff 50%,#3B8FF5 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 36pt rgba(255,255,255,0.18);}
+  .kr{margin:12pt 0 0; font-family:'Noto Sans KR',sans-serif; font-weight:700; font-size:18pt; letter-spacing:2pt; color:#E8E8F5;}
+  .caption{margin:16pt 0 0; font-family:'Barlow Condensed',sans-serif; font-weight:400; font-size:14pt; letter-spacing:3pt; color:#8a8ab0;}
+</style>
+</head>
+<body>
+<div class="slide">
+  <div class="taegeuk"></div>
+  <div class="wrap">
+    <p class="chapter">— CHAPTER  02 —</p>
+    <h1>LOCALIZATION</h1>
+    <p class="kr">Localization in the age of AI</p>
+    <p class="caption">On re-teaching a foreign-made Claw to be Korean</p>
+  </div>
+</div>
+
+
+</body></html>

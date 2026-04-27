@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 720pt; height: 405pt;
+      font-family: 'Pretendard', sans-serif;
+      background: #1E1E2E;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+    .glow-ring {
+      position: absolute;
+      border: 1pt solid rgba(124,111,255,0.15);
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+  <!-- Expanding glow rings -->
+  <div class="glow-ring" style="width: 200pt; height: 200pt; top: 50%; left: 50%; transform: translate(-50%,-50%);"></div>
+  <div class="glow-ring" style="width: 340pt; height: 340pt; top: 50%; left: 50%; transform: translate(-50%,-50%);"></div>
+  <div class="glow-ring" style="width: 450pt; height: 400pt; top: 50%; left: 50%; transform: translate(-50%,-50%); overflow: hidden;"></div>
+
+  <!-- Isometric rocket/building emerging -->
+  <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); display: flex; flex-direction: column; align-items: center;">
+    <!-- Rocket-like isometric shape -->
+    <div style="position: relative; width: 60pt; height: 70pt;">
+      <!-- Top (bright) -->
+      <div style="position: absolute; width: 60pt; height: 35pt; top: 0; left: 0; background: #A594FF; clip-path: polygon(50% 0%, 100% 25%, 50% 50%, 0% 25%);"></div>
+      <!-- Left -->
+      <div style="position: absolute; width: 30pt; height: 52pt; bottom: 0; left: 0; background: #4A3FCC; clip-path: polygon(0% 0%, 100% 25%, 100% 100%, 0% 75%);"></div>
+      <!-- Right -->
+      <div style="position: absolute; width: 30pt; height: 52pt; bottom: 0; right: 0; background: #7C6FFF; clip-path: polygon(0% 25%, 100% 0%, 100% 75%, 0% 100%);"></div>
+    </div>
+    <!-- Trail lines -->
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 3pt; margin-top: 4pt;">
+      <div style="width: 2pt; height: 12pt; background: #7C6FFF; opacity: 0.8;"></div>
+      <div style="width: 2pt; height: 8pt; background: #7C6FFF; opacity: 0.5;"></div>
+      <div style="width: 2pt; height: 5pt; background: #7C6FFF; opacity: 0.3;"></div>
+    </div>
+  </div>
+
+  <!-- Title -->
+  <div style="position: relative; z-index: 2; text-align: center; margin-top: 100pt;">
+    <p style="font-family: 'Space Mono', monospace; font-size: 8pt; color: #7C6FFF; letter-spacing: 0.2em; margin-bottom: 14pt;">CLOSING // K-BUILDERS</p>
+    <h1 style="font-family: 'Barlow Condensed', sans-serif; font-size: 40pt; font-weight: 700; color: #FFFFFF; line-height: 1.2;">
+      K-빌더, 세계를 흔들다
+    </h1>
+    <p style="font-size: 13pt; color: #A594FF; margin-top: 16pt; line-height: 1.6; max-width: 480pt;">
+      실리콘밸리가 닫은 문을 한국 개발자가 열어젖혔다
+    </p>
+  </div>
+
+  <!-- Bottom messages -->
+  <div style="position: absolute; bottom: 36pt; left: 48pt; right: 48pt;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+      <div style="display: flex; flex-direction: column; gap: 6pt;">
+        <p style="font-size: 10pt; color: #FFFFFF; line-height: 1.5;">
+          Sigrid Jin — 가장 많이 쓰는 사람이, 가장 먼저 대안을 만들었다
+        </p>
+        <p style="font-size: 10pt; color: #8888AA; line-height: 1.5;">
+          쓰기만 하는 게 아니라 만든다. 하룻밤 만에 111K Stars.
+        </p>
+      </div>
+      <div style="text-align: right;">
+        <p style="font-family: 'Barlow Condensed', sans-serif; font-size: 16pt; font-weight: 700; color: #7C6FFF; line-height: 1.3;">
+          다음 판을 뒤집을<br>K-빌더는 누구인가?
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

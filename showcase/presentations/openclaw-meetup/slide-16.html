@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>스레드 단위 세션 격리</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+</style>
+</head>
+<body style="width: 720pt; height: 405pt; overflow: hidden; margin: 0; padding: 0; background: #0f0f0f; font-family: 'Pretendard', sans-serif; color: #ffffff;">
+<div style="width: 720pt; height: 405pt; position: relative; overflow: hidden; background: #0f0f0f; padding: 36pt 40pt 32pt 40pt;">
+
+  <!-- Title -->
+  <h1 style="font-size: 28pt; font-weight: 700; margin: 0 0 20pt 0; letter-spacing: -0.5pt;">스레드 단위 세션 격리</h1>
+
+  <!-- Key concept -->
+  <div style="margin-bottom: 24pt;">
+    <p style="font-size: 13pt; color: #b0b0b0; margin: 0 0 8pt 0;">세션 키:</p>
+    <p style="font-family: 'SF Mono', 'Fira Code', monospace; font-size: 14pt; background: #1e1e2a; color: #22d3ee; border: 1pt solid #2a2a3a; border-radius: 6pt; padding: 8pt 14pt; display: inline-block; margin: 0;">(group_folder, chat_jid, thread_ts)</p>
+  </div>
+
+  <!-- Two scenario cards -->
+  <div style="display: flex; gap: 24pt; margin-bottom: 24pt;">
+
+    <!-- Card 1: Channel message -->
+    <div style="flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #6366f1; border-radius: 10pt; padding: 20pt;">
+      <h3 style="font-size: 14pt; font-weight: 600; margin: 0 0 16pt 0;">채널 메시지</h3>
+      <!-- Thread visual -->
+      <div style="display: flex; flex-direction: column; gap: 8pt;">
+        <div style="background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt; border-left: 3pt solid #6366f1;">
+          <p style="font-size: 11pt; margin: 0;">@나노클로 이거 해줘</p>
+        </div>
+        <p style="font-size: 12pt; color: #6366f1; margin: 0; text-align: center;">↓ 새 스레드 생성</p>
+        <div style="margin-left: 20pt; border-left: 2pt solid #2a2a3a; padding-left: 12pt;">
+          <div style="background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt;">
+            <p style="font-size: 10pt; color: #b0b0b0; margin: 0 0 2pt 0;">bot</p>
+            <p style="font-size: 11pt; margin: 0;">스레드에서 답장합니다</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Thread message -->
+    <div style="flex: 1; background: #141419; border: 1pt solid #2a2a3a; border-left: 3pt solid #22d3ee; border-radius: 10pt; padding: 20pt;">
+      <h3 style="font-size: 14pt; font-weight: 600; margin: 0 0 16pt 0;">스레드 메시지</h3>
+      <!-- Thread visual -->
+      <div style="display: flex; flex-direction: column; gap: 8pt;">
+        <div style="margin-left: 20pt; border-left: 2pt solid #2a2a3a; padding-left: 12pt;">
+          <div style="background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt; margin-bottom: 8pt;">
+            <p style="font-size: 10pt; color: #b0b0b0; margin: 0 0 2pt 0;">user</p>
+            <p style="font-size: 11pt; margin: 0;">추가 질문이 있어</p>
+          </div>
+          <p style="font-size: 12pt; color: #22d3ee; margin: 0 0 8pt 0; text-align: center;">↓ 같은 스레드</p>
+          <div style="background: #1e1e2a; border-radius: 6pt; padding: 8pt 12pt;">
+            <p style="font-size: 10pt; color: #b0b0b0; margin: 0 0 2pt 0;">bot</p>
+            <p style="font-size: 11pt; margin: 0;">같은 컨텍스트로 답장</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom note -->
+  <p style="position: absolute; left: 40pt; right: 40pt; bottom: 22pt; font-size: 12pt; color: #b0b0b0; text-align: center; margin: 0;">한 채널에서 여러 대화 동시 진행 가능 · 세션 자동 압축</p>
+
+  <!-- Page number -->
+  <p style="position: absolute; bottom: 16pt; right: 24pt; font-size: 10pt; color: #4a4a5a; margin: 0;">16</p>
+
+</div>
+</body>
+</html>
