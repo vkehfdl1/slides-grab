@@ -10,12 +10,12 @@
 - Use `./assets/<file>` as the default image and video contract for slide HTML.
 - Keep slide assets in `<slides-dir>/assets/`.
 - Use `tldraw`-generated assets for complex diagrams whenever possible.
-- Use `slides-grab image --prompt "<prompt>" --slides-dir <path>` with Nano Banana Pro when a slide needs bespoke generated imagery.
+- Use `slides-grab image --prompt "<prompt>" --slides-dir <path>` with Codex/OpenAI by default when a slide needs bespoke generated imagery.
 - `data:` URLs are allowed for fully self-contained slides.
 - Do not leave remote `http(s)://` image URLs in saved slide HTML; download source images into `<slides-dir>/assets/` and reference them as `./assets/<file>`.
 - Store local videos under `<slides-dir>/assets/`, reference them as `./assets/<file>`, and prefer `poster="./assets/<file>"` for export-friendly thumbnails.
 - If a video starts on YouTube or another supported page, use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly if needed) before saving the slide HTML.
-- If `GOOGLE_API_KEY` or `GEMINI_API_KEY` is unavailable, or the Nano Banana API fails, ask the user for a Google API key or fall back to web search + download into `<slides-dir>/assets/`.
+- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. If it is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` or `GEMINI_API_KEY`; otherwise fall back to web search + download into `<slides-dir>/assets/`.
 - Do not use absolute filesystem paths in slide HTML.
 - Do not use non-body `background-image` for content imagery; use `<img>` instead.
 - Use `data-image-placeholder` to reserve space when no image is available yet.

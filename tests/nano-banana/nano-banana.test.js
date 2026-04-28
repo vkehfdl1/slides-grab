@@ -5,25 +5,30 @@ import os from 'node:os';
 import path from 'node:path';
 
 import {
+  DEFAULT_CODEX_IMAGE_MODEL,
+  DEFAULT_IMAGE_PROVIDER,
   DEFAULT_NANO_BANANA_ASPECT_RATIO,
   DEFAULT_NANO_BANANA_IMAGE_SIZE,
   DEFAULT_NANO_BANANA_MODEL,
+  buildCodexImageApiRequest,
   buildNanoBananaApiRequest,
   extractGeneratedImage,
   getNanoBananaFallbackMessage,
   parseNanoBananaCliArgs,
+  resolveCodexApiKey,
   resolveNanoBananaApiKey,
   resolveNanoBananaOutputPath,
 } from '../../src/nano-banana.js';
 import { main } from '../../scripts/generate-image.js';
 
-test('parseNanoBananaCliArgs applies defaults', () => {
+test('parseNanoBananaCliArgs applies Codex image generation defaults', () => {
   assert.deepEqual(parseNanoBananaCliArgs(['--prompt', 'Foggy mountain road at sunrise']), {
     prompt: 'Foggy mountain road at sunrise',
     slidesDir: 'slides',
     output: '',
     name: '',
-    model: DEFAULT_NANO_BANANA_MODEL,
+    provider: DEFAULT_IMAGE_PROVIDER,
+    model: DEFAULT_CODEX_IMAGE_MODEL,
     aspectRatio: DEFAULT_NANO_BANANA_ASPECT_RATIO,
     imageSize: DEFAULT_NANO_BANANA_IMAGE_SIZE,
     help: false,
@@ -40,6 +45,8 @@ test('parseNanoBananaCliArgs reads explicit options and rejects invalid values',
       'decks/demo/assets/robot-hero',
       '--name',
       'robot-hero',
+      '--provider',
+      'nano-banana',
       '--model',
       'gemini-3-pro-image-preview',
       '--aspect-ratio',
@@ -52,6 +59,7 @@ test('parseNanoBananaCliArgs reads explicit options and rejects invalid values',
       slidesDir: 'decks/demo',
       output: 'decks/demo/assets/robot-hero',
       name: 'robot-hero',
+      provider: 'nano-banana',
       model: 'gemini-3-pro-image-preview',
       aspectRatio: '1:1',
       imageSize: '2K',
@@ -61,6 +69,18 @@ test('parseNanoBananaCliArgs reads explicit options and rejects invalid values',
 
   assert.throws(() => parseNanoBananaCliArgs([]), /--prompt must be a non-empty string/i);
   assert.throws(() => parseNanoBananaCliArgs(['--prompt', 'x', '--image-size', '8K']), /unknown --image-size/i);
+  assert.throws(() => parseNanoBananaCliArgs(['--prompt', 'x', '--provider', 'banana']), /unknown --provider/i);
+});
+
+test('resolveCodexApiKey reads OPENAI_API_KEY for the default provider', () => {
+  assert.deepEqual(resolveCodexApiKey({ OPENAI_API_KEY: 'openai-key' }), {
+    apiKey: 'openai-key',
+    source: 'OPENAI_API_KEY',
+  });
+  assert.deepEqual(resolveCodexApiKey({ OPENAI_API_KEY: '  ' }), {
+    apiKey: '',
+    source: '',
+  });
 });
 
 test('resolveNanoBananaApiKey prefers GOOGLE_API_KEY and falls back to GEMINI_API_KEY', () => {
@@ -152,6 +172,20 @@ test('resolveNanoBananaOutputPath keeps nested asset-relative output values insi
   assert.equal(target.relativeRef, './assets/nested/hero-image.png');
 });
 
+test('buildCodexImageApiRequest matches the OpenAI images request shape', () => {
+  assert.deepEqual(
+    buildCodexImageApiRequest({
+      prompt: 'Generate a premium fintech dashboard hero image.',
+      model: DEFAULT_CODEX_IMAGE_MODEL,
+    }),
+    {
+      model: DEFAULT_CODEX_IMAGE_MODEL,
+      prompt: 'Generate a premium fintech dashboard hero image.',
+      size: 'auto',
+    },
+  );
+});
+
 test('buildNanoBananaApiRequest matches the documented Gemini image request shape', () => {
   assert.deepEqual(
     buildNanoBananaApiRequest({
@@ -205,7 +239,7 @@ test('getNanoBananaFallbackMessage tells the agent to ask for a key or fall back
   );
   assert.match(
     getNanoBananaFallbackMessage('Missing API key.'),
-    /web search/i,
+    /Nano Banana/i,
   );
   assert.match(
     getNanoBananaFallbackMessage('Missing API key.'),
@@ -213,8 +247,8 @@ test('getNanoBananaFallbackMessage tells the agent to ask for a key or fall back
   );
 });
 
-test('main writes the generated image into slides/assets and logs the local reference', async () => {
-  const workspace = await mkdtemp(path.join(os.tmpdir(), 'nano-banana-test-'));
+test('main defaults to Codex image generation and writes the generated image into slides/assets', async () => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'codex-image-test-'));
   const output = [];
   const calls = [];
 
@@ -222,7 +256,7 @@ test('main writes the generated image into slides/assets and logs the local refe
     await main(
       ['--prompt', 'Studio portrait of a founder with warm rim light', '--slides-dir', workspace],
       {
-        env: { GOOGLE_API_KEY: 'test-key' },
+        env: { OPENAI_API_KEY: 'test-key' },
         fetchImpl: async (url, init) => {
           calls.push({ url, init });
           return {
@@ -230,18 +264,9 @@ test('main writes the generated image into slides/assets and logs the local refe
             status: 200,
             async json() {
               return {
-                candidates: [
+                data: [
                   {
-                    content: {
-                      parts: [
-                        {
-                          inlineData: {
-                            mimeType: 'image/png',
-                            data: Buffer.from('fake-image-bytes').toString('base64'),
-                          },
-                        },
-                      ],
-                    },
+                    b64_json: Buffer.from('fake-image-bytes').toString('base64'),
                   },
                 ],
               };
@@ -257,18 +282,64 @@ test('main writes the generated image into slides/assets and logs the local refe
     );
 
     assert.equal(calls.length, 1);
-    assert.match(calls[0].url, /models\/gemini-3-pro-image-preview:generateContent$/);
+    assert.equal(calls[0].url, 'https://api.openai.com/v1/images/generations');
+    assert.equal(calls[0].init.headers.Authorization, 'Bearer test-key');
     const requestBody = JSON.parse(calls[0].init.body);
-    assert.equal(requestBody.contents[0].parts[0].text, 'Studio portrait of a founder with warm rim light');
-    assert.deepEqual(requestBody.generationConfig.imageConfig, {
-      aspectRatio: '16:9',
-      imageSize: '4K',
-    });
+    assert.equal(requestBody.model, DEFAULT_CODEX_IMAGE_MODEL);
+    assert.equal(requestBody.prompt, 'Studio portrait of a founder with warm rim light');
+    assert.equal(requestBody.size, 'auto');
 
     const assetDir = path.join(workspace, 'assets');
-    const files = await readFile(path.join(assetDir, 'nano-banana-studio-portrait-of-a-founder-with-warm-rim-light.png'));
+    const files = await readFile(path.join(assetDir, 'codex-studio-portrait-of-a-founder-with-warm-rim-light.png'));
     assert.equal(files.toString(), 'fake-image-bytes');
-    assert.match(output.join(''), /\.\/assets\/nano-banana-studio-portrait-of-a-founder-with-warm-rim-light\.png/);
+    assert.match(output.join(''), /\.\/assets\/codex-studio-portrait-of-a-founder-with-warm-rim-light\.png/);
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('main falls back to Nano Banana when OPENAI_API_KEY is unavailable but GOOGLE_API_KEY is configured', async () => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'codex-image-fallback-test-'));
+  const calls = [];
+
+  try {
+    await main(
+      ['--prompt', 'A floating product render', '--slides-dir', workspace],
+      {
+        env: { GOOGLE_API_KEY: 'google-key' },
+        fetchImpl: async (url, init) => {
+          calls.push({ url, init });
+          return {
+            ok: true,
+            status: 200,
+            async json() {
+              return {
+                candidates: [
+                  {
+                    content: {
+                      parts: [
+                        {
+                          inlineData: {
+                            mimeType: 'image/png',
+                            data: Buffer.from('fallback-image-bytes').toString('base64'),
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
+              };
+            },
+          };
+        },
+        stdout: { write() {} },
+      },
+    );
+
+    assert.equal(calls.length, 1);
+    assert.match(calls[0].url, /models\/gemini-3-pro-image-preview:generateContent$/);
+    const files = await readFile(path.join(workspace, 'assets', 'codex-a-floating-product-render.png'));
+    assert.equal(files.toString(), 'fallback-image-bytes');
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
@@ -279,7 +350,7 @@ test('main throws an actionable fallback error when no API key is configured', a
     () => main(['--prompt', 'A floating product render'], { env: {}, fetchImpl: async () => {
       throw new Error('fetch should not be called');
     } }),
-    /web search/i,
+    /OPENAI_API_KEY/i,
   );
 });
 
@@ -288,12 +359,12 @@ test('main wraps network failures in the actionable fallback guidance', async ()
     () => main(
       ['--prompt', 'A floating product render'],
       {
-        env: { GOOGLE_API_KEY: 'test-key' },
+        env: { OPENAI_API_KEY: 'test-key' },
         fetchImpl: async () => {
           throw new Error('network down');
         },
       },
     ),
-    /web search/i,
+    /Nano Banana/i,
   );
 });

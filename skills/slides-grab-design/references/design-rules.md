@@ -27,11 +27,11 @@ These are the packaged design rules for installable `slides-grab` skills.
 ## Asset rules
 - Store deck-local assets in `<slides-dir>/assets/`
 - Reference deck-local assets as `./assets/<file>`
-- Use `slides-grab image --prompt "<prompt>" --slides-dir <path>` with Nano Banana Pro for bespoke generated images when helpful
+- Use `slides-grab image --prompt "<prompt>" --slides-dir <path>` with Codex/OpenAI by default for bespoke generated images when helpful
 - If an image comes from the web, download it into `<slides-dir>/assets/` before referencing it
 - If a video comes from YouTube or another supported page, use `slides-grab fetch-video` (or `yt-dlp` directly) to download it into `<slides-dir>/assets/` before referencing it
 - Keep local videos and their poster thumbnails together under `<slides-dir>/assets/`
-- If `GOOGLE_API_KEY` / `GEMINI_API_KEY` is unavailable, ask the user for a Google API key or fall back to web search + download
+- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. If it is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` / `GEMINI_API_KEY`; otherwise fall back to web search + download
 - Use `tldraw`-generated local assets for complex diagrams when possible
 - Allow `data:` URLs only when the slide must be fully self-contained
 - Do not leave remote `http(s)://` image URLs in saved slide HTML
