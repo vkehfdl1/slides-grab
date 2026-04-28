@@ -1,0 +1,135 @@
+import { mkdir, readFile, rm } from 'node:fs/promises';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { randomUUID } from 'node:crypto';
+
+import {
+  createProvider as defaultCreateProvider,
+  resolveConfig as defaultResolveConfig,
+} from 'god-tibo-imagen';
+
+export const GOD_TIBO_DEFAULT_MODEL = 'gpt-5.4';
+export const GOD_TIBO_PROVIDER_AUTO = 'auto';
+export const GOD_TIBO_PROVIDER_PRIVATE_CODEX = 'private-codex';
+export const GOD_TIBO_PROVIDER_CODEX_CLI = 'codex-cli';
+
+const ASPECT_RATIO_HINTS = new Map([
+  ['16:9', 'wide landscape 16:9 aspect ratio'],
+  ['9:16', 'tall portrait 9:16 aspect ratio'],
+  ['1:1', 'square 1:1 aspect ratio'],
+  ['4:3', '4:3 aspect ratio'],
+  ['3:4', 'portrait 3:4 aspect ratio'],
+  ['3:2', 'landscape 3:2 aspect ratio'],
+  ['2:3', 'portrait 2:3 aspect ratio'],
+]);
+
+export function injectAspectRatioHint(prompt, aspectRatio) {
+  if (typeof prompt !== 'string' || prompt.trim() === '') {
+    throw new Error('injectAspectRatioHint: prompt must be a non-empty string.');
+  }
+  if (!aspectRatio || typeof aspectRatio !== 'string') {
+    return prompt;
+  }
+  const trimmed = aspectRatio.trim();
+  const explicit = ASPECT_RATIO_HINTS.get(trimmed);
+  if (explicit) {
+    return `${prompt} (${explicit})`;
+  }
+  if (/^\d+(?:\.\d+)?:\d+(?:\.\d+)?$/.test(trimmed)) {
+    return `${prompt} (${trimmed} aspect ratio)`;
+  }
+  return prompt;
+}
+
+export function resolveGodTiboConfig({ providerMode = GOD_TIBO_PROVIDER_AUTO, resolveConfigImpl = defaultResolveConfig } = {}) {
+  return resolveConfigImpl({ provider: providerMode });
+}
+
+function isCodexAuthError(error) {
+  if (!error || typeof error !== 'object') return false;
+  const code = String(error.code || '').toUpperCase();
+  if (code === 'UNAUTHORIZED' || code === 'ENOENT') return true;
+  const message = String(error.message || '').toLowerCase();
+  return (
+    message.includes('auth.json') ||
+    message.includes('unauthorized') ||
+    message.includes('chatgpt auth') ||
+    message.includes('codex login')
+  );
+}
+
+export function getGodTiboFallbackMessage(reason) {
+  const summary = typeof reason === 'string' && reason.trim()
+    ? reason.trim()
+    : 'god-tibo-imagen image generation failed.';
+  return `${summary} god-tibo-imagen is the default image provider and reuses your local Codex ChatGPT login (~/.codex/auth.json). Run \`codex login\` once to enable it. Optional fallbacks: set OPENAI_API_KEY (Codex/OpenAI gpt-image-2) or GOOGLE_API_KEY/GEMINI_API_KEY (Nano Banana). If image generation credentials are unavailable, use web search and download the chosen image into ./assets/<file>.`;
+}
+
+export async function generateGodTiboImage({
+  prompt,
+  model = GOD_TIBO_DEFAULT_MODEL,
+  aspectRatio,
+  providerMode = GOD_TIBO_PROVIDER_AUTO,
+  dryRun = false,
+  deps = {},
+} = {}) {
+  if (typeof prompt !== 'string' || prompt.trim() === '') {
+    throw new Error('generateGodTiboImage: prompt must be a non-empty string.');
+  }
+
+  const createProviderImpl = deps.createProvider || defaultCreateProvider;
+  const resolveConfigImpl = deps.resolveConfig || defaultResolveConfig;
+
+  const enrichedPrompt = injectAspectRatioHint(prompt, aspectRatio);
+  const config = resolveGodTiboConfig({ providerMode, resolveConfigImpl });
+  const provider = createProviderImpl(config);
+
+  // god-tibo's provider.generateImage writes a PNG to outputPath as a side
+  // effect. slides-grab centralizes asset path resolution in
+  // saveNanoBananaImage (src/nano-banana.js) - so we route god-tibo's write
+  // to a tmp file and read the bytes back, letting the caller persist via
+  // the existing asset contract. This keeps the asset path policy single-sourced.
+  const tempDir = join(tmpdir(), `slides-grab-godtibo-${randomUUID()}`);
+  await mkdir(tempDir, { recursive: true });
+  const tempPath = join(tempDir, 'image.png');
+
+  try {
+    const result = await provider.generateImage({
+      prompt: enrichedPrompt,
+      model,
+      outputPath: tempPath,
+      dryRun: Boolean(dryRun),
+    });
+
+    if (dryRun) {
+      return {
+        mimeType: 'image/png',
+        bytes: Buffer.alloc(0),
+        mode: result?.mode || 'dry-run',
+        warnings: Array.isArray(result?.warnings) ? result.warnings : [],
+        revisedPrompt: result?.revisedPrompt ?? null,
+      };
+    }
+
+    const bytes = await readFile(tempPath);
+    return {
+      mimeType: 'image/png',
+      bytes,
+      mode: result?.mode || 'live',
+      warnings: Array.isArray(result?.warnings) ? result.warnings : [],
+      revisedPrompt: result?.revisedPrompt ?? null,
+    };
+  } catch (error) {
+    const wrapped = new Error(getGodTiboFallbackMessage(error?.message || String(error)));
+    wrapped.cause = error;
+    wrapped.isAuthError = isCodexAuthError(error);
+    throw wrapped;
+  } finally {
+    await rm(tempDir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+export const __test_only__ = {
+  ASPECT_RATIO_HINTS,
+  isCodexAuthError,
+};
