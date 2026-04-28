@@ -13,6 +13,7 @@ import {
   buildCodexImageApiRequest,
   buildNanoBananaApiRequest,
   extractGeneratedImage,
+  getCodexFallbackMessage,
   getNanoBananaFallbackMessage,
   parseNanoBananaCliArgs,
   resolveCodexApiKey,
@@ -172,16 +173,30 @@ test('resolveNanoBananaOutputPath keeps nested asset-relative output values insi
   assert.equal(target.relativeRef, './assets/nested/hero-image.png');
 });
 
-test('buildCodexImageApiRequest matches the OpenAI images request shape', () => {
+test('buildCodexImageApiRequest maps slide aspect ratios to supported OpenAI landscape sizes', () => {
   assert.deepEqual(
     buildCodexImageApiRequest({
       prompt: 'Generate a premium fintech dashboard hero image.',
       model: DEFAULT_CODEX_IMAGE_MODEL,
+      aspectRatio: '16:9',
     }),
     {
       model: DEFAULT_CODEX_IMAGE_MODEL,
       prompt: 'Generate a premium fintech dashboard hero image.',
-      size: 'auto',
+      size: '1536x1024',
+    },
+  );
+
+  assert.deepEqual(
+    buildCodexImageApiRequest({
+      prompt: 'Generate a square app icon.',
+      model: DEFAULT_CODEX_IMAGE_MODEL,
+      aspectRatio: '1:1',
+    }),
+    {
+      model: DEFAULT_CODEX_IMAGE_MODEL,
+      prompt: 'Generate a square app icon.',
+      size: '1024x1024',
     },
   );
 });
@@ -230,6 +245,14 @@ test('extractGeneratedImage returns the first inline image part', () => {
 
   assert.equal(payload.mimeType, 'image/png');
   assert.equal(Buffer.from(payload.bytes).toString(), 'png-bytes');
+});
+
+test('getCodexFallbackMessage includes API key, Nano Banana fallback, and web search guidance', () => {
+  const message = getCodexFallbackMessage('Missing API key.');
+  assert.match(message, /OPENAI_API_KEY/i);
+  assert.match(message, /GOOGLE_API_KEY|GEMINI_API_KEY/i);
+  assert.match(message, /web search/i);
+  assert.match(message, /\.\/assets\//);
 });
 
 test('getNanoBananaFallbackMessage tells the agent to ask for a key or fall back to web search', () => {
@@ -287,7 +310,7 @@ test('main defaults to Codex image generation and writes the generated image int
     const requestBody = JSON.parse(calls[0].init.body);
     assert.equal(requestBody.model, DEFAULT_CODEX_IMAGE_MODEL);
     assert.equal(requestBody.prompt, 'Studio portrait of a founder with warm rim light');
-    assert.equal(requestBody.size, 'auto');
+    assert.equal(requestBody.size, '1536x1024');
 
     const assetDir = path.join(workspace, 'assets');
     const files = await readFile(path.join(assetDir, 'codex-studio-portrait-of-a-founder-with-warm-rim-light.png'));
@@ -296,6 +319,50 @@ test('main defaults to Codex image generation and writes the generated image int
   } finally {
     await rm(workspace, { recursive: true, force: true });
   }
+});
+
+test('main maps explicit square aspect ratio to OpenAI square size', async () => {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'codex-image-square-test-'));
+  const calls = [];
+
+  try {
+    await main(
+      ['--prompt', 'A centered product icon', '--slides-dir', workspace, '--aspect-ratio', '1:1'],
+      {
+        env: { OPENAI_API_KEY: 'test-key' },
+        fetchImpl: async (url, init) => {
+          calls.push({ url, init });
+          return {
+            ok: true,
+            status: 200,
+            async json() {
+              return { data: [{ b64_json: Buffer.from('square-image-bytes').toString('base64') }] };
+            },
+          };
+        },
+        stdout: { write() {} },
+      },
+    );
+
+    assert.equal(JSON.parse(calls[0].init.body).size, '1024x1024');
+  } finally {
+    await rm(workspace, { recursive: true, force: true });
+  }
+});
+
+test('main rejects Codex image-size presets because they are Nano Banana only', async () => {
+  await assert.rejects(
+    () => main(
+      ['--prompt', 'A floating product render', '--image-size', '2K'],
+      {
+        env: { OPENAI_API_KEY: 'test-key' },
+        fetchImpl: async () => {
+          throw new Error('fetch should not be called');
+        },
+      },
+    ),
+    /--image-size.*Nano Banana/i,
+  );
 });
 
 test('main falls back to Nano Banana when OPENAI_API_KEY is unavailable but GOOGLE_API_KEY is configured', async () => {
@@ -338,7 +405,7 @@ test('main falls back to Nano Banana when OPENAI_API_KEY is unavailable but GOOG
 
     assert.equal(calls.length, 1);
     assert.match(calls[0].url, /models\/gemini-3-pro-image-preview:generateContent$/);
-    const files = await readFile(path.join(workspace, 'assets', 'codex-a-floating-product-render.png'));
+    const files = await readFile(path.join(workspace, 'assets', 'nano-banana-a-floating-product-render.png'));
     assert.equal(files.toString(), 'fallback-image-bytes');
   } finally {
     await rm(workspace, { recursive: true, force: true });

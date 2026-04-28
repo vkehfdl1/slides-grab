@@ -40,8 +40,8 @@ export function getNanoBananaUsage() {
     '  --name <slug>           Optional asset basename without extension',
     `  --provider <name>       Image provider: codex or nano-banana (default: ${DEFAULT_IMAGE_PROVIDER})`,
     `  --model <id>            Model id (default: ${DEFAULT_CODEX_IMAGE_MODEL} for codex, ${DEFAULT_NANO_BANANA_MODEL} for nano-banana)`,
-    `  --aspect-ratio <ratio>  Image aspect ratio (default: ${DEFAULT_NANO_BANANA_ASPECT_RATIO})`,
-    `  --image-size <size>     Image size preset: 2K or 4K (default: ${DEFAULT_NANO_BANANA_IMAGE_SIZE})`,
+    `  --aspect-ratio <ratio>  Image aspect ratio; Codex maps orientation to nearest supported OpenAI size (default: ${DEFAULT_NANO_BANANA_ASPECT_RATIO})`,
+    `  --image-size <size>     Nano Banana image size preset: 2K or 4K (default: ${DEFAULT_NANO_BANANA_IMAGE_SIZE})`,
     '  -h, --help              Show this help text',
     '',
     'Auth:',
@@ -237,14 +237,55 @@ export function getNanoBananaFallbackMessage(reason) {
 
 export function getCodexFallbackMessage(reason) {
   const summary = typeof reason === 'string' && reason.trim() ? reason.trim() : 'Codex image generation failed.';
-  return `${summary} Codex/OpenAI is the default image provider: set OPENAI_API_KEY. Nano Banana remains available as a fallback with GOOGLE_API_KEY or GEMINI_API_KEY.`;
+  return `${summary} Codex/OpenAI is the default image provider: set OPENAI_API_KEY. Nano Banana remains available as a fallback with GOOGLE_API_KEY or GEMINI_API_KEY. If image generation credentials are unavailable, use web search and download the chosen image into ./assets/<file>.`;
 }
 
-export function buildCodexImageApiRequest({ prompt, model = DEFAULT_CODEX_IMAGE_MODEL, size = DEFAULT_CODEX_IMAGE_SIZE }) {
+function parseAspectRatioOrientation(aspectRatio) {
+  const match = /^(\d+(?:\.\d+)?):(\d+(?:\.\d+)?)$/.exec(String(aspectRatio || '').trim());
+  if (!match) {
+    return 'landscape';
+  }
+
+  const width = Number(match[1]);
+  const height = Number(match[2]);
+  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    return 'landscape';
+  }
+
+  if (Math.abs(width - height) < Number.EPSILON) {
+    return 'square';
+  }
+  return width > height ? 'landscape' : 'portrait';
+}
+
+export function resolveCodexImageSize({
+  aspectRatio = DEFAULT_NANO_BANANA_ASPECT_RATIO,
+  size = DEFAULT_CODEX_IMAGE_SIZE,
+} = {}) {
+  if (size && size !== 'auto') {
+    return size;
+  }
+
+  const orientation = parseAspectRatioOrientation(aspectRatio);
+  if (orientation === 'square') {
+    return '1024x1024';
+  }
+  if (orientation === 'portrait') {
+    return '1024x1536';
+  }
+  return '1536x1024';
+}
+
+export function buildCodexImageApiRequest({
+  prompt,
+  model = DEFAULT_CODEX_IMAGE_MODEL,
+  aspectRatio = DEFAULT_NANO_BANANA_ASPECT_RATIO,
+  size = DEFAULT_CODEX_IMAGE_SIZE,
+}) {
   return {
     model,
     prompt,
-    size,
+    size: resolveCodexImageSize({ aspectRatio, size }),
   };
 }
 
@@ -402,6 +443,7 @@ export async function generateCodexImage({
   prompt,
   apiKey,
   model = DEFAULT_CODEX_IMAGE_MODEL,
+  aspectRatio = DEFAULT_NANO_BANANA_ASPECT_RATIO,
   size = DEFAULT_CODEX_IMAGE_SIZE,
   fetchImpl = globalThis.fetch,
 }) {
@@ -415,7 +457,7 @@ export async function generateCodexImage({
       'Content-Type': 'application/json',
       Authorization: `Bearer ${apiKey}`,
     },
-    body: JSON.stringify(buildCodexImageApiRequest({ prompt, model, size })),
+    body: JSON.stringify(buildCodexImageApiRequest({ prompt, model, aspectRatio, size })),
   });
 
   const payload = await response.json();
@@ -459,6 +501,10 @@ export async function generateNanoBananaImage({
   }
 }
 
+function argvIncludesOption(argv, optionName) {
+  const args = Array.isArray(argv) ? argv : [];
+  return args.some((arg) => arg === optionName || String(arg).startsWith(`${optionName}=`));
+}
 
 async function generateNanoBananaFallbackImage({ options, apiKey, fetchImpl }) {
   return generateNanoBananaImage({
@@ -499,15 +545,22 @@ export async function runNanoBananaCli(argv = process.argv.slice(2), {
 
   let generated;
   let providerUsed = options.provider;
+  const requestedNanoBananaImageSize = argvIncludesOption(argv, '--image-size');
 
   if (options.provider === IMAGE_PROVIDER_CODEX) {
     const { apiKey: codexApiKey } = resolveCodexApiKey(env);
     if (codexApiKey) {
+      if (requestedNanoBananaImageSize) {
+        throw new Error(
+          '--image-size is only supported by the Nano Banana provider; Codex/OpenAI maps --aspect-ratio to the nearest supported OpenAI image size. Use --provider nano-banana for 2K or 4K presets.',
+        );
+      }
       try {
         generated = await generateCodexImage({
           prompt: options.prompt,
           apiKey: codexApiKey,
           model: options.model,
+          aspectRatio: options.aspectRatio,
           fetchImpl,
         });
       } catch (error) {
@@ -549,7 +602,7 @@ export async function runNanoBananaCli(argv = process.argv.slice(2), {
     name: options.name,
     mimeType: generated.mimeType,
     bytes: generated.bytes,
-    provider: options.provider,
+    provider: providerUsed,
   });
 
   stdout.write(`Saved generated image to ${target.outputPath}\n`);

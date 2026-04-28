@@ -31,7 +31,7 @@ These are the packaged design rules for installable `slides-grab` skills.
 - If an image comes from the web, download it into `<slides-dir>/assets/` before referencing it
 - If a video comes from YouTube or another supported page, use `slides-grab fetch-video` (or `yt-dlp` directly) to download it into `<slides-dir>/assets/` before referencing it
 - Keep local videos and their poster thumbnails together under `<slides-dir>/assets/`
-- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. If it is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` / `GEMINI_API_KEY`; otherwise fall back to web search + download
+- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. Codex maps `--aspect-ratio` to the nearest supported OpenAI image size; `--image-size 2K|4K` is Nano Banana-only. If OpenAI is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` / `GEMINI_API_KEY`; otherwise fall back to web search + download
 - Use `tldraw`-generated local assets for complex diagrams when possible
 - Allow `data:` URLs only when the slide must be fully self-contained
 - Do not leave remote `http(s)://` image URLs in saved slide HTML

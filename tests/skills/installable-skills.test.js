@@ -84,6 +84,8 @@ test('packed npm install exposes the packaged image CLI command', () => {
     assert.match(helpOutput, /slides-grab image/);
     assert.match(helpOutput, /Codex\/OpenAI/);
     assert.match(helpOutput, /--provider <name>/);
+    assert.match(helpOutput, /--aspect-ratio <ratio>/);
+    assert.match(helpOutput, /Nano Banana image size preset/);
     assert.match(helpOutput, /--prompt <text>/);
     assert.doesNotMatch(helpOutput, /Cannot find module/);
   } finally {
@@ -140,6 +142,8 @@ test('slides-grab workflow reference keeps packaged stage commands and image fal
   assert.match(text, /OPENAI_API_KEY/);
   assert.match(text, /GOOGLE_API_KEY|GEMINI_API_KEY/);
   assert.match(text, /Codex generation fails/i);
+  assert.match(text, /--aspect-ratio/);
+  assert.match(text, /--image-size 2K\|4K.*Nano Banana-only/i);
   assert.match(text, /Nano Banana.*fallback/i);
   assert.match(text, /web search/i);
 });

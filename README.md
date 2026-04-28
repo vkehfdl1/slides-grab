@@ -123,7 +123,7 @@ export OPENAI_API_KEY=...
 slides-grab image --slides-dir decks/my-deck --prompt "Editorial hero image of a robotics warehouse at dawn"
 ```
 
-The command saves the result into `<slides-dir>/assets/` and prints the portable `./assets/<file>` reference to use from slide HTML. If `OPENAI_API_KEY` is unavailable or Codex/OpenAI generation fails, Nano Banana remains the fallback via `GOOGLE_API_KEY` (or `GEMINI_API_KEY`); otherwise fall back to web search + local download into `assets/`.
+The command saves the result into `<slides-dir>/assets/` and prints the portable `./assets/<file>` reference to use from slide HTML. Codex/OpenAI maps `--aspect-ratio` to the nearest supported OpenAI image size (`16:9` defaults to a landscape `1536x1024` request); `--image-size 2K|4K` is Nano Banana-only. If `OPENAI_API_KEY` is unavailable or Codex/OpenAI generation fails, Nano Banana remains the fallback via `GOOGLE_API_KEY` (or `GEMINI_API_KEY`); otherwise fall back to web search + local download into `assets/`.
 
 Run `slides-grab validate --slides-dir <path>` before export to catch missing local assets and discouraged path forms.
 

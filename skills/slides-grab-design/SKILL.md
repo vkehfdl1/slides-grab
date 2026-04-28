@@ -47,7 +47,7 @@ Generate high-quality `slide-XX.html` files in the selected slides workspace (`s
 - Do not leave remote `http(s)://` image URLs in saved slide HTML; download source images into `<slides-dir>/assets/` and reference them as `./assets/<file>`.
 - Prefer Lucide for default slide iconography. Avoid emoji as the default icon treatment unless the brief explicitly asks for emoji.
 - Prefer `slides-grab image` with Codex/OpenAI for bespoke slide imagery before reaching for remote URLs.
-- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. If it is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` (or `GEMINI_API_KEY`); otherwise fall back to web search + download into `<slides-dir>/assets/`.
+- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. Codex maps `--aspect-ratio` to the nearest supported OpenAI image size; `--image-size 2K|4K` is Nano Banana-only. If OpenAI is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` (or `GEMINI_API_KEY`); otherwise fall back to web search + download into `<slides-dir>/assets/`.
 - Prefer local videos with a `poster="./assets/<file>"` thumbnail so PDF export uses the still image.
 - Use `slides-grab fetch-video` or `yt-dlp` to pull supported web videos into `<slides-dir>/assets/` before saving slide HTML.
 - Prefer `<img>` for slide imagery and `data-image-placeholder` when no final asset exists.

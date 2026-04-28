@@ -234,7 +234,7 @@ program
   .option('--name <slug>', 'Optional asset basename without extension')
   .option('--provider <name>', 'Image provider: codex or nano-banana (default: codex)')
   .option('--model <id>', 'Model id (default: gpt-image-2 for codex)')
-  .option('--aspect-ratio <ratio>', 'Aspect ratio (default: 16:9)')
+  .option('--aspect-ratio <ratio>', 'Aspect ratio; Codex maps orientation to nearest supported OpenAI size (default: 16:9)')
   .option('--image-size <size>', 'Nano Banana image size preset: 2K or 4K (default: 4K)')
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];

@@ -36,7 +36,7 @@ Use the installed **slides-grab-design** skill.
 6. For bespoke slide imagery, use `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Codex/OpenAI saves a local asset under `<slides-dir>/assets/`.
 7. For complex diagrams (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw` over hand-built HTML/CSS diagrams. Render the asset with `slides-grab tldraw`, store it under `<slides-dir>/assets/`, and place it in the slide with a normal `<img>`.
 8. Keep local videos under `<slides-dir>/assets/`, prefer `poster="./assets/<file>"` thumbnails, and use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly) when the source starts on a supported web page.
-9. Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. If it is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` (or `GEMINI_API_KEY`); otherwise fall back to web search/download into `<slides-dir>/assets/`.
+9. Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. Codex maps `--aspect-ratio` to the nearest supported OpenAI image size; `--image-size 2K|4K` is Nano Banana-only. If OpenAI is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` (or `GEMINI_API_KEY`); otherwise fall back to web search/download into `<slides-dir>/assets/`.
 10. Launch the interactive editor for review: `slides-grab edit --slides-dir <path>`
 11. Revise slides based on user feedback via the editor, then re-run validation after each edit round.
 12. When the user confirms editing is complete, suggest next steps: build the viewer (`slides-grab build-viewer --slides-dir <path>`) for a final preview, or proceed directly to Stage 3 for PDF/PPTX export.

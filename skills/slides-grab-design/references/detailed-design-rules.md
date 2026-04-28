@@ -15,7 +15,7 @@
 - Do not leave remote `http(s)://` image URLs in saved slide HTML; download source images into `<slides-dir>/assets/` and reference them as `./assets/<file>`.
 - Store local videos under `<slides-dir>/assets/`, reference them as `./assets/<file>`, and prefer `poster="./assets/<file>"` for export-friendly thumbnails.
 - If a video starts on YouTube or another supported page, use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly if needed) before saving the slide HTML.
-- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. If it is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` or `GEMINI_API_KEY`; otherwise fall back to web search + download into `<slides-dir>/assets/`.
+- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. Codex maps `--aspect-ratio` to the nearest supported OpenAI image size; `--image-size 2K|4K` is Nano Banana-only. If OpenAI is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` or `GEMINI_API_KEY`; otherwise fall back to web search + download into `<slides-dir>/assets/`.
 - Do not use absolute filesystem paths in slide HTML.
 - Do not use non-body `background-image` for content imagery; use `<img>` instead.
 - Use `data-image-placeholder` to reserve space when no image is available yet.
