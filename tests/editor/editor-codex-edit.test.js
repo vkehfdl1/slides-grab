@@ -100,6 +100,7 @@ test('buildCodexEditPrompt includes user prompt, bbox, and XPath targets', () =>
   assert.match(prompt, /Prefer Lucide as the default icon library/i);
   assert.match(prompt, /Do not default to emoji/i);
   assert.match(prompt, /slides-grab image/i);
+  assert.match(prompt, /OPENAI_API_KEY/);
   assert.match(prompt, /GOOGLE_API_KEY|GEMINI_API_KEY/);
   assert.match(prompt, /Edit only the requested slide HTML file among slide-\*\.html files\./);
   assert.match(prompt, /Do not modify any other slide HTML files unless explicitly requested\./);
@@ -163,7 +164,8 @@ test('getPptDesignSkillPrompt loads bundled ppt design skill guidance', () => {
   assert.match(skillPrompt, /local videos/i);
   assert.match(skillPrompt, /fetch-video|yt-dlp/i);
   assert.match(skillPrompt, /slides-grab image/i);
-  assert.match(skillPrompt, /Nano Banana Pro/i);
+  assert.match(skillPrompt, /Codex\/OpenAI/i);
+  assert.match(skillPrompt, /Nano Banana.*fallback/i);
 });
 
 test('getDetailedDesignSkillPrompt falls back when packaged icon guidance section is missing', async () => {
@@ -213,7 +215,8 @@ test('getDetailedDesignSkillPrompt loads only relevant detailed design sections'
   assert.match(detailedPrompt, /Would this still feel premium without shadows, cards, or extra chrome\?/i);
   assert.match(detailedPrompt, /local videos/i);
   assert.match(detailedPrompt, /fetch-video|yt-dlp/i);
-  assert.match(detailedPrompt, /Nano Banana API fails|Nano Banana is down/i);
+  assert.match(detailedPrompt, /Codex generation fails/i);
+  assert.match(detailedPrompt, /Nano Banana.*fallback/i);
   assert.doesNotMatch(detailedPrompt, /## Core Design Philosophy/);
   assert.doesNotMatch(detailedPrompt, /### 1\. Chart\.js/);
 });

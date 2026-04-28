@@ -82,7 +82,10 @@ test('packed npm install exposes the packaged image CLI command', () => {
     });
 
     assert.match(helpOutput, /slides-grab image/);
-    assert.match(helpOutput, /Nano Banana Pro/);
+    assert.match(helpOutput, /Codex\/OpenAI/);
+    assert.match(helpOutput, /--provider <name>/);
+    assert.match(helpOutput, /--aspect-ratio <ratio>/);
+    assert.match(helpOutput, /Nano Banana image size preset/);
     assert.match(helpOutput, /--prompt <text>/);
     assert.doesNotMatch(helpOutput, /Cannot find module/);
   } finally {
@@ -110,7 +113,8 @@ test('slides-grab design skill keeps the packaged style-discovery CLI guidance',
   assert.match(text, /slides-grab list-styles/);
   assert.match(text, /slides-grab preview-styles/);
   assert.match(text, /slides-grab image/i);
-  assert.match(text, /Nano Banana Pro/i);
+  assert.match(text, /Codex\/OpenAI/i);
+  assert.match(text, /OPENAI_API_KEY/);
   assert.match(text, /GOOGLE_API_KEY|GEMINI_API_KEY/);
 });
 
@@ -134,9 +138,13 @@ test('slides-grab workflow reference keeps packaged stage commands and image fal
   assert.match(text, /slides-grab-export/);
   assert.match(text, /slides-grab build-viewer/);
   assert.match(text, /slides-grab image/i);
-  assert.match(text, /Nano Banana Pro/i);
+  assert.match(text, /Codex\/OpenAI/i);
+  assert.match(text, /OPENAI_API_KEY/);
   assert.match(text, /GOOGLE_API_KEY|GEMINI_API_KEY/);
-  assert.match(text, /Nano Banana API fails|Nano Banana is down/i);
+  assert.match(text, /Codex generation fails/i);
+  assert.match(text, /--aspect-ratio/);
+  assert.match(text, /--image-size 2K\|4K.*Nano Banana-only/i);
+  assert.match(text, /Nano Banana.*fallback/i);
   assert.match(text, /web search/i);
 });
 
@@ -144,7 +152,7 @@ test('slides-grab orchestration skill keeps packaged style/image/video workflows
   const text = readFileSync('skills/slides-grab/SKILL.md', 'utf-8');
 
   assert.match(text, /slides-grab image/i);
-  assert.match(text, /Nano Banana Pro/i);
+  assert.match(text, /Codex\/OpenAI/i);
   assert.match(text, /fetch-video|yt-dlp/i);
   assert.match(text, /slides-grab list-styles/);
   assert.match(text, /slides-grab preview-styles/);

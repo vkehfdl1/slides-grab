@@ -29,8 +29,8 @@ The user's edit request is the primary objective. All rules below exist to suppo
 - Do not use absolute filesystem paths in slide HTML.
 - Do not use non-body `background-image` for content imagery; use `<img>` instead.
 - Use `data-image-placeholder` to reserve space when no image is available yet.
-- When the request needs bespoke imagery, prefer `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Nano Banana Pro saves the asset under `<slides-dir>/assets/`.
-- If `GOOGLE_API_KEY` / `GEMINI_API_KEY` is unavailable or the Nano Banana API fails, ask the user for a key or fall back to web search + download into `./assets/`.
+- When the request needs bespoke imagery, prefer `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Codex/OpenAI saves the asset under `<slides-dir>/assets/`.
+- Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. Codex maps `--aspect-ratio` to the nearest supported OpenAI image size; `--image-size 2K|4K` is Nano Banana-only. If OpenAI is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` / `GEMINI_API_KEY`; otherwise fall back to web search + download into `./assets/`.
 - For local videos, use `<video src="./assets/<file>">` with `poster="./assets/<file>"`.
 - If a video starts on YouTube or a supported page, use `slides-grab fetch-video --url <url> --slides-dir <path>` to download first.
 
