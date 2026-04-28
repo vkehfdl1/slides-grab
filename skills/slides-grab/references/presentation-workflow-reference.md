@@ -27,10 +27,10 @@ Use the installed **slides-grab-design** skill.
 4. Run validation: `slides-grab validate --slides-dir <path>`
 5. If validation fails, automatically fix the slide HTML/CSS until validation passes.
 6. Build the viewer: `slides-grab build-viewer --slides-dir <path>`
-7. When a slide calls for bespoke imagery, prefer `slides-grab image --prompt "<prompt>" --slides-dir <path>` so Codex/OpenAI saves a local asset under `<slides-dir>/assets/`.
+7. When a slide calls for bespoke imagery, prefer `slides-grab image --prompt "<prompt>" --slides-dir <path>` so the default god-tibo-imagen provider (reuses local Codex ChatGPT login — no API key required) saves a local asset under `<slides-dir>/assets/`.
 8. For complex diagrams (architecture, workflows, relationship maps, multi-node concepts), prefer `tldraw`. Render a local diagram asset with `slides-grab tldraw`, store it under `<slides-dir>/assets/`, and place it into the slide with a normal `<img>`.
 9. Keep local videos under `<slides-dir>/assets/`, prefer `poster="./assets/<file>"` thumbnails, and use `slides-grab fetch-video --url <youtube-url> --slides-dir <path>` (or `yt-dlp` directly) when the source starts on a supported web page.
-10. Use `OPENAI_API_KEY` for the default Codex/OpenAI provider. Codex maps `--aspect-ratio` to the nearest supported OpenAI image size; `--image-size 2K|4K` is Nano Banana-only. If OpenAI is unavailable or Codex generation fails, Nano Banana remains the fallback with `GOOGLE_API_KEY` or `GEMINI_API_KEY`; otherwise fall back to web search + download into `<slides-dir>/assets/`.
+10. The default provider, god-tibo-imagen, reuses the local Codex ChatGPT login (`~/.codex/auth.json`) — run `codex login` once; no API key required. ⚠️ god-tibo-imagen uses an unsupported private Codex backend that may break without notice. Optional alternatives: `--provider codex` (Codex/OpenAI gpt-image-2 via `OPENAI_API_KEY`; maps `--aspect-ratio` to the nearest supported OpenAI image size; `--image-size 2K|4K` is Nano Banana-only) or `--provider nano-banana` (Google `gemini-3-pro-image-preview` via `GOOGLE_API_KEY` or `GEMINI_API_KEY`; supports `--image-size 2K|4K`). If credentials are unavailable, fall back to web search + download into `<slides-dir>/assets/`.
 11. Present viewer to user for review.
 12. Revise individual slides based on feedback, then re-run validation and rebuild the viewer.
 13. Optionally launch the visual editor: `slides-grab edit --slides-dir <path>`

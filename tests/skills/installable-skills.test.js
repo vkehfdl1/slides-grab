@@ -138,13 +138,13 @@ test('slides-grab workflow reference keeps packaged stage commands and image fal
   assert.match(text, /slides-grab-export/);
   assert.match(text, /slides-grab build-viewer/);
   assert.match(text, /slides-grab image/i);
-  assert.match(text, /Codex\/OpenAI/i);
+  assert.match(text, /god-tibo-imagen/i);
+  assert.match(text, /codex login/i);
   assert.match(text, /OPENAI_API_KEY/);
   assert.match(text, /GOOGLE_API_KEY|GEMINI_API_KEY/);
-  assert.match(text, /Codex generation fails/i);
   assert.match(text, /--aspect-ratio/);
   assert.match(text, /--image-size 2K\|4K.*Nano Banana-only/i);
-  assert.match(text, /Nano Banana.*fallback/i);
+  assert.match(text, /Nano Banana/i);
   assert.match(text, /web search/i);
 });
 
@@ -152,7 +152,8 @@ test('slides-grab orchestration skill keeps packaged style/image/video workflows
   const text = readFileSync('skills/slides-grab/SKILL.md', 'utf-8');
 
   assert.match(text, /slides-grab image/i);
-  assert.match(text, /Codex\/OpenAI/i);
+  assert.match(text, /god-tibo-imagen/i);
+  assert.match(text, /codex login/i);
   assert.match(text, /fetch-video|yt-dlp/i);
   assert.match(text, /slides-grab list-styles/);
   assert.match(text, /slides-grab preview-styles/);
