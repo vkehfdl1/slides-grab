@@ -24,7 +24,7 @@
     "ppt"
   ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   },
   "type": "module",
   "bin": {
@@ -37,6 +37,7 @@
     "scripts/download-video.js",
     "scripts/editor-server.js",
     "scripts/generate-image.js",
+    "src/god-tibo-imagen.js",
     "scripts/figma-export.js",
     "scripts/html2pdf.js",
     "scripts/html2pptx.js",
@@ -54,12 +55,13 @@
     "build:showcase": "node showcase/scripts/build-manifest.js",
     "validate": "node scripts/validate-slides.js",
     "convert": "node convert.cjs",
-    "test": "node --test --test-concurrency=1 tests/design/design-styles.test.js tests/editor/editor-codex-edit.test.js tests/editor/editor-server.test.js tests/nano-banana/nano-banana.test.js tests/pdf/html2pdf.test.js tests/pdf/html2pdf.e2e.test.js tests/figma/figma-export.test.js tests/image-contract/image-contract.test.js tests/tldraw/render-tldraw.test.js tests/validation/validate-slides.test.js tests/viewer/build-viewer.test.js tests/skills/installable-skills.test.js tests/video/download-video.test.js",
+    "test": "node --test --test-concurrency=1 tests/design/design-styles.test.js tests/editor/editor-codex-edit.test.js tests/editor/editor-server.test.js tests/god-tibo/god-tibo.test.js tests/nano-banana/nano-banana.test.js tests/pdf/html2pdf.test.js tests/pdf/html2pdf.e2e.test.js tests/figma/figma-export.test.js tests/image-contract/image-contract.test.js tests/tldraw/render-tldraw.test.js tests/validation/validate-slides.test.js tests/viewer/build-viewer.test.js tests/skills/installable-skills.test.js tests/video/download-video.test.js",
     "test:e2e": "node --test tests/editor/editor-ui.e2e.test.js tests/editor/editor-concurrency.e2e.test.js"
   },
   "dependencies": {
     "commander": "^12.1.0",
     "express": "^5.2.1",
+    "god-tibo-imagen": "0.2.0",
     "lucide-react": "^1.7.0",
     "pdf-lib": "^1.17.1",
     "playwright": "^1.40.0",
