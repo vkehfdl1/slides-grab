@@ -227,15 +227,25 @@ program
 
 program
   .command('image')
-  .description('Generate a local slide image asset with Codex/OpenAI by default')
+  .description('Generate a local slide image asset (default: god-tibo-imagen via your Codex ChatGPT login — no OpenAI/Google API key required)')
   .option('--prompt <text>', 'Prompt for image generation')
   .option('--slides-dir <path>', 'Slide directory', 'slides')
   .option('--output <path>', 'Optional output path inside <slides-dir>/assets/')
   .option('--name <slug>', 'Optional asset basename without extension')
-  .option('--provider <name>', 'Image provider: codex or nano-banana (default: codex)')
-  .option('--model <id>', 'Model id (default: gpt-image-2 for codex)')
-  .option('--aspect-ratio <ratio>', 'Aspect ratio; Codex maps orientation to nearest supported OpenAI size (default: 16:9)')
+  .option('--provider <name>', 'Image provider: god-tibo (default), codex (OpenAI), or nano-banana. Aliases: codex-cli → god-tibo, openai → codex, gemini → nano-banana')
+  .option('--model <id>', 'Model id (default: gpt-5.4 for god-tibo, gpt-image-2 for codex, gemini-3-pro-image-preview for nano-banana)')
+  .option('--aspect-ratio <ratio>', 'Aspect ratio; for god-tibo it is injected as a prompt hint, for codex it maps to the nearest supported OpenAI size (default: 16:9)')
   .option('--image-size <size>', 'Nano Banana image size preset: 2K or 4K (default: 4K)')
+  .addHelpText('after', [
+    '',
+    'Auth:',
+    '  Default (god-tibo): run `codex login` once to populate ~/.codex/auth.json. No OpenAI/Google API key required;',
+    '                      requires a Codex/ChatGPT account entitled to image generation.',
+    '  Codex/OpenAI provider: set OPENAI_API_KEY.',
+    '  Nano Banana provider: set GOOGLE_API_KEY or GEMINI_API_KEY.',
+    '',
+    'WARNING: god-tibo-imagen calls an unsupported private Codex backend that may break without notice.',
+  ].join('\n'))
   .action(async (options = {}) => {
     const args = ['--slides-dir', options.slidesDir];
     if (options.prompt) args.push('--prompt', String(options.prompt));

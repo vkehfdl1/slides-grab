@@ -2,16 +2,46 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { extname, isAbsolute, join, relative, resolve } from 'node:path';
 
 import { getSlidesDir } from './resolve.js';
+import {
+  GOD_TIBO_DEFAULT_MODEL,
+  GOD_TIBO_PROVIDER_AUTO,
+  generateGodTiboImage,
+  getGodTiboFallbackMessage,
+} from './god-tibo-imagen.js';
 
+export const IMAGE_PROVIDER_GOD_TIBO = 'god-tibo';
 export const IMAGE_PROVIDER_CODEX = 'codex';
 export const IMAGE_PROVIDER_NANO_BANANA = 'nano-banana';
-export const DEFAULT_IMAGE_PROVIDER = IMAGE_PROVIDER_CODEX;
+export const DEFAULT_IMAGE_PROVIDER = IMAGE_PROVIDER_GOD_TIBO;
+export const DEFAULT_GOD_TIBO_MODEL = GOD_TIBO_DEFAULT_MODEL;
 export const DEFAULT_CODEX_IMAGE_MODEL = 'gpt-image-2';
 export const DEFAULT_CODEX_IMAGE_SIZE = 'auto';
 export const DEFAULT_NANO_BANANA_MODEL = 'gemini-3-pro-image-preview';
 export const DEFAULT_NANO_BANANA_ASPECT_RATIO = '16:9';
 export const DEFAULT_NANO_BANANA_IMAGE_SIZE = '4K';
 const VALID_IMAGE_SIZES = new Set(['2K', '4K']);
+
+const PROVIDER_ALIASES = new Map([
+  ['god-tibo', IMAGE_PROVIDER_GOD_TIBO],
+  ['godtibo', IMAGE_PROVIDER_GOD_TIBO],
+  ['codex-cli', IMAGE_PROVIDER_GOD_TIBO],
+  ['codex', IMAGE_PROVIDER_CODEX],
+  ['openai', IMAGE_PROVIDER_CODEX],
+  ['nano-banana', IMAGE_PROVIDER_NANO_BANANA],
+  ['gemini', IMAGE_PROVIDER_NANO_BANANA],
+]);
+
+const VALID_PROVIDERS = new Set([
+  IMAGE_PROVIDER_GOD_TIBO,
+  IMAGE_PROVIDER_CODEX,
+  IMAGE_PROVIDER_NANO_BANANA,
+]);
+
+export function normalizeImageProvider(value) {
+  const trimmed = String(value || '').trim().toLowerCase();
+  if (!trimmed) return '';
+  return PROVIDER_ALIASES.get(trimmed) || trimmed;
+}
 
 const MIME_TYPE_TO_EXTENSION = new Map([
   ['image/png', '.png'],
@@ -31,22 +61,28 @@ export function getNanoBananaUsage() {
   return [
     'Usage: slides-grab image --prompt <text> [options]',
     '',
-    'Generate a deck-local image asset with Codex/OpenAI by default and save it into <slides-dir>/assets/.',
+    'Generate a deck-local image asset and save it into <slides-dir>/assets/.',
+    'Default provider: god-tibo-imagen (uses your local Codex ChatGPT login — no OpenAI/Google API key required).',
     '',
     'Options:',
     '  --prompt <text>         Required text prompt for image generation',
     '  --slides-dir <path>     Slides directory (default: slides)',
     '  --output <path>         Optional explicit output path inside <slides-dir>/assets/',
     '  --name <slug>           Optional asset basename without extension',
-    `  --provider <name>       Image provider: codex or nano-banana (default: ${DEFAULT_IMAGE_PROVIDER})`,
-    `  --model <id>            Model id (default: ${DEFAULT_CODEX_IMAGE_MODEL} for codex, ${DEFAULT_NANO_BANANA_MODEL} for nano-banana)`,
-    `  --aspect-ratio <ratio>  Image aspect ratio; Codex maps orientation to nearest supported OpenAI size (default: ${DEFAULT_NANO_BANANA_ASPECT_RATIO})`,
+    `  --provider <name>       Image provider: god-tibo (default), codex (OpenAI), or nano-banana.`,
+    '                          Aliases: codex-cli → god-tibo, openai → codex, gemini → nano-banana.',
+    `  --model <id>            Model id (default: ${DEFAULT_GOD_TIBO_MODEL} for god-tibo, ${DEFAULT_CODEX_IMAGE_MODEL} for codex, ${DEFAULT_NANO_BANANA_MODEL} for nano-banana)`,
+    `  --aspect-ratio <ratio>  Image aspect ratio; for god-tibo it is injected as a prompt hint, for codex it maps to the nearest supported OpenAI size (default: ${DEFAULT_NANO_BANANA_ASPECT_RATIO})`,
     `  --image-size <size>     Nano Banana image size preset: 2K or 4K (default: ${DEFAULT_NANO_BANANA_IMAGE_SIZE})`,
     '  -h, --help              Show this help text',
     '',
     'Auth:',
-    '  Set OPENAI_API_KEY for the default Codex/OpenAI provider.',
-    '  Set GOOGLE_API_KEY or GEMINI_API_KEY to use the Nano Banana fallback.',
+    '  Default (god-tibo): run `codex login` once to populate ~/.codex/auth.json. No OpenAI/Google API key required;',
+    '                      requires a Codex/ChatGPT account entitled to image generation.',
+    '  Codex/OpenAI provider: set OPENAI_API_KEY.',
+    '  Nano Banana provider: set GOOGLE_API_KEY or GEMINI_API_KEY.',
+    '',
+    'WARNING: god-tibo-imagen calls an unsupported private Codex backend that may break without notice.',
   ].join('\n');
 }
 
@@ -183,17 +219,25 @@ export function parseNanoBananaCliArgs(argv) {
   if (typeof parsed.provider !== 'string' || parsed.provider.trim() === '') {
     throw new Error('--provider must be a non-empty string.');
   }
-  parsed.provider = parsed.provider.trim().toLowerCase();
-  if (![IMAGE_PROVIDER_CODEX, IMAGE_PROVIDER_NANO_BANANA].includes(parsed.provider)) {
-    throw new Error(`Unknown --provider value: ${parsed.provider}. Expected codex or nano-banana.`);
+  parsed.provider = normalizeImageProvider(parsed.provider);
+  if (!VALID_PROVIDERS.has(parsed.provider)) {
+    throw new Error(`Unknown --provider value: ${parsed.provider}. Expected god-tibo, codex, or nano-banana.`);
   }
 
   if (typeof parsed.model !== 'string') {
     throw new Error('--model must be a string.');
   }
-  parsed.model = parsed.model.trim() || (parsed.provider === IMAGE_PROVIDER_NANO_BANANA
-    ? DEFAULT_NANO_BANANA_MODEL
-    : DEFAULT_CODEX_IMAGE_MODEL);
+  if (!parsed.model.trim()) {
+    if (parsed.provider === IMAGE_PROVIDER_GOD_TIBO) {
+      parsed.model = DEFAULT_GOD_TIBO_MODEL;
+    } else if (parsed.provider === IMAGE_PROVIDER_NANO_BANANA) {
+      parsed.model = DEFAULT_NANO_BANANA_MODEL;
+    } else {
+      parsed.model = DEFAULT_CODEX_IMAGE_MODEL;
+    }
+  } else {
+    parsed.model = parsed.model.trim();
+  }
 
   if (typeof parsed.aspectRatio !== 'string' || parsed.aspectRatio.trim() === '') {
     throw new Error('--aspect-ratio must be a non-empty string.');
@@ -237,7 +281,7 @@ export function getNanoBananaFallbackMessage(reason) {
 
 export function getCodexFallbackMessage(reason) {
   const summary = typeof reason === 'string' && reason.trim() ? reason.trim() : 'Codex image generation failed.';
-  return `${summary} Codex/OpenAI is the default image provider: set OPENAI_API_KEY. Nano Banana remains available as a fallback with GOOGLE_API_KEY or GEMINI_API_KEY. If image generation credentials are unavailable, use web search and download the chosen image into ./assets/<file>.`;
+  return `${summary} The Codex/OpenAI provider requires OPENAI_API_KEY. Nano Banana remains available as a fallback with GOOGLE_API_KEY or GEMINI_API_KEY. If image generation credentials are unavailable, use web search and download the chosen image into ./assets/<file>.`;
 }
 
 function parseAspectRatioOrientation(aspectRatio) {
@@ -319,7 +363,14 @@ function pickAssetBaseName({ prompt, name, provider = IMAGE_PROVIDER_NANO_BANANA
   if (preferred) return preferred;
 
   const fromPrompt = sanitizeAssetName(prompt);
-  const prefix = provider === IMAGE_PROVIDER_CODEX ? 'codex' : 'nano-banana';
+  let prefix;
+  if (provider === IMAGE_PROVIDER_GOD_TIBO) {
+    prefix = 'god-tibo';
+  } else if (provider === IMAGE_PROVIDER_CODEX) {
+    prefix = 'codex';
+  } else {
+    prefix = 'nano-banana';
+  }
   return fromPrompt ? `${prefix}-${fromPrompt}` : `${prefix}-generated-image`;
 }
 
@@ -517,6 +568,32 @@ async function generateNanoBananaFallbackImage({ options, apiKey, fetchImpl }) {
   });
 }
 
+async function generateGodTiboFallbackImage({ options, generateGodTiboImageImpl }) {
+  return generateGodTiboImageImpl({
+    prompt: options.prompt,
+    model: options.model && options.model.trim() ? options.model : DEFAULT_GOD_TIBO_MODEL,
+    aspectRatio: options.aspectRatio,
+    providerMode: GOD_TIBO_PROVIDER_AUTO,
+  });
+}
+
+async function generateCodexFallbackImage({ options, apiKey, fetchImpl, requestedNanoBananaImageSize }) {
+  if (requestedNanoBananaImageSize) {
+    throw new Error(
+      '--image-size is only supported by the Nano Banana provider; Codex/OpenAI maps --aspect-ratio to the nearest supported OpenAI image size. Use --provider nano-banana for 2K or 4K presets.',
+    );
+  }
+  return generateCodexImage({
+    prompt: options.prompt,
+    apiKey,
+    model: options.model && options.model.trim() && options.model !== DEFAULT_GOD_TIBO_MODEL
+      ? options.model
+      : DEFAULT_CODEX_IMAGE_MODEL,
+    aspectRatio: options.aspectRatio,
+    fetchImpl,
+  });
+}
+
 export async function saveNanoBananaImage({
   prompt,
   slidesDir,
@@ -536,6 +613,7 @@ export async function runNanoBananaCli(argv = process.argv.slice(2), {
   env = process.env,
   fetchImpl = globalThis.fetch,
   stdout = process.stdout,
+  generateGodTiboImageImpl = generateGodTiboImage,
 } = {}) {
   const options = parseNanoBananaCliArgs(argv);
   if (options.help) {
@@ -546,22 +624,51 @@ export async function runNanoBananaCli(argv = process.argv.slice(2), {
   let generated;
   let providerUsed = options.provider;
   const requestedNanoBananaImageSize = argvIncludesOption(argv, '--image-size');
+  const fallbackNotices = [];
 
-  if (options.provider === IMAGE_PROVIDER_CODEX) {
+  if (options.provider === IMAGE_PROVIDER_GOD_TIBO) {
+    try {
+      generated = await generateGodTiboFallbackImage({ options, generateGodTiboImageImpl });
+    } catch (godTiboError) {
+      const codexResolution = resolveCodexApiKey(env);
+      if (codexResolution.apiKey) {
+        fallbackNotices.push(`god-tibo failed (${godTiboError.message?.split('.')[0] || 'error'}); falling back to Codex/OpenAI.`);
+        try {
+          generated = await generateCodexFallbackImage({
+            options,
+            apiKey: codexResolution.apiKey,
+            fetchImpl,
+            requestedNanoBananaImageSize,
+          });
+          providerUsed = IMAGE_PROVIDER_CODEX;
+        } catch (codexError) {
+          const nanoResolution = resolveNanoBananaApiKey(env);
+          if (!nanoResolution.apiKey) {
+            throw new Error(getGodTiboFallbackMessage(codexError.message));
+          }
+          fallbackNotices.push(`Codex/OpenAI fallback failed; falling back to Nano Banana.`);
+          generated = await generateNanoBananaFallbackImage({ options, apiKey: nanoResolution.apiKey, fetchImpl });
+          providerUsed = IMAGE_PROVIDER_NANO_BANANA;
+        }
+      } else {
+        const nanoResolution = resolveNanoBananaApiKey(env);
+        if (!nanoResolution.apiKey) {
+          throw new Error(getGodTiboFallbackMessage(godTiboError.message));
+        }
+        fallbackNotices.push(`god-tibo failed (${godTiboError.message?.split('.')[0] || 'error'}); falling back to Nano Banana.`);
+        generated = await generateNanoBananaFallbackImage({ options, apiKey: nanoResolution.apiKey, fetchImpl });
+        providerUsed = IMAGE_PROVIDER_NANO_BANANA;
+      }
+    }
+  } else if (options.provider === IMAGE_PROVIDER_CODEX) {
     const { apiKey: codexApiKey } = resolveCodexApiKey(env);
     if (codexApiKey) {
-      if (requestedNanoBananaImageSize) {
-        throw new Error(
-          '--image-size is only supported by the Nano Banana provider; Codex/OpenAI maps --aspect-ratio to the nearest supported OpenAI image size. Use --provider nano-banana for 2K or 4K presets.',
-        );
-      }
       try {
-        generated = await generateCodexImage({
-          prompt: options.prompt,
+        generated = await generateCodexFallbackImage({
+          options,
           apiKey: codexApiKey,
-          model: options.model,
-          aspectRatio: options.aspectRatio,
           fetchImpl,
+          requestedNanoBananaImageSize,
         });
       } catch (error) {
         const { apiKey: fallbackApiKey } = resolveNanoBananaApiKey(env);
@@ -605,6 +712,9 @@ export async function runNanoBananaCli(argv = process.argv.slice(2), {
     provider: providerUsed,
   });
 
+  for (const notice of fallbackNotices) {
+    stdout.write(`Fallback: ${notice}\n`);
+  }
   stdout.write(`Saved generated image to ${target.outputPath}\n`);
   stdout.write(`Image provider: ${providerUsed}\n`);
   stdout.write(`Reference it from slide HTML as ${target.relativeRef}\n`);
