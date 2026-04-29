@@ -168,15 +168,15 @@ test('/api/models exposes claude-opus-4-7 so the bbox editor can route edits to 
     assert.equal(
       body.defaultModel,
       'gpt-5.5',
-      '/api/models should advertise gpt-5.5 as the default model per issue #73 after gpt-5.4 deprecation',
+      '/api/models should advertise gpt-5.5 as the default model so fresh editor sessions open on the latest Codex target',
     );
     assert.ok(
       body.models.includes('gpt-5.5'),
-      `/api/models should include 'gpt-5.5' per issue #73. Got: ${JSON.stringify(body.models)}`,
+      `/api/models should include 'gpt-5.5'. Got: ${JSON.stringify(body.models)}`,
     );
     assert.ok(
-      !body.models.includes('gpt-5.4'),
-      `/api/models should no longer include the deprecated 'gpt-5.4' per issue #73. Got: ${JSON.stringify(body.models)}`,
+      body.models.includes('gpt-5.4'),
+      `/api/models should include 'gpt-5.4' (re-enabled per user request after the gpt-5.5 default rollout). Got: ${JSON.stringify(body.models)}`,
     );
   } finally {
     await stopChild(server.child);

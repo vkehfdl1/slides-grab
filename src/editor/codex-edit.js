@@ -450,11 +450,7 @@ export function buildCodexExecArgs({ prompt, imagePath, model }) {
   return args;
 }
 
-export const CLAUDE_MODELS = ['claude-opus-4-7', 'claude-sonnet-4-6'];
-
-export function isClaudeModel(model) {
-  return typeof model === 'string' && CLAUDE_MODELS.includes(model.trim());
-}
+export { CLAUDE_MODELS, isClaudeModel } from './js/model-registry.js';
 
 export function buildClaudeExecArgs({ prompt, imagePath, model }) {
   const args = [

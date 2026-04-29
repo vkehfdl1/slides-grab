@@ -323,10 +323,10 @@ test('DEFAULT_MODELS uses gpt-5.5 as the first entry per issue #73 (gpt-5.4 depr
   );
 });
 
-test('DEFAULT_MODELS drops the deprecated gpt-5.4 identifier (issue #73)', () => {
+test('DEFAULT_MODELS includes gpt-5.4 alongside gpt-5.5 so users keep access to both Codex targets', () => {
   assert.ok(
-    !DEFAULT_MODELS.includes('gpt-5.4'),
-    `DEFAULT_MODELS should no longer include the deprecated 'gpt-5.4' per issue #73. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+    DEFAULT_MODELS.includes('gpt-5.4'),
+    `DEFAULT_MODELS should include 'gpt-5.4' (re-enabled per user request — kept available alongside the new gpt-5.5 default). Got: ${JSON.stringify(DEFAULT_MODELS)}`,
   );
 });
 
@@ -334,5 +334,40 @@ test('DEFAULT_MODELS still exposes claude-sonnet-4-6 (there is no Sonnet 4.7 yet
   assert.ok(
     DEFAULT_MODELS.includes('claude-sonnet-4-6'),
     `DEFAULT_MODELS should still include 'claude-sonnet-4-6' because Sonnet 4.7 does not exist. Got: ${JSON.stringify(DEFAULT_MODELS)}`,
+  );
+});
+
+test('spawnCodexEdit closes stdin so Codex CLI does not block on "Reading additional input from stdin..."', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const { join, dirname } = await import('node:path');
+  const { fileURLToPath } = await import('node:url');
+
+  const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const editorServerSource = await readFile(
+    join(repoRoot, 'scripts', 'editor-server.js'),
+    'utf8',
+  );
+
+  const spawnCodexEditMatch = editorServerSource.match(/function spawnCodexEdit\b[\s\S]*?\n\}\n/);
+  assert.ok(
+    spawnCodexEditMatch,
+    'Could not locate function spawnCodexEdit in scripts/editor-server.js',
+  );
+
+  const codexBlock = spawnCodexEditMatch[0];
+
+  assert.ok(
+    /stdio:\s*\[\s*['"]ignore['"]\s*,\s*['"]pipe['"]\s*,\s*['"]pipe['"]\s*\]/.test(codexBlock),
+    `spawnCodexEdit must use stdio: ['ignore', 'pipe', 'pipe'] so the Codex CLI does not wait on stdin. ` +
+      `Codex CLI >=0.125 prints "Reading additional input from stdin..." and hangs forever when stdin ` +
+      `is left open as a pipe, even though the prompt is already passed via the trailing argv. ` +
+      `Got block:\n${codexBlock}`,
+  );
+
+  assert.ok(
+    !/stdio:\s*['"]pipe['"]/.test(codexBlock),
+    `spawnCodexEdit must NOT use stdio: 'pipe' (which opens stdin as a pipe). That regression caused ` +
+      `the editor to hang silently on every gpt-5.x run because Codex >=0.125 waits on stdin. ` +
+      `Got block:\n${codexBlock}`,
   );
 });

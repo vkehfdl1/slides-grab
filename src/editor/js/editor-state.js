@@ -1,4 +1,4 @@
-// editor-state.js — State variables, constants, Maps/Sets
+import { ALL_MODELS } from './model-registry.js';
 
 export let SLIDE_W = 960;
 export let SLIDE_H = 540;
@@ -15,7 +15,7 @@ export const POPOVER_TEXT = 'text';
 export const POPOVER_TEXT_COLOR = 'text-color';
 export const POPOVER_BG_COLOR = 'bg-color';
 export const POPOVER_SIZE = 'size';
-export const DEFAULT_MODELS = ['gpt-5.5', 'gpt-5.3-codex', 'gpt-5.3-codex-spark', 'claude-opus-4-7', 'claude-sonnet-4-6'];
+export const DEFAULT_MODELS = ALL_MODELS.slice();
 export const DIRECT_TEXT_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'li']);
 export const NON_SELECTABLE_TAGS = new Set(['html', 'head', 'body', 'script', 'style', 'link', 'meta', 'noscript']);
 

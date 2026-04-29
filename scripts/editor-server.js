@@ -12,12 +12,17 @@ import {
   buildCodexEditPrompt,
   buildCodexExecArgs,
   buildClaudeExecArgs,
-  CLAUDE_MODELS,
-  isClaudeModel,
   normalizeSelection,
   scaleSelectionToScreenshot,
   writeAnnotatedScreenshot,
 } from '../src/editor/codex-edit.js';
+import {
+  ALL_MODELS,
+  CODEX_MODELS,
+  CLAUDE_MODELS,
+  DEFAULT_CODEX_MODEL,
+  isClaudeModel,
+} from '../src/editor/js/model-registry.js';
 import {
   parseEditTimeoutMs,
   runEditSubprocess,
@@ -50,9 +55,7 @@ async function loadDeps() {
 
 const DEFAULT_PORT = 3456;
 const DEFAULT_SLIDES_DIR = 'slides';
-const CODEX_MODELS = ['gpt-5.5', 'gpt-5.3-codex', 'gpt-5.3-codex-spark'];
-const ALL_MODELS = [...CODEX_MODELS, ...CLAUDE_MODELS];
-const DEFAULT_CODEX_MODEL = CODEX_MODELS[0];
+
 const SLIDE_FILE_PATTERN = /^slide-.*\.html$/i;
 const PORT_PROBE_HOSTS = ['::', '127.0.0.1'];
 const PORT_PROBE_IGNORED_CODES = new Set(['EAFNOSUPPORT', 'EADDRNOTAVAIL']);
@@ -325,21 +328,28 @@ function mirrorRunLog(onLog) {
   };
 }
 
-function spawnCodexEdit({ prompt, imagePath, model, cwd, onLog }) {
+function spawnCodexEdit({ prompt, imagePath, model, cwd, onLog, onChild, signal }) {
   const codexBin = process.env.PPT_AGENT_CODEX_BIN || 'codex';
   const args = buildCodexExecArgs({ prompt, imagePath, model });
   return runEditSubprocess({
     bin: codexBin,
     args,
     cwd,
-    stdio: 'pipe',
+    // Close stdin (`'ignore'`) so the Codex CLI does not wait for additional
+    // piped instructions. Recent Codex versions (>=0.125) print
+    // "Reading additional input from stdin..." and block forever when stdin
+    // is left open as a pipe even though the prompt is already passed via
+    // the trailing argv. This mirrors `spawnClaudeEdit` below.
+    stdio: ['ignore', 'pipe', 'pipe'],
     timeoutMs: EDIT_TIMEOUT_MS,
     engineLabel: 'Codex',
     onLog: mirrorRunLog(onLog),
+    onChild,
+    signal,
   });
 }
 
-function spawnClaudeEdit({ prompt, imagePath, model, cwd, onLog }) {
+function spawnClaudeEdit({ prompt, imagePath, model, cwd, onLog, onChild, signal }) {
   const claudeBin = process.env.PPT_AGENT_CLAUDE_BIN || 'claude';
   const args = buildClaudeExecArgs({ prompt, imagePath, model });
 
@@ -356,6 +366,8 @@ function spawnClaudeEdit({ prompt, imagePath, model, cwd, onLog }) {
     timeoutMs: EDIT_TIMEOUT_MS,
     engineLabel: 'Claude',
     onLog: mirrorRunLog(onLog),
+    onChild,
+    signal,
   });
 }
 
@@ -479,6 +491,79 @@ async function startServer(opts) {
   await mkdir(slidesDirectory, { recursive: true });
 
   const runStore = createRunStore();
+
+  const childProcessesByRunId = new Map();
+  const abortControllersByRunId = new Map();
+
+  function registerAbortController(runId, abortController) {
+    if (!abortController) return;
+    abortControllersByRunId.set(runId, abortController);
+  }
+
+  function trackChild(runId, child) {
+    if (!child || typeof child.kill !== 'function') return;
+    childProcessesByRunId.set(runId, child);
+    child.once('close', () => {
+      if (childProcessesByRunId.get(runId) === child) {
+        childProcessesByRunId.delete(runId);
+      }
+    });
+  }
+
+  function killTrackedChild(runId, { reason } = {}) {
+    const ac = abortControllersByRunId.get(runId);
+    if (ac && !ac.signal.aborted) {
+      try {
+        ac.abort();
+      } catch {}
+    }
+
+    const child = childProcessesByRunId.get(runId);
+    if (!child) return Boolean(ac);
+    childProcessesByRunId.delete(runId);
+    if (child.killed || child.exitCode != null) return true;
+    if (reason) {
+      process.stderr.write(`[editor] killing run ${runId}: ${reason}\n`);
+    }
+    try {
+      child.kill('SIGTERM');
+    } catch {}
+    const forceKill = setTimeout(() => {
+      if (!child.killed && child.exitCode == null) {
+        try {
+          child.kill('SIGKILL');
+        } catch {}
+      }
+    }, 5_000);
+    forceKill.unref?.();
+    return true;
+  }
+
+  function killAllTrackedChildren({ reason, signal = 'SIGTERM' } = {}) {
+    for (const ac of abortControllersByRunId.values()) {
+      if (!ac.signal.aborted) {
+        try {
+          ac.abort();
+        } catch {}
+      }
+    }
+    abortControllersByRunId.clear();
+
+    const ids = Array.from(childProcessesByRunId.keys());
+    for (const runId of ids) {
+      const child = childProcessesByRunId.get(runId);
+      if (!child) continue;
+      childProcessesByRunId.delete(runId);
+      if (child.killed || child.exitCode != null) continue;
+      if (reason) {
+        process.stderr.write(`[editor] killing run ${runId}: ${reason}\n`);
+      }
+      try {
+        child.kill(signal);
+      } catch {}
+    }
+    return ids.length;
+  }
 
   const app = express();
   app.use(express.json({ limit: '5mb' }));
@@ -692,6 +777,18 @@ async function startServer(opts) {
     const screenshotPath = join(tmpPath, 'slide.png');
     const annotatedPath = join(tmpPath, 'slide-annotated.png');
 
+    const abortController = new AbortController();
+    registerAbortController(runId, abortController);
+    let clientDisconnected = false;
+    const handleClientClose = () => {
+      if (clientDisconnected) return;
+      if (res.writableEnded) return;
+      clientDisconnected = true;
+      killTrackedChild(runId, { reason: 'client disconnected before /api/apply finished' });
+    };
+    req.on('close', handleClientClose);
+    res.on('close', handleClientClose);
+
     try {
       await withScreenshotPage(async (page) => {
         await screenshotMod.captureSlideScreenshot(
@@ -732,16 +829,26 @@ async function startServer(opts) {
           runStore.appendLog(runId, chunk);
           broadcastSSE('applyLog', { runId, slide, stream, chunk });
         },
+        onChild: (child) => trackChild(runId, child),
+        signal: abortController.signal,
       });
 
       const engineLabel = isClaudeModel(selectedModel) ? 'Claude' : 'Codex';
-      const success = result.code === 0;
-      const message = success
-        ? `${engineLabel} edit completed.`
-        : (result.timeoutMessage || `${engineLabel} exited with code ${result.code}.`);
+      const aborted = Boolean(result.aborted);
+      const success = !aborted && result.code === 0;
+      let message;
+      if (aborted) {
+        message = result.abortMessage || `${engineLabel} edit was aborted.`;
+      } else if (success) {
+        message = `${engineLabel} edit completed.`;
+      } else {
+        message = result.timeoutMessage || `${engineLabel} exited with code ${result.code}.`;
+      }
+
+      const status = aborted ? 'aborted' : success ? 'success' : 'failed';
 
       runStore.finishRun(runId, {
-        status: success ? 'success' : 'failed',
+        status,
         code: result.code,
         message,
       });
@@ -751,14 +858,20 @@ async function startServer(opts) {
         slide,
         model: selectedModel,
         success,
+        aborted,
         code: result.code,
         message,
       });
       broadcastRunsSnapshot();
 
+      if (clientDisconnected || res.writableEnded) {
+        return;
+      }
+
       res.json({
         ...runSummary,
         success,
+        aborted,
         runId,
         model: selectedModel,
         code: result.code,
@@ -768,7 +881,7 @@ async function startServer(opts) {
       const message = error instanceof Error ? error.message : String(error);
 
       runStore.finishRun(runId, {
-        status: 'failed',
+        status: clientDisconnected ? 'aborted' : 'failed',
         code: -1,
         message,
       });
@@ -778,10 +891,15 @@ async function startServer(opts) {
         slide,
         model: selectedModel,
         success: false,
+        aborted: clientDisconnected,
         code: -1,
         message,
       });
       broadcastRunsSnapshot();
+
+      if (clientDisconnected || res.writableEnded) {
+        return;
+      }
 
       res.status(500).json({
         success: false,
@@ -789,9 +907,22 @@ async function startServer(opts) {
         error: message,
       });
     } finally {
+      req.off?.('close', handleClientClose);
+      res.off?.('close', handleClientClose);
+      childProcessesByRunId.delete(runId);
+      abortControllersByRunId.delete(runId);
       runStore.clearActiveRun(slide, runId);
       await rm(tmpPath, { recursive: true, force: true }).catch(() => {});
     }
+  });
+
+  app.post('/api/runs/:runId/cancel', (req, res) => {
+    const { runId } = req.params;
+    const killed = killTrackedChild(runId, { reason: 'cancelled via /api/runs/:runId/cancel' });
+    if (!killed) {
+      return res.status(404).json({ error: 'No active run for this runId.' });
+    }
+    res.json({ runId, cancelled: true });
   });
 
   let debounceTimer = null;
@@ -812,8 +943,24 @@ async function startServer(opts) {
   process.stdout.write(`  Slides:      ${slidesDirectory}\n`);
   process.stdout.write('  ─────────────────────────────────────\n\n');
 
+  let shuttingDown = false;
   async function shutdown() {
+    if (shuttingDown) return;
+    shuttingDown = true;
     process.stdout.write('\n[editor] Shutting down...\n');
+
+    const killedCount = killAllTrackedChildren({
+      reason: 'editor server is shutting down',
+      signal: 'SIGTERM',
+    });
+    if (killedCount > 0) {
+      process.stdout.write(`[editor] Sent SIGTERM to ${killedCount} active edit subprocess(es).\n`);
+      await new Promise((resolve) => {
+        const t = setTimeout(resolve, 1_000);
+        t.unref?.();
+      });
+    }
+
     watcher.close();
     for (const client of sseClients) {
       client.end();
@@ -826,6 +973,14 @@ async function startServer(opts) {
 
   process.on('SIGINT', shutdown);
   process.on('SIGTERM', shutdown);
+
+  return {
+    server,
+    shutdown,
+    childProcessesByRunId,
+    killTrackedChild,
+    killAllTrackedChildren,
+  };
 }
 
 const args = process.argv.slice(2);
