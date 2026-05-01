@@ -24,7 +24,7 @@ The editor is pure javascript file. You can easily add up new features like addi
 
 <p align="center">
   <strong>👉 See what slides-grab can do:</strong>
-  <a href="https://vkehfdl1.github.io/slides-grab/"><strong>Live Showcase Gallery</strong></a><br>
+  <a href="https://nomadamas.github.io/slides-grab/"><strong>Live Showcase Gallery</strong></a><br>
   Real presentations built with slides-grab — open any deck and flip through the slides.
 </p>
 
